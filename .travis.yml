@@ -2,6 +2,9 @@ language: r
 cache:
   - packages
   - pip
+  directories:
+  - $HOME/python-env-OUTRIDER/lib
+  - $HOME/R/Library
 sudo: required
 dist: trusty
 
