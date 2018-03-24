@@ -1,5 +1,7 @@
 language: r
-cache: packages pip
+cache:
+  - packages
+  - pip
 sudo: required
 dist: trusty
 
