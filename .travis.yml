@@ -2,9 +2,9 @@ language: r
 cache:
   - packages
   - pip
-  directories:
-  - $HOME/python-env-OUTRIDER/lib
-  - $HOME/R/Library
+  - directories:
+    - $HOME/python-env-OUTRIDER/lib
+    - $HOME/R/Library
 sudo: required
 dist: trusty
 
@@ -38,6 +38,6 @@ script:
   - R CMD build --no-build-vignettes .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - Rscript -e "library('OUTRIDER'); covr::package_coverage('.')"
-  - travis_wait R CMD check --no-vignettes --timings *tar.gz
+#  - travis_wait R CMD check --no-vignettes --timings *tar.gz
 #  - travis_wait R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
 
