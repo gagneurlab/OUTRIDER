@@ -10,12 +10,6 @@ matrix:
     - r: bioc-release
     - r: bioc-devel
 
-r_packages:
-  - devtools
-
-r_github_packages:
-  - jimhester/covr
-
 addons:
   apt:
     packages:
@@ -31,6 +25,8 @@ before_install:
   - pip install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
 
 install:
+  - R -e "install.packages('devtools', repos='http://cran.rstudio.com/')"
+  - R -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstaller')"
   - R -e 'devtools::install_deps(dep = T)'
   - R -e 'devtools::install()'
 
