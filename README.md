@@ -1,7 +1,9 @@
 # OUTRIDER #
+
+[![Pipeline status](https://travis-ci.org/gagneurlab/OUTRIDER.svg?branch=master)](https://travis-ci.org/gagneurlab/OUTRIDER)
+[![Coverage status](https://codecov.io/gh/gagneurlab/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/gagneurlab/OUTRIDER?branch=master)
 [![Coverage status](https://codecov.io/gh/c-mertes/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/c-mertes/OUTRIDER?branch=master)
-[![pipeline status](https://i12g-gagneurweb.informatik.tu-muenchen.de/gitlab/brechtma/scared/badges/master/pipeline.svg)](https://i12g-gagneurweb.informatik.tu-muenchen.de/gitlab/brechtma/scared/commits/master)
-[![coverage report](https://i12g-gagneurweb.informatik.tu-muenchen.de/gitlab/brechtma/scared/badges/master/coverage.svg)](https://i12g-gagneurweb.informatik.tu-muenchen.de/gitlab/brechtma/scared/commits/master)
+[![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/gagneurlab/OUTRIDER/blob/master/LICENSE)
 
 ## Installation
 
