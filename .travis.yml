@@ -36,11 +36,8 @@ install:
 
 script:
   - R CMD build .
-  - R CMD check *tar.gz
-  - R CMD check --no-vignettes --timings *tar.gz
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - Rscript -e "library('OUTRIDER'); covr::package_coverage('.')"
-  - R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
-
-
+  - travis_wait R CMD check --no-vignettes --timings *tar.gz
+  - travis_wait R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
 
