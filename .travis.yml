@@ -12,7 +12,7 @@ addons:
   apt:
     packages:
       - libxml2-dev
-      - python3-venv
+      - python3.4-venv
       - python3-pip
 
 before_install:
