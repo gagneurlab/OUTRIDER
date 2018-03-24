@@ -12,11 +12,12 @@ addons:
   apt:
     packages:
       - libxml2-dev
-      - python
+      - python3-venv
+      - python3-pip
 
 before_install:
   - tlmgr install index
-  - python -m venv ~/python-env-OUTRIDER
+  - python3 -m venv ~/python-env-OUTRIDER
   - source ~/python-env-OUTRIDER/bin/activate
   - pip install --upgrade https://github.com/gagneurlab/autoCorrection@master
 
