@@ -1,4 +1,5 @@
 # OUTRIDER #
+[![Coverage status](https://codecov.io/gh/c-mertes/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/c-mertes/OUTRIDER?branch=master)
 [![pipeline status](https://i12g-gagneurweb.informatik.tu-muenchen.de/gitlab/brechtma/scared/badges/master/pipeline.svg)](https://i12g-gagneurweb.informatik.tu-muenchen.de/gitlab/brechtma/scared/commits/master)
 [![coverage report](https://i12g-gagneurweb.informatik.tu-muenchen.de/gitlab/brechtma/scared/badges/master/coverage.svg)](https://i12g-gagneurweb.informatik.tu-muenchen.de/gitlab/brechtma/scared/commits/master)
 

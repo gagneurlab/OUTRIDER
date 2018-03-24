@@ -37,7 +37,7 @@ Imports:
     plyr,
     reticulate,
     LSD
-Suggests:
+Suggests: 
     testthat,
     knitr,
     rmarkdown,
@@ -46,7 +46,8 @@ Suggests:
     org.Hs.eg.db,
     RMySQL,
     AnnotationDbi,
-    beeswarm
+    beeswarm,
+    covr
 Collate:
     package-OUTRIDER.R
     class-OutriderDataSet.R
