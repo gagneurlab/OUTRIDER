@@ -31,7 +31,7 @@ install:
   - R -e 'devtools::install()'
 
 script:
-  - R CMD build .
+  - R CMD build --no-build-vignettes .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - Rscript -e "library('OUTRIDER'); covr::package_coverage('.')"
   - travis_wait R CMD check --no-vignettes --timings *tar.gz
