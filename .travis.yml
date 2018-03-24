@@ -1,13 +1,13 @@
 language: r
+sudo: required
+dist: trusty
 cache:
   - packages
   - pip
   - directories:
     - $HOME/python-env-OUTRIDER/lib
     - $HOME/R/Library
-sudo: required
-dist: trusty
-
+    - $HOME/.cache/pip
 matrix:
   include:
     - r: bioc-release
