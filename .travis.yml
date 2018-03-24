@@ -1,0 +1,36 @@
+language: r
+cache: packages pip
+sudo: required
+dist: trusty
+
+matrix:
+  include:
+    - r: bioc-release
+    - r: bioc-devel
+
+addons:
+  apt:
+    packages:
+      - libxml2-dev
+      - python
+
+before_install:
+  - tlmgr install index
+  - python -m venv ~/python-env-OUTRIDER
+  - source ~/python-env-OUTRIDER/bin/activate
+  - pip install --upgrade https://github.com/gagneurlab/autoCorrection@master
+
+install:
+  - R -e 'devtools::install_deps(dep = T)'
+  - R -e 'devtools::install()'
+
+script:
+  - R CMD build .
+  - R CMD check *tar.gz
+  - R CMD check --no-vignettes --timings *tar.gz
+  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
+  - Rscript -e "library('OUTRIDER'); covr::package_coverage('.')"
+  - R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
+
+
+
