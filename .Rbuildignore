@@ -1,0 +1,13 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+
+vignettes/cache
+vignettes/figure
+vignettes/scared-knitr.Rnw
+
+.gitlab-ci.yml
+.gitignore
+.git
+
+tmp_lib
+ucsc.knownGenes.db

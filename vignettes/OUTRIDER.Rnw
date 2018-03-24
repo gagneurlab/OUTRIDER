@@ -1,0 +1,463 @@
+%\VignetteIndexEntry{OUTRIDER: OUTlier in RNA-seq fInDER}
+%\VignettePackage{OUTRIDER}
+%\VignetteEngine{knitr::knitr}
+%\VignetteEncoding{UTF-8}
+
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{verbatim}
+\newcommand{\outrider}{\Biocpkg{OUTRIDER}}
+\newcommand{\rna}{RNA-seq}
+\newcommand{\deseq}{\Biocpkg{DESeq2}}
+\newcommand{\ods}{\Rclass{OutriderDataSet}}
+
+\title{OUTRIDER - OUTlier RNA-Seq fInDER}
+
+<<style, eval=TRUE, echo=FALSE, results="asis">>=
+BiocStyle::latex()
+@
+
+<<knitr, echo=FALSE, cache=FALSE, results="hide">>=
+library("knitr")
+opts_chunk$set(
+    tidy=FALSE,
+    dev="png",
+    fig.width=7,
+    fig.height=7,
+    dpi = 300,
+    message=FALSE,
+    warning=FALSE,
+    cache=TRUE
+)
+@
+
+\author{
+    Felix Brechtmann$^{1}$, Christian Mertes$^{1}$, Agne Matuseviciute$^{1}$, Vicente Yepez$^{1}$, Julien Gagneur$^{1}$ \\
+    \small{$^{1}$ Technische Universit\"at M\"unchen, Department of Informatics, Garching, Germany}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+In the field of diagnostics of rare diseases, \rna{} is emerging as an important and 
+complementary tool for whole exome and whole genome sequencing. \outrider{} is a framework which detects 
+aberrant gene expression within a group of samples. It uses the negative 
+binomial distribution which is fitted for each gene over all samples. 
+We additionaly provide an autoencoder, which automatically controls for covariation before fitting.
+After the fit, each sample can be tested for aberrantly expressed genes. Furthermore,
+\outrider{} provides methods to easily filter unexpressed genes and visualize the results.
+
+\vspace{3em}
+
+\begin{center}
+\begin{tabular}{ | l | }
+\hline
+If you use \outrider{} in published research, please cite:  \\
+\\
+Brechtmann F, Matuseviciute A, Mertes C, Yepez V, Avsec Z, Bader D, Prokisch H, Gagneur J, \emph{et al.} \\
+\textbf{Detection of aberrant expression - OUTlier Rna-Seq fInDER} \\
+\emph{bioRxiv}\\
+\hline
+\end{tabular}
+\end{center}
+
+\end{abstract}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+
+<<hiden_config, echo=FALSE, cache=FALSE>>=
+suppressPackageStartupMessages({
+    library(reticulate)
+    library(OUTRIDER)
+    library(beeswarm)
+})
+register(MulticoreParam(6, 18))
+
+# check the python environment if its there (hack needed for mac)
+if(file.exists('~/python-env-OUTRIDER/bin/activate')){
+    use_virtualenv('~/python-env-OUTRIDER/')
+} else if(file.exists('~/python/myvenv/bin/activate')){
+    use_virtualenv('~/python/myvenv/')
+}
+@
+
+\section{Introduction}
+\outrider{} (OUTlier in Rna-seq fInDER) is a tool to find aberrantly expressed genes in RNA-seq samples.
+It does so by fitting a negative binomial model on RNA-seq read counts, correcting for variatiosn in
+sequeiuncg depth and  appranet co-variations across samples. Read counts significantly deviating 
+from the distribution are detected as outliers.
+
+Differential gene expression analysis from RNA-seq data is well-established. For instance, 
+the packages \deseq{} or \Biocpkg{edgeR} provide effective workflows and preprocessing steps
+to perform differential gene expression analysis. However, these methods aim at detecting 
+significant differences betwen groups of samples. In contrast, \outrider{} aims at detecting
+outliers within a given population. A scheme of this difference is given in figure \ref{fig:deVsOutlier}.
+
+<<deVsOutlier, echo=FALSE, fig.height=5, fig.cap="Scheme of workflow differences. Differences between differential gene expression analysis and outlier detection.">>=
+par.old <- par(no.readonly=TRUE)
+par(mfrow=c(1,2), cex=1.2)
+ylim <- c(80, 310)
+a <- rnorm(10, 250, 10)
+b <- rnorm(10, 120, 10)
+c <- rnorm(100, 250, 20)
+c[1] <- 105
+beeswarm(list(A=a, B=b), main="Differential expression\nanalysis",
+     xlab="Condition", ylab="Expression", ylim=ylim, pch=20, 
+     col=c("darkblue", "firebrick"))
+beeswarm(c, main="Outlier detection", ylim=ylim, pch=20, 
+    xlab="Population", ylab="Expression", col="firebrick")
+
+par(par.old)
+@
+
+\section{Prerequisites}
+To get started on the preprocessing, step we recommend to read the introductions of the aforementioned tools
+or the RNA-seq workflow from Bioconductor. In brief, one starts usually of with the raw FASTQ files from the sequencing run.
+Those are then aligned to a given reference genome. As of now (March 2018) we recommend the STAR aligner.
+After obtaining the aligned BAM files one can map the reads to exons of a GTF annotation file using HT-seq.
+The resulting count table can then be loaded into the \outrider{} package as we will describe below.
+
+\section{A quick tour}
+
+Here we assume that we already have a count table and no additional preprocessing needs to be done. 
+Then we can start and obtain results with 3 commands. First, create an \ods{} from a count table, 
+then run the full pipeline using the command \Rfunction{OUTRIDER}. In a third step,
+a results table can be generated from the \ods{} with the \Rfunction{results} function.
+Furthermore, analysis plots, which are described in section \ref{sec:Results}, can be made from the \ods{} object.
+
+<<quick_guide, fig.height=5>>=
+library(OUTRIDER)
+
+# get data
+ctsFile <- system.file('extdata', 'KremerNBaderSmall.tsv', 
+        package='OUTRIDER')
+ctsTable <- read.table(ctsFile, check.names=FALSE)
+ods <- OutriderDataSet(countData=ctsTable)
+
+# filter out non expressed genes
+ods <- filterExpression(ods, onlyZeros=TRUE, filterGenes=TRUE)
+
+# run full OUTRIDER pipeline (control, fit model, calculate P-values)
+ods <- OUTRIDER(ods)
+
+# results (only significant)
+res <- results(ods)
+head(res)
+
+#example of a QQplot for the first outlier.
+geneID <- res[1, geneID]
+plotQQ(ods, geneID)
+@
+
+\section{\outrider{} analysis in detail}
+
+For this Tutorial we will use the full rare disease data set from Kremer and Bader et al.
+For testing this package contains also a subset of this.
+
+<<GetDataSet>>=
+URL <- paste0("https://media.nature.com/original/nature-assets/", 
+        "ncomms/2017/170612/ncomms15824/extref/ncomms15824-s1.txt")
+ctsTable <- read.table(URL, sep="\t")
+
+# create OutriderDataSet object
+ods <- OutriderDataSet(countData=ctsTable)
+@
+
+\subsection{Preprocessing}
+
+It is recommendable to apply some data preprocessing before fitting.
+Our model requires that there is at least one count in each gene, and for large data sets 
+at least one count in 100 samples. Therefore, all genes that are not expressed at all must be discarded.
+
+In a specific tissue not all genes are expressed. Therefore, we provide the function 
+\Rfunction{filterExpression} to remove genes which have a low FPKM expression value.
+The needed annotation to estimate FPKM values from the counts should be the same as for the counting.
+Here, we normalize by the total exon length of a gene.
+
+By default the cutoff is set to an FPKM value of one and only the filtered \ods{} object is returned.
+If required, the FPKM values can be stored into the \ods{} object and the full object can be returned
+to visualize the distribution of reads before and after filtering. 
+
+<<Preprocessing, fig.height=5>>=
+# get annotation
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(org.Hs.eg.db)
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+map <- select(org.Hs.eg.db, keys=keys(txdb, keytype = "GENEID"), 
+        keytype="ENTREZID", columns=c("SYMBOL"))
+@
+
+The \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} only contains well annotated genes. This annotation
+will miss a lot of genes. To include all predicted annotations as well as non-coding RNAs please 
+download the txdb object from our homepage
+\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
+or create it yourself from the UCSC website\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
+
+<<create txdb, eval=FALSE>>=
+library(RMySQL)
+library(AnnotationDbi)
+txdbUrl <- paste0("https://i12g-gagneurweb.in.tum.de/public/",
+        "paper/mitoMultiOmics/ucsc.knownGenes.db")
+download.file(txdbUrl, "ucsc.knownGenes.db")
+txdb <- loadDb("ucsc.knownGenes.db")
+con <- dbConnect(MySQL(), host='genome-mysql.cse.ucsc.edu', 
+        dbname="hg19", user='genome')
+map <- dbGetQuery(con, 'select kgId AS TXNAME, geneSymbol from kgXref')
+
+@
+
+<<filtering, fig.height=5>>=
+# Calculating fpkm values and only labeling not expressed genes
+ods <- filterExpression(ods, txdb, mapping=map, 
+        filterGenes=FALSE, savefpkm=TRUE)
+
+# Display the pre distribution of counts.
+plotFPKM(ods)
+
+# do the actuall subsetting based on the filtering labels
+ods <- filterExpression(ods, txdb, mapping=map,
+        filterGenes=TRUE, savefpkm=TRUE)
+@
+
+\subsection{Controlling for Confounders}
+
+A next step in any analysis workflow is to visualize the correlations between samples. 
+Here, we observe that samples are correlated. These correlations are often due to confounders, 
+technical like the sequencing batch, or biological ones like gender. These cofounders 
+can harm the detection of aberrant features. Therefore, we provide options to control for them.
+
+<<plotting_between_sample_correlations>>=
+
+# Heatmap plot sample correlation
+# It annotates also the clusters as of the dendrogram
+ods <- plotCountCorHeatmap(ods, normalized=FALSE, nCluster=5)
+
+@
+
+Now we have different ways to control for confounders present in the data.
+The first and standard way is to calculate the \Rfunction{sizeFactors} as done in \deseq{}. 
+
+Additionally calling the \Rfunction{autoCorrect} function calls an autoencoder, which automatically controls
+for confounders present in the data. After controlling for cofounders the heatmap should be plotted again.
+If it worked, no batches should be present and the correlations between samples should be close to zero.
+
+<<controlling_for_confounders>>=
+
+# Control for confounders 
+ods <- estimateSizeFactors(ods)
+ods <- autoCorrect(ods)
+
+# Heatmap plot sample correlation
+ods <- plotCountCorHeatmap(ods, normalized=TRUE)
+
+@
+
+Alternatively, a \Rfunction{normalizationFactor} matrix can be provided. It must be computed beforehand using any method.
+Its purpose is to normalize for technical effects or control for additional expression patterns.
+
+\subsection{Fitting}
+
+After all the preprocessing part, we can finally start the fitting and testing. 
+We provide a single wrapper function \Rfunction{OUTRIDER} to run the full pipeline, but it can also be run step by step. 
+By default the \Rfunction{OUTRIDER} function runs all analysis functions and controlls the counts using autoCorrect.
+If autoCorrect is not installed, a warning is returned and the analysis skips the correction part automatically.
+It does not include any preprocessing functions. If counts need to be discared it has to be done manually 
+before running the \Rfunction{OUTRIDER} function or starting the analysis pipeline.
+
+To fit the dispersion and the mean, the \Rfunction{fit} function is applied to the \ods{}.
+
+<<fitting>>=
+# fit NB to feature counts
+ods <- fit(ods)
+
+# plot dispersion versus mean counts
+plotDispEsts(ods)
+@
+
+\subsection{P-value computation}
+
+After determining the fit parameters, two-sided P-values are computed using the following equation:
+
+\begin{equation}
+p_{ij} = 2 \cdot min \left\{\frac{1}{2},  \sum_{0}^{k_{ij}} NB(\mu_i\cdot c_{ij} ,\theta_i), 1 - \sum_{0}^{k_{ij-1}} NB(\mu_i\cdot c_{ij} ,\theta_i) \right\}
+\end{equation}
+
+where the $\frac{1}{2}$ term handles the case of both terms exceeding 0.5, which can happen due
+to the discrete nature of the negative binomial distribution. If required a one-sided test can be
+computed using the alternative argument and specifying 'less' or 'greater' depending on the research question.
+Multiple testing correction is done across all genes in a per-sample fashion using Benjamini-Hochberg’s
+False Discovery Rate method (Benjamini and Hochberg 1995). Alternatively all other by \Rfunction{p.adjust}
+supported Methods can be used via the parameter \Robject{method}.
+
+<<pValue_computation>>=
+# compute pValues (nominal and adjusted)
+ods <- computePvalues(ods, alternative="two.sided")
+@
+
+\subsection{Z-score calculation}
+The Z-scores on the log2 transformed counts can be used for visualization, filtering, and ranking of samples.
+By running the \Rfunction{computeZscores} function the Z-scores are precomputed and stored in the \ods{} object.
+
+<<zScore_computation>>=
+# compute and store the Z-scores
+ods <- computeZscores(ods)
+@
+
+\section{Results}
+\label{sec:Results}
+The \outrider{} package offers mutiple ways to display the results. It creates a result table containing all the 
+values computed during the analysis. Alternatively, it offers various plot functions, which guide through the analysis. 
+
+\subsection{Result table}
+
+The \Rfunction{results} function gathers all the previously computed values and combines them into one table.
+
+<<results>>=
+# get results (only significant, padj < 0.05)
+res <- results(ods)
+head(res)
+
+# setting a different significant level
+res <- results(ods, padj=0.1)
+head(res)
+@
+
+
+\subsection{Number of aberrant genes per sample}
+
+One quantity of interest is the number of aberrantly expressed genes per sample.
+This can be diplayed using the \Rfunction{plotAberrantPerSample} plotting function.
+Alternatively, the \Rfunction{aberrant} function can be used to compute the number of aberrant counts.
+Those can be computed by sample, gene or in the whole data set. These numbers depend on the 
+cutoffs, which can be specified in both functions.
+
+<<aberrantperSample, fig.height=5>>=
+# Number of aberrant genes per sample
+tail(sort(aberrant(ods, by="sample")))
+tail(sort(aberrant(ods, by="gene", zScore=1)))
+
+# Plotting the aberrant events per sample
+plotAberrantPerSample(ods, padj=0.05)
+@
+
+%We can see that one gene is often detected as aberrently expressed. On a closer look, we see 
+%a bi-model distribution. Furthermore, one can see that this gene does not reach a 
+%very high absolute Z-score. For the sack of this tutorial we will remove for now this
+%gene.
+
+%<<cleanup of genes>>=
+%ods <- ods[rownames(ods) != 'EIF1AY']
+%@
+
+\subsection{Volcano plots}
+
+To view the distribution of P-values on a sample level, volcano plots can be displayed.
+Most of the plots do make use of the \CRANpkg{plotly} framework to create interactive plots.
+For the vignette we will always use the basic R functionality from \CRANpkg{graphics}. 
+
+<<volcano, fig.height=5>>=
+#This is a diagnosed sample from Kremer and Bader et al.
+plotVolcano(ods, "MUC1344", basePlot=TRUE)
+@
+
+
+\subsection{Gene plots}
+
+Additionally, we include two more plots at the gene level. \Rfunction{plotExpressionRank}, 
+plots the counts in ascending order. By default the controlled counts are plotted. 
+If required, the argument \Robject{normalized} can be set to FALSE, to plot the raw counts. 
+
+When using the \CRANpkg{plotly} framework for plotting. all computed values are displayed
+for each data point. The user can access this information by hovering over each data point with the mouse.
+
+<<visualization2, fig.height=5>>=
+# Expression rank of an outlier gene
+plotExpressionRank(ods, "TIMMDC1", basePlot=TRUE)
+@
+
+The QQ-plot can be used to see whether the fit converged well. In presence of the outliers, 
+it can happen that most of the points end up below the confindence band. This is fine and
+indicates that we have conservative P-values for the other points. Here is an example with 
+two outliers:
+
+<<visualization3, fig.height=5>>=
+## a QQ-plot for a given gene
+plotQQ(ods, "TIMMDC1", legendPos="topleft")
+@
+
+\section{Saving and loading of models}
+
+Fit parameters can be saved and loaded to simplify the analysis or to precompute models, for later use in another data set.
+
+Eather a file path can be added in the \Rfunction{fit} function or the 
+\Rfunction{writeNBModel} function can be used to save the model after fitting.
+
+<<modelSaving>>=
+# Make an OutriderDataSet and compute the fit.
+ods <- makeExampleOutriderDataSet()
+ods <- estimateSizeFactors(ods)
+ods <- fit(ods)
+
+# Save the model to disk: 'model.tsv'.
+writeNBModel(ods, 'model.tsv')
+@
+
+After saving the model to disk the model can be used in a new analysis where
+we want to reuse it without fitting again the data. In the following code chunk
+we show how we load the model from disk into a newly created \ods{} object.
+Afterwards, \Rfunction{estimateSizeFactors} has to be called to compute size factors,
+wich are based on the loaded parameter set. Then the analysis functions 
+\Rfunction{computePvalues} and \Rfunction{computeZscores} can be called.
+
+<<modelLoad>>=
+# Create a new data set and load the model
+ods2 <- makeExampleOutriderDataSet()
+ods2 <- readNBModel(ods2, 'model.tsv')
+
+# do the analysis based on the loaded model
+ods2 <- estimateSizeFactors(ods2)
+ods2 <- computePvalues(ods2)
+ods2 <- computeZscores(ods2)
+@
+
+Alternatively the model file path can be specified in the \Rfunction{computePvalues} function.
+Then the model is loaded, the size Factors get estiamted and the P-values are computed.
+
+In the same fashion, the autoencoder parameters can be written to or loaded from a directory.
+For saving, a model name and directory have to be specified in the \Rfunction{autoCorrect}
+function call. If the modell should be reused the user has to specify the same model name and 
+directory in the \Rfunction{autoCorrect} function and additionally set the \Robject{predict} option to TRUE.
+This option can only be used in combination with the above mentioned method, to have a common reference for the size factors.
+
+<<modelLoadingSavingAE>>=
+# Saving
+ods <- makeExampleOutriderDataSet(m=50)
+ods <- estimateSizeFactors(ods)
+ods <- autoCorrect(ods, save=TRUE, modelName='AEModel',
+        modelDirectory='.')
+
+# Loading
+ods <- makeExampleOutriderDataSet(m=100)
+ods <- estimateSizeFactors(ods)
+ods <- autoCorrect(ods, predict=TRUE, modelName='AEModel',
+        modelDirectory='.')
+@
+
+\section*{Session info}
+
+Here is the output of \Rfunction{sessionInfo()} on the system on which this document was compiled:
+
+<<sessionInfo, echo=FALSE>>=
+sessionInfo()
+@
+
+\end{document}

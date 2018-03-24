@@ -1,0 +1,5 @@
+INITIAL SETUP OF OUTRIDER VERSION 0.99.2
+-----------------------------
+	o Initial setup of OUTRIDER package
+	
+	o Added autoCorrect (Auto Encoder) as normalization function
