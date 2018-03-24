@@ -30,15 +30,15 @@ install:
   - R -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstaller')"
   - R -e "BiocInstaller::biocLite(c('covr', 'BiocCheck'))"
   - R -e "BiocInstaller::biocLite('DESeq2')"
-#  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
-#  - R -e 'devtools::install()'
+  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
+  - R -e 'devtools::install()'
 
 script:
   - echo 'hello world'
-#  - R CMD build --no-build-vignettes .
-#  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
-#  - travis_wait R CMD check --no-vignettes --timings *tar.gz
-#  - travis_wait R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
+  - R CMD build --no-build-vignettes .
+  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
+  - travis_wait R CMD check --no-vignettes --timings *tar.gz
+  - travis_wait R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
 
 after_success:
   - Rscript -e 'covr::codecov()'
