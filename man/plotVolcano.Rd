@@ -2,7 +2,7 @@
 % Please edit documentation in R/method-plot.R
 \name{plotVolcano}
 \alias{plotVolcano}
-\title{Volcano plot for a given sample over all genes.}
+\title{Volcano plot}
 \usage{
 plotVolcano(ods, sampleID, padj = 0.05, basePlot = FALSE)
 }
@@ -15,6 +15,9 @@ Can also be a vector of samples.}
 \item{padj}{padj cutoff}
 
 \item{basePlot}{R base plot version of the plot.}
+}
+\value{
+None
 }
 \description{
 Volcano plot for a given sample over all genes.

@@ -16,6 +16,8 @@ results(object, ...)
 \arguments{
 \item{object}{OutriderDataSet}
 
+\item{...}{additional arguments, currently not used}
+
 \item{padj}{padj cutoff}
 
 \item{zScore}{absolute Z-score cutoff}
@@ -24,6 +26,10 @@ results(object, ...)
 
 \item{all}{By default FALSE, only significant read counts are listed in the 
 results.}
+}
+\value{
+A data.table where each row is an outlier event and the columns
+            contain additional information about this event. Eg padj, l2fc
 }
 \description{
 This function extracts all results based on the given filter criteria.

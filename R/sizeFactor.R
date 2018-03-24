@@ -16,6 +16,10 @@
 #'         estimateSizeFactors estimateSizeFactors,OutriderDataSet-method
 #'         
 #' @param object OutriderDataSet
+#' @param value A numberic vector of sizeFactors
+#' @return An OutriderDatasSet with the estimated sizeFactors or with the 
+#'             getter function it returns a numeric vector containing the 
+#'             sizeFactors.
 #' 
 #' @seealso \code{\link[DESeq2]{estimateSizeFactors}}
 #' 
@@ -24,7 +28,7 @@
 #' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 #' ods <- estimateSizeFactors(ods)
 #' head(sizeFactors(ods))
-#'   
+#' 
 #' sizeFactors(ods) <- runif(dim(ods)[2], 0.5, 1.5)
 #' sizeFactors(ods)
 #' counts(ods, normalized=TRUE)[1:10,1:10]
@@ -79,7 +83,7 @@ estimateSizeFactors.OUTRIDER <- function(object){
     
     if(all(is.infinite(loggeomeans))){
         stop(paste("Every gene contains at least one zero,",
-                   "cannot compute log geometric means"))
+                "cannot compute log geometric means"))
     }
     
     sf <- apply(counts(object), 2, function(cnts) {

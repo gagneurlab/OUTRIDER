@@ -5,9 +5,7 @@
 \alias{fit}
 \alias{fit,OutriderDataSet-method}
 \alias{fit,OutriderDataSet-method}
-\title{Fit a NB distribution to the genecounts per gene over all samples using the
-precomputed control factors.
-Parallized version.}
+\title{Fit negative bionmial distribution}
 \usage{
 fit(object, ...)
 
@@ -17,22 +15,27 @@ fit(object, ...)
 \arguments{
 \item{object}{OutriderDataSet}
 
-\item{...}{additional arguments.}
+\item{...}{additional arguments, currently not used.}
+
+\item{dropExtremeRank}{Default FALSE, should not be used anymore.}
 
 \item{modelFile}{file name to save the estimated parameters}
 
 \item{BPPARAM}{by default bpparam()}
 }
+\value{
+An OutriderDataSet object with the fitted model. Accessible through:
+            \code{mcols(ods)[,c('mu', 'disp')]}.
+}
 \description{
-Fit a NB distribution to the genecounts per gene over all samples using the
-precomputed control factors.
-Parallized version.
+Fit a negative binomial (NB) distribution to the counts per gene
+over all samples using the precomputed control factors.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
-  
+
 mcols(ods)[1:10,c('mu', 'disp')]
-  
+
 }

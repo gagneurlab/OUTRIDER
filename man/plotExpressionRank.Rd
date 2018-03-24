@@ -2,10 +2,10 @@
 % Please edit documentation in R/method-plot.R
 \name{plotExpressionRank}
 \alias{plotExpressionRank}
-\title{Plot expression over expression rank per gene.
-The plot can be used before and after fitting.}
+\title{Expression rank plot}
 \usage{
-plotExpressionRank(ods, geneID, padj = 0.05, basePlot = FALSE)
+plotExpressionRank(ods, geneID, padj = 0.05, normalized = TRUE,
+  basePlot = FALSE)
 }
 \arguments{
 \item{ods}{A OUTRIDER data set.}
@@ -15,7 +15,13 @@ If multiple gene ids are supplied mulitple plots will be made.}
 
 \item{padj}{padj cutoff for coloring significant genes}
 
+\item{normalized}{if TRUE the normalized counts are used 
+otherwise the raw counts}
+
 \item{basePlot}{R base plot version.}
+}
+\value{
+None
 }
 \description{
 Plot expression over expression rank per gene.

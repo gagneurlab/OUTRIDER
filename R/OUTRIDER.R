@@ -1,23 +1,27 @@
 #' 
+#' OUTRIDER - Full analysis pipeline
+#' 
 #' The OUTRIDER function runs the default OUTRIDER pipline. 
 #' Combinig the fit, the computation of zScores and pValues.
 #' All computed values are returned as a OutriderDataSet object.
 #' 
-#' The values can be accessed by: assays(ods)[['value']] 
-#' 
 #' @param object main OutriderDataSet object, which contains all the data 
 #' @param autoControl option, to run autoControl
-#'
-#' @return OutriderDataSet with all the computed values
+#' @param save if TRUE the models will be saved to disk
+#' @param acModelName the autoCorrection model name for saving the model
+#' @param acModelDir The directory where autoCorrection should save the model
+#' @param nbModelFile The file where the negative binomial model should be saved
+#' @return OutriderDataSet with all the computed values. The values can be 
+#'             accessed by: \code{assays(ods)[['value']]}
 #'
 #' @examples
 #' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 #' ods <- OUTRIDER(ods)
-#'   
+#' 
 #' assays(ods)[['pValue']][1:10,1:10]
 #' res <- results(ods)
 #' plotVolcano(ods, 1)
-#'   
+#' 
 #' @export
 OUTRIDER <- function(object, autoControl=TRUE, save=FALSE,
             acModelName=NULL, acModelDir=NULL, nbModelFile=NULL){

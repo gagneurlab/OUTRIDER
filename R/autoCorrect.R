@@ -6,10 +6,11 @@
 #'
 #' @param ods an OutriderDataSet object
 #' @param predict run autoCorrect in predict mode, which means that the 
-#'                prediction is based on a given model. Need a prefitted model.
+#'             prediction is based on a given model. Need a prefitted model.
 #' @param save if TRUE, the fitted model will be saved to the given location.
 #' @param modelName Name of the model to read/write
-#' @param modelDirectory Directory where the model is located or should be stored
+#' @param modelDirectory The directory where the model is located 
+#'             or should be stored
 #' 
 #' @return An ods object including the control factors 
 #'
@@ -53,7 +54,8 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE,
     # correctionFactors is a matrix of the same dimension as k
     autoCorrectObj <- import("autoCorrection")
     corrected <- autoCorrectObj$correctors$AECorrector(modelName,
-            modelDirectory, save_model=save)$correct(kt, sfm, only_predict=predict)
+            modelDirectory, save_model=save)$correct(
+                    kt, sfm, only_predict=predict)
     correctionFactors <- t(corrected)
     stopifnot(identical(dim(k), dim(correctionFactors)))
     

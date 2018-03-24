@@ -16,17 +16,19 @@ computePvalues(object, ...)
 \arguments{
 \item{object}{object}
 
-\item{alternative}{"two.sided", "greater" or "less" P-values can be computed, default is 
-"two.sided"}
+\item{...}{additional params, currently not used.}
+
+\item{alternative}{"two.sided", "greater" or "less" P-values can 
+be computed, default is "two.sided"}
 
 \item{method}{method used for multiple testing}
 
-\item{BPPARAM}{by default bpparam()}
+\item{modelFile}{The file name where the fit model should be taken from}
 
-\item{by}{direction of multiple testing correction, by default: sample.}
+\item{BPPARAM}{by default bpparam()}
 }
 \value{
-a OutriderDataSet object with computed pValues and padjust as an assay
+An OutriderDataSet object with computed P-values and padjusted values
 }
 \description{
 Computes two matrices with the same dimension as the count matrix, 

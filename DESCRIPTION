@@ -17,6 +17,7 @@ Depends:
     data.table, 
     methods
 Imports:
+    Biobase,
     BiocGenerics,
     RColorBrewer,
     tidyr,

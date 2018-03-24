@@ -1,12 +1,16 @@
 #'
-#' Fit a NB distribution to the genecounts per gene over all samples using the
-#' precomputed control factors.
-#' Parallized version.
+#' Fit negative bionmial distribution
+#' 
+#' Fit a negative binomial (NB) distribution to the counts per gene
+#' over all samples using the precomputed control factors.
 #' 
 #' @param object OutriderDataSet
+#' @param dropExtremeRank Default FALSE, should not be used anymore.
 #' @param modelFile file name to save the estimated parameters
 #' @param BPPARAM by default bpparam()
-#' @param ... additional arguments.
+#' @param ... additional arguments, currently not used.
+#' @return An OutriderDataSet object with the fitted model. Accessible through:
+#'             \code{mcols(ods)[,c('mu', 'disp')]}.
 #' 
 #' @docType methods
 #' @name fit
@@ -17,18 +21,18 @@
 #' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
-#'   
+#' 
 #' mcols(ods)[1:10,c('mu', 'disp')]
-#'   
+#' 
 #' @exportMethod fit 
 setGeneric("fit", function(object, ...) standardGeneric("fit"))
 
 #' @rdname fit
 #' @export
 setMethod("fit", "OutriderDataSet", function(object, dropExtremeRank=FALSE, 
-                                             modelFile=NULL, BPPARAM=bpparam()){
+                    modelFile=NULL, BPPARAM=bpparam()){
     fitNB(object, dropExtremeRank=dropExtremeRank, modelFile=modelFile, 
-          BPPARAM=BPPARAM)
+            BPPARAM=BPPARAM)
 })
 
 
@@ -76,8 +80,8 @@ gradloglikelihood <- function(sizemu, x, SizeF){
     m <- sizemu[2]
     s <- SizeF
     c(- sum(log(r/(m*s+r))) - sum((m*s-x)/(r+m*s)) 
-      - sum(digamma(x+r)) + length(x) * digamma(r),
-      -r/m * sum((x-m*s)/(r+m*s)))
+        - sum(digamma(x+r)) + length(x) * digamma(r),
+        -r/m * sum((x-m*s)/(r+m*s)))
 }
 
 

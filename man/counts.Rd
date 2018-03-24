@@ -18,6 +18,11 @@
 \item{normalized}{TRUE/FALSE whether counts should be normalized}
 
 \item{offset}{pseudocount offset by default 0.}
+
+\item{value}{An integer matrix containing the counts}
+}
+\value{
+A matrix containing the counts
 }
 \description{
 The counts slot holds the count data as a matrix of non-negative integer

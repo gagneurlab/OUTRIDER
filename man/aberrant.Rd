@@ -11,10 +11,11 @@ aberrant(ods, padj = 0.05, zScore = 3, by = c("none", "sample", "gene"))
 
 \item{padj}{the padjusted cutoff}
 
-\item{zScore}{the absolute Z-score cutoff}
+\item{zScore}{the absolute Z-score cutoff, 
+if NA or NULL no Z-score cutoff is used}
 
-\item{by}{if the results should be summarized by 'sample', 'gene' or not 
-at all.}
+\item{by}{if the results should be summarized by 'sample', 
+'gene' or not at all.}
 }
 \value{
 the number of aberrent events by gene or sample or a TRUE/FALSE 

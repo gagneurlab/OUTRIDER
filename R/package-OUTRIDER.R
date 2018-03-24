@@ -7,6 +7,8 @@
 #'
 #' @import data.table
 #' 
+#' @importFrom Biobase rowMax
+#' 
 #' @importFrom BiocGenerics estimateSizeFactors plotDispEsts
 #' 
 #' @importFrom DESeq2 normalizationFactors normalizationFactors<-
@@ -26,7 +28,7 @@
 #' @importFrom tidyr %>%
 #' 
 #' @importFrom stats p.adjust setNames sd dnbinom quantile optim var pnbinom 
-#'          dnbinom median ppoints qbeta runif cor cutree hclust dist
+#'          dnbinom median ppoints qbeta runif cor cutree hclust dist lm predict
 #' 
 #' @importFrom methods validObject is new as 
 #' 
@@ -44,7 +46,7 @@
 #' @importFrom utils read.table head
 #' 
 #' @importFrom graphics plot abline grid points mtext polygon axis text box
-#'         legend title
+#'         legend title lines
 #' 
 #' @importFrom gplots barplot2 heatmap.2
 #' 

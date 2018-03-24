@@ -9,7 +9,7 @@ counts.replace.OutriderDataSet <- function(object, value){
     object
 }
 
-counts.OutriderDataSet <- function(object, normalized=FALSE, offset = 0) {
+counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0) {
     
     cnts <- assays(object)[["counts"]]
     if(!normalized) {
@@ -17,21 +17,15 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, offset = 0) {
     }
     if(!is.null(normalizationFactors(object))) {
         return((cnts + offset)/ normalizationFactors(object)*
-                   rowMeans(normalizationFactors(object)))
+                rowMeans(normalizationFactors(object)))
     }
     if(is.null(sizeFactors(object)) || any(is.na(sizeFactors(object)))) {
         stop(paste("first calculate size factors, add normalizationFactors,",
                 "or set normalized=FALSE"))
     }
-    return( t( t( cnts + offset) / sizeFactors(object) * 
-                   mean(sizeFactors(object)) ) )
+    return(t(
+            t(cnts + offset) / sizeFactors(object) * mean(sizeFactors(object))))
 }
-
-setMethod("counts", signature(object="OutriderDataSet"),
-          counts.OutriderDataSet)
-
-
-
 
 #' 
 #' Accessors for the 'counts' slot of a OutriderDataSet object.
@@ -57,7 +51,9 @@ setMethod("counts", signature(object="OutriderDataSet"),
 #' @param object OutriderDataSet
 #' @param normalized TRUE/FALSE whether counts should be normalized
 #' @param offset pseudocount offset by default 0.
-#'
+#' @param value An integer matrix containing the counts
+#' @return A matrix containing the counts
+#' 
 #' @seealso \code{\link{sizeFactors}}, \code{\link{normalizationFactors}}
 #'
 #' @examples
@@ -70,6 +66,7 @@ setMethod("counts", signature(object="OutriderDataSet"),
 #'
 #' @export counts
 setMethod("counts", signature(object="OutriderDataSet"), counts.OutriderDataSet)
+
 
 #' @rdname counts
 #' @export "counts<-"
@@ -126,11 +123,16 @@ normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
 #'         normalizationFactors<-,OutriderDataSet,matrix-method 
 #'         normalizationFactors<-,OutriderDataSet,DataFrame-method 
 #'         normalizationFactors<-,OutriderDataSet,NULL-method
+#'         
 #' @param object a \code{OutriderDataSet} object.
 #' @param value the matrix of normalization factors
 #' @param replace if old values are present values are replcaed. If set to false
-#'                old and new values are multiplied.      
+#'                old and new values are multiplied.
 #' @param ... additional arguments
+#' @return A numeric matrix containing the normalization factors or the 
+#'             OutriderDataSet object with an updated 
+#'             \code{normalizationFactors} assay.
+#' 
 #' @examples
 #'
 #' ods <- makeExampleOutriderDataSet(n=111, m=10)

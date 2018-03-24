@@ -14,6 +14,9 @@ plotAberrantPerSample(ods, padj = 0.05, ...)
 
 \item{...}{further arguments to \code{aberrant}}
 }
+\value{
+None
+}
 \description{
 Plot aberrant events per sample
 }

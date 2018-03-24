@@ -45,9 +45,7 @@ heatmapNotrace <- function( x, denscol='green', col=bluered(50),
         x=x, trace='none', 
         key.ylab='', key.title='', 
         keysize=keysize, key.par=key.par,
-        col=col, denscol=denscol
-        ,...
-    )
+        col=col, denscol=denscol, ...)
 }
 
 
@@ -56,13 +54,17 @@ heatmapNotrace <- function( x, denscol='green', col=bluered(50),
 #' 
 #' Writes out to a file or reads in from a file a fitted NB model.
 #' The model contains:
-#'   * feature name
-#'   * log geometric means
-#'   * fitted mean
-#'   * dispersion
+#' \itemize{
+#'     \item{feature name}
+#'     \item{log geometric means}
+#'     \item{fitted mean}
+#'     \item{dispersion}
+#' }
+#' 
 #' 
 #' @param ods OutriderDataSet
 #' @param modelFile specify file, where model should be saved.
+#' @return An OutriderDataSet containing the loaded model or None if its saved.
 #' 
 #' @examples 
 #' # fit and write out model

@@ -26,7 +26,7 @@ test_that("pvalue calculation", {
 
 test_that("result method", {
     ods <- makeExampleOutriderDataSet()
-    expect_error(results(ods), "Some of the assays are missing..*")
+    expect_error(results(ods), "The P-values are not computed yet..*")
     
 })
 
@@ -34,7 +34,7 @@ test_that("normalization method", {
     ods <- makeExampleOutriderDataSet()
     counts(ods[1:3,1]) <- matrix(c(1L,2L,3L), ncol = 1)
     normalizationFactors(ods[1:3,1]) <- matrix(c(5L,5L,5L), ncol = 1)
-    expect_error(results(ods), "Some of the assays are missing..*")
+    expect_error(results(ods), "The P-values are not computed yet..*")
     
 })
 

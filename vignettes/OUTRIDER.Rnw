@@ -126,6 +126,20 @@ Those are then aligned to a given reference genome. As of now (March 2018) we re
 After obtaining the aligned BAM files one can map the reads to exons of a GTF annotation file using HT-seq.
 The resulting count table can then be loaded into the \outrider{} package as we will describe below.
 
+\subsection{Using virtual environments}
+When using virtual environments in python to manage packages, we need to tell it our R session.
+To do so, run the following code before you start an \outrider{} analysis. We assume that
+the pythen environment was installed into \Rfunction{~/python-env-OUTRIDER}.
+
+<<virtualEnvs, eval=FALSE>>=
+# check if the given python environment exists
+pyEnvDir <- "~/python-env-OUTRIDER"
+if(file.exists(file.path(pyEnvDir, 'bin/activate'))){
+    library(reticulate)
+    use_virtualenv(pyEnvDir)
+}
+@
+
 \section{A quick tour}
 
 Here we assume that we already have a count table and no additional preprocessing needs to be done. 
@@ -279,7 +293,7 @@ To fit the dispersion and the mean, the \Rfunction{fit} function is applied to t
 # fit NB to feature counts
 ods <- fit(ods)
 
-# plot dispersion versus mean counts
+# plot dispersion versus mean counts 
 plotDispEsts(ods)
 @
 
@@ -306,6 +320,16 @@ ods <- computePvalues(ods, alternative="two.sided")
 \subsection{Z-score calculation}
 The Z-scores on the log2 transformed counts can be used for visualization, filtering, and ranking of samples.
 By running the \Rfunction{computeZscores} function the Z-scores are precomputed and stored in the \ods{} object.
+Where the Z-score is calculated as:
+
+\begin{equation}
+    z_{ij} = \frac{l_{ij} - \mu_j^l}{\sigma_j^l}
+\end{equation}
+\begin{equation*}
+    l_{ij} = \log{(\frac{k_{ij} + 1}{c_{ij}})}
+\end{equation*}
+
+Where $\mu_j^l$ the mean of $l_{ij}$ for gene $j$ and $\sigma_j^l$ the standard deviation of $l_{ij}$ for gene $j$ is.
 
 <<zScore_computation>>=
 # compute and store the Z-scores

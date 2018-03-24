@@ -21,6 +21,13 @@
 }
 \arguments{
 \item{object}{OutriderDataSet}
+
+\item{value}{A numberic vector of sizeFactors}
+}
+\value{
+An OutriderDatasSet with the estimated sizeFactors or with the 
+            getter function it returns a numeric vector containing the 
+            sizeFactors.
 }
 \description{
 Accessor functions for the 'sizeFactors' information in a OutriderDataSet
@@ -36,7 +43,7 @@ existing model.
 ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 ods <- estimateSizeFactors(ods)
 head(sizeFactors(ods))
-  
+
 sizeFactors(ods) <- runif(dim(ods)[2], 0.5, 1.5)
 sizeFactors(ods)
 counts(ods, normalized=TRUE)[1:10,1:10]

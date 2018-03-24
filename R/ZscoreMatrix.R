@@ -21,7 +21,8 @@
 #' assays(ods)[["l2fc"]][1:10,1:10]
 #' 
 #' @export
-setGeneric("computeZscores", function(ods, ...) standardGeneric("computeZscores"))
+setGeneric("computeZscores", 
+        function(ods, ...) standardGeneric("computeZscores"))
 
 #' @rdname computeZscores
 #' @export

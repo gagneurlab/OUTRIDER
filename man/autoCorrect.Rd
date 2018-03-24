@@ -4,9 +4,8 @@
 \alias{autoCorrect}
 \title{autoCorrect}
 \usage{
-autoCorrect(ods, save = FALSE, predict = FALSE,
-  modelName = "autoCorrectModel", modelDirectory = file.path(tempdir(),
-  "models"))
+autoCorrect(ods, save = FALSE, predict = FALSE, modelName = NULL,
+  modelDirectory = NULL)
 }
 \arguments{
 \item{ods}{an OutriderDataSet object}
@@ -18,7 +17,8 @@ prediction is based on a given model. Need a prefitted model.}
 
 \item{modelName}{Name of the model to read/write}
 
-\item{modelDirectory}{Directory where the model is located or should be stored}
+\item{modelDirectory}{The directory where the model is located 
+or should be stored}
 }
 \value{
 An ods object including the control factors

@@ -7,13 +7,14 @@
 #' 
 #' 
 #' @param object object
-#' @param alternative "two.sided", "greater" or "less" P-values can be computed, default is 
-#' "two.sided"
+#' @param alternative "two.sided", "greater" or "less" P-values can 
+#'             be computed, default is "two.sided"
 #' @param method method used for multiple testing
-#' @param by direction of multiple testing correction, by default: sample. 
+#' @param modelFile The file name where the fit model should be taken from
 #' @param BPPARAM by default bpparam()
+#' @param ... additional params, currently not used.
 #' 
-#' @return a OutriderDataSet object with computed pValues and padjust as an assay
+#' @return An OutriderDataSet object with computed P-values and padjusted values
 #' 
 #' @seealso p.adjust
 #' @docType methods
@@ -34,14 +35,14 @@
 #' res
 #' 
 #' @exportMethod computePvalues
-setGeneric("computePvalues", function(object, ...) standardGeneric("computePvalues"))
+setGeneric("computePvalues", 
+        function(object, ...) standardGeneric("computePvalues"))
 
 #' @rdname computePvalues
-#' @export 
-
+#' @export
 setMethod("computePvalues", "OutriderDataSet", function(object, 
-                alternative=c("two.sided", "greater", "less"), method='BH', modelFile=NULL,
-                BPPARAM=bpparam()){
+                    alternative=c("two.sided", "greater", "less"), 
+                    method='BH', modelFile=NULL, BPPARAM=bpparam()){
     if(!is.null(modelFile)){
         object <- readNBModel(object, modelFile)
         object <- estimateSizeFactors(object)
@@ -54,7 +55,7 @@ setMethod("computePvalues", "OutriderDataSet", function(object,
 pValMatrix <- function(ods, alternative, BPPARAM){ 
     if(!all(c("disp", "mu") %in% colnames(mcols(ods)))){
         stop(paste("Please fit the models first to estimate disp and",
-                    "mu by running:\n    ods <- fit(ods)"))
+                "mu by running:\n\tods <- fit(ods)"))
     }
     pValMat <- bplapply(1:length(ods), pValNorm, 
             ods=ods, alternative=alternative, BPPARAM=BPPARAM)
@@ -68,14 +69,16 @@ pValMatrix <- function(ods, alternative, BPPARAM){
 #' 
 #' Internal P-value calculation
 #' 
-#' double sided discrete P-value.
-#' 
 #' Since the distribution has an integer support one needs to take care of 
-#' summing over the x bin on both sides. Further need to take care, that p values
-#' do not become larger then one.
+#' summing over the x bin on both sides. Further need to take care, that 
+#' P-values do not become larger then one.
 #'
 #' \deqn{
-#' p_{ij} = 2 \cdot min \left\{\frac{1}{2},  \sum_{0}^{k_{ij}} NB(\mu_i\cdot c_{ij} ,\theta_i), 1 - \sum_{0}^{k_{ij-1}} NB(\mu_i\cdot c_{ij} ,\theta_i) \right\}
+#' p_{ij} = 2 \cdot min \left\{
+#'         \frac{1}{2},  
+#'         \sum_{0}^{k_{ij}} NB(\mu_i\cdot c_{ij} ,\theta_i),
+#'         1 - \sum_{0}^{k_{ij-1}} NB(\mu_i\cdot c_{ij} ,\theta_i)
+#'     \right\}
 #' }
 #' 
 #' @param x count 
@@ -123,15 +126,27 @@ pValNorm <- function(index, ods, alternative){
 }
 
 
+#' 
 #' FDR correction
+#' 
 #' Function to correct the computed pValues using BY FDR correction.
 #' This function is called by the computePvalues method.
 #'
 #' @param ods OutriderDataSet
 #' @param method adjustment method, by default 'BH'
 #' @return OutriderDataSet containing adjusted pValues
+#' 
+#' @examples 
+#' ods <- makeExampleOutriderDataSet()
+#' ods <- OUTRIDER(ods)
+#' ods <- padjMatrix(ods, method='BH')
+#' head(assays(ods)[["padjust"]][,1:10])
+#'
+#' ods <- padjMatrix(ods, method='fdr')
+#' head(assays(ods[,1:10])[["padjust"]])
+#' 
 #' @export
-padjMatrix <- function(ods, method){
+padjMatrix <- function(ods, method='BH'){
     padj <- apply(assays(ods)[["pValue"]], 2, p.adjust, method=method)
     assays(ods)[["padjust"]] <- padj 
     validObject(ods)

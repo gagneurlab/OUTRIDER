@@ -7,24 +7,30 @@
 #' \code{\link[DESeq2]{fpkm}}.
 #' 
 #' @rdname filterExpression
+#' @param x An OutriderDataSet object
 #' @param filterGenes if TRUE, the default, the object is subseted.
-#' @param onlyZero filter only based on zero counts on a gene
+#' @param onlyZeros filter only based on zero counts on a gene
 #' @param gtfFile a txdb object or a GTF/GFF file to be used as annotation
 #' @param fpkmCutoff the threshold for filtering based on the FPKM value
+#' @param savefpkm if TRUE the FPKM values are saved as assay
+#' @param ... additional arguments passed to \code{computeGeneLength}
+#' @return An OutriderDataSet containing the \code{passedFilter} column, which
+#'             indicates if the given gene passed the filtering threshold. If
+#'             filterGenes is TRUE the object is already subsetted.
 #' 
 #' @examples 
 #' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 #' annotationFile <- system.file("extdata", 
 #'     "gencode.v19.genes.small.gtf.gz", package="OUTRIDER")
 #' ods <- filterExpression(ods, annotationFile)
-#'   
+#' 
 #' mcols(ods)['passedFilter']
 #' fpkm(ods)[1:10,1:10]
 #' dim(ods)
 #' 
 #' ods <- filterExpression(ods, annotationFile, filterGenes=TRUE)
 #' dim(ods)
-#'   
+#' 
 #' @export
 setGeneric("filterExpression", 
         function(x, ...) standardGeneric("filterExpression"))
@@ -42,11 +48,11 @@ setMethod("filterExpression", "OutriderDataSet", function(x, gtfFile=NULL,
         x <- computeGeneLength(x, gtfFile=gtfFile, ...)
     }
     filterExp(x, fpkmCutoff=fpkmCutoff, filterGenes=filterGenes, 
-              savefpkm=savefpkm)
+            savefpkm=savefpkm)
 })
 
 filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes, 
-        savefpkm = savefpkm){
+                savefpkm=savefpkm){
     fpkm <- fpkm(ods)
     if(savefpkm){
         assays(ods)[['fpkm']]<-fpkm
@@ -69,8 +75,17 @@ filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes,
 #' 
 #' Computes for each gene based on the GTF file the exon length
 #' 
+#' @param ods An OutriderDataSet for which the gene length should be computed.
 #' @param gtfFile Can be a gft file or an txDb object with annotation.
+#' @param format the format parameter from \code{makeTxDbFromGFF}
+#' @param mapping if set, it is used to map gene names between gtf and ods. 
+#'             This should be a 2 column data.frame: 1. column GTF names 
+#'             and 2. column ods names.  
 #' @param ... further arguments to \code{makeTxDbFromGFF}
+#' 
+#' @return An OutriderDataSet containing a \code{basepairs} column with the 
+#'             calculated gene length. Accessable through 
+#'             \code{mcols(ods)['baisepairs']}
 #' 
 #' @examples 
 #' 
@@ -157,11 +172,11 @@ computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
 #' annotationFile <- system.file("extdata", 
 #'     "gencode.v19.genes.small.gtf.gz", package="OUTRIDER")
 #' ods <- computeGeneLength(ods, annotationFile)
-#'   
+#' 
 #' mcols(ods)['basepairs']
 #' fpkm(ods)[1:10,1:10]
 #' fpm(ods)[1:10,1:10]
-#'   
+#' 
 #' @export fpkm
 #' @export fpm
 NULL

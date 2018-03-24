@@ -125,10 +125,13 @@ OutriderDataSet <- function(se=NULL, countData=NULL, colData=NULL, ...) {
 #' 
 #' Creates an example data set from a file or a generates a random counts.
 #' 
-#' @param dataset here one can select from the two provided data sets. #TODO
+#' @param dataset here one can select from the two example data sets.
+#'             One of 'none', 'GTExSkinSmall', or 'KremerNBaderSmall'.
 #' @param n number of simulated genes 
 #' @param m number of simulated samples.
 #' @param ... further arguments to \code{makeExampleDESeqDataSet}
+#' @return An OutriderDataSet containing an example dataset. Depending on the
+#'             parameters it is based on a real data set or on simulated counts.
 #' 
 #' @examples
 #' # A generic dataset 
@@ -144,8 +147,10 @@ OutriderDataSet <- function(se=NULL, countData=NULL, colData=NULL, ...) {
 #' ods3
 #' 
 #' @export 
-makeExampleOutriderDataSet <- function(n = 1000, m = 100, dataset=NULL, ...){
-    if(!is.null(dataset)){
+makeExampleOutriderDataSet <- function(n=1000, m=100, ..., 
+                    dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall')){
+    dataset <- match.arg(dataset)
+    if(dataset != 'none'){
         file <- system.file("extdata", paste0(dataset, ".tsv"), 
                 package="OUTRIDER", mustWork=TRUE)
         countData <- read.table(file)

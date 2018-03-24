@@ -2,11 +2,9 @@
 % Please edit documentation in R/pValMatrix.R
 \name{padjMatrix}
 \alias{padjMatrix}
-\title{FDR correction
-Function to correct the computed pValues using BY FDR correction.
-This function is called by the computePvalues method.}
+\title{FDR correction}
 \usage{
-padjMatrix(ods, method)
+padjMatrix(ods, method = "BH")
 }
 \arguments{
 \item{ods}{OutriderDataSet}
@@ -17,7 +15,16 @@ padjMatrix(ods, method)
 OutriderDataSet containing adjusted pValues
 }
 \description{
-FDR correction
 Function to correct the computed pValues using BY FDR correction.
 This function is called by the computePvalues method.
+}
+\examples{
+ods <- makeExampleOutriderDataSet()
+ods <- OUTRIDER(ods)
+ods <- padjMatrix(ods, method='BH')
+head(assays(ods)[["padjust"]][,1:10])
+
+ods <- padjMatrix(ods, method='fdr')
+head(assays(ods[,1:10])[["padjust"]])
+
 }

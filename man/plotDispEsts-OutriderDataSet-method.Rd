@@ -5,9 +5,26 @@
 \alias{plotDispEsts,OutriderDataSet-method}
 \title{Dispersion estimation plot}
 \usage{
-\S4method{plotDispEsts}{OutriderDataSet}(object)
+\S4method{plotDispEsts}{OutriderDataSet}(object, compareDisp = TRUE)
+}
+\arguments{
+\item{object}{An OutriderDataSet}
+
+\item{compareDisp}{If TRUE, the default, and if the autoCorrect normalization
+was used it computes the dispersion without autoCorrect and 
+plots it for comparison.}
+}
+\value{
+None
 }
 \description{
 Plotting the dispersion of the OutriderDataSet model against the normalized 
 mean count.
+}
+\examples{
+ods <- makeExampleOutriderDataSet()
+ods <- estimateSizeFactors(ods)
+ods <- fit(ods)
+plotDispEsts(ods)
+
 }

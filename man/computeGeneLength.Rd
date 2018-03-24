@@ -7,9 +7,22 @@
 computeGeneLength(ods, gtfFile, format = "gtf", mapping = NULL, ...)
 }
 \arguments{
+\item{ods}{An OutriderDataSet for which the gene length should be computed.}
+
 \item{gtfFile}{Can be a gft file or an txDb object with annotation.}
 
+\item{format}{the format parameter from \code{makeTxDbFromGFF}}
+
+\item{mapping}{if set, it is used to map gene names between gtf and ods. 
+This should be a 2 column data.frame: 1. column GTF names 
+and 2. column ods names.}
+
 \item{...}{further arguments to \code{makeTxDbFromGFF}}
+}
+\value{
+An OutriderDataSet containing a \code{basepairs} column with the 
+            calculated gene length. Accessable through 
+            \code{mcols(ods)['baisepairs']}
 }
 \description{
 Computes for each gene based on the GTF file the exon length

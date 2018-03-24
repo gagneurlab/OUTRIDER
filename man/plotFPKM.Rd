@@ -10,7 +10,7 @@ plotFPKM(ods)
 \item{ods}{a OutriderDataSet object containing the reads and fpkm values}
 }
 \value{
-plot object
+a ggplot object containing the FPKM plot
 }
 \description{
 Plot histogram of FPKM values

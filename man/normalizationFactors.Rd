@@ -37,6 +37,11 @@ old and new values are multiplied.}
 
 \item{...}{additional arguments}
 }
+\value{
+A numeric matrix containing the normalization factors or the 
+            OutriderDataSet object with an updated 
+            \code{normalizationFactors} assay.
+}
 \description{
 Accessor functions for the normalization factors in a OutriderDataSet
 object.

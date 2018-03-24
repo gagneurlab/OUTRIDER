@@ -21,6 +21,9 @@ plotQQ(ods, geneID = 1:length(ods), global = FALSE, padj = 0.05,
 \item{main}{title for the plot}
 
 \item{maxOutlier}{y-axis range for the plot}
+
+\item{...}{additional arguments for the internal plotQQ function.
+This arguments are currently used for development.}
 }
 \value{
 None

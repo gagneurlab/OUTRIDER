@@ -4,16 +4,22 @@
 \alias{makeExampleOutriderDataSet}
 \title{Create example data sets for OUTRIDER}
 \usage{
-makeExampleOutriderDataSet(n = 1000, m = 100, dataset = NULL, ...)
+makeExampleOutriderDataSet(n = 1000, m = 100, ..., dataset = c("none",
+  "GTExSkinSmall", "KremerNBaderSmall"))
 }
 \arguments{
 \item{n}{number of simulated genes}
 
 \item{m}{number of simulated samples.}
 
-\item{dataset}{here one can select from the two provided data sets. #TODO}
-
 \item{...}{further arguments to \code{makeExampleDESeqDataSet}}
+
+\item{dataset}{here one can select from the two example data sets.
+One of 'none', 'GTExSkinSmall', or 'KremerNBaderSmall'.}
+}
+\value{
+An OutriderDataSet containing an example dataset. Depending on the
+            parameters it is based on a real data set or on simulated counts.
 }
 \description{
 Creates an example data set from a file or a generates a random counts.

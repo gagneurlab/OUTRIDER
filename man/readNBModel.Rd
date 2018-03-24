@@ -14,13 +14,18 @@ readNBModel(ods, modelFile)
 
 \item{modelFile}{specify file, where model should be saved.}
 }
+\value{
+An OutriderDataSet containing the loaded model or None if its saved.
+}
 \description{
 Writes out to a file or reads in from a file a fitted NB model.
 The model contains:
-  * feature name
-  * log geometric means
-  * fitted mean
-  * dispersion
+\itemize{
+    \item{feature name}
+    \item{log geometric means}
+    \item{fitted mean}
+    \item{dispersion}
+}
 }
 \examples{
 # fit and write out model

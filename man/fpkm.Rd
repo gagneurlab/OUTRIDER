@@ -13,11 +13,11 @@ ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 annotationFile <- system.file("extdata", 
     "gencode.v19.genes.small.gtf.gz", package="OUTRIDER")
 ods <- computeGeneLength(ods, annotationFile)
-  
+
 mcols(ods)['basepairs']
 fpkm(ods)[1:10,1:10]
 fpm(ods)[1:10,1:10]
-  
+
 }
 \seealso{
 \code{\link[DESeq2]{fpkm}} \code{\link[DESeq2]{fpm}}

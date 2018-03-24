@@ -2,9 +2,7 @@
 % Please edit documentation in R/OUTRIDER.R
 \name{OUTRIDER}
 \alias{OUTRIDER}
-\title{The OUTRIDER function runs the default OUTRIDER pipline. 
-Combinig the fit, the computation of zScores and pValues.
-All computed values are returned as a OutriderDataSet object.}
+\title{OUTRIDER - Full analysis pipeline}
 \usage{
 OUTRIDER(object, autoControl = TRUE, save = FALSE, acModelName = NULL,
   acModelDir = NULL, nbModelFile = NULL)
@@ -13,19 +11,30 @@ OUTRIDER(object, autoControl = TRUE, save = FALSE, acModelName = NULL,
 \item{object}{main OutriderDataSet object, which contains all the data}
 
 \item{autoControl}{option, to run autoControl}
+
+\item{save}{if TRUE the models will be saved to disk}
+
+\item{acModelName}{the autoCorrection model name for saving the model}
+
+\item{acModelDir}{The directory where autoCorrection should save the model}
+
+\item{nbModelFile}{The file where the negative binomial model should be saved}
 }
 \value{
-OutriderDataSet with all the computed values
+OutriderDataSet with all the computed values. The values can be 
+            accessed by: \code{assays(ods)[['value']]}
 }
 \description{
-The values can be accessed by: assays(ods)[['value']]
+The OUTRIDER function runs the default OUTRIDER pipline. 
+Combinig the fit, the computation of zScores and pValues.
+All computed values are returned as a OutriderDataSet object.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 ods <- OUTRIDER(ods)
-  
+
 assays(ods)[['pValue']][1:10,1:10]
 res <- results(ods)
 plotVolcano(ods, 1)
-  
+
 }
