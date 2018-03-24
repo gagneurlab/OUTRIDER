@@ -8,6 +8,7 @@ vignettes/scared-knitr.Rnw
 .gitlab-ci.yml
 .gitignore
 .git
+.travis.yml
 
 tmp_lib
 ucsc.knownGenes.db
