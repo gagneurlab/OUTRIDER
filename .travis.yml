@@ -20,13 +20,13 @@ addons:
       - python3-tk
 
 before_install:
-#  - tlmgr install index
-#  - python3 -m venv --clear ~/python-env-OUTRIDER
-#  - source ~/python-env-OUTRIDER/bin/activate
-#  - pip install --upgrade pip
+  - tlmgr install index
+  - python3 -m venv --clear ~/python-env-OUTRIDER
+  - source ~/python-env-OUTRIDER/bin/activate
+  - pip install --upgrade pip
 
 install:
-#  - pip install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
+  - pip install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
   - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
