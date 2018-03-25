@@ -17,6 +17,7 @@ addons:
       - libxml2-dev
       - python3.4-venv
       - python3-pip
+      - python3-tk
 
 before_install:
   - tlmgr install index

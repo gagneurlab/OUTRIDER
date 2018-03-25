@@ -96,3 +96,11 @@ python get-pip.py
 ```
 
 For more details please have a look [here](https://stackoverflow.com/questions/38524856/anaconda-3-for-linux-has-no-ensurepip?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa)
+
+#### Failed to import Tkinter
+
+Tkinter should be installed with most python installations. If it is still missing please install the extra package
+
+```
+sudo apt-get install python3-tk
+```
