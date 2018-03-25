@@ -26,18 +26,13 @@ before_install:
 #  - pip install --upgrade pip
 
 install:
-  - R -e "BiocInstaller::biocLite('BiocCheck')"
-  - R -e "message(BiocInstaller::isDevel())"
 #  - pip install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
-#  - R -e "install.packages('devtools', repos='http://cran.rstudio.com/')"
-#  - R -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstaller')"
-#  - R -e "BiocInstaller::biocLite(c('covr', 'BiocCheck'))"
-#  - R -e "BiocInstaller::biocLite('DESeq2')"
-#  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
-#  - R -e 'devtools::install()'
+  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
+  - R -e "message(BiocInstaller::isDevel())"
+  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
+  - R -e 'devtools::install()'
 
 script:
-  - echo 'hello world'
   - R CMD build --no-build-vignettes .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - travis_wait R CMD check --no-vignettes --timings *tar.gz
