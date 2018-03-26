@@ -28,6 +28,14 @@ before_install:
   - pip3 install --upgrade pip
 
 install:
+  - pip3 --version
+  - python3 --version
+  - python --version
+  - pip --version
+  - R --version
+  - which pip3
+  - which pip
+  - which R
   - pip3 install "git+https://github.com/gagneurlab/autoCorrection.git@master"
   - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
   - R -e "message(BiocInstaller::isDevel())"
