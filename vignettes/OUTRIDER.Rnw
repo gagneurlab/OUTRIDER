@@ -80,7 +80,7 @@ suppressPackageStartupMessages({
     library(OUTRIDER)
     library(beeswarm)
 })
-register(MulticoreParam(6, 18))
+register(MulticoreParam(min(6, multicoreWorkers())))
 
 # check the python environment if its there (hack needed for mac)
 if(file.exists('~/python-env-OUTRIDER/bin/activate')){
