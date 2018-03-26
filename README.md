@@ -52,7 +52,7 @@ pip install --upgrade autoCorrection
 With autoCorrection installed on our system, we can install the OUTRIDER package in R.
 
 ```
-Rscript -e 'devtools::install_github('gagneurlab/OUTRIDER', dependencies=TRUE, build_vignettes=TRUE)'
+Rscript -e 'devtools::install_github("gagneurlab/OUTRIDER", dependencies=TRUE, build_vignettes=TRUE)'
 ``` 
 
 ### Quick tour through OUTRIDER
