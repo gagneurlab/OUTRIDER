@@ -17,15 +17,18 @@ addons:
       - python3.4-venv
       - python3-pip
       - python3-tk
+      - python3-pandas
+      - python3-html5lib
+      - python3-networkx
 
 before_install:
   - tlmgr install index
-  - python3 -m venv --clear ~/python-env-OUTRIDER
+  - python3 -m venv --clear --system-site-packages ~/python-env-OUTRIDER
   - source ~/python-env-OUTRIDER/bin/activate
   - pip install --upgrade pip
 
 install:
-  - pip install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
+  - pip install "git+https://github.com/gagneurlab/autoCorrection.git@master"
   - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
