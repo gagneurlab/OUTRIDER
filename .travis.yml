@@ -1,0 +1,50 @@
+language: r
+sudo: required
+dist: trusty
+cache:
+  - directories:
+    - $HOME/python-env-OUTRIDER
+    - $HOME/R/Library
+    - $HOME/.cache/pip
+matrix:
+  include:
+    - r: bioc-release
+    - r: bioc-devel
+
+addons:
+  apt:
+    packages:
+      - libxml2-dev
+      - python3.4-venv
+      - python3-pip
+      - python3-tk
+
+before_install:
+  - tlmgr install index marginfix bera nowidow parnotes
+  - if [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
+        python3 -m venv --clear ~/python-env-OUTRIDER;
+    fi
+  - source ~/python-env-OUTRIDER/bin/activate
+  - pip install --upgrade pip
+
+install:
+  - pip --version
+  - python --version
+  - R --version
+  - which pip
+  - which R
+  - pip3 install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
+  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
+  - R -e "message(BiocInstaller::isDevel())"
+  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
+  - R -e 'devtools::install()'
+
+script:
+  - R CMD build --no-build-vignettes .
+  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
+  - travis_wait R CMD check --no-vignettes --timings *tar.gz
+  - travis_wait R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
+
+after_success:
+  - Rscript -e 'covr::codecov()'
+

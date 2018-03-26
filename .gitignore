@@ -1,0 +1,28 @@
+# R studio and R session ignore list
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# vignette ignore list
+vignettes/cache
+vignettes/figure
+vignettes/OUTRIDER.tex
+vignettes/OUTRIDER.pdf
+vignettes/OUTRIDER.R
+
+# latex/vignette ignore list
+framed.sty
+*.aux
+*.out
+*.toc
+*.log
+*.synctex.gz
+*-concordance.tex
+
+# example data creation ignore list
+model.tsv
+AEModel.json
+AEModel_weights.h5
+ucsc.knownGenes.db
+
