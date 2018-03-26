@@ -22,7 +22,7 @@ addons:
 before_install:
   - tlmgr install index
   - if [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
-        python3 -m venv --clear ~/python-env-OUTRIDER
+        python3 -m venv --clear ~/python-env-OUTRIDER;
     fi
   - source ~/python-env-OUTRIDER/bin/activate
   - pip install --upgrade pip
