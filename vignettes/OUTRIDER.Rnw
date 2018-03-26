@@ -442,15 +442,15 @@ Afterwards, \Rfunction{estimateSizeFactors} has to be called to compute size fac
 wich are based on the loaded parameter set. Then the analysis functions 
 \Rfunction{computePvalues} and \Rfunction{computeZscores} can be called.
 
-<<modelLoad>>=
+<<modelLoad, eval=FALSE>>=
 # Create a new data set and load the model
-ods2 <- makeExampleOutriderDataSet()
-ods2 <- readNBModel(ods2, 'model.tsv')
+ods <- makeExampleOutriderDataSet()
+ods <- readNBModel(ods, 'model.tsv')
 
 # do the analysis based on the loaded model
-ods2 <- estimateSizeFactors(ods2)
-ods2 <- computePvalues(ods2)
-ods2 <- computeZscores(ods2)
+ods <- estimateSizeFactors(ods)
+ods <- computePvalues(ods)
+ods <- computeZscores(ods)
 @
 
 Alternatively the model file path can be specified in the \Rfunction{computePvalues} function.
@@ -462,7 +462,7 @@ function call. If the modell should be reused the user has to specify the same m
 directory in the \Rfunction{autoCorrect} function and additionally set the \Robject{predict} option to TRUE.
 This option can only be used in combination with the above mentioned method, to have a common reference for the size factors.
 
-<<modelLoadingSavingAE>>=
+<<modelLoadingSavingAE, eval=FALSE>>=
 # Saving
 ods <- makeExampleOutriderDataSet(m=50)
 ods <- estimateSizeFactors(ods)
