@@ -8,6 +8,7 @@
 #' @param predict run autoCorrect in predict mode, which means that the 
 #'             prediction is based on a given model. Need a prefitted model.
 #' @param save if TRUE, the fitted model will be saved to the given location.
+#' @param epochs The number of epochs used for the autoCorrection training.
 #' @param modelName Name of the model to read/write
 #' @param modelDirectory The directory where the model is located 
 #'             or should be stored
@@ -23,7 +24,7 @@
 #' plotCountCorHeatmap(ods, normalized=TRUE)
 #' 
 #' @export
-autoCorrect <- function(ods, save=FALSE, predict=FALSE, 
+autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250, 
                     modelName=NULL, modelDirectory=NULL){
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
@@ -42,6 +43,9 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE,
                 "No correction was done!"))
         return(ods)
     }
+    if(isScalarNumeric(options("OUTRIDER.epochs"))){
+        epochs <- options("OUTRIDER.epochs")
+    }
     
     # get needed data
     k <- counts(ods, normalized=FALSE)
@@ -54,7 +58,7 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE,
     # correctionFactors is a matrix of the same dimension as k
     autoCorrectObj <- import("autoCorrection")
     corrected <- autoCorrectObj$correctors$AECorrector(modelName,
-            modelDirectory, save_model=save)$correct(
+            modelDirectory, save_model=save, epochs=epochs)$correct(
                     kt, sfm, only_predict=predict)
     correctionFactors <- t(corrected)
     stopifnot(identical(dim(k), dim(correctionFactors)))
