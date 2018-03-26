@@ -33,7 +33,7 @@ install:
   - R --version
   - which pip
   - which R
-  - pip3 install "git+https://github.com/gagneurlab/autoCorrection.git@master"
+  - pip3 install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
   - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
