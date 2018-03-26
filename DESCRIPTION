@@ -1,20 +1,22 @@
 Package: OUTRIDER
 Type: Package
 Title: OUTRIDER - OUTlier RNA-Seq fInDER
-Version: 0.99.2
+Version: 0.99.3
 Date: 2018-02-22
 Maintainer: Christian Mertes <mertes@in.tum.de>
 Description: Identification of aberrent gene expression in RNA-seq data.
     OUTRIDER finds expression outliers by fitting an Negative-Binomial 
-    distribution over all read counts and computing  P-values for each of them.
-    Further OUTRIDER provides useful plotting function to visualize the results.
-Author: Felix Brechtmann, Agne Matuseviciute, Christian Mertes, Vicente Yepez
+    distribution per gene over all read counts and computing P-values 
+    for each of them. Further OUTRIDER provides useful plotting 
+    function to visualize the results.
+Author: Felix Brechtmann, Agne Matuseviciute, Christian Mertes,
+    Vicente Yepez, Julien Gagneur
 Depends:
     R (>= 3.4), 
     BiocParallel,
     GenomicFeatures,
     SummarizedExperiment,
-    data.table, 
+    data.table,
     methods
 Imports:
     Biobase,
@@ -68,6 +70,6 @@ biocViews: RNASeq, Transcriptomics, Alignment, Sequencing, GeneExpression
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/baderda/outrider
-BugRepots: https://github.com/baderda/outrider/issues
+URL: https://github.com/gagneurlab/OURIDER
+BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
 RoxygenNote: 6.0.1
