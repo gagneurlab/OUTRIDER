@@ -3,6 +3,7 @@ sudo: required
 dist: trusty
 cache:
   - directories:
+    - $HOME/python-env-OUTRIDER
     - $HOME/R/Library
     - $HOME/.cache/pip
 matrix:
@@ -17,23 +18,19 @@ addons:
       - python3.4-venv
       - python3-pip
       - python3-tk
-      - python3-pandas
-      - python3-html5lib
-      - python3-networkx
 
 before_install:
   - tlmgr install index
-  - python3 -m venv ~/python-env-OUTRIDER
+  - if [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
+        python3 -m venv --clear ~/python-env-OUTRIDER
+    fi
   - source ~/python-env-OUTRIDER/bin/activate
-  - pip3 install --upgrade pip
+  - pip install --upgrade pip
 
 install:
-  - pip3 --version
-  - python3 --version
-  - python --version
   - pip --version
+  - python --version
   - R --version
-  - which pip3
   - which pip
   - which R
   - pip3 install "git+https://github.com/gagneurlab/autoCorrection.git@master"
