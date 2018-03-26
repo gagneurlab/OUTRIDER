@@ -42,8 +42,7 @@ plotQQ <- function(ods, geneID=1:length(ods), global=FALSE, padj=0.05,
             if(isScalarNumeric(padj, na.ok=FALSE)){
                 data[['aberrant']] <- assays(ods)[['padjust']][i,] <= padj
             }
-            plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, ...)
-                
+            plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, ...)    
         })
     }
     else {
@@ -159,6 +158,7 @@ plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL,
         legend(legendPos, paste0("CI (\u03B1 = ",
                 signif(conf.alpha, 2), ")"), lty=1, lwd=7, col="gray")
     }
+    return(invisible())
 }
 
 #'

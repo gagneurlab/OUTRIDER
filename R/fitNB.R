@@ -70,7 +70,7 @@ dens <- function(x, size, mu, s) dnbinom(x, size=size, mu=mu*s, log=TRUE)
 
 # log likelihood
 loglikelihood <- function(sizemu, x, SizeF){
-    -sum(sapply(1:length(x), function(j){
+    -sum(vapply(1:length(x), FUN.VALUE=numeric(1), FUN=function(j){
         dens(x[j], size=sizemu[1], mu=sizemu[2], s=SizeF[j]) }))
 }
 

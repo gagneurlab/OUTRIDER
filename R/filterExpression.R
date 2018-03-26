@@ -123,7 +123,7 @@ computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
     # for each gene, reduce all the exons to a set of non overlapping exons,
     # calculate their lengths (widths) and sum then
     widths <- width(reduce(exons_list_per_gene))
-    totalexonlength <- sapply(widths, sum)
+    totalexonlength <- vapply(widths, sum, numeric(1))
     if(!is.null(mapping)){
         if(is.data.table(mapping)){
             mapping <- as.data.frame(mapping)
