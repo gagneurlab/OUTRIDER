@@ -81,7 +81,7 @@ suppressPackageStartupMessages({
     library(beeswarm)
 })
 register(SerialParam())
-if(multiCoreWorkers() >= 8){
+if(multicoreWorkers() >= 8){
     register(MulticoreParam(6))
 }
 
