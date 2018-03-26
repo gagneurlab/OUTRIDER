@@ -23,7 +23,7 @@ addons:
 
 before_install:
   - tlmgr install index
-  - python3 -m venv --clear --system-site-packages ~/python-env-OUTRIDER
+  - python3 -m venv ~/python-env-OUTRIDER
   - source ~/python-env-OUTRIDER/bin/activate
   - pip3 install --upgrade pip
 
