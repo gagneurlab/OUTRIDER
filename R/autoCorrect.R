@@ -46,6 +46,7 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250,
     if(isScalarNumeric(options("OUTRIDER.epochs"))){
         epochs <- options("OUTRIDER.epochs")
     }
+    epochs <- as.integer(epochs)
     
     # get needed data
     k <- counts(ods, normalized=FALSE)
