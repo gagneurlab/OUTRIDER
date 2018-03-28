@@ -313,7 +313,7 @@ p_{ij} = 2 \cdot min \left\{\frac{1}{2},  \sum_{0}^{k_{ij}} NB(\mu_i\cdot c_{ij}
 where the $\frac{1}{2}$ term handles the case of both terms exceeding 0.5, which can happen due
 to the discrete nature of the negative binomial distribution. If required a one-sided test can be
 computed using the alternative argument and specifying 'less' or 'greater' depending on the research question.
-Multiple testing correction is done across all genes in a per-sample fashion using Benjamini-Hochberg’s
+Multiple testing correction is done across all genes in a per-sample fashion using Benjamini-Hochberg's
 False Discovery Rate method (Benjamini and Hochberg 1995). Alternatively all other by \Rfunction{p.adjust}
 supported Methods can be used via the parameter \Robject{method}.
 

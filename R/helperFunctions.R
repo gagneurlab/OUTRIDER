@@ -18,7 +18,7 @@ getXColors <- function(x, set="Set2"){
     
     cols <- suppressWarnings(brewer.pal(n=n, name=set))
     if(length(cols) > n){
-        cols <- cols[1:n]
+        cols <- cols[seq_len(n)]
     }
     
     if(length(x) > 1){
@@ -28,24 +28,6 @@ getXColors <- function(x, set="Set2"){
     }
     
     return(cols)
-}
-
-#' 
-#' heatmap.2 without a trace as default.
-#' 
-#' @examples 
-#'   heatmapNotrace(matrix(runif(100), nrow=10))
-#'   
-#' @author baderd
-#' @noRd
-heatmapNotrace <- function( x, denscol='green', col=bluered(50), 
-                            key.par=list(las=1), keysize=1, ...){
-    requireNamespace("gplots")
-    heatmap.2(
-        x=x, trace='none', 
-        key.ylab='', key.title='', 
-        keysize=keysize, key.par=key.par,
-        col=col, denscol=denscol, ...)
 }
 
 
@@ -95,12 +77,19 @@ writeNBModel <- function(ods, modelFile){
     if(!dir.exists(dirname(modelFile))){
         dir.create(dirname(modelFile), recursive=TRUE)
     }
+    cols2save <- c('loggeomeans', 'mu', 'disp')
+    if(any(!cols2save %in% colnames(mcols(ods)))){
+        missedCols <- paste(
+                cols2save[!cols2save %in% colnames(mcols(ods))], collapse=", ")
+        stop(paste0("The following mcols are missing: ", missedCols,
+                ". Please run first estimateSizeFactors() and fit()."))
+    }
     
     model2save <- cbind(
         data.table(rownames=rownames(ods)),
-        as.data.table(rowData(ods)[c('loggeomeans', 'mu', 'disp')]))
+        as.data.table(mcols(ods)[cols2save]))
     fwrite(model2save, modelFile, sep="\t")
-    return()
+    return(invisible())
 }
 
 #' @rdname readNBModel

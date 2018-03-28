@@ -646,7 +646,13 @@ plotAberrantPerSample <- function(ods, padj=0.05, ...){
 #' 
 plotFPKM <- function(ods){
     fpkm <- fpkm(ods)
-    passed <- mcols(ods)[['passedFilter']] 
+    if(!'passedFilter' %in% colnames(mcols(ods))){
+        message(paste0('To see the difference between the filtering ', 
+                'run first the filterExpression() function.'))
+        passed <- rep(TRUE, nrow(ods))
+    } else {
+        passed <- mcols(ods)[['passedFilter']] 
+    }
     
     histdata <- data.table(melt(fpkm, value.name = 'fpkm'),
             'passedFilter'=rep(passed, dim(fpkm)[2]))

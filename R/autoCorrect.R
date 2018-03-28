@@ -12,6 +12,8 @@
 #' @param modelName Name of the model to read/write
 #' @param modelDirectory The directory where the model is located 
 #'             or should be stored
+#' @param param_path The directory where the optimal parameters are stored
+#' @param param_exp_name Name of the parameter file
 #' @param verbose if TRUE further information about the training/predicting
 #'             of the autoencoder is printed.
 #' 
@@ -27,7 +29,8 @@
 #' 
 #' @export
 autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250, 
-                    modelName=NULL, modelDirectory=NULL, verbose=FALSE){
+                    param_path=NULL, param_exp_name=NULL, verbose=FALSE,
+                    modelName=NULL, modelDirectory=NULL){
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
                 "the autoCorrect function"))
@@ -63,7 +66,8 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250,
     # correctionFactors is a matrix of the same dimension as k
     autoCorrectObj <- import("autoCorrection")
     corrected <- autoCorrectObj$correctors$AECorrector(epochs=epochs, modelName,
-            modelDirectory, save_model=save, verbose=verbose)$correct(
+            modelDirectory, save_model=save, epochs=epochs,
+            param_exp_name=param_exp_name, param_path=param_path)$correct(
                     kt, sfm, only_predict=predict)
     correctionFactors <- t(corrected)
     stopifnot(identical(dim(k), dim(correctionFactors)))
