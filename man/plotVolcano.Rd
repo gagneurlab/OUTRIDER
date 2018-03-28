@@ -4,7 +4,8 @@
 \alias{plotVolcano}
 \title{Volcano plot}
 \usage{
-plotVolcano(ods, sampleID, padj = 0.05, basePlot = FALSE)
+plotVolcano(ods, sampleID, padjCut = 0.05, zScoreCut = 3,
+  basePlot = FALSE)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
@@ -12,7 +13,9 @@ plotVolcano(ods, sampleID, padj = 0.05, basePlot = FALSE)
 \item{sampleID}{sample which should be plotted. 
 Can also be a vector of samples.}
 
-\item{padj}{padj cutoff}
+\item{padjCut}{padj cutoff}
+
+\item{zScoreCut}{Z-score cutoff}
 
 \item{basePlot}{R base plot version of the plot.}
 }

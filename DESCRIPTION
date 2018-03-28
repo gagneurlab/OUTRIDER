@@ -1,7 +1,7 @@
 Package: OUTRIDER
 Type: Package
 Title: OUTRIDER - OUTlier RNA-Seq fInDER
-Version: 0.99.3
+Version: 0.99.4
 Date: 2018-02-22
 Maintainer: Christian Mertes <mertes@in.tum.de>
 Description: Identification of aberrent gene expression in RNA-seq data.

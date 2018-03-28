@@ -7,7 +7,7 @@
 
 ## Installation
 
-`OUTRIDER` consists of two software packages. Therefore both requirements have 
+`OUTRIDER` consists of two software packages. Therefore, both requirements have 
 to be met before you can run the full software and pipeline.
 
 ### Prerequisite
@@ -16,11 +16,11 @@ For autoCorrection we need a running [Python3 version](https://www.python.org/do
 and for OUTRIDER a running [R 3.4.x version](https://cran.r-project.org/).
 
 It is a good practice to have a virtual environment in python to have a clean 
-working environment and not to start conflicts with other projects. This is also
+working environment and not to create conflicts with other projects. This is also
 helpful for macOS users, due to a [matplotlib bug](https://matplotlib.org/faq/osx_framework.html#osxframework-faq).
 
 ```
-python -m venv ~/python-env-OUTRIDER
+python3 -m venv ~/python-env-OUTRIDER
 source ~/python-env-OUTRIDER/bin/activate
 ```
 
@@ -31,15 +31,15 @@ Rscript -e "install.packages('devtools', repos='http://cran.us.r-project.org')"
 Rscript -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstaller')"
 ```
 
-If you have dependency issues while installing devtools please have a look at the Troubleshooting section.
+If you have dependency issues while installing devtools, please have a look at the Troubleshooting section.
 
 ### autoCorrection and Python dependencies
 
 The first part is to install the `autoCorrection` package written in python. We will use `pip` to
 install the package and all dependencies. autoCorrection depends on TensorFlow, which can be installed
 manualy if GPU acceleration or any other customization is wanted. For more details please see the 
-TensorFlow instruction [here](https://www.tensorflow.org/install/). If the tensorFlow installation
-is skipped by the user, tensorFlow will be installed automatically from pip.
+TensorFlow instruction [here](https://www.tensorflow.org/install/). If the TensorFlow installation
+is skipped by the user, TensorFlow will be installed automatically from pip.
 
 Installation of autoCorrection package:
 
@@ -49,7 +49,7 @@ pip install --upgrade autoCorrection
 
 ### OUTRIDER and R dependencies
 
-With autoCorrection installed on our system, we can install the OUTRIDER package in R.
+With autoCorrection installed on our system, we can install the `OUTRIDER` package in R.
 
 ```
 Rscript -e 'devtools::install_github("gagneurlab/OUTRIDER", dependencies=TRUE, build_vignettes=TRUE)'
@@ -57,8 +57,8 @@ Rscript -e 'devtools::install_github("gagneurlab/OUTRIDER", dependencies=TRUE, b
 
 ### Quick tour through OUTRIDER
 
-To get startet with OUTRIDER please have a look at our [vignette](vignette/OUTRIDER.Rnw)
-In order to get the pdf version please type the following code in an R sessions:
+To get started with `OUTRIDER`, please have a look at our [vignette](vignette/OUTRIDER.Rnw).
+In order to get the pdf version, please type the following code in an R session:
 
 ```
 library(OUTRIDER)
@@ -71,7 +71,7 @@ vignette('OUTRIDER')
 
 On some Linux distributions we need the developer libraries for compiling the R packages.
 
-To install those packages please run as adriministrator: 
+To install those packages, please run as administrator: 
 
 For Ubuntu or debian based systems:
 ```
@@ -88,17 +88,17 @@ sudo yum install R-devel zlib-devel openssl-devel libcurl-devel libxml2-devel ma
 If you use anaconda as your python distribution `venv` does not work. Please use this workaround:
 
 ```
-python -m venv ~/python-env-OUTRIDER --without-pip
+python3 -m venv ~/python-env-OUTRIDER --without-pip
 source ~/python-env-OUTRIDER/bin/activate
 wget https://bootstrap.pypa.io/get-pip.py
 python get-pip.py
 ```
 
-For more details please have a look [here](https://stackoverflow.com/questions/38524856/anaconda-3-for-linux-has-no-ensurepip?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa)
+For more details, please have a look [here](https://stackoverflow.com/questions/38524856/anaconda-3-for-linux-has-no-ensurepip?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa)
 
 #### Failed to import Tkinter
 
-Tkinter should be installed with most python installations. If it is still missing please install the extra package
+Tkinter should be installed with most python installations. If it is still missing, please install the extra package
 
 ```
 sudo apt-get install python3-tk

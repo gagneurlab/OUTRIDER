@@ -4,8 +4,8 @@
 \alias{autoCorrect}
 \title{autoCorrect}
 \usage{
-autoCorrect(ods, save = FALSE, predict = FALSE, modelName = NULL,
-  modelDirectory = NULL)
+autoCorrect(ods, save = FALSE, predict = FALSE, epochs = 250,
+  modelName = NULL, modelDirectory = NULL, verbose = FALSE)
 }
 \arguments{
 \item{ods}{an OutriderDataSet object}
@@ -15,10 +15,15 @@ autoCorrect(ods, save = FALSE, predict = FALSE, modelName = NULL,
 \item{predict}{run autoCorrect in predict mode, which means that the 
 prediction is based on a given model. Need a prefitted model.}
 
+\item{epochs}{The number of epochs used for the autoCorrection training.}
+
 \item{modelName}{Name of the model to read/write}
 
 \item{modelDirectory}{The directory where the model is located 
 or should be stored}
+
+\item{verbose}{if TRUE further information about the training/predicting
+of the autoencoder is printed.}
 }
 \value{
 An ods object including the control factors

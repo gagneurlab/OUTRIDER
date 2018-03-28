@@ -57,7 +57,7 @@
 #' @importFrom RColorBrewer brewer.pal
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarInteger 
-#'         isScalarCharacter
+#'         isScalarCharacter isScalarValue
 #' 
 #' @importFrom reticulate import
 #' 

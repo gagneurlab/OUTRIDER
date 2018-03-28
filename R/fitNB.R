@@ -37,8 +37,20 @@ setMethod("fit", "OutriderDataSet", function(object, dropExtremeRank=FALSE,
 
 
 fitNB <- function(ods, dropExtremeRank, modelFile, BPPARAM){
-    fitparameters <- bplapply(1:length(ods), fitNegBinom, 
-            ods=ods, dropExtremeRank=dropExtremeRank, BPPARAM=BPPARAM)
+    ctsData <- counts(ods)
+    normF <- normalizationFactors(ods)
+    if(is.null(normF)){
+        normF <- sizeFactors(ods)
+    }
+    if(is.null(normF)){
+        stop(paste("Please provide sizeFactors or normalizationFactors", 
+                "for better estimates!\n  To overcome this just set the", 
+                "sizeFactors like this:\n    sizeFactors(ods) <- 1"))
+    }
+    
+    fitparameters <- bplapply(seq_along(ods), fitNegBinom, normF=normF,
+            ctsData=ctsData, dropExtremeRank=dropExtremeRank, BPPARAM=BPPARAM)
+    
     fitparameters <- DataFrame(t(matrix(unlist(fitparameters), nrow = 2)))
     mcols(ods)[c('mu', 'disp')] <- fitparameters
     validObject(ods)
@@ -70,8 +82,7 @@ dens <- function(x, size, mu, s) dnbinom(x, size=size, mu=mu*s, log=TRUE)
 
 # log likelihood
 loglikelihood <- function(sizemu, x, SizeF){
-    -sum(vapply(1:length(x), FUN.VALUE=numeric(1), FUN=function(j){
-        dens(x[j], size=sizemu[1], mu=sizemu[2], s=SizeF[j]) }))
+    -sum(dens(x, size=sizemu[1], mu=sizemu[2], s=SizeF))
 }
 
 # gradient of log likelihood
@@ -86,19 +97,17 @@ gradloglikelihood <- function(sizemu, x, SizeF){
 
 
 #fit for individual gene
-fitNegBinom <- function(index, ods, dropExtremeRank){
-    data <- counts(ods[index,])[1,]
-    
-    normF <- sizeFactors(ods)
-    if(!is.null(normalizationFactors(ods))){
-        normF <- normalizationFactors(ods[index,])
+fitNegBinom <- function(index, ctsData, normF, dropExtremeRank){
+    data <- ctsData[index,]
+    if(is.matrix(normF)){
+        normF <- normF[index,]
     }
     if(is.null(normF)){
         stop(paste("Please provide sizeFactors or normalizationFactors", 
-                "for better estimates!\n  To overcome this just set the", 
-                "sizeFactors like this:\n    sizeFactors(ods) <- 1"))
+                   "for better estimates!\n  To overcome this just set the", 
+                   "sizeFactors like this:\n    sizeFactors(ods) <- 1"))
     }
-    if(dropExtremeRank == TRUE){
+    if(isTRUE(dropExtremeRank)){
         #option to remove extreme points from distribution prior to fitting.
         r <- rank(data)
         ndrop <- round(length(r)*0.01)

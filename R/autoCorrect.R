@@ -12,6 +12,8 @@
 #' @param modelName Name of the model to read/write
 #' @param modelDirectory The directory where the model is located 
 #'             or should be stored
+#' @param verbose if TRUE further information about the training/predicting
+#'             of the autoencoder is printed.
 #' 
 #' @return An ods object including the control factors 
 #'
@@ -25,7 +27,7 @@
 #' 
 #' @export
 autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250, 
-                    modelName=NULL, modelDirectory=NULL){
+                    modelName=NULL, modelDirectory=NULL, verbose=FALSE){
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
                 "the autoCorrect function"))
@@ -47,6 +49,8 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250,
         epochs <- options("OUTRIDER.epochs")
     }
     epochs <- as.integer(epochs)
+    stopifnot(isScalarLogical(verbose))
+    verbose <- as.integer(verbose)
     
     # get needed data
     k <- counts(ods, normalized=FALSE)
@@ -58,8 +62,8 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250,
     
     # correctionFactors is a matrix of the same dimension as k
     autoCorrectObj <- import("autoCorrection")
-    corrected <- autoCorrectObj$correctors$AECorrector(modelName,
-            modelDirectory, save_model=save, epochs=epochs)$correct(
+    corrected <- autoCorrectObj$correctors$AECorrector(epochs=epochs, modelName,
+            modelDirectory, save_model=save, verbose=verbose)$correct(
                     kt, sfm, only_predict=predict)
     correctionFactors <- t(corrected)
     stopifnot(identical(dim(k), dim(correctionFactors)))
