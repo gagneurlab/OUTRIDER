@@ -12,7 +12,7 @@ test_that("test against old version", {
     expect_equal(round(mcols(ods)[['disp']], 4), mcols(odsOld)[['disp']])
     
     ods <- computeZscores(ods)
-    expect_equal(round(assay(ods, 'zScore'), 4), assays(odsOld, 'zScore'))
+    expect_equal(round(assay(ods, 'zScore'), 4), assay(odsOld, 'zScore'))
     
     ods <- computePvalues(ods)
     expect_equal(round(assay(ods, 'pValue'), 4), assay(odsOld, 'pValue'))
