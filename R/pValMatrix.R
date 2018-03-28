@@ -57,8 +57,17 @@ pValMatrix <- function(ods, alternative, BPPARAM){
         stop(paste("Please fit the models first to estimate disp and",
                 "mu by running:\n\tods <- fit(ods)"))
     }
-    pValMat <- bplapply(1:length(ods), pValNorm, 
-            ods=ods, alternative=alternative, BPPARAM=BPPARAM)
+    ctsData <- counts(ods)
+    disp    <- mcols(ods)[,"disp"]
+    mu      <- mcols(ods)[,"mu"]
+    normF   <- normalizationFactors(ods)
+    if(is.null(normF)){
+        normF <- sizeFactors(ods)
+    }
+    
+    pValMat <- bplapply(seq_along(ods), pValNorm, ctsData=ctsData, disp=disp,
+            mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
+    
     pValMat <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
     assays(ods)[["pValue"]] <- pValMat
     validObject(ods)
@@ -89,19 +98,18 @@ pValMatrix <- function(ods, alternative, BPPARAM){
 #' @return p Value
 #' @noRd
 pVal <- function(x, size, mu, s, alternative){
-    if(alternative == "two.sided"){
-        p <- 2 * min(0.5, pnbinom(x, size = size, mu = s*mu), 
-            1 - pnbinom(x, size = size, mu = s*mu) + 
-                dnbinom(x, size = size, mu = s*mu))
-    }
+    pless <- pnbinom(x, size = size, mu = s*mu)
     if(alternative == "less"){
-        p <- pnbinom(x, size = size, mu = s*mu)
+        return(pless)
     }
+    
+    dval <- dnbinom(x, size = size, mu = s*mu)
     if(alternative ==  "greater"){
-        p <- 1 - pnbinom(x, size = size, mu = s*mu) + 
-            dnbinom(x, size = size, mu = s*mu)
+        return(1 - pless + dval)
     }
-    return(p)
+    
+    return(2 * vapply(seq_along(pless), function(i) {
+            min(0.5, pless[i], 1 - pless[i] + dval[i]) }, numeric(1)))
 }
 
 
@@ -113,16 +121,14 @@ pVal <- function(x, size, mu, s, alternative){
 #'
 #' @return vector of pValues
 #' @noRd
-pValNorm <- function(index, ods, alternative){
-    data = counts(ods[index,])
-    disp <- mcols(ods)[index,"disp"]
-    mu <- mcols(ods)[index,"mu"]
-    normF <- sizeFactors(ods)
-    if(!is.null(normalizationFactors(ods))){
-        normF <- normalizationFactors(ods[index,])
+pValNorm <- function(index, ctsData, disp, mu, normFact, alternative){
+    data <- ctsData[index,]
+    disp <- disp[index]
+    mu   <- mu[index]
+    if(is.matrix(normFact)){
+        normFact <- normFact[index,]
     }
-    sapply(1:length(data), function(i) 
-        pVal(data[i], size=disp, mu=mu, normF[i], alternative=alternative))
+    pVal(data, size=disp, mu=mu, normFact, alternative=alternative)
 }
 
 

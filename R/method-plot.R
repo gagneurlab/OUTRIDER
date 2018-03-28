@@ -1,5 +1,4 @@
 
-
 #' This function is defined because its used in a FraseR function, but should
 #' not be used within this package!
 #' @noRd
@@ -14,6 +13,7 @@ getPlotDistributionData <- function(gr=NULL, fds=NULL, type=NULL){
 #' @param geneID Gene to be plotted
 #' @param global Flag to plot a global QQ-plot, default FALSE
 #' @param padj significance level to mark outliers
+#' @param zScore Z-score cutoff to coloring outliers
 #' @param subset samples to subset for
 #' @param main title for the plot
 #' @param maxOutlier y-axis range for the plot
@@ -28,7 +28,7 @@ getPlotDistributionData <- function(gr=NULL, fds=NULL, type=NULL){
 #' plotQQ(ods, 1)
 #' 
 #' @export
-plotQQ <- function(ods, geneID=1:length(ods), global=FALSE, padj=0.05,
+plotQQ <- function(ods, geneID=1:length(ods), global=FALSE, padj=0.05, zScore=3,
                     subset=1:ncol(ods), main=NULL, maxOutlier=NULL, ...){
     if(global == FALSE){
         if(!is.null(geneID)){
@@ -40,9 +40,10 @@ plotQQ <- function(ods, geneID=1:length(ods), global=FALSE, padj=0.05,
         sapply(1:length(ods), function(i){
             data <- list(pvalues=assays(ods)[['pValue']][i,])
             if(isScalarNumeric(padj, na.ok=FALSE)){
-                data[['aberrant']] <- assays(ods)[['padjust']][i,] <= padj
+                data[['aberrant']] <- aberrant(ods[i,], 
+                        padj=padj, zScore=zScore)
             }
-            plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, ...)    
+            plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, ...)
         })
     }
     else {
@@ -195,7 +196,8 @@ breakTies <- function(x, logBase=10, decreasing=TRUE){
 #' @param ods OutriderDataSet
 #' @param sampleID sample which should be plotted. 
 #'        Can also be a vector of samples. 
-#' @param padj padj cutoff
+#' @param padjCut padj cutoff
+#' @param zScoreCut Z-score cutoff
 #' @param basePlot R base plot version of the plot.
 #' @return None
 #' 
@@ -205,16 +207,26 @@ breakTies <- function(x, logBase=10, decreasing=TRUE){
 #' plotVolcano(ods, 1)
 #' 
 #' @export 
-plotVolcano <- function(ods, sampleID, padj=0.05, basePlot=FALSE){
+plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, basePlot=FALSE){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
     }
-    # TODO this will cause a bug if only an index is provided.
-    # if(sampleID %in% colnames(ods)){
-    #     stop('Sample not in data set')
-    # }
+    if(is.logical(sampleID)){
+        sampleID <- which(sampleID)
+    }
+    if(is.numeric(sampleID)){
+        if(!(is.numeric(sampleID) && max(sampleID) <= ncol(ods))){
+            stop(paste('Sample index is out of bounds:', 
+                    paste(sampleID, collapse=", ")))
+        }
+        sampleID <- colnames(ods)[sampleID]
+    }
+    if(!all(sampleID %in% colnames(ods))){
+        stop("Sample ID is not in the data set.")
+    }
     if(length(sampleID) > 1){
-        sapply(sampleID, plotVolcano, ods=ods, padj=padj)
+        sapply(sampleID, plotVolcano, ods=ods, padjCut=padjCut, 
+                zScoreCut=zScoreCut, basePlot=basePlot)
         return()
     }
     
@@ -227,7 +239,7 @@ plotVolcano <- function(ods, sampleID, padj=0.05, basePlot=FALSE){
             medianCts = rowMedians(counts(ods, normalized=TRUE)),
             expRank   = apply(
                     counts(ods, normalized=TRUE), 2, rank)[,sampleID])
-    aberrant <- as.data.table(aberrant(ods[,sampleID]), padj)
+    aberrant <- as.data.table(aberrant(ods[,sampleID]), padjCut, zScoreCut)
     setnames(aberrant, 2, 'aberrant')
     dt <- cbind(dt, aberrant)
     
@@ -256,8 +268,8 @@ plotVolcano <- function(ods, sampleID, padj=0.05, basePlot=FALSE){
             text=~paste0(
                 "Gene ID: ", GENE_ID,
                 "<br>Sample ID: ", sampleID,
-                "<br>Median normcount: ", signif(medianCts, 2),
-                "<br>normcount: ", signif(normCts, 2),
+                "<br>Median normcount: ", round(medianCts, 2),
+                "<br>normcount: ", round(normCts, 2),
                 "<br>expression rank: ", as.integer(expRank),
                 "<br>nominal P-value: ", signif(pValue,3),
                 "<br>adj. P-value: ", signif(padjust,3),
@@ -278,7 +290,8 @@ plotVolcano <- function(ods, sampleID, padj=0.05, basePlot=FALSE){
 #' @param ods A OUTRIDER data set.
 #' @param geneID Id of gene wich should be plotted. 
 #' If multiple gene ids are supplied mulitple plots will be made.
-#' @param padj padj cutoff for coloring significant genes
+#' @param padjCut padj cutoff for coloring significant genes
+#' @param zScoreCut Z-score cutoff for coloring significant genes
 #' @param normalized if TRUE the normalized counts are used 
 #'             otherwise the raw counts
 #' @param basePlot R base plot version.
@@ -290,20 +303,29 @@ plotVolcano <- function(ods, sampleID, padj=0.05, basePlot=FALSE){
 #' plotExpressionRank(ods, 1)
 #' 
 #' @export
-plotExpressionRank <- function(ods, geneID, padj=0.05, normalized=TRUE, 
-                    basePlot=FALSE){
+plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3, 
+                    normalized=TRUE, basePlot=FALSE){
     if(missing(geneID)){
         stop("Please Specify which gene should be plotted, geneID = 'geneA'")
+    }    
+    if(is.logical(geneID)){
+        geneID <- which(geneID)
     }
-    #TODO this will cause a bug if only an index is provided.
-    # if(geneID %in% rownames(ods)){
-    #     stop('Gene not in data set')
-    # }
+    if(is.numeric(geneID)){
+        if(!(is.numeric(geneID) && max(geneID) <= nrow(ods))){
+            stop(paste('Gene index is out of bounds:', 
+                       paste(geneID, collapse=", ")))
+        }
+        geneID <- rownames(ods)[geneID]
+    }
+    if(!all(geneID %in% rownames(ods))){
+        stop('The gene IDs are not within the data set.')
+    }
     if(length(geneID) > 1){
-        sapply(geneID, plotExpressionRank, ods=ods, padj=padj)
+        sapply(geneID, plotExpressionRank, ods=ods, padjCut=padjCut, 
+                zScoreCut=zScoreCut, basePlot=basePlot, normalized=normalized)
         return()
     }
-    
     dt <- data.table(
         sampleID = colnames(ods),
         normcounts = as.integer(counts(ods, normalized=normalized)[geneID,]))
@@ -313,15 +335,16 @@ plotExpressionRank <- function(ods, geneID, padj=0.05, normalized=TRUE,
     if('padjust' %in% assayNames(ods) & 'zScore' %in% assayNames(ods)){
         dt[, padjust:=assays(ods)[['padjust']][geneID,]]
         dt[, zScore:=assays(ods)[['zScore']][geneID,]]
-        dt[, aberrant:=aberrant(ods, padj=padj)[geneID,]]
-        colors <- ifelse(any(dt[,aberrant]), c("gray", "red"), "gray")
+        dt[, aberrant:=aberrant(ods, padj=padjCut, zScore=zScoreCut)[geneID,]]
+        colors <- dt[,ifelse(aberrant, 'red', 'gray')]
     } else {
+        dt[,aberrant:=FALSE]
         colors <- "gray"
     }
 
     if(basePlot == TRUE){
         dt[,plot(norm_rank, normcounts + 1, log = 'y', pch=16,
-            col = ifelse(!aberrant, 'gray', 'red'),
+            col = colors,
             xlab = 'Sample rank', ylab = 'Normalized counts + 1', main=geneID)]
         grid()
     }else{
@@ -360,6 +383,7 @@ plotExpressionRank <- function(ods, geneID, padj=0.05, normalized=TRUE,
 #'
 #' @param x An OutriderDataSet object
 #' @param normalized if TRUE, the normalized counts are used, default.
+#' @param rowCentered if TRUE, the counts are rowwise (genewise) centered
 #' @param rowCoFactor a vector of co-factors for color coding the rows
 #' @param rowColSet A vector of colors or a color set from RColorBrewer
 #' @param colCoFactor A vector of co-factors for color coding the columns
@@ -387,14 +411,16 @@ plotExpressionRank <- function(ods, geneID, padj=0.05, normalized=TRUE,
 #' plotCountCorHeatmap(ods, colCoFactor="sex")
 #' 
 #' @export
-plotCountCorHeatmap <- function(x, normalized=TRUE, rowCoFactor=NULL, 
-                    rowColSet="Set1", colCoFactor=NULL, colColSet="Set2", 
-                    nCluster=4, main="Count correlation heatmap", 
-                    annotateCluster=TRUE, dendrogram='both', basePlot=TRUE,
+plotCountCorHeatmap <- function(x, normalized=TRUE, rowCentered=TRUE, 
+                    rowCoFactor=NULL, rowColSet="Set1", 
+                    colCoFactor=NULL, colColSet="Set2", nCluster=4, 
+                    main="Count correlation heatmap", annotateCluster=TRUE,
+                    dendrogram='both', basePlot=TRUE,
                     names=c("both", "row", "col", "none"), ...){
     if(!isTRUE(basePlot)){
         return(plotCountCorHeatmapPlotly(x, normalized=normalized, 
                 rowCoFactor=rowCoFactor, rowColSet=rowColSet, 
+                rowCentered=rowCentered,
                 colCoFactor=colCoFactor, colColSet=colColSet, 
                 nCluster=nCluster, main=main, annotateCluster=annotateCluster, 
                 dendrogram=dendrogram, ...))
@@ -406,8 +432,9 @@ plotCountCorHeatmap <- function(x, normalized=TRUE, rowCoFactor=NULL,
     
     # correlation
     fcMat <- as.matrix(log2(counts(x, normalized=normalized) + 1))
-    #TODO check what is wrong here - rowMeans seems to introduce an error.
-    #ctscor <- cor(fcMat - rowMeans(fcMat), method="spearman")
+    if(isTRUE(rowCentered)){
+        fcMat <- fcMat - rowMeans(fcMat)
+    }
     ctscor <- cor(fcMat, method="spearman")
     # nice names
     colnames(ctscor) <- substr(dimnames(ctscor)[[1]], 0, 12)
@@ -481,14 +508,18 @@ plotCountCorHeatmap <- function(x, normalized=TRUE, rowCoFactor=NULL,
 }
 
 #' @rdname plotCountCorHeatmap
-plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCoFactor=NULL, 
+plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
+                    rowCoFactor=NULL, 
                     rowColSet="Set1", colCoFactor=NULL, colColSet="Set2",
                     nCluster=4, main="Count correlation heatmap", 
                     annotateCluster=TRUE, dendrogram='both', ...){
     
     # correlation
     fcMat <- as.matrix(log2(counts(x, normalized=normalized) + 1))
-    ctscor <- cor(fcMat - rowMeans(fcMat), method="spearman")
+    if(isTRUE(rowCentered)){
+        fcMat <- fcMat - rowMeans(fcMat)
+    }
+    ctscor <- cor(fcMat, method="spearman")
     
     # nice names
     colnames(ctscor) <- substr(dimnames(ctscor)[[1]], 0, 12)
@@ -551,7 +582,7 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCoFactor=NULL,
 #' 
 #' @export
 plotAberrantPerSample <- function(ods, padj=0.05, ...){
-    count_vector <- sort(aberrant(ods, by="sample", padj=padj,...))
+    count_vector <- sort(aberrant(ods, by="sample", padj=padj, ...))
     ylim = c(0.4, max(1, count_vector)*1.1)
     xlab_line= 3.5
     ylab_line= 3
@@ -681,7 +712,7 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     lines(odsVals$xpred, odsVals$ypred, lwd=2, col="black")
     if(checkAutoCorrectExists() & isTRUE(compareDisp)){
         lines(odsVals$xpred, nonAutoVals$ypred, lwd=2, col="firebrick")
-        legText <- c("OUTRIDER fit", "autoCorrect fit")
+        legText <- c("before correction fit", "autoCorrect fit")
         legCol <- c('firebrick', "black")
     }
     
