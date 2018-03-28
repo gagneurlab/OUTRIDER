@@ -44,3 +44,6 @@ test_that("fit method", {
     expect_true(all(mcols(ods)[,"mu"]))
     expect_true(all(mcols(ods)[,"disp"]))
 })
+
+
+
