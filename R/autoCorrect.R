@@ -66,7 +66,7 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250,
     # correctionFactors is a matrix of the same dimension as k
     autoCorrectObj <- import("autoCorrection")
     corrected <- autoCorrectObj$correctors$AECorrector(epochs=epochs, modelName,
-            modelDirectory, save_model=save, epochs=epochs,
+            modelDirectory, save_model=save, epochs=epochs, verbose=verbose,
             param_exp_name=param_exp_name, param_path=param_path)$correct(
                     kt, sfm, only_predict=predict)
     correctionFactors <- t(corrected)
