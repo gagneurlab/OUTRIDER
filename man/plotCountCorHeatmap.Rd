@@ -5,21 +5,23 @@
 \alias{plotCountCorHeatmapPlotly}
 \title{Correlation heatmap}
 \usage{
-plotCountCorHeatmap(x, normalized = TRUE, rowCoFactor = NULL,
-  rowColSet = "Set1", colCoFactor = NULL, colColSet = "Set2",
-  nCluster = 4, main = "Count correlation heatmap",
+plotCountCorHeatmap(x, normalized = TRUE, rowCentered = TRUE,
+  rowCoFactor = NULL, rowColSet = "Set1", colCoFactor = NULL,
+  colColSet = "Set2", nCluster = 4, main = "Count correlation heatmap",
   annotateCluster = TRUE, dendrogram = "both", basePlot = TRUE,
   names = c("both", "row", "col", "none"), ...)
 
-plotCountCorHeatmapPlotly(x, normalized = TRUE, rowCoFactor = NULL,
-  rowColSet = "Set1", colCoFactor = NULL, colColSet = "Set2",
-  nCluster = 4, main = "Count correlation heatmap",
+plotCountCorHeatmapPlotly(x, normalized = TRUE, rowCentered = TRUE,
+  rowCoFactor = NULL, rowColSet = "Set1", colCoFactor = NULL,
+  colColSet = "Set2", nCluster = 4, main = "Count correlation heatmap",
   annotateCluster = TRUE, dendrogram = "both", ...)
 }
 \arguments{
 \item{x}{An OutriderDataSet object}
 
 \item{normalized}{if TRUE, the normalized counts are used, default.}
+
+\item{rowCentered}{if TRUE, the counts are rowwise (genewise) centered}
 
 \item{rowCoFactor}{a vector of co-factors for color coding the rows}
 

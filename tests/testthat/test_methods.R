@@ -27,7 +27,6 @@ test_that("pvalue calculation", {
 test_that("result method", {
     ods <- makeExampleOutriderDataSet()
     expect_error(results(ods), "The P-values are not computed yet..*")
-    
 })
 
 test_that("normalization method", {
@@ -44,5 +43,4 @@ test_that("fit method", {
     ods <- fit(ods)
     expect_true(all(mcols(ods)[,"mu"]))
     expect_true(all(mcols(ods)[,"disp"]))
-    
 })

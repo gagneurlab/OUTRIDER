@@ -52,6 +52,10 @@ compileResults <- function(object, padj=0.05, zScore=3,
     
     tidyresults <- merge(tidyresults, DTfitparameters, by=c('geneID'))
     
+    tidyresults <- merge(tidyresults, data.table(geneID = rownames(object), 
+            meanCorrected = rowMeans(counts(object, normalized=TRUE))), 
+            by=c('geneID'))
+    
     tidyresults <- merge(tidyresults, data.table(sampleID=colnames(object), 
             AberrantBySample = aberrant(object, by='sample')), 
             by=c('sampleID'))

@@ -5,7 +5,7 @@
 \title{Plot a QQ-plot for a given gene}
 \usage{
 plotQQ(ods, geneID = 1:length(ods), global = FALSE, padj = 0.05,
-  subset = 1:ncol(ods), main = NULL, maxOutlier = NULL, ...)
+  zScore = 3, subset = 1:ncol(ods), main = NULL, maxOutlier = NULL, ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
@@ -15,6 +15,8 @@ plotQQ(ods, geneID = 1:length(ods), global = FALSE, padj = 0.05,
 \item{global}{Flag to plot a global QQ-plot, default FALSE}
 
 \item{padj}{significance level to mark outliers}
+
+\item{zScore}{Z-score cutoff to coloring outliers}
 
 \item{subset}{samples to subset for}
 

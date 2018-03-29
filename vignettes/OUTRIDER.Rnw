@@ -80,9 +80,11 @@ suppressPackageStartupMessages({
     library(OUTRIDER)
     library(beeswarm)
 })
-register(SerialParam())
-if(multicoreWorkers() >= 8){
-    register(MulticoreParam(6))
+if(multicoreWorkers() >= 4){
+    register(MulticoreParam(min(6, multicoreWorkers())))
+} else {
+    register(SerialParam())
+    options(OUTRIDER.epochs=150)
 }
 
 # check the python environment if its there (hack needed for mac)
@@ -311,7 +313,7 @@ p_{ij} = 2 \cdot min \left\{\frac{1}{2},  \sum_{0}^{k_{ij}} NB(\mu_i\cdot c_{ij}
 where the $\frac{1}{2}$ term handles the case of both terms exceeding 0.5, which can happen due
 to the discrete nature of the negative binomial distribution. If required a one-sided test can be
 computed using the alternative argument and specifying 'less' or 'greater' depending on the research question.
-Multiple testing correction is done across all genes in a per-sample fashion using Benjamini-Hochberg’s
+Multiple testing correction is done across all genes in a per-sample fashion using Benjamini-Hochberg's
 False Discovery Rate method (Benjamini and Hochberg 1995). Alternatively all other by \Rfunction{p.adjust}
 supported Methods can be used via the parameter \Robject{method}.
 
@@ -430,7 +432,7 @@ Eather a file path can be added in the \Rfunction{fit} function or the
 
 <<modelSaving>>=
 # Make an OutriderDataSet and compute the fit.
-ods <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet(50, 50)
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
 
@@ -445,9 +447,9 @@ Afterwards, \Rfunction{estimateSizeFactors} has to be called to compute size fac
 wich are based on the loaded parameter set. Then the analysis functions 
 \Rfunction{computePvalues} and \Rfunction{computeZscores} can be called.
 
-<<modelLoad, eval=FALSE>>=
+<<modelLoad>>=
 # Create a new data set and load the model
-ods <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet(50, 70)
 ods <- readNBModel(ods, 'model.tsv')
 
 # do the analysis based on the loaded model
@@ -465,15 +467,15 @@ function call. If the modell should be reused the user has to specify the same m
 directory in the \Rfunction{autoCorrect} function and additionally set the \Robject{predict} option to TRUE.
 This option can only be used in combination with the above mentioned method, to have a common reference for the size factors.
 
-<<modelLoadingSavingAE, eval=FALSE>>=
+<<modelLoadingSavingAE>>=
 # Saving
-ods <- makeExampleOutriderDataSet(m=50)
+ods <- makeExampleOutriderDataSet(100, 50)
 ods <- estimateSizeFactors(ods)
 ods <- autoCorrect(ods, save=TRUE, modelName='AEModel',
         modelDirectory='.')
 
 # Loading
-ods <- makeExampleOutriderDataSet(m=100)
+ods <- makeExampleOutriderDataSet(100, 100)
 ods <- estimateSizeFactors(ods)
 ods <- autoCorrect(ods, predict=TRUE, modelName='AEModel',
         modelDirectory='.')

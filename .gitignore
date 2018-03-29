@@ -25,4 +25,7 @@ model.tsv
 AEModel.json
 AEModel_weights.h5
 ucsc.knownGenes.db
+test_nb_model.txt
 
+#' tmp files
+.DS_Store
