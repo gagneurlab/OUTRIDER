@@ -5,7 +5,8 @@
 \title{autoCorrect}
 \usage{
 autoCorrect(ods, save = FALSE, predict = FALSE, epochs = 250,
-  modelName = NULL, modelDirectory = NULL, verbose = FALSE)
+  param_path = NULL, param_exp_name = NULL, verbose = FALSE,
+  modelName = NULL, modelDirectory = NULL)
 }
 \arguments{
 \item{ods}{an OutriderDataSet object}
@@ -17,13 +18,17 @@ prediction is based on a given model. Need a prefitted model.}
 
 \item{epochs}{The number of epochs used for the autoCorrection training.}
 
+\item{param_path}{The directory where the optimal parameters are stored}
+
+\item{param_exp_name}{Name of the parameter file}
+
+\item{verbose}{if TRUE further information about the training/predicting
+of the autoencoder is printed.}
+
 \item{modelName}{Name of the model to read/write}
 
 \item{modelDirectory}{The directory where the model is located 
 or should be stored}
-
-\item{verbose}{if TRUE further information about the training/predicting
-of the autoencoder is printed.}
 }
 \value{
 An ods object including the control factors

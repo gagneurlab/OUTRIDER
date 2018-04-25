@@ -65,9 +65,9 @@ filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes,
     if(filterGenes==TRUE){
         ods <- ods[passed == TRUE]
     }
-    message(paste0(sum(passed), ifelse(filterGenes, 
+    message(paste0(sum(!passed), ifelse(filterGenes, 
             " genes are filtered out. ", " genes did not passed the filter. "), 
-            "This is ", signif(sum(passed)/length(passed)*100, 3), 
+            "This is ", signif(sum(!passed)/length(passed)*100, 3), 
             "% of the genes."))
     return(ods)
 }
@@ -190,10 +190,10 @@ filterZeros <- function(x, filterGenes=FALSE){
     passed <- rowMax(counts(x)) > 0
     mcols(x)['passedFilter'] <- passed
     
-    message(paste0(sum(passed), " genes ", ifelse(filterGenes, 
+    message(paste0(sum(!passed), " genes ", ifelse(filterGenes, 
             "are filtered out ", "did not passed the filter "), 
             "due to zero counts. This is ", 
-            signif(sum(passed)/length(passed)*100, 3), 
+            signif(sum(!passed)/length(passed)*100, 3), 
             "% of the genes."))
     
     if(isTRUE(filterGenes)){

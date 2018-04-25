@@ -1,7 +1,7 @@
 # OUTRIDER #
 
 [![Pipeline status](https://travis-ci.org/gagneurlab/OUTRIDER.svg?branch=master)](https://travis-ci.org/gagneurlab/OUTRIDER)
-[![Version](https://img.shields.io/badge/Version-0.99.3-orange.svg)](https://github.com/gagneurlab/OUTRIDER/blob/master)
+[![Version](https://img.shields.io/badge/Version-0.99.5-orange.svg)](https://github.com/gagneurlab/OUTRIDER/blob/master)
 [![Coverage status](https://codecov.io/gh/gagneurlab/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/gagneurlab/OUTRIDER?branch=master)
 [![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/gagneurlab/OUTRIDER/blob/master/LICENSE)
 
@@ -52,7 +52,7 @@ pip install --upgrade autoCorrection
 With autoCorrection installed on our system, we can install the `OUTRIDER` package in R.
 
 ```
-Rscript -e 'devtools::install_github("gagneurlab/OUTRIDER", dependencies=TRUE, build_vignettes=TRUE)'
+Rscript -e 'devtools::install_github("gagneurlab/OUTRIDER", dependencies=TRUE)'
 ``` 
 
 ### Quick tour through OUTRIDER

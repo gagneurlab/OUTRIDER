@@ -60,13 +60,12 @@ pValMatrix <- function(ods, alternative, BPPARAM){
     ctsData <- counts(ods)
     disp    <- mcols(ods)[,"disp"]
     mu      <- mcols(ods)[,"mu"]
-    normF   <- sizeFactors(ods)
     normF   <- normalizationFactors(ods)
     if(is.null(normF)){
         normF <- sizeFactors(ods)
     }
     
-    pValMat <- bplapply(1:length(ods), pValNorm, ctsData=ctsData, disp=disp,
+    pValMat <- bplapply(seq_along(ods), pValNorm, ctsData=ctsData, disp=disp,
             mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
     
     pValMat <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
@@ -127,7 +126,7 @@ pValNorm <- function(index, ctsData, disp, mu, normFact, alternative){
     disp <- disp[index]
     mu   <- mu[index]
     if(is.matrix(normFact)){
-        normFact <- normFact[index]
+        normFact <- normFact[index,]
     }
     pVal(data, size=disp, mu=mu, normFact, alternative=alternative)
 }

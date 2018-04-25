@@ -336,7 +336,7 @@ plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3,
         dt[, padjust:=assays(ods)[['padjust']][geneID,]]
         dt[, zScore:=assays(ods)[['zScore']][geneID,]]
         dt[, aberrant:=aberrant(ods, padj=padjCut, zScore=zScoreCut)[geneID,]]
-        colors <- ifelse(any(dt[,aberrant]), c("gray", "red"), "gray")
+        colors <- dt[,ifelse(aberrant, 'red', 'gray')]
     } else {
         dt[,aberrant:=FALSE]
         colors <- "gray"
@@ -581,17 +581,19 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' plotAberrantPerSample(ods)
 #' 
 #' @export
-plotAberrantPerSample <- function(ods, padj=0.05, ...){
+plotAberrantPerSample <- function(ods, padj=0.05, main=NULL, ...){
+    
+    if(is.null(main)){
+        main <- 'Aberrant Genes per Sample'
+    }
+    
     count_vector <- sort(aberrant(ods, by="sample", padj=padj, ...))
     ylim = c(0.4, max(1, count_vector)*1.1)
     xlab_line= 3.5
     ylab_line= 3
     replace_zero_unknown = 0.5
-    #ticks= c(replace_zero_unknown, 1,2,5, 10,20,50, 100,200,500),
     ticks= c(replace_zero_unknown, signif(10^seq(
             from=0, to=round(log10(max(1, count_vector))), by=1/3), 1))
-    #yshift_hlines_text= c(0.1, 4)
-
     
     labels_for_ticks = sub(replace_zero_unknown, '0', as.character(ticks))
     
@@ -601,7 +603,8 @@ plotAberrantPerSample <- function(ods, padj=0.05, ...){
         names.arg='', xlab= '', plot.grid=TRUE, grid.col='lightgray',
         ylab= '', 
         yaxt = 'n', border=NA, xpd=TRUE,
-        col = ifelse(count_vector < length(ods)*0.001,'#fdb462','grey')
+        col = ifelse(count_vector < length(ods)*0.001,'#fdb462','grey'),
+        main  = main
     )
     n_names <- floor(length(count_vector)/20)
     xnames= c(1:n_names*20)
@@ -646,7 +649,13 @@ plotAberrantPerSample <- function(ods, padj=0.05, ...){
 #' 
 plotFPKM <- function(ods){
     fpkm <- fpkm(ods)
-    passed <- mcols(ods)[['passedFilter']] 
+    if(!'passedFilter' %in% colnames(mcols(ods))){
+        message(paste0('To see the difference between the filtering ', 
+                'run first the filterExpression() function.'))
+        passed <- rep(TRUE, nrow(ods))
+    } else {
+        passed <- mcols(ods)[['passedFilter']] 
+    }
     
     histdata <- data.table(melt(fpkm, value.name = 'fpkm'),
             'passedFilter'=rep(passed, dim(fpkm)[2]))
@@ -712,7 +721,7 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     lines(odsVals$xpred, odsVals$ypred, lwd=2, col="black")
     if(checkAutoCorrectExists() & isTRUE(compareDisp)){
         lines(odsVals$xpred, nonAutoVals$ypred, lwd=2, col="firebrick")
-        legText <- c("OUTRIDER fit", "autoCorrect fit")
+        legText <- c("before correction fit", "autoCorrect fit")
         legCol <- c('firebrick', "black")
     }
     
