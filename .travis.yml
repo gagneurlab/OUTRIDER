@@ -36,7 +36,7 @@ env:
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
-  - if [[ $REINSTALL_PYTHON == "TRUE" ]] || ! which python$PYTHON_VERSION; then
+  - if [[ $REINSTALL_PYTHON == "TRUE" ]] || ! which python${PYTHON_VERSION%.*}; then
       mkdir tmp;
       cd tmp;
       wget "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz";
@@ -45,8 +45,8 @@ before_install:
       ./configure --enable-optimizations;
       sudo make altinstall;
     fi 
-  - if [ ! -e ~/python-env-OUTRIDER/bin/activate ] || [[ $REINSTALL_PYTHON == "TRUE" ]]; then
-      python$PYTHON_VERSION -m venv --clear ~/python-env-OUTRIDER --without-pip;
+  - if [[ $REINSTALL_PYTHON == "TRUE" ]] %% [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
+      python${PYTHON_VERSION%.*} -m venv --clear ~/python-env-OUTRIDER --without-pip;
       source ~/python-env-OUTRIDER/bin/activate;
       wget https://bootstrap.pypa.io/get-pip.py;
       python get-pip.py;
