@@ -25,7 +25,11 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install -y python3.7
   - if [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
-        python3.7 -m venv --clear ~/python-env-OUTRIDER;
+        python3.7 -m venv --clear ~/python-env-OUTRIDER --without-pip;
+        source ~/python-env-OUTRIDER/bin/activate
+        wget https://bootstrap.pypa.io/get-pip.py
+        python get-pip.py
+        deactivate
     fi
   - source ~/python-env-OUTRIDER/bin/activate
   - pip install --upgrade pip
