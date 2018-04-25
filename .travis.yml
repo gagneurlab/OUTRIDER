@@ -6,6 +6,7 @@ cache:
     - $HOME/python-env-OUTRIDER
     - $HOME/R/Library
     - $HOME/.cache/pip
+    - /usr/local
 matrix:
   include:
     - r: bioc-release
@@ -32,7 +33,7 @@ addons:
 env:
   global:
     - REINSTALL_PYTHON="TRUE"
-    - PYTHON_VERSION="3.6.4"
+    - PYTHON_VERSION="3.6.5"
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
@@ -44,6 +45,7 @@ before_install:
       cd Python-$PYTHON_VERSION;
       ./configure --enable-optimizations;
       sudo -H make altinstall;
+      cd ..
     fi 
   - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
       python${PYTHON_VERSION%.*} -m venv --clear ~/python-env-OUTRIDER --without-pip;
