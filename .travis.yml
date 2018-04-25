@@ -1,9 +1,9 @@
-#    - $HOME/python-env-OUTRIDER
 language: r
 sudo: required
 dist: trusty
 cache:
   - directories:
+    - $HOME/python-env-OUTRIDER
     - $HOME/R/Library
     - $HOME/.cache/pip
 matrix:
@@ -19,17 +19,21 @@ addons:
       - python3-pip
       - python3-tk
 
+env:
+  global:
+    - REINSTALL_PYTHON="TRUE"
+
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
   - sudo add-apt-repository -y ppa:deadsnakes/ppa
   - sudo apt-get update
   - sudo apt-get install -y python3.7
-  - if [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
-        python3.7 -m venv --clear ~/python-env-OUTRIDER --without-pip;
-        source ~/python-env-OUTRIDER/bin/activate
-        wget https://bootstrap.pypa.io/get-pip.py
-        python get-pip.py
-        deactivate
+  - if [ ! -e ~/python-env-OUTRIDER/bin/activate ] || [[ REINSTALL_PYTHON == "TRUE" ]]; then
+      python3.7 -m venv --clear ~/python-env-OUTRIDER --without-pip;
+      source ~/python-env-OUTRIDER/bin/activate;
+      wget https://bootstrap.pypa.io/get-pip.py;
+      python get-pip.py;
+      deactivate;
     fi
   - source ~/python-env-OUTRIDER/bin/activate
   - pip install --upgrade pip
