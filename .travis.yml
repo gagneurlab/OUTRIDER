@@ -43,9 +43,9 @@ before_install:
       tar xzf Python-$PYTHON_VERSION.tgz;
       cd Python-$PYTHON_VERSION;
       ./configure --enable-optimizations;
-      sudo make altinstall;
+      sudo -H make altinstall;
     fi 
-  - if [[ $REINSTALL_PYTHON == "TRUE" ]] %% [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
+  - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
       python${PYTHON_VERSION%.*} -m venv --clear ~/python-env-OUTRIDER --without-pip;
       source ~/python-env-OUTRIDER/bin/activate;
       wget https://bootstrap.pypa.io/get-pip.py;
