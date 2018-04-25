@@ -3,12 +3,11 @@ sudo: required
 dist: trusty
 cache:
   - directories:
-    - $HOME/python-env-OUTRIDER
+#    - $HOME/python-env-OUTRIDER
     - $HOME/R/Library
     - $HOME/.cache/pip
 matrix:
   include:
-    - r: bioc-oldrel
     - r: bioc-release
     - r: bioc-devel
 
