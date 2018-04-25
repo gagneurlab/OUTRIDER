@@ -44,7 +44,7 @@ before_install:
       cd Python-$PYTHON_VERSION;
       ./configure --enable-optimizations;
       sudo -H make altinstall;
-      cd ..
+      cd ..;
     fi 
   - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
       python${PYTHON_VERSION%.*} -m venv --clear ~/python-env-OUTRIDER --without-pip;
