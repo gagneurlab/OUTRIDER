@@ -8,6 +8,7 @@ cache:
     - $HOME/.cache/pip
 matrix:
   include:
+    - r: bioc-oldrel
     - r: bioc-release
     - r: bioc-devel
 
