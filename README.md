@@ -24,7 +24,7 @@ python3 -m venv ~/python-env-OUTRIDER
 source ~/python-env-OUTRIDER/bin/activate
 ```
 
-For OUTRIDER we will us `devtools` and `BiocInstaller` to install it and its dependencies.
+For OUTRIDER we will use `devtools` and `BiocInstaller` to install it and its dependencies.
 
 ```
 Rscript -e "install.packages('devtools', repos='http://cran.us.r-project.org')"

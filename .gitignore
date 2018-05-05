@@ -3,6 +3,7 @@
 .Rhistory
 .RData
 .Ruserdata
+*.Rproj
 
 # vignette ignore list
 vignettes/cache
@@ -29,3 +30,5 @@ test_nb_model.txt
 
 #' tmp files
 .DS_Store
+.gitlab-ci.yml
+
