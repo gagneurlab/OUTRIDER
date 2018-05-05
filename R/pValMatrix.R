@@ -42,7 +42,7 @@ setGeneric("computePvalues",
 #' @export
 setMethod("computePvalues", "OutriderDataSet", function(object, 
                     alternative=c("two.sided", "greater", "less"), 
-                    method='BH', modelFile=NULL, BPPARAM=bpparam()){
+                    method='BY', modelFile=NULL, BPPARAM=bpparam()){
     if(!is.null(modelFile)){
         object <- readNBModel(object, modelFile)
         object <- estimateSizeFactors(object)
