@@ -17,7 +17,7 @@
 #'          makeExampleDESeqDataSet show fpkm fpm
 #' 
 #' @importFrom SummarizedExperiment colData colData<- assays assays<- 
-#'          assayNames mcols mcols<- width rowData
+#'          assayNames mcols mcols<- width rowData assay
 #' 
 #' @importFrom GenomicFeatures makeTxDbFromGFF exonsBy
 #' 
@@ -43,10 +43,10 @@
 #' 
 #' @importFrom S4Vectors DataFrame rowSums colSums
 #' 
-#' @importFrom utils read.table head
+#' @importFrom utils read.table head compareVersion
 #' 
 #' @importFrom graphics plot abline grid points mtext polygon axis text box
-#'         legend title lines
+#'         legend title lines par
 #' 
 #' @importFrom gplots barplot2 heatmap.2
 #' 
@@ -57,9 +57,9 @@
 #' @importFrom RColorBrewer brewer.pal
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarInteger 
-#'         isScalarCharacter isScalarValue
+#'         isScalarCharacter isScalarValue isFALSE
 #' 
-#' @importFrom reticulate import
+#' @importFrom reticulate import py_get_attr
 #' 
 #' @importFrom LSD heatscatter
 #' 
