@@ -97,14 +97,14 @@ if(file.exists('~/python-env-OUTRIDER/bin/activate')){
 
 \section{Introduction}
 \outrider{} (OUTlier in Rna-seq fInDER) is a tool to find aberrantly expressed genes in RNA-seq samples.
-It does so by fitting a negative binomial model on RNA-seq read counts, correcting for variatiosn in
-sequeiuncg depth and  appranet co-variations across samples. Read counts significantly deviating 
+It does so by fitting a negative binomial model on RNA-seq read counts, correcting for variations in
+sequencing depth and apparent co-variations across samples. Read counts significantly deviating 
 from the distribution are detected as outliers.
 
 Differential gene expression analysis from RNA-seq data is well-established. For instance, 
 the packages \deseq{} or \Biocpkg{edgeR} provide effective workflows and preprocessing steps
 to perform differential gene expression analysis. However, these methods aim at detecting 
-significant differences betwen groups of samples. In contrast, \outrider{} aims at detecting
+significant differences between groups of samples. In contrast, \outrider{} aims at detecting
 outliers within a given population. A scheme of this difference is given in figure \ref{fig:deVsOutlier}.
 
 <<deVsOutlier, echo=FALSE, fig.height=5, fig.cap="Scheme of workflow differences. Differences between differential gene expression analysis and outlier detection.">>=
@@ -134,7 +134,7 @@ The resulting count table can then be loaded into the \outrider{} package as we 
 \subsection{Using virtual environments}
 When using virtual environments in python to manage packages, we need to tell it our R session.
 To do so, run the following code before you start an \outrider{} analysis. We assume that
-the pythen environment was installed into \Rfunction{~/python-env-OUTRIDER}.
+the python environment was installed into \Rfunction{~/python-env-OUTRIDER}.
 
 <<virtualEnvs, eval=FALSE>>=
 # check if the given python environment exists
@@ -405,7 +405,7 @@ Additionally, we include two more plots at the gene level. \Rfunction{plotExpres
 plots the counts in ascending order. By default the controlled counts are plotted. 
 If required, the argument \Robject{normalized} can be set to FALSE, to plot the raw counts. 
 
-When using the \CRANpkg{plotly} framework for plotting. all computed values are displayed
+When using the \CRANpkg{plotly} framework for plotting all computed values are displayed
 for each data point. The user can access this information by hovering over each data point with the mouse.
 
 <<visualization2, fig.height=5>>=
