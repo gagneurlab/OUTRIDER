@@ -16,7 +16,12 @@ getXColors <- function(x, set="Set2"){
         n <- length(levels(x))
     }
     
-    cols <- suppressWarnings(brewer.pal(n=n, name=set))
+    if(length(set) == 1){
+        cols <- suppressWarnings(brewer.pal(n=n, name=set))
+    } else {
+        cols <- set
+    }
+    
     if(length(cols) > n){
         cols <- cols[seq_len(n)]
     }
