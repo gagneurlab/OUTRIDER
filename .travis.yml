@@ -80,9 +80,9 @@ install:
 script:
   - cd $TRAVIS_BUILD_DIR
   - R CMD build --no-build-vignettes .
-#  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
+  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
-#  - R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
+  - R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
 
 after_success:
   - Rscript -e 'covr::codecov()'
