@@ -6,6 +6,7 @@ cache:
     - $HOME/python-env-OUTRIDER
     - $HOME/R/Library
     - $HOME/.cache/pip
+    - /usr/local
 matrix:
   include:
     - r: bioc-release
