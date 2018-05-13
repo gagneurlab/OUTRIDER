@@ -30,6 +30,7 @@ addons:
 env:
   global:
     - REINSTALL_PYTHON="FALSE"
+    - REINSTALL_MODULES="FALSE"
     - PYTHON_VERSION="3.6.5"
     - USE_PIP_AUTOCORRECTION="TRUE"
 
@@ -37,15 +38,17 @@ before_install:
   - tlmgr install index marginfix bera nowidow parnotes
   - export PATH=$HOME/python-install/$PYTHON_VERSION/bin:$PATH
   - if [[ $REINSTALL_PYTHON == "TRUE" ]] || ! which python${PYTHON_VERSION%.*}; then
-      mkdir $HOME/tmp;
+      mkdir -p $HOME/tmp;
+      rm -rf $HOME/python-install;
+      export REINSTALL_MODULES=TRUE;
       cd $HOME/tmp;
       wget "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz";
       tar xzf Python-$PYTHON_VERSION.tgz;
       cd Python-$PYTHON_VERSION;
       ./configure --enable-optimizations --prefix $HOME/python-install/$PYTHON_VERSION;
-      make install;
+      make install -j 4;
     fi
-  - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
+  - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [[ $REINSTALL_MODULES == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
       python${PYTHON_VERSION%.*} -m venv --clear ~/python-env-OUTRIDER --without-pip;
       source ~/python-env-OUTRIDER/bin/activate;
       wget https://bootstrap.pypa.io/get-pip.py;
@@ -81,6 +84,6 @@ script:
 #  - R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
 
 after_success:
-  - ls -sa $HOME/
+   - ls -sa $HOME/
 #  - Rscript -e 'covr::codecov()'
 
