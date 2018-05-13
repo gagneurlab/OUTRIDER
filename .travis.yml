@@ -37,6 +37,7 @@ env:
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
   - export PATH=$HOME/python-install/$PYTHON_VERSION/bin:$PATH
+  - export LD_LIBRARY_PATH=$HOME/python-install/$PYTHON_VERSION/lib:$LD_LIBRARY_PATH
   - if [[ $REINSTALL_PYTHON == "TRUE" ]] || ! which python${PYTHON_VERSION%.*}; then
       mkdir -p $HOME/tmp;
       rm -rf $HOME/python-install;
