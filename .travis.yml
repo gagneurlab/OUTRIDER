@@ -49,6 +49,7 @@ before_install:
       make install -j 4;
     fi
   - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [[ $REINSTALL_MODULES == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
+      rm -rf ~/python-env-OUTRIDER;
       python${PYTHON_VERSION%.*} -m venv --clear ~/python-env-OUTRIDER --without-pip;
       source ~/python-env-OUTRIDER/bin/activate;
       wget https://bootstrap.pypa.io/get-pip.py;
