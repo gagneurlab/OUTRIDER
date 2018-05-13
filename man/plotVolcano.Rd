@@ -4,7 +4,7 @@
 \alias{plotVolcano}
 \title{Volcano plot}
 \usage{
-plotVolcano(ods, sampleID, padjCut = 0.05, zScoreCut = 3,
+plotVolcano(ods, sampleID, padjCut = 0.05, zScoreCut = 3, main = NULL,
   basePlot = FALSE)
 }
 \arguments{

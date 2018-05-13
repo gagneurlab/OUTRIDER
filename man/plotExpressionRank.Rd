@@ -5,7 +5,7 @@
 \title{Expression rank plot}
 \usage{
 plotExpressionRank(ods, geneID, padjCut = 0.05, zScoreCut = 3,
-  normalized = TRUE, basePlot = FALSE)
+  normalized = TRUE, basePlot = FALSE, main = NULL)
 }
 \arguments{
 \item{ods}{A OUTRIDER data set.}

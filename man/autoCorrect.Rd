@@ -6,7 +6,7 @@
 \usage{
 autoCorrect(ods, save = FALSE, predict = FALSE, epochs = 250,
   param_path = NULL, param_exp_name = NULL, verbose = FALSE,
-  modelName = NULL, modelDirectory = NULL)
+  modelName = NULL, modelDirectory = NULL, seed = NULL)
 }
 \arguments{
 \item{ods}{an OutriderDataSet object}
@@ -29,6 +29,9 @@ of the autoencoder is printed.}
 
 \item{modelDirectory}{The directory where the model is located 
 or should be stored}
+
+\item{seed}{if this is an integer it will be used to set the seed in the 
+python runtime environment}
 }
 \value{
 An ods object including the control factors
@@ -41,6 +44,7 @@ It calls the autoencoder correction factor estimation.
 ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- autoCorrect(ods)
+ods <- autoCorrect(ods, seed=42)
 
 plotCountCorHeatmap(ods, normalized=FALSE)
 plotCountCorHeatmap(ods, normalized=TRUE)

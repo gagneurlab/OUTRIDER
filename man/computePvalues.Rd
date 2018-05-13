@@ -10,7 +10,7 @@
 computePvalues(object, ...)
 
 \S4method{computePvalues}{OutriderDataSet}(object,
-  alternative = c("two.sided", "greater", "less"), method = "BH",
+  alternative = c("two.sided", "greater", "less"), method = "BY",
   modelFile = NULL, BPPARAM = bpparam())
 }
 \arguments{

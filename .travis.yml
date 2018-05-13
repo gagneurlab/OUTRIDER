@@ -10,14 +10,12 @@ matrix:
   include:
     - r: bioc-release
     - r: bioc-devel
+    - r: 3.4
 
 addons:
   apt:
     packages:
       - libxml2-dev
-      - python3.4-venv
-      - python3-pip
-      - python3-tk
       - build-essential
       - checkinstall
       - libreadline-gplv2-dev
@@ -33,6 +31,7 @@ env:
   global:
     - REINSTALL_PYTHON="TRUE"
     - PYTHON_VERSION="3.6.5"
+    - USE_PIP_AUTOCORRECTION="TRUE"
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
@@ -62,7 +61,11 @@ install:
   - R --version
   - which pip
   - which R
-  - pip3 install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
+  - if [[ $USE_PIP_AUTOCORRECTION == "TRUE" ]]; then
+      pip3 install --upgrade autoCorrection
+    else
+      pip3 install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
+    fi
   - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'

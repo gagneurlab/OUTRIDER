@@ -112,8 +112,9 @@ plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL,
     }
     
     # points
-    data$pvalues[data$pvalues == 0] <- min(data$pvalues[data$pvalues != 0]) * 0.1
-    obs <- -log10(sort(data$pvalues))
+    obs <- sort(data$pvalues)
+    obs[obs == 0] <- min(obs[obs != 0], na.rm=TRUE) * 0.1
+    obs <- -log10(obs)
     obs[is.na(obs)] <- 0
     if(length(obs) < 2){
         warning("There are no pvalues or all are NA!")
@@ -278,8 +279,8 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
             medianCts = rowMedians(counts(ods, normalized=TRUE)),
             expRank   = apply(
                     counts(ods, normalized=TRUE), 2, rank)[,sampleID])
-    aberrant <- as.data.table(aberrant(ods[,sampleID]), padjCut, zScoreCut)
-    setnames(aberrant, 2, 'aberrant')
+    aberrant <- data.table(aberrant=aberrant(
+            ods[,sampleID], padj=padjCut, zScore=zScoreCut)[,1])
     dt <- cbind(dt, aberrant)
     
     # remove the NAs from the zScores for plotting
@@ -290,7 +291,8 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
         colors <- "gray"
     }
     if(basePlot == TRUE){
-        dt[,plot(zScore, -log10(pValue), col=ifelse(aberrant, 'red', 'gray'), 
+        dt[,plot(zScore, -log10(pValue), 
+            col=ifelse(aberrant, 'firebrick', 'gray'), 
             pch=16, cex=.7, xlab='Z-score', 
             ylab=expression(paste(-log[10], "(", italic(P), "-value)")))]
         grid(equilogs=FALSE)
@@ -386,7 +388,8 @@ plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3,
 
     if(isTRUE(basePlot)){
         dt[,plot(norm_rank, normcounts + 1, log = 'y', pch=16,
-            col = ifelse(dt[,aberrant], 'firebrick', 'grey'), main=ifelse(!is.null(main), main, geneID), 
+            col = ifelse(dt[,aberrant], 'firebrick', 'grey'), 
+            main=ifelse(!is.null(main), main, geneID), 
             xlab = 'Sample rank', ylab = 'Normalized counts + 1')]
         grid(equilogs=FALSE)
     }else{
@@ -787,6 +790,7 @@ getDispEstsData <- function(ods, mu=NULL){
         mu=odsMu,
         disp=disp,
         xpred=xidx,
-        ypred=pred
+        ypred=pred,
+        fit=fit$coefficients
     ))
 }
