@@ -46,7 +46,8 @@ before_install:
       wget "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz";
       tar xzf Python-$PYTHON_VERSION.tgz;
       cd Python-$PYTHON_VERSION;
-      ./configure --enable-optimizations --prefix $HOME/python-install/$PYTHON_VERSION;
+      ./configure --enable-shared --prefix $HOME/python-install/$PYTHON_VERSION;
+      make -j 4;
       make install -j 4;
     fi
   - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [[ $REINSTALL_MODULES == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
@@ -68,11 +69,11 @@ install:
   - which pip
   - which R
   - if [[ $USE_PIP_AUTOCORRECTION == "TRUE" ]]; then
-      pip3 install --upgrade autoCorrection;
+      pip install --upgrade autoCorrection;
     else
-      pip3 install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master";
+      pip install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master";
     fi
-  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
+  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'), Ncpu=4)"
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
   - R -e 'BiocParallel::multicoreWorkers()'
