@@ -34,6 +34,8 @@ env:
     - USE_PIP_AUTOCORRECTION="TRUE"
 
 before_install:
+  - pwd
+  - ls -la
   - tlmgr install index marginfix bera nowidow parnotes
   - if [[ $REINSTALL_PYTHON == "TRUE" ]] || ! which python${PYTHON_VERSION%.*}; then
       mkdir tmp;
@@ -71,8 +73,12 @@ install:
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
   - R -e 'BiocParallel::multicoreWorkers()'
   - R -e 'devtools::install()'
+  - pwd
+  - ls -la
 
 script:
+  - pwd
+  - ls -la
   - R CMD build --no-build-vignettes .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
