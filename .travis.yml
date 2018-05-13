@@ -47,7 +47,7 @@ before_install:
       tar xzf Python-$PYTHON_VERSION.tgz;
       cd Python-$PYTHON_VERSION;
       ./configure --enable-optimizations --enable-shared --prefix $HOME/python-install/$PYTHON_VERSION;
-      make -j 4
+      make -j 4;
       make install -j 4;
     fi
   - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [[ $REINSTALL_MODULES == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
