@@ -29,7 +29,7 @@ addons:
 
 env:
   global:
-    - REINSTALL_PYTHON="TRUE"
+    - REINSTALL_PYTHON="FALSE"
     - PYTHON_VERSION="3.6.5"
     - USE_PIP_AUTOCORRECTION="TRUE"
 
@@ -62,9 +62,9 @@ install:
   - which pip
   - which R
   - if [[ $USE_PIP_AUTOCORRECTION == "TRUE" ]]; then
-      pip3 install --upgrade autoCorrection
+      pip3 install --upgrade autoCorrection;
     else
-      pip3 install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
+      pip3 install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master";
     fi
   - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
   - R -e "message(BiocInstaller::isDevel())"
