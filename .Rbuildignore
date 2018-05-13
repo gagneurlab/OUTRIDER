@@ -9,5 +9,6 @@ vignettes/scared-knitr.Rnw
 .git
 .travis.yml
 tmp_lib
+tmp
 ucsc.knownGenes.db
 ^codecov\.yml$
