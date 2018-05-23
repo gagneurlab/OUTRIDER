@@ -33,8 +33,10 @@ opts_chunk$set(
 @
 
 \author{
-    Felix Brechtmann$^{1}$, Christian Mertes$^{1}$, Agne Matuseviciute$^{1}$, Vicente Yepez$^{1}$, Julien Gagneur$^{1}$ \\
-    \small{$^{1}$ Technische Universit\"at M\"unchen, Department of Informatics, Garching, Germany}
+    Felix Brechtmann$^{1}$, Christian Mertes$^{1}$, Agne Matuseviciute$^{1}$, 
+        Vicente Yepez$^{1}$, Julien Gagneur$^{1}$ \\
+    \small{$^{1}$ Technische Universit\"at M\"unchen, Department of 
+        Informatics, Garching, Germany}
 }
 
 \begin{document}
