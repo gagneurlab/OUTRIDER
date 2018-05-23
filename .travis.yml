@@ -3,76 +3,25 @@ sudo: required
 dist: trusty
 cache:
   - directories:
-    - $HOME/python-env-OUTRIDER
     - $HOME/R/Library
-    - $HOME/.cache/pip
-    - $HOME/python-install
+
 matrix:
   include:
     - r: bioc-release
-    #- r: bioc-devel
+    - r: bioc-devel
 
 addons:
   apt:
     packages:
       - libxml2-dev
-      - build-essential
-      - checkinstall
-      - libreadline-gplv2-dev
-      - libncursesw5-dev
-      - libssl-dev
-      - libsqlite3-dev
       - tk-dev
-      - libgdbm-dev
-      - libc6-dev
-      - libbz2-dev
-
-env:
-  global:
-    - REINSTALL_PYTHON="FALSE"
-    - REINSTALL_MODULES="FALSE"
-    - PYTHON_VERSION="3.6.5"
-    - USE_PIP_AUTOCORRECTION="TRUE"
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
-  - export PATH=$HOME/python-install/$PYTHON_VERSION/bin:$PATH
-  - export LD_LIBRARY_PATH=$HOME/python-install/$PYTHON_VERSION/lib:$LD_LIBRARY_PATH
-  - if [[ $REINSTALL_PYTHON == "TRUE" ]] || ! which python${PYTHON_VERSION%.*}; then
-      mkdir -p $HOME/tmp;
-      rm -rf $HOME/python-install;
-      export REINSTALL_MODULES=TRUE;
-      cd $HOME/tmp;
-      wget "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz";
-      tar xzf Python-$PYTHON_VERSION.tgz;
-      cd Python-$PYTHON_VERSION;
-      ./configure --enable-shared --prefix $HOME/python-install/$PYTHON_VERSION;
-      make -j 4;
-      make install -j 4;
-    fi
-  - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [[ $REINSTALL_MODULES == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
-      rm -rf ~/python-env-OUTRIDER;
-      python${PYTHON_VERSION%.*} -m venv --clear ~/python-env-OUTRIDER --without-pip;
-      source ~/python-env-OUTRIDER/bin/activate;
-      wget https://bootstrap.pypa.io/get-pip.py;
-      python get-pip.py;
-      deactivate;
-    fi
-  - source ~/python-env-OUTRIDER/bin/activate
-  - pip install --upgrade pip
-  - cd $TRAVIS_BUILD_DIR
 
 install:
-  - pip --version
-  - python --version
   - R --version
-  - which pip
   - which R
-  - if [[ $USE_PIP_AUTOCORRECTION == "TRUE" ]]; then
-      pip install --upgrade autoCorrection;
-    else
-      pip install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master";
-    fi
   - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'), Ncpu=4)"
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
@@ -80,7 +29,6 @@ install:
   - R -e 'devtools::install()'
 
 script:
-  - cd $TRAVIS_BUILD_DIR
   - R CMD build --no-build-vignettes .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
