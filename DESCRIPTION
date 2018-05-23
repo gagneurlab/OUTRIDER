@@ -60,7 +60,8 @@ Imports:
     reticulate,
     LSD,
     pcaMethods,
-    Rcpp
+    Rcpp,
+    compiler
 Suggests: 
     testthat,
     knitr,

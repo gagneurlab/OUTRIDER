@@ -112,8 +112,9 @@ plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL,
     }
     
     # points
-    data$pvalues[data$pvalues == 0] <- min(data$pvalues[data$pvalues != 0]) * 0.1
-    obs <- -log10(sort(data$pvalues))
+    obs <- sort(data$pvalues)
+    obs[obs == 0] <- min(obs[obs != 0]) * 0.1
+    obs <- -log10(obs)
     obs[is.na(obs)] <- 0
     if(length(obs) < 2){
         warning("There are no pvalues or all are NA!")
@@ -387,8 +388,9 @@ plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3,
 
     if(isTRUE(basePlot)){
         dt[,plot(norm_rank, normcounts + 1, log = 'y', pch=16,
-            col = ifelse(dt[,aberrant], 'firebrick', 'grey'), main=ifelse(!is.null(main), main, geneID), 
-            xlab = 'Sample rank', ylab = 'Normalized counts + 1')]
+                col=ifelse(dt[,aberrant], 'firebrick', 'grey'), 
+                main=ifelse(!is.null(main), main, geneID), 
+                xlab = 'Sample rank', ylab = 'Normalized counts + 1')]
         grid(equilogs=FALSE)
     }else{
         plot_ly(
@@ -764,7 +766,7 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     
     # plot fit
     lines(odsVals$xpred, odsVals$ypred, lwd=2, col="black")
-    if(TRUE & isTRUE(compareDisp)){
+    if(isTRUE(compareDisp)){
         lines(odsVals$xpred, nonAutoVals$ypred, lwd=2, col="firebrick")
         legText <- c("before correction fit", "autoCorrect fit")
         legCol <- c('firebrick', "black")
@@ -787,7 +789,7 @@ getDispEstsData <- function(ods, mu=NULL){
     # pred <- predict(fit, list(mu=xidx))
     
     # fit DESeq2 parametric Disp Fit
-    fit <-DESeq2:::parametricDispersionFit(mu, 1/disp)
+    fit <- parametricDispersionFit(mu, 1/disp)
     pred <- fit(xidx)
     return(list(
         mu=mu,
@@ -797,3 +799,38 @@ getDispEstsData <- function(ods, mu=NULL){
         fit=fit
     ))
 }
+
+#'
+#' This function is not exported from DESeq2. Therefore we copied it over to
+#' here. If DESeq2 will export this function we can use it instead.
+#' 
+#' TODO
+#' 
+#' @noRd
+parametricDispersionFit <- function (means, disps){
+    coefs <- c(0.1, 1)
+    iter <- 0
+    while (TRUE) {
+        residuals <- disps/(coefs[1] + coefs[2]/means)
+        good <- which((residuals > 1e-04) & (residuals < 15))
+        suppressWarnings({
+            fit <- glm(disps[good] ~ I(1/means[good]), 
+                    family = Gamma(link = "identity"), 
+                    start = coefs)
+        })
+        oldcoefs <- coefs
+        coefs <- coefficients(fit)
+        if (!all(coefs > 0)) 
+            stop(simpleError("parametric dispersion fit failed"))
+        if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
+            break
+        iter <- iter + 1
+        if (iter > 10) 
+            stop(simpleError("dispersion fit did not converge"))
+    }
+    names(coefs) <- c("asymptDisp", "extraPois")
+    ans <- function(q) coefs[1] + coefs[2]/q
+    attr(ans, "coefficients") <- coefs
+    ans
+}
+
