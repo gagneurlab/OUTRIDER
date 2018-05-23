@@ -1,0 +1,87 @@
+\title{Autoencoder Gradient}
+\author{
+       Felix Brechtmann
+}
+\date{\today}
+
+\documentclass[11pt]{letter}
+
+\usepackage{amsmath}
+
+%\newcommand{\matr}[1]{#1}
+\newcommand{\matr}[1]{\mathbf{#1}}
+
+\begin{document}
+
+\textbf{Supplemental Methods}
+
+We use L-BFGS to fit the autoencoder model as described in the Methods.
+To speed up the fitting we implemented the gradient as derived below.
+
+The expectations $\mu$ are modeled by:
+\begin{align*}
+\mu_{ij} &= s_{i} e^{y_{ij} + \bar{x}_j}\\
+\matr{Y} &= \matr{X} \matr{W} \matr{W}^T + \matr{b}
+\end{align*}
+where the matrix $\matr{X}$ is given by the matrix: $\log{\frac{k_{ij}+1}{s_i}} - \bar{x}_j$. 
+
+The negative binomial log likelihood is given by:
+\begin{align*}
+ll=& \sum_{ij} k_{ij} \log{(\mu_{ij})} + 
+\sum_{ij} \theta \log{(\theta)} -
+\sum_{ij} (k_{ij} + \theta) \log{(\mu_{ij} + \theta)} \\
++&\sum_{ij} \log{(\Gamma(\theta + k_{ij}))} 
+- \sum_{ij} \log{(\Gamma({\theta}) k_{ij}!)}
+\end{align*}
+
+For the derivation of the gradient only the first and third term need to be considered, 
+as all other terms are independent of $\mu$.
+
+Computing the derivative of the first term with respect to the matrix $\matr{W}$ by subsituting the autoencoder model for $\mu$. Here the operations $\log[a]$ and $\exp[a]$ are understood to be element-wise.
+
+\begin{align*}
+&\frac{d}{dw_{ab}}\sum_{ij} k_{ij} \log{(\mu_{ij})} \\
+&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \log{[\exp{[\matr{X} \matr{W} \matr{W}^T + \matr{b}]}]} \\
+&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} (\matr{X} \matr{W} \matr{W}^T + \matr{b}) \\
+&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j) \\
+&= \sum_{ij} k_{ij} (x_{ia} w_{jb} + \delta_{aj} \sum_{l} x_{il}w_{lb}) \\
+&= \sum_{ij} x_{ia} k_{ij} w_{jb} + \sum_{il} k_{ia} x_{il} w_{lb} \\
+\end{align*}
+Which can be written as:
+\begin{align*}
+\matr{K}^T \matr{X} \matr{W} - \matr{X}^T \matr{K} \matr{W}
+\end{align*}
+
+Equivalently the derivative of the third term is:
+\begin{align*}
+-\matr{L}^T \matr{X} \matr{W} - \matr{X}^T \matr{L} \matr{W}
+\end{align*}
+where the components of the matrix $\matr{L}$ are computed by:
+\begin{align*}
+l_{ij} = \frac{(k_{ij} + \theta) \mu_{ij}}{\theta + \mu_{ij}}   
+\end{align*}
+
+The combined result is then:
+\begin{align*}
+\frac{dll}{d\matr{W}} = \matr{K}^T \matr{X} \matr{W} + \matr{X}^T \matr{K} \matr{W} - 
+\matr{L}^T \matr{X} \matr{W} - \matr{X}^T \matr{L} \matr{W}
+\end{align*}
+
+
+The derivative of the first term with respect to the bias $\matr{b}$ is computed as:
+
+\begin{align*}
+&\frac{d}{db_{a}}\sum_{ij} k_{ij} \log{(\mu_{ij})} \\
+&= \frac{d}{db_{a}}\sum_{ij} k_{ij} (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j) \\
+&= \sum_{i} k_{ia}\\
+\end{align*}
+
+Equivalently for the third therm the derivative is $-\sum_{i} l_{ia}$ and so the derivative of the loglikelihood with respect to the bias is:
+
+\begin{align*}
+\frac{dll}{db_a} = \sum_{i} k_{ia} - l_{ia}\\
+\end{align*}
+
+
+
+\end{document}

@@ -1,4 +1,4 @@
-context("Testing computational functions: ")
+context("Testing computational functions")
 
 test_that("filter expression", {
     ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
@@ -41,6 +41,8 @@ test_that("fit method", {
     ods <- makeExampleOutriderDataSet(50)
     ods <- estimateSizeFactors(ods)
     ods <- fit(ods)
-    expect_true(all(mcols(ods)[,"mu"]))
-    expect_true(all(mcols(ods)[,"disp"]))
+    expect_is(mcols(ods)[,"mu"], "numeric")
+    expect_equal(length(mcols(ods)[,"mu"]), nrow(ods))
+    expect_is(mcols(ods)[,"disp"], "numeric")
+    expect_equal(length(mcols(ods)[,"disp"]), nrow(ods))
 })

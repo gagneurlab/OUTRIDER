@@ -5,10 +5,12 @@ test_that("create test data set", {
 })
 
 test_that("constructur for OutriderDataSet", {
-    dds <- makeExampleDESeqDataSet()
-    expect_is(OutriderDataSet(se=dds), "OutriderDataSet")
+    dds <- makeExampleOutriderDataSet()
+    expect_is(OutriderDataSet(se=as(dds, "SummarizedExperiment")),
+            "OutriderDataSet")
     expect_is(OutriderDataSet(countData=counts(dds)), "OutriderDataSet")
-    expect_is(OutriderDataSet(countData=counts(dds), colData=colData(dds)), "OutriderDataSet")
+    expect_is(OutriderDataSet(countData=counts(dds), colData=colData(dds)),
+            "OutriderDataSet")
     
     ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
     expect_is(ods, "OutriderDataSet")

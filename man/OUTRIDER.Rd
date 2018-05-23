@@ -4,19 +4,13 @@
 \alias{OUTRIDER}
 \title{OUTRIDER - Full analysis pipeline}
 \usage{
-OUTRIDER(object, autoControl = TRUE, save = FALSE, acModelName = NULL,
-  acModelDir = NULL, nbModelFile = NULL)
+OUTRIDER(object, autoCorrect = TRUE, nbModelFile = NULL)
 }
 \arguments{
 \item{object}{main OutriderDataSet object, which contains all the data}
 
-\item{autoControl}{option, to run autoControl}
-
-\item{save}{if TRUE the models will be saved to disk}
-
-\item{acModelName}{the autoCorrection model name for saving the model}
-
-\item{acModelDir}{The directory where autoCorrection should save the model}
+\item{autoCorrect}{if TRUE the raw read counts will be controled 
+for confounders by the autoencoder}
 
 \item{nbModelFile}{The file where the negative binomial model should be saved}
 }

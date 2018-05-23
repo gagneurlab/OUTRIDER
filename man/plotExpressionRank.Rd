@@ -5,7 +5,7 @@
 \title{Expression rank plot}
 \usage{
 plotExpressionRank(ods, geneID, padjCut = 0.05, zScoreCut = 3,
-  normalized = TRUE, basePlot = FALSE)
+  normalized = TRUE, basePlot = FALSE, main = NULL)
 }
 \arguments{
 \item{ods}{A OUTRIDER data set.}
@@ -21,6 +21,8 @@ If multiple gene ids are supplied mulitple plots will be made.}
 otherwise the raw counts}
 
 \item{basePlot}{R base plot version.}
+
+\item{main}{string passed to main (title) of the plot.}
 }
 \value{
 None

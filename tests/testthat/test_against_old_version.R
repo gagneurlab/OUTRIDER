@@ -14,7 +14,7 @@ test_that("test against old version", {
     ods <- computeZscores(ods)
     expect_equal(round(assay(ods, 'zScore'), 4), assay(odsOld, 'zScore'))
     
-    ods <- computePvalues(ods)
+    ods <- computePvalues(ods, method='BH')
     expect_equal(round(assay(ods, 'pValue'), 4), assay(odsOld, 'pValue'))
     expect_equal(round(assay(ods, 'padjust'), 4), assay(odsOld, 'padjust'))
 })

@@ -3,67 +3,26 @@ sudo: required
 dist: trusty
 cache:
   - directories:
-    - $HOME/python-env-OUTRIDER
     - $HOME/R/Library
-    - $HOME/.cache/pip
+
 matrix:
   include:
     - r: bioc-release
-    - r: bioc-devel
+#    - r: bioc-devel
 
 addons:
   apt:
     packages:
       - libxml2-dev
-      - python3.4-venv
-      - python3-pip
-      - python3-tk
-      - build-essential
-      - checkinstall
-      - libreadline-gplv2-dev
-      - libncursesw5-dev
-      - libssl-dev
-      - libsqlite3-dev
       - tk-dev
-      - libgdbm-dev
-      - libc6-dev
-      - libbz2-dev
-
-env:
-  global:
-    - REINSTALL_PYTHON="TRUE"
-    - PYTHON_VERSION="3.6.5"
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
-  - if [[ $REINSTALL_PYTHON == "TRUE" ]] || ! which python${PYTHON_VERSION%.*}; then
-      mkdir tmp;
-      cd tmp;
-      wget "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz";
-      tar xzf Python-$PYTHON_VERSION.tgz;
-      cd Python-$PYTHON_VERSION;
-      ./configure --enable-optimizations;
-      sudo -H make altinstall;
-      cd ..;
-    fi 
-  - if [[ $REINSTALL_PYTHON == "TRUE" ]] || [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
-      python${PYTHON_VERSION%.*} -m venv --clear ~/python-env-OUTRIDER --without-pip;
-      source ~/python-env-OUTRIDER/bin/activate;
-      wget https://bootstrap.pypa.io/get-pip.py;
-      python get-pip.py;
-      deactivate;
-    fi
-  - source ~/python-env-OUTRIDER/bin/activate
-  - pip install --upgrade pip
 
 install:
-  - pip --version
-  - python --version
   - R --version
-  - which pip
   - which R
-  - pip3 install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
-  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
+  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'), Ncpu=4)"
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
   - R -e 'BiocParallel::multicoreWorkers()'

@@ -1,7 +1,7 @@
 context("Testing plot functions: ")
 
 test_that("plotting", {
-    ods <- makeExampleOutriderDataSet(n=50)
+    ods <- makeExampleOutriderDataSet(n=1000, m=200)
     ods <- OUTRIDER(ods)
     
     ods <- plotCountCorHeatmap(ods)
@@ -12,6 +12,7 @@ test_that("plotting", {
     expect_null(plotQQ(ods, 1))
     expect_null(plotQQ(ods, global=TRUE))
     expect_null(plotQQ(ods, global=TRUE, breakTies=TRUE))
+    expect_null(plotQQ(ods, global=TRUE, filterOutliers=TRUE))
     
     expect_null(plotAberrantPerSample(ods))
     

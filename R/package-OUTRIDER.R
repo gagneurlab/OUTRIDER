@@ -17,7 +17,7 @@
 #'          makeExampleDESeqDataSet show fpkm fpm
 #' 
 #' @importFrom SummarizedExperiment colData colData<- assays assays<- 
-#'          assayNames mcols mcols<- width rowData
+#'          assayNames mcols mcols<- width rowData assay assay<-
 #' 
 #' @importFrom GenomicFeatures makeTxDbFromGFF exonsBy
 #' 
@@ -29,6 +29,7 @@
 #' 
 #' @importFrom stats p.adjust setNames sd dnbinom quantile optim var pnbinom 
 #'          dnbinom median ppoints qbeta runif cor cutree hclust dist lm predict
+#'          rnorm glm Gamma
 #' 
 #' @importFrom methods validObject is new as 
 #' 
@@ -43,10 +44,10 @@
 #' 
 #' @importFrom S4Vectors DataFrame rowSums colSums
 #' 
-#' @importFrom utils read.table head
+#' @importFrom utils read.table head compareVersion
 #' 
 #' @importFrom graphics plot abline grid points mtext polygon axis text box
-#'         legend title lines
+#'         legend title lines par
 #' 
 #' @importFrom gplots barplot2 heatmap.2
 #' 
@@ -57,12 +58,19 @@
 #' @importFrom RColorBrewer brewer.pal
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarInteger 
-#'         isScalarCharacter isScalarValue
+#'         isScalarCharacter isScalarValue isFALSE
 #' 
-#' @importFrom reticulate import
+#' @importFrom reticulate import py_get_attr
 #' 
 #' @importFrom LSD heatscatter
 #' 
+#' @importFrom pcaMethods pca loadings
+#' 
+#' @importFrom compiler cmpfun
+#' 
+#' @importFrom Rcpp sourceCpp
+#' 
+#' @useDynLib OUTRIDER
 #' 
 # ###
 # # TODO old package to be checked again!

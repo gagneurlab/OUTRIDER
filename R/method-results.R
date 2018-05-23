@@ -22,6 +22,10 @@ compileResults <- function(object, padj=0.05, zScore=3,
         object <- object[rowMins(assays(object)[['padjust']]) <= padjCut]
         if(dim(object)[1]==0){
             warning('No significant events: use all=TRUE to print all counts.')
+            return(data.table(geneID='a', sampleID='a', pValue=0.1, padjust=0.1,
+                    zScore=1.1, l2fc=0.1, rawcounts=1, normcounts=1, mu=0.1,
+                    disp=1.2, meanCorrected=23.3, AberrantBySample=0,
+                    AberrantByGene=1, padj_rank=23.5)[0])
         }
     }
     
