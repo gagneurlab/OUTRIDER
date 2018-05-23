@@ -263,6 +263,8 @@ as done in \deseq{}.
 
 Additionally, the \Rfunction{autoCorrect} function calls an 
 autoencoder, which automatically controls for confounders present in the data.
+Therefore an encoding dimension q needs to be set or the default value 20 is used.
+To find the optimal value the \Rfunction{gridSearchEncDim} 
 After controlling for them, the heatmap should be plotted again.
 If it worked, no batches should be present and the correlations between 
 samples should be close to zero.
