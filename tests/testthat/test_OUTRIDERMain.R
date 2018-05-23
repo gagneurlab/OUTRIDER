@@ -9,8 +9,8 @@ test_that("test main OUTRIDER function", {
     res <- results(ods, all=TRUE)
     expect_is(res, "data.table")
     
-    ods2 <- OUTRIDER(ods, autoControl = FALSE)
-    res2    <- results(ods2, all=TRUE)
+    ods2 <- OUTRIDER(ods, autoCorrect=FALSE)
+    res2 <- results(ods2, all=TRUE)
     
     expect_equal(ods, ods2)
     expect_equal(res, res2)
