@@ -21,6 +21,8 @@ If multiple gene ids are supplied mulitple plots will be made.}
 otherwise the raw counts}
 
 \item{basePlot}{R base plot version.}
+
+\item{main}{string passed to main (title) of the plot.}
 }
 \value{
 None

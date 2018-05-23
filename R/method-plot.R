@@ -21,6 +21,9 @@ getPlotDistributionData <- function(gr=NULL, fds=NULL, type=NULL){
 #'             be compared against the for outlier sample filtered data set
 #' @param conf.alpha if set, a confidence interval is plotted
 #' @param outlierRatio The fraction to be used for the outlier sample filtering
+#' @param sample sample points for QQplot, only used, when global==TRUE.
+#' @param legendPos set legendpos, by default topleft.
+#' @param col set color
 #' @param ... additional arguments for the internal plotQQ function.
 #'             This arguments are currently used for development.
 #' 
@@ -239,6 +242,7 @@ breakTies <- function(x, logBase=10, decreasing=TRUE){
 #' @param zScoreCut Z-score cutoff
 #' @param basePlot R base plot version of the plot.
 #' @param col colors for the points in the form of c(non outliers, outliers)
+#' @param main string passed to main (title) of the plot.
 #' @return None
 #' 
 #' @examples
@@ -337,6 +341,7 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
 #' @param normalized if TRUE the normalized counts are used 
 #'             otherwise the raw counts
 #' @param basePlot R base plot version.
+#' @param main string passed to main (title) of the plot.
 #' @return None
 #' 
 #' @examples
@@ -617,6 +622,12 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' @param padj adjusted pvalue cutoff.
 #' @param outlierRatio The fraction to be used for the outlier sample filtering
 #' @param ... further arguments to \code{aberrant}
+#' @param main string passed to main (title) of the plot.
+#' @param col set color.
+#' @param yadjust option to adjust position of Median and 90percentile labels. 
+#' @param ylab y-axis label
+#' @param labCex label cex parameter 
+#' @param labLine option to move axis labels
 #' @return None
 #' 
 #' @examples

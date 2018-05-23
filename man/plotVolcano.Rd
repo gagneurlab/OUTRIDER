@@ -17,6 +17,8 @@ Can also be a vector of samples.}
 
 \item{zScoreCut}{Z-score cutoff}
 
+\item{main}{string passed to main (title) of the plot.}
+
 \item{basePlot}{R base plot version of the plot.}
 
 \item{col}{colors for the points in the form of c(non outliers, outliers)}

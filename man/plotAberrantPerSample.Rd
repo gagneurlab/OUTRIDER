@@ -15,7 +15,19 @@ plotAberrantPerSample(ods, padj = 0.05, main = NULL, outlierRatio = 0.001,
 
 \item{padj}{adjusted pvalue cutoff.}
 
+\item{main}{string passed to main (title) of the plot.}
+
 \item{outlierRatio}{The fraction to be used for the outlier sample filtering}
+
+\item{col}{set color.}
+
+\item{yadjust}{option to adjust position of Median and 90percentile labels.}
+
+\item{labLine}{option to move axis labels}
+
+\item{ylab}{y-axis label}
+
+\item{labCex}{label cex parameter}
 
 \item{...}{further arguments to \code{aberrant}}
 }
