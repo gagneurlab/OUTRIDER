@@ -1,4 +1,4 @@
-Package: OUTRIDER
+.gitignorePackage: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
 Version: 0.99.6
