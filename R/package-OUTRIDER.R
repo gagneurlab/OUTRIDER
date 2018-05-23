@@ -29,7 +29,7 @@
 #' 
 #' @importFrom stats p.adjust setNames sd dnbinom quantile optim var pnbinom 
 #'          dnbinom median ppoints qbeta runif cor cutree hclust dist lm predict
-#'          rnorm
+#'          rnorm glm Gamma
 #' 
 #' @importFrom methods validObject is new as 
 #' 
