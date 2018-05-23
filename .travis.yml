@@ -8,7 +8,7 @@ cache:
 matrix:
   include:
     - r: bioc-release
-    - r: bioc-devel
+#    - r: bioc-devel
 
 addons:
   apt:
