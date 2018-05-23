@@ -59,7 +59,7 @@ sudo yum install R-devel zlib-devel openssl-devel libcurl-devel libxml2-devel ma
 ```
 
 
-### Experimental tensorflow autoencoder
+### Alternative tensorflow autoencoder
 
 Additionally to the in R implemented autoencoder we provide a second 
 experimental implementation written in Python using tensorflow.
