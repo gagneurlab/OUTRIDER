@@ -1,16 +1,36 @@
 Package: OUTRIDER
+Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Title: OUTRIDER - OUTlier RNA-Seq fInDER
 Version: 0.99.6
-Date: 2018-3-29
+Date: 2018-05-23
 Maintainer: Christian Mertes <mertes@in.tum.de>
+URL: https://github.com/gagneurlab/OURIDER
+BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
+Author@R: c(
+    person("Felix", "Brechtmann", role=c("aut", "cre"), 
+            email="brechtma@in.tum.de"),
+    person("Christian", "Mertes", role=c("aut", "cre"), 
+            email="mertes@in.tum.de"),
+    person("Agne", "Matuseviciute", role=c("aut")),
+    person("Vicente", "Yepez", role=c("aut")),
+    person("Julien", "Gagneur", role=c("aut"), email="gagneur@in.tum.de"))
+Author: Felix Brechtmann [aut, cre], Christian Mertes [aut, cre], 
+    Ange Matuseviciute [aut, cre], Vicente Yepez [aut], Julien Gagneur [aut]
 Description: Identification of aberrent gene expression in RNA-seq data.
-    OUTRIDER finds expression outliers by fitting an Negative-Binomial 
-    distribution per gene over all read counts and computing P-values 
-    for each of them. Further OUTRIDER provides useful plotting 
-    function to visualize the results.
-Author: Felix Brechtmann, Agne Matuseviciute, Christian Mertes,
-    Vicente Yepez, Julien Gagneur
+    Read count expectations are modeled by an autoencoder to control for
+    confounders in the data. Given these expectations, the RNA-seq read counts
+    are assumed to follow a negative binomial distribution with a gene-specific
+    dispersion. Outliers are then identified as read counts that significantly 
+    deviate from this distribution. Further OUTRIDER provides useful plotting 
+    function to analyze and visualize the results.
+VignetteBuilder: knitr
+biocViews: RNASeq, Transcriptomics, Alignment, Sequencing, GeneExpression, 
+    Genetics
+License: MIT + file LICENSE
+NeedsCompilation: yes
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
 Depends:
     R (>= 3.4), 
     BiocParallel,
@@ -38,7 +58,9 @@ Imports:
     BBmisc,
     plyr,
     reticulate,
-    LSD
+    LSD,
+    pcaMethods,
+    Rcpp
 Suggests: 
     testthat,
     knitr,
@@ -50,11 +72,16 @@ Suggests:
     AnnotationDbi,
     beeswarm,
     covr
+LinkingTo:
+    Rcpp,
+    RcppArmadillo
 Collate:
     package-OUTRIDER.R
     class-OutriderDataSet.R
     AllGenerics.R
-    autoCorrect.R
+    autoCorrectPython.R
+    autoCorrectRversion.R
+    method-gridSearch.R
     fitNB.R
     ZscoreMatrix.R
     method-results.R
@@ -65,11 +92,4 @@ Collate:
     method-plot.R
     helperFunctions.R
     sizeFactor.R
-VignetteBuilder: knitr
-biocViews: RNASeq, Transcriptomics, Alignment, Sequencing, GeneExpression
-License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
-URL: https://github.com/gagneurlab/OURIDER
-BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
-RoxygenNote: 6.0.1
+    RcppExports.R

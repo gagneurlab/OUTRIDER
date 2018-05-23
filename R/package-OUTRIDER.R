@@ -17,7 +17,7 @@
 #'          makeExampleDESeqDataSet show fpkm fpm
 #' 
 #' @importFrom SummarizedExperiment colData colData<- assays assays<- 
-#'          assayNames mcols mcols<- width rowData assay
+#'          assayNames mcols mcols<- width rowData assay assay<-
 #' 
 #' @importFrom GenomicFeatures makeTxDbFromGFF exonsBy
 #' 
@@ -29,6 +29,7 @@
 #' 
 #' @importFrom stats p.adjust setNames sd dnbinom quantile optim var pnbinom 
 #'          dnbinom median ppoints qbeta runif cor cutree hclust dist lm predict
+#'          rnorm
 #' 
 #' @importFrom methods validObject is new as 
 #' 
@@ -63,6 +64,13 @@
 #' 
 #' @importFrom LSD heatscatter
 #' 
+#' @importFrom pcaMethods pca loadings
+#' 
+#' @importFrom compiler cmpfun
+#' 
+#' @importFrom Rcpp sourceCpp
+#' 
+#' @useDynLib OUTRIDER
 #' 
 # ###
 # # TODO old package to be checked again!

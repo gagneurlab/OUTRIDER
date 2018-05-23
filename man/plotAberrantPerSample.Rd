@@ -6,8 +6,9 @@
 \title{Plot aberrant events per sample}
 \usage{
 plotAberrantPerSample(ods, padj = 0.05, main = NULL, outlierRatio = 0.001,
-  col = c("#fdb462", "grey"), yadjust = c(1.2, 1.2), labLine = c(3.5, 3),
-  ylab = "#Aberrantly expressed genes", labCex = par()$cex, ...)
+  col = brewer.pal(3, "Dark2")[c(1, 2)], yadjust = c(1.2, 1.2),
+  labLine = c(3.5, 3), ylab = "#Aberrantly expressed genes",
+  labCex = par()$cex, ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}

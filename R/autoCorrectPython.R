@@ -21,17 +21,7 @@
 #' 
 #' @return An ods object including the control factors 
 #'
-#' @examples
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- estimateSizeFactors(ods)
-#' ods <- autoCorrect(ods)
-#' ods <- autoCorrect(ods, seed=42)
-#' 
-#' plotCountCorHeatmap(ods, normalized=FALSE)
-#' plotCountCorHeatmap(ods, normalized=TRUE)
-#' 
-#' @export
-autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250, 
+autoCorrectPython <- function(ods, save=FALSE, predict=FALSE, epochs=250, 
                     param_path=NULL, param_exp_name=NULL, verbose=FALSE,
                     modelName=NULL, modelDirectory=NULL, seed=NULL){
     if(is.null(sizeFactors(ods))){
@@ -97,7 +87,7 @@ checkAutoCorrectExists <- function(){
     
     # Check if autoCorrection version is correct
     aeVersion <- as.character(py_get_attr(autoCorrectObj, '__version__'))
-    if(compareVersion(aeVersion, "0.2.0") < 0){
+    if(compareVersion(aeVersion, "0.3.0") < 0){
         stop(paste0("Please upgrade your autoCorrection installation to have ",
                 "the required version. The current version is: ", aeVersion))
     }

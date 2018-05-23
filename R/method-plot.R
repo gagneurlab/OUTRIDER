@@ -112,9 +112,8 @@ plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL,
     }
     
     # points
-    obs <- sort(data$pvalues)
-    obs[obs == 0] <- min(obs[obs != 0], na.rm=TRUE) * 0.1
-    obs <- -log10(obs)
+    data$pvalues[data$pvalues == 0] <- min(data$pvalues[data$pvalues != 0]) * 0.1
+    obs <- -log10(sort(data$pvalues))
     obs[is.na(obs)] <- 0
     if(length(obs) < 2){
         warning("There are no pvalues or all are NA!")
@@ -238,6 +237,7 @@ breakTies <- function(x, logBase=10, decreasing=TRUE){
 #' @param padjCut padj cutoff
 #' @param zScoreCut Z-score cutoff
 #' @param basePlot R base plot version of the plot.
+#' @param col colors for the points in the form of c(non outliers, outliers)
 #' @return None
 #' 
 #' @examples
@@ -247,7 +247,7 @@ breakTies <- function(x, logBase=10, decreasing=TRUE){
 #' 
 #' @export 
 plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, 
-                    main=NULL, basePlot=FALSE){
+                    main=NULL, basePlot=FALSE, col=c("gray", "firebrick")){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
     }
@@ -279,20 +279,19 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
             medianCts = rowMedians(counts(ods, normalized=TRUE)),
             expRank   = apply(
                     counts(ods, normalized=TRUE), 2, rank)[,sampleID])
-    aberrant <- data.table(aberrant=aberrant(
-            ods[,sampleID], padj=padjCut, zScore=zScoreCut)[,1])
+    aberrant <- as.data.table(aberrant(ods[,sampleID]), padjCut, zScoreCut)
+    setnames(aberrant, 2, 'aberrant')
     dt <- cbind(dt, aberrant)
     
     # remove the NAs from the zScores for plotting
     dt[is.na(zScore),zScore:=0]
     
-    colors <- c("gray", "red")
+    
     if(all(dt[,aberrant==FALSE])){
-        colors <- "gray"
+        col <- col[1]
     }
     if(basePlot == TRUE){
-        dt[,plot(zScore, -log10(pValue), 
-            col=ifelse(aberrant, 'firebrick', 'gray'), 
+        dt[,plot(zScore, -log10(pValue), col=ifelse(aberrant, col[2], col[1]), 
             pch=16, cex=.7, xlab='Z-score', 
             ylab=expression(paste(-log[10], "(", italic(P), "-value)")))]
         grid(equilogs=FALSE)
@@ -306,7 +305,7 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
             type="scatter",
             mode="markers",
             color=~aberrant,
-            colors=colors,
+            colors=col,
             text=~paste0(
                 "Gene ID: ", GENE_ID,
                 "<br>Sample ID: ", sampleID,
@@ -388,8 +387,7 @@ plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3,
 
     if(isTRUE(basePlot)){
         dt[,plot(norm_rank, normcounts + 1, log = 'y', pch=16,
-            col = ifelse(dt[,aberrant], 'firebrick', 'grey'), 
-            main=ifelse(!is.null(main), main, geneID), 
+            col = ifelse(dt[,aberrant], 'firebrick', 'grey'), main=ifelse(!is.null(main), main, geneID), 
             xlab = 'Sample rank', ylab = 'Normalized counts + 1')]
         grid(equilogs=FALSE)
     }else{
@@ -628,8 +626,9 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' 
 #' @export
 plotAberrantPerSample <- function(ods, padj=0.05, main=NULL, outlierRatio=0.001,
-            col=c("#fdb462", "grey"), yadjust=c(1.2, 1.2), labLine=c(3.5, 3),
-            ylab="#Aberrantly expressed genes", labCex=par()$cex, ...){
+                    col=brewer.pal(3, 'Dark2')[c(1,2)], yadjust=c(1.2, 1.2), 
+                    labLine=c(3.5, 3), ylab="#Aberrantly expressed genes", 
+                    labCex=par()$cex, ...){
     
     if(is.null(main)){
         main <- 'Aberrant Genes per Sample'
@@ -744,33 +743,34 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     odsVals <- getDispEstsData(object)
     legText <- c("OUTRIDER fit")
     legCol <- c("firebrick")
+    nonAutoVals <- NULL
     
-    # plot dispersion
-    heatscatter(odsVals$mu, 1/odsVals$disp, pch='.', log="yx", 
-            xlab='Mean expression', ylab='Dispersion',
-            main="Heatscatter of dispersion estimates")
-    
-    if(checkAutoCorrectExists() & isTRUE(compareDisp)){
-        #fit OUTRIDER without AutoCorrect 
+    if(isTRUE(compareDisp)){
+        #fit OUTRIDER without AutoCorrect
         ods2 <- OutriderDataSet(countData = counts(object))
         ods2 <- estimateSizeFactors(ods2)
         ods2 <- fit(ods2)
         nonAutoVals <- getDispEstsData(ods2, odsVals$mu)
-        
+    }
+    
+    # plot dispersion
+    plot(NA, xlim=range(odsVals$mu), ylim=range(1/odsVals$disp),
+         pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
+         main="Dispersion estimates versus mean expression")
+    if(!is.null(nonAutoVals)){
         points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="firebrick")
     }
     points(odsVals$mu, 1/odsVals$disp, pch='.', col='black')
     
     # plot fit
     lines(odsVals$xpred, odsVals$ypred, lwd=2, col="black")
-    if(checkAutoCorrectExists() & isTRUE(compareDisp)){
+    if(TRUE & isTRUE(compareDisp)){
         lines(odsVals$xpred, nonAutoVals$ypred, lwd=2, col="firebrick")
         legText <- c("before correction fit", "autoCorrect fit")
         legCol <- c('firebrick', "black")
     }
     
     legend("bottomleft", legText, col=legCol, pch=20, lty=1, lwd=3)
-    
 })
 
 getDispEstsData <- function(ods, mu=NULL){
@@ -779,18 +779,21 @@ getDispEstsData <- function(ods, mu=NULL){
         mu <- odsMu
     }
     disp <- mcols(ods)$disp
-    xidx <- c(0.001, 0.01, 0.5, seq(1, max(mu), 1), 
+    xidx <- c(0.001, 0.01, 0.5, seq(1, max(mu), 20), 
             max(mu) * c(1.1, 1.5, 2, 5, 10, 100, 1000))
     
     # fit linear model
-    fit <- lm(1 / disp ~ 1 + I(mu^-1))
-    pred <- predict(fit, list(mu=xidx))
+    # fit <- lm(1 / disp ~ 1 + I(mu^-1))
+    # pred <- predict(fit, list(mu=xidx))
     
+    # fit DESeq2 parametric Disp Fit
+    fit <-DESeq2:::parametricDispersionFit(mu, 1/disp)
+    pred <- fit(xidx)
     return(list(
-        mu=odsMu,
+        mu=mu,
         disp=disp,
         xpred=xidx,
         ypred=pred,
-        fit=fit$coefficients
+        fit=fit
     ))
 }

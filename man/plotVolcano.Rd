@@ -5,7 +5,7 @@
 \title{Volcano plot}
 \usage{
 plotVolcano(ods, sampleID, padjCut = 0.05, zScoreCut = 3, main = NULL,
-  basePlot = FALSE)
+  basePlot = FALSE, col = c("gray", "firebrick"))
 }
 \arguments{
 \item{ods}{OutriderDataSet}
@@ -18,6 +18,8 @@ Can also be a vector of samples.}
 \item{zScoreCut}{Z-score cutoff}
 
 \item{basePlot}{R base plot version of the plot.}
+
+\item{col}{colors for the points in the form of c(non outliers, outliers)}
 }
 \value{
 None

@@ -6,10 +6,8 @@
 #' All computed values are returned as a OutriderDataSet object.
 #' 
 #' @param object main OutriderDataSet object, which contains all the data 
-#' @param autoControl option, to run autoControl
-#' @param save if TRUE the models will be saved to disk
-#' @param acModelName the autoCorrection model name for saving the model
-#' @param acModelDir The directory where autoCorrection should save the model
+#' @param autoCorrect if TRUE the raw read counts will be controled 
+#'             for confounders by the autoencoder 
 #' @param nbModelFile The file where the negative binomial model should be saved
 #' @return OutriderDataSet with all the computed values. The values can be 
 #'             accessed by: \code{assays(ods)[['value']]}
@@ -23,19 +21,12 @@
 #' plotVolcano(ods, 1)
 #' 
 #' @export
-OUTRIDER <- function(object, autoControl=TRUE, save=FALSE,
-            acModelName=NULL, acModelDir=NULL, nbModelFile=NULL){
+OUTRIDER <- function(object, autoCorrect=TRUE, nbModelFile=NULL){
     message(paste0(date(), ": SizeFactor estimation ..."))
     object <- estimateSizeFactors(object)
-    if(autoControl == TRUE){
+    if(autoCorrect == TRUE){
         message(paste0(date(), ": Running auto correct ..."))
-        predict=FALSE
-        if(!is.null(acModelName) & !is.null(acModelDir) & save == FALSE){
-            predict=TRUE
-        }
-        tryCatch({object <- autoCorrect(object, save=save, predict=predict, 
-            modelName=acModelName, modelDirectory=acModelDir)},
-                error=function(e) warning(e))
+        object <- autoCorrect(object, q=20)
     }
     if(is.null(nbModelFile) || !file.exists(nbModelFile)){
         message(paste0(date(), ": Fitting the data ..."))
