@@ -40,7 +40,6 @@ opts_chunk$set(
 }
 
 \begin{document}
-\SweaveOpts{concordance=TRUE}
 
 \maketitle
 
