@@ -1,4 +1,5 @@
 # OUTRIDER #
+OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
 
 [![Pipeline status](https://travis-ci.org/gagneurlab/OUTRIDER.svg?branch=master)](https://travis-ci.org/gagneurlab/OUTRIDER)
 [![Version](https://img.shields.io/badge/Version-0.99.5-orange.svg)](https://github.com/gagneurlab/OUTRIDER/blob/master)
@@ -7,24 +8,11 @@
 
 ## Installation
 
-`OUTRIDER` consists of two software packages. Therefore, both requirements have 
-to be met before you can run the full software and pipeline.
+`OUTRIDER` is an R software package requiring a running [R 3.4.x version](https://cran.r-project.org/).
 
 ### Prerequisite
 
-For autoCorrection we need a running [Python3 version](https://www.python.org/downloads/)
-and for OUTRIDER a running [R 3.4.x version](https://cran.r-project.org/).
-
-It is a good practice to have a virtual environment in python to have a clean 
-working environment and not to create conflicts with other projects. This is also
-helpful for macOS users, due to a [matplotlib bug](https://matplotlib.org/faq/osx_framework.html#osxframework-faq).
-
-```
-python3 -m venv ~/python-env-OUTRIDER
-source ~/python-env-OUTRIDER/bin/activate
-```
-
-For OUTRIDER we will use `devtools` and `BiocInstaller` to install it and its dependencies.
+We will use `devtools` and `BiocInstaller` to install the package and its dependencies.
 
 ```
 Rscript -e "install.packages('devtools', repos='http://cran.us.r-project.org')"
@@ -33,23 +21,10 @@ Rscript -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstall
 
 If you have dependency issues while installing devtools, please have a look at the Troubleshooting section.
 
-### autoCorrection and Python dependencies
-
-The first part is to install the `autoCorrection` package written in python. We will use `pip` to
-install the package and all dependencies. autoCorrection depends on TensorFlow, which can be installed
-manualy if GPU acceleration or any other customization is wanted. For more details please see the 
-TensorFlow instruction [here](https://www.tensorflow.org/install/). If the TensorFlow installation
-is skipped by the user, TensorFlow will be installed automatically from pip.
-
-Installation of autoCorrection package:
-
-```
-pip install --upgrade autoCorrection
-```
 
 ### OUTRIDER and R dependencies
 
-With autoCorrection installed on our system, we can install the `OUTRIDER` package in R.
+The `OUTRIDER` R package and its dependencies can then be installed by running:
 
 ```
 Rscript -e 'devtools::install_github("gagneurlab/OUTRIDER", dependencies=TRUE)'
@@ -57,7 +32,7 @@ Rscript -e 'devtools::install_github("gagneurlab/OUTRIDER", dependencies=TRUE)'
 
 ### Quick tour through OUTRIDER
 
-To get started with `OUTRIDER`, please have a look at our [vignette](vignette/OUTRIDER.Rnw).
+To get started with `OUTRIDER`, please have a look at our [vignette](vignettes/OUTRIDER.Rnw).
 In order to get the pdf version, please type the following code in an R session:
 
 ```
@@ -83,7 +58,44 @@ For centOS or RHEL based systems:
 sudo yum install R-devel zlib-devel openssl-devel libcurl-devel libxml2-devel mariadb-devel
 ```
 
-#### Failed to create virtual env with anaconda
+
+### Experimental tensorflow autoencoder
+
+Additionally to the in R implemented autoencoder we provide a second 
+experimental implementation written in Python using tensorflow.
+
+
+#### Python version installation
+
+For autoCorrection we need a running [Python3 version](https://www.python.org/downloads/)
+and for OUTRIDER a running [R 3.4.x version](https://cran.r-project.org/).
+
+It is a good practice to have a virtual environment in python to have a clean 
+working environment and not to create conflicts with other projects. This is also
+helpful for macOS users, due to a [matplotlib bug](https://matplotlib.org/faq/osx_framework.html#osxframework-faq).
+
+```
+python3 -m venv ~/python-env-OUTRIDER
+source ~/python-env-OUTRIDER/bin/activate
+```
+
+#### autoCorrection and Python dependencies
+
+The first part is to install the `autoCorrection` package written in python. We will use `pip` to
+install the package and all dependencies. autoCorrection depends on TensorFlow, which can be installed
+manualy if GPU acceleration or any other customization is wanted. For more details please see the 
+TensorFlow instruction [here](https://www.tensorflow.org/install/). If the TensorFlow installation
+is skipped by the user, TensorFlow will be installed automatically from pip.
+
+Installation of autoCorrection package:
+
+```
+pip install --upgrade autoCorrection
+```
+
+#### Python Troubleshooting
+
+##### Failed to create virtual env with anaconda
 
 If you use anaconda as your python distribution `venv` does not work. Please use this workaround:
 
@@ -96,10 +108,11 @@ python get-pip.py
 
 For more details, please have a look [here](https://stackoverflow.com/questions/38524856/anaconda-3-for-linux-has-no-ensurepip?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa)
 
-#### Failed to import Tkinter
+##### Failed to import Tkinter
 
 Tkinter should be installed with most python installations. If it is still missing, please install the extra package
 
 ```
 sudo apt-get install python3-tk
 ```
+
