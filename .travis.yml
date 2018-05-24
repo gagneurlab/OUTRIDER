@@ -22,11 +22,10 @@ before_install:
 install:
   - R --version
   - which R
-  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools', 'BiocParallel'), Ncpu=4)"
-  - R -e 'message(BiocInstaller::isDevel())'
+  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'), Ncpu=4)"
+  - R -e "message(BiocInstaller::isDevel())"
+  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
   - R -e 'BiocParallel::multicoreWorkers()'
-  - pwd
-  - ls -la
   - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, threads=4)'
 
 script:
