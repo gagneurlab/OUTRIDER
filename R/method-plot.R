@@ -17,6 +17,13 @@ getPlotDistributionData <- function(gr=NULL, fds=NULL, type=NULL){
 #' @param subset samples to subset for
 #' @param main title for the plot
 #' @param maxOutlier y-axis range for the plot
+#' @param filterOutliers If TRUE, in the global QQ plot the full data set will
+#'             be compared against the for outlier sample filtered data set
+#' @param conf.alpha if set, a confidence interval is plotted
+#' @param outlierRatio The fraction to be used for the outlier sample filtering
+#' @param sample sample points for QQplot, only used, when global==TRUE.
+#' @param legendPos set legendpos, by default topleft.
+#' @param col set color
 #' @param ... additional arguments for the internal plotQQ function.
 #'             This arguments are currently used for development.
 #' 
@@ -26,16 +33,23 @@ getPlotDistributionData <- function(gr=NULL, fds=NULL, type=NULL){
 #' ods <- makeExampleOutriderDataSet(20, 400)
 #' ods <- OUTRIDER(ods)
 #' plotQQ(ods, 1)
+#' plotQQ(ods, global=TRUE, filterOutliers=TRUE)
 #' 
 #' @export
-plotQQ <- function(ods, geneID=1:length(ods), global=FALSE, padj=0.05, zScore=3,
-                    subset=1:ncol(ods), main=NULL, maxOutlier=NULL, ...){
-    if(global == FALSE){
+plotQQ <- function(ods, geneID, global=FALSE, padj=0.05, zScore=3,
+                    subset=1:ncol(ods), main=NULL, maxOutlier=NULL, sample=TRUE,
+                    legendPos="topleft", filterOutliers=FALSE, conf.alpha=0.05, 
+                    outlierRatio=0.001, col=c('black', '#fdb462'), ...){
+    stopifnot(isScalarLogical(global))
+    if(length(col) == 2 & isTRUE(global)){
+        col <- col[2:1]
+    }
+    if(isFALSE(global)){
         if(!is.null(geneID)){
             ods <- ods[geneID,]
         }
         if(is.null(main)){
-            main <- paste0('QQ-plot for gene: ', geneID)
+            main <- paste0('Q-Q plot for gene: ', geneID)
         }
         sapply(1:length(ods), function(i){
             data <- list(pvalues=assays(ods)[['pValue']][i,])
@@ -43,18 +57,37 @@ plotQQ <- function(ods, geneID=1:length(ods), global=FALSE, padj=0.05, zScore=3,
                 data[['aberrant']] <- aberrant(ods[i,], 
                         padj=padj, zScore=zScore)
             }
-            plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, ...)
+            plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, 
+                    legendPos=legendPos, col=col[1], ...)
         })
     }
     else {
         if(is.null(main)){
-            main <- 'Global QQ-plot'
+            main <- 'Global Q-Q plot'
         }
-        pvalues <- assays(ods)[['pValue']][,subset]
-        pvalues <- pvalues[
-                sample(c(TRUE, FALSE), prob=c(0.01, 0.99)) | pvalues < 1E-4]
-        data <- list(pvalues=pvalues)
-        plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, ...)
+        data <- list(pvalues=assay(ods, 'pValue')[,subset])
+        plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, 
+                legendPos=legendPos, sample=sample, col=col[1], global=global, 
+                ...)
+        
+        #plot subssetted values
+        if(isTRUE(filterOutliers)){
+            odssub <- ods[,subset][,aberrant(ods, by='s', padj=padj, 
+                    zScore=zScore) < outlierRatio*length(ods)]
+            pvalues <- -log10(sort(assay(odssub, 'pValue')))
+            exp_p <- -log10(ppoints(length(pvalues)))
+            plotPoint <- TRUE
+            if(isTRUE(sample)){
+                lo <- length(exp_p)
+                plotPoint <- 1:lo %in% unique(sort(c(1:min(lo, 5000), 
+                        sample(1:lo, size=min(lo, 30000)))))
+            }
+            points(exp_p[plotPoint], pvalues[plotPoint], pch=16, col=col[2],
+                   cex = 0.5)
+            legend(legendPos, c("Full data set", "Filtered data set", paste0(
+                            "CI (\u03B1 = ", signif(conf.alpha, 2), ")")),
+                    lty=1, lwd=6, col=c(col, "gray"))
+        }
     }
     return(invisible())
 }
@@ -65,7 +98,8 @@ plotQQ <- function(ods, geneID=1:length(ods), global=FALSE, padj=0.05, zScore=3,
 #' @noRd
 plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL, 
                     maxOutlier=2, conf.alpha=0.05, sample=FALSE, pch=16,
-                    breakTies=FALSE, main="QQ-plot", legendPos="topleft"){
+                    breakTies=FALSE, main="Q-Q plot", legendPos="topleft",
+                    col='black', global=FALSE){
     if(isScalarLogical(conf.alpha)){
         conf.alpha <- ifelse(isTRUE(conf.alpha), 0.05, NA)
     }
@@ -81,7 +115,9 @@ plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL,
     }
     
     # points
-    obs <- -log10(sort(data$pvalues))
+    obs <- sort(data$pvalues)
+    obs[obs == 0] <- min(obs[obs != 0]) * 0.1
+    obs <- -log10(obs)
     obs[is.na(obs)] <- 0
     if(length(obs) < 2){
         warning("There are no pvalues or all are NA!")
@@ -102,8 +138,8 @@ plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL,
     
     # main plot area
     plot(NA, main=main, xlim=range(exp), ylim=ylim,
-            xlab=expression(-log[10] ~  "(expected P-value)"),
-            ylab=expression(-log[10] ~ "(observed P-value)"))
+        xlab=expression(paste(-log[10], " (expected ", italic(P), "-value)")),
+        ylab=expression(paste(-log[10], " (observed ", italic(P), "-value)")))
     
     
     # confidence band
@@ -130,16 +166,22 @@ plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL,
     plotPoint <- TRUE
     if(isTRUE(sample)){
         lo <- length(obs)
-        plotPoint <- 1:lo %in% unique(c(1:min(lo, 100), sort(sample(1:lo,
-                size=min(lo, 30000), prob=log10(1+lo:1)/sum(log10(1+lo:1))))))
+        plotPoint <- 1:lo %in% unique(sort(c(1:min(lo, 5000), 
+                sample(1:lo, size=min(lo, 30000)))))
     }
     
     # add the points
     #TODO- how to handle very extreme outliers?
     #TODO maybe we can set cex = 0.5 for the points in case of the global QQplot
+    if(isTRUE(global)){
+        pointCex <- .5
+    }else{
+        pointCex <- 1
+    }
+    
     outOfRange <- obs > max(ylim)
     points(exp[plotPoint & !outOfRange], obs[plotPoint & !outOfRange], pch=pch, 
-            cex=1)
+            cex=pointCex, col=col)
     
     # diagonal and grid
     abline(0,1,col="firebrick")
@@ -199,6 +241,8 @@ breakTies <- function(x, logBase=10, decreasing=TRUE){
 #' @param padjCut padj cutoff
 #' @param zScoreCut Z-score cutoff
 #' @param basePlot R base plot version of the plot.
+#' @param col colors for the points in the form of c(non outliers, outliers)
+#' @param main string passed to main (title) of the plot.
 #' @return None
 #' 
 #' @examples
@@ -207,7 +251,8 @@ breakTies <- function(x, logBase=10, decreasing=TRUE){
 #' plotVolcano(ods, 1)
 #' 
 #' @export 
-plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, basePlot=FALSE){
+plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, 
+                    main=NULL, basePlot=FALSE, col=c("gray", "firebrick")){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
     }
@@ -246,15 +291,16 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, basePlot=FALSE
     # remove the NAs from the zScores for plotting
     dt[is.na(zScore),zScore:=0]
     
-    colors <- c("gray", "red")
+    
     if(all(dt[,aberrant==FALSE])){
-        colors <- "gray"
+        col <- col[1]
     }
     if(basePlot == TRUE){
-        dt[,plot(zScore, -log10(pValue), col=ifelse(aberrant, 'red', 'gray'), 
-            pch=16, cex=.7, xlab='Z-score', ylab=expression(-log[10](P-value)))]
-        grid()
-        title(paste0("Volcano plot: ", sampleID))
+        dt[,plot(zScore, -log10(pValue), col=ifelse(aberrant, col[2], col[1]), 
+            pch=16, cex=.7, xlab='Z-score', 
+            ylab=expression(paste(-log[10], "(", italic(P), "-value)")))]
+        grid(equilogs=FALSE)
+        title(ifelse(!is.null(main), main, paste0("Volcano plot: ", sampleID)))
     }else{
         plot_ly(
             data=dt,
@@ -264,7 +310,7 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, basePlot=FALSE
             type="scatter",
             mode="markers",
             color=~aberrant,
-            colors=colors,
+            colors=col,
             text=~paste0(
                 "Gene ID: ", GENE_ID,
                 "<br>Sample ID: ", sampleID,
@@ -295,6 +341,7 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, basePlot=FALSE
 #' @param normalized if TRUE the normalized counts are used 
 #'             otherwise the raw counts
 #' @param basePlot R base plot version.
+#' @param main string passed to main (title) of the plot.
 #' @return None
 #' 
 #' @examples
@@ -304,7 +351,7 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, basePlot=FALSE
 #' 
 #' @export
 plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3, 
-                    normalized=TRUE, basePlot=FALSE){
+                    normalized=TRUE, basePlot=FALSE, main=NULL){
     if(missing(geneID)){
         stop("Please Specify which gene should be plotted, geneID = 'geneA'")
     }    
@@ -336,17 +383,19 @@ plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3,
         dt[, padjust:=assays(ods)[['padjust']][geneID,]]
         dt[, zScore:=assays(ods)[['zScore']][geneID,]]
         dt[, aberrant:=aberrant(ods, padj=padjCut, zScore=zScoreCut)[geneID,]]
-        colors <- dt[,ifelse(aberrant, 'red', 'gray')]
+        colors <- ifelse(any(dt[,aberrant]), c("gray", "firebrick"), "gray")
+        
     } else {
         dt[,aberrant:=FALSE]
         colors <- "gray"
     }
 
-    if(basePlot == TRUE){
+    if(isTRUE(basePlot)){
         dt[,plot(norm_rank, normcounts + 1, log = 'y', pch=16,
-            col = colors,
-            xlab = 'Sample rank', ylab = 'Normalized counts + 1', main=geneID)]
-        grid()
+                col=ifelse(dt[,aberrant], 'firebrick', 'grey'), 
+                main=ifelse(!is.null(main), main, geneID), 
+                xlab = 'Sample rank', ylab = 'Normalized counts + 1')]
+        grid(equilogs=FALSE)
     }else{
         plot_ly(
             data=dt,
@@ -570,7 +619,14 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' 
 #' @param ods OutriderDataSet
 #' @param padj adjusted pvalue cutoff.
+#' @param outlierRatio The fraction to be used for the outlier sample filtering
 #' @param ... further arguments to \code{aberrant}
+#' @param main string passed to main (title) of the plot.
+#' @param col set color.
+#' @param yadjust option to adjust position of Median and 90percentile labels. 
+#' @param ylab y-axis label
+#' @param labCex label cex parameter 
+#' @param labLine option to move axis labels
 #' @return None
 #' 
 #' @examples
@@ -581,7 +637,10 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' plotAberrantPerSample(ods)
 #' 
 #' @export
-plotAberrantPerSample <- function(ods, padj=0.05, main=NULL, ...){
+plotAberrantPerSample <- function(ods, padj=0.05, main=NULL, outlierRatio=0.001,
+                    col=brewer.pal(3, 'Dark2')[c(1,2)], yadjust=c(1.2, 1.2), 
+                    labLine=c(3.5, 3), ylab="#Aberrantly expressed genes", 
+                    labCex=par()$cex, ...){
     
     if(is.null(main)){
         main <- 'Aberrant Genes per Sample'
@@ -589,8 +648,6 @@ plotAberrantPerSample <- function(ods, padj=0.05, main=NULL, ...){
     
     count_vector <- sort(aberrant(ods, by="sample", padj=padj, ...))
     ylim = c(0.4, max(1, count_vector)*1.1)
-    xlab_line= 3.5
-    ylab_line= 3
     replace_zero_unknown = 0.5
     ticks= c(replace_zero_unknown, signif(10^seq(
             from=0, to=round(log10(max(1, count_vector))), by=1/3), 1))
@@ -599,21 +656,18 @@ plotAberrantPerSample <- function(ods, padj=0.05, main=NULL, ...){
     
     bp= barplot2(
         replace(count_vector, count_vector==0, replace_zero_unknown),
-        log='y', ylim= ylim, 
-        names.arg='', xlab= '', plot.grid=TRUE, grid.col='lightgray',
-        ylab= '', 
-        yaxt = 'n', border=NA, xpd=TRUE,
-        col = ifelse(count_vector < length(ods)*0.001,'#fdb462','grey'),
-        main  = main
-    )
+        log='y', ylim=ylim, names.arg='', xlab='', plot.grid=TRUE, 
+        grid.col='lightgray', ylab='', yaxt='n', border=NA, xpd=TRUE,
+        col=col[(!count_vector < length(ods)*outlierRatio) + 1], main=main)
+    
     n_names <- floor(length(count_vector)/20)
     xnames= c(1:n_names*20)
     axis(side=1, at= c(0,bp[xnames,]), labels= c(0,xnames))
     axis(side=2, at=ticks, labels= labels_for_ticks, ylog=TRUE, las=2)
     
     # labels
-    mtext( 'Sample rank', side=1, line=xlab_line)
-    mtext( '#Aberrantly expressed genes', side=2, line= ylab_line)
+    mtext('Sample rank', side=1, line=labLine[1], cex=labCex)
+    mtext(ylab, side=2, line=labLine[2], cex=labCex)
     
     # legend and lines
     hlines = c(Median=ifelse(median(count_vector)==0, replace_zero_unknown,
@@ -621,8 +675,9 @@ plotAberrantPerSample <- function(ods, padj=0.05, main=NULL, ...){
                     count_vector,0.9, names=FALSE))
     color_hline= c('black','black')
     abline(h= hlines, col=color_hline)
-    text(x=c(1,1), y= hlines*1.2, labels= c('Median', '90th percentile'),
-            col=color_hline, adj=0)
+    text(x=c(1,1), y= hlines*yadjust, col=color_hline, adj=0,
+            labels=c('Median', expression(90^th ~ 'percentile')))
+            
     box()
 }
 
@@ -700,33 +755,34 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     odsVals <- getDispEstsData(object)
     legText <- c("OUTRIDER fit")
     legCol <- c("firebrick")
+    nonAutoVals <- NULL
     
-    # plot dispersion
-    heatscatter(odsVals$mu, 1/odsVals$disp, pch='.', log="yx", 
-            xlab='Mean expression', ylab='Dispersion',
-            main="Heatscatter of dispersion estimates")
-    
-    if(checkAutoCorrectExists() & isTRUE(compareDisp)){
-        #fit OUTRIDER without AutoCorrect 
+    if(isTRUE(compareDisp)){
+        #fit OUTRIDER without AutoCorrect
         ods2 <- OutriderDataSet(countData = counts(object))
         ods2 <- estimateSizeFactors(ods2)
         ods2 <- fit(ods2)
         nonAutoVals <- getDispEstsData(ods2, odsVals$mu)
-        
+    }
+    
+    # plot dispersion
+    plot(NA, xlim=range(odsVals$mu), ylim=range(1/odsVals$disp),
+         pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
+         main="Dispersion estimates versus mean expression")
+    if(!is.null(nonAutoVals)){
         points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="firebrick")
     }
     points(odsVals$mu, 1/odsVals$disp, pch='.', col='black')
     
     # plot fit
     lines(odsVals$xpred, odsVals$ypred, lwd=2, col="black")
-    if(checkAutoCorrectExists() & isTRUE(compareDisp)){
+    if(isTRUE(compareDisp)){
         lines(odsVals$xpred, nonAutoVals$ypred, lwd=2, col="firebrick")
         legText <- c("before correction fit", "autoCorrect fit")
         legCol <- c('firebrick', "black")
     }
     
     legend("bottomleft", legText, col=legCol, pch=20, lty=1, lwd=3)
-    
 })
 
 getDispEstsData <- function(ods, mu=NULL){
@@ -735,17 +791,51 @@ getDispEstsData <- function(ods, mu=NULL){
         mu <- odsMu
     }
     disp <- mcols(ods)$disp
-    xidx <- c(0.001, 0.01, 0.5, seq(1, max(mu), 1), 
-            max(mu) * c(1.1, 1.5, 2, 5, 10, 100, 1000))
-    
-    # fit linear model
-    fit <- lm(1 / disp ~ 1 + I(mu^-1))
-    pred <- predict(fit, list(mu=xidx))
-    
+    xidx <- 10^(seq.int(log10(min(mu))-1, log10(max(mu))+0.1, length.out = 500))
+
+    # fit DESeq2 parametric Disp Fit
+    fit <- parametricDispersionFit(mu, 1/disp)
+    pred <- fit(xidx)
     return(list(
-        mu=odsMu,
+        mu=mu,
         disp=disp,
         xpred=xidx,
-        ypred=pred
+        ypred=pred,
+        fit=fit
     ))
 }
+
+#'
+#' This function is not exported from DESeq2. Therefore we copied it over to
+#' here. If DESeq2 will export this function we can use it instead.
+#' 
+#' TODO
+#' 
+#' @noRd
+parametricDispersionFit <- function (means, disps){
+    coefs <- c(0.1, 1)
+    iter <- 0
+    while (TRUE) {
+        residuals <- disps/(coefs[1] + coefs[2]/means)
+        good <- which((residuals > 1e-04) & (residuals < 15))
+        suppressWarnings({
+            fit <- glm(disps[good] ~ I(1/means[good]), 
+                    family = Gamma(link = "identity"), 
+                    start = coefs)
+        })
+        oldcoefs <- coefs
+        coefs <- coefficients(fit)
+        if (!all(coefs > 0)) 
+            stop(simpleError("parametric dispersion fit failed"))
+        if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
+            break
+        iter <- iter + 1
+        if (iter > 10) 
+            stop(simpleError("dispersion fit did not converge"))
+    }
+    names(coefs) <- c("asymptDisp", "extraPois")
+    ans <- function(q) coefs[1] + coefs[2]/q
+    attr(ans, "coefficients") <- coefs
+    ans
+}
+

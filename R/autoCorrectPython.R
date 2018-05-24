@@ -16,21 +16,14 @@
 #' @param param_exp_name Name of the parameter file
 #' @param verbose if TRUE further information about the training/predicting
 #'             of the autoencoder is printed.
+#' @param seed if this is an integer it will be used to set the seed in the 
+#'             python runtime environment
 #' 
 #' @return An ods object including the control factors 
 #'
-#' @examples
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- estimateSizeFactors(ods)
-#' ods <- autoCorrect(ods)
-#' 
-#' plotCountCorHeatmap(ods, normalized=FALSE)
-#' plotCountCorHeatmap(ods, normalized=TRUE)
-#' 
-#' @export
-autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250, 
+autoCorrectPython <- function(ods, save=FALSE, predict=FALSE, epochs=250, 
                     param_path=NULL, param_exp_name=NULL, verbose=FALSE,
-                    modelName=NULL, modelDirectory=NULL){
+                    modelName=NULL, modelDirectory=NULL, seed=NULL){
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
                 "the autoCorrect function"))
@@ -54,6 +47,9 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250,
     epochs <- as.integer(epochs)
     stopifnot(isScalarLogical(verbose))
     verbose <- as.integer(verbose)
+    if(is.numeric(seed)){
+        seed <- as.integer(seed)
+    }
     
     # get needed data
     k <- counts(ods, normalized=FALSE)
@@ -67,7 +63,8 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250,
     autoCorrectObj <- import("autoCorrection")
     corrected <- autoCorrectObj$correctors$AECorrector(epochs=epochs, modelName,
             modelDirectory, save_model=save, epochs=epochs, verbose=verbose,
-            param_exp_name=param_exp_name, param_path=param_path)$correct(
+            param_exp_name=param_exp_name, param_path=param_path, 
+            seed=seed)$correct(
                     kt, sfm, only_predict=predict)
     correctionFactors <- t(corrected)
     stopifnot(identical(dim(k), dim(correctionFactors)))
@@ -84,6 +81,16 @@ autoCorrect <- function(ods, save=FALSE, predict=FALSE, epochs=250,
 #' @noRd
 checkAutoCorrectExists <- function(){
     try({autoCorrectObj <- import("autoCorrection")})
-    exists("autoCorrectObj")
+    if(!exists("autoCorrectObj")){
+        return(FALSE)
+    }
+    
+    # Check if autoCorrection version is correct
+    aeVersion <- as.character(py_get_attr(autoCorrectObj, '__version__'))
+    if(compareVersion(aeVersion, "0.3.0") < 0){
+        stop(paste0("Please upgrade your autoCorrection installation to have ",
+                "the required version. The current version is: ", aeVersion))
+    }
+    return(TRUE)
 }
 

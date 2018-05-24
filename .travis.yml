@@ -3,42 +3,31 @@ sudo: required
 dist: trusty
 cache:
   - directories:
-    - $HOME/python-env-OUTRIDER
     - $HOME/R/Library
-    - $HOME/.cache/pip
+
 matrix:
   include:
     - r: bioc-release
-    - r: bioc-devel
+#    - r: bioc-devel
 
 addons:
   apt:
     packages:
       - libxml2-dev
-      - python3.4-venv
-      - python3-pip
-      - python3-tk
+      - tk-dev
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
-  - if [ ! -e ~/python-env-OUTRIDER/bin/activate ]; then
-        python3 -m venv --clear ~/python-env-OUTRIDER;
-    fi
-  - source ~/python-env-OUTRIDER/bin/activate
-  - pip install --upgrade pip
 
 install:
-  - pip --version
-  - python --version
   - R --version
-  - which pip
   - which R
-  - pip3 install --upgrade "git+https://github.com/gagneurlab/autoCorrection.git@master"
-  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'))"
-  - R -e "message(BiocInstaller::isDevel())"
-  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
+  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools', 'BiocParallel'), Ncpu=4)"
+  - R -e 'message(BiocInstaller::isDevel())'
   - R -e 'BiocParallel::multicoreWorkers()'
-  - R -e 'devtools::install()'
+  - pwd
+  - ls -la
+  - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, threads=4)'
 
 script:
   - R CMD build --no-build-vignettes .

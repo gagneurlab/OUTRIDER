@@ -5,12 +5,29 @@
 \alias{plotAberrantPerSamplePlotly}
 \title{Plot aberrant events per sample}
 \usage{
-plotAberrantPerSample(ods, padj = 0.05, ...)
+plotAberrantPerSample(ods, padj = 0.05, main = NULL, outlierRatio = 0.001,
+  col = brewer.pal(3, "Dark2")[c(1, 2)], yadjust = c(1.2, 1.2),
+  labLine = c(3.5, 3), ylab = "#Aberrantly expressed genes",
+  labCex = par()$cex, ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
 
 \item{padj}{adjusted pvalue cutoff.}
+
+\item{main}{string passed to main (title) of the plot.}
+
+\item{outlierRatio}{The fraction to be used for the outlier sample filtering}
+
+\item{col}{set color.}
+
+\item{yadjust}{option to adjust position of Median and 90percentile labels.}
+
+\item{labLine}{option to move axis labels}
+
+\item{ylab}{y-axis label}
+
+\item{labCex}{label cex parameter}
 
 \item{...}{further arguments to \code{aberrant}}
 }

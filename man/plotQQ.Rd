@@ -4,8 +4,10 @@
 \alias{plotQQ}
 \title{Plot a QQ-plot for a given gene}
 \usage{
-plotQQ(ods, geneID = 1:length(ods), global = FALSE, padj = 0.05,
-  zScore = 3, subset = 1:ncol(ods), main = NULL, maxOutlier = NULL, ...)
+plotQQ(ods, geneID, global = FALSE, padj = 0.05, zScore = 3,
+  subset = 1:ncol(ods), main = NULL, maxOutlier = NULL, sample = TRUE,
+  legendPos = "topleft", filterOutliers = FALSE, conf.alpha = 0.05,
+  outlierRatio = 0.001, col = c("black", "#fdb462"), ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
@@ -24,6 +26,19 @@ plotQQ(ods, geneID = 1:length(ods), global = FALSE, padj = 0.05,
 
 \item{maxOutlier}{y-axis range for the plot}
 
+\item{sample}{sample points for QQplot, only used, when global==TRUE.}
+
+\item{legendPos}{set legendpos, by default topleft.}
+
+\item{filterOutliers}{If TRUE, in the global QQ plot the full data set will
+be compared against the for outlier sample filtered data set}
+
+\item{conf.alpha}{if set, a confidence interval is plotted}
+
+\item{outlierRatio}{The fraction to be used for the outlier sample filtering}
+
+\item{col}{set color}
+
 \item{...}{additional arguments for the internal plotQQ function.
 This arguments are currently used for development.}
 }
@@ -37,5 +52,6 @@ Plot a QQ-plot for a given gene
 ods <- makeExampleOutriderDataSet(20, 400)
 ods <- OUTRIDER(ods)
 plotQQ(ods, 1)
+plotQQ(ods, global=TRUE, filterOutliers=TRUE)
 
 }

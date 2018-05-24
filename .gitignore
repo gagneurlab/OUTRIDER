@@ -3,6 +3,7 @@
 .Rhistory
 .RData
 .Ruserdata
+*.Rproj
 
 # vignette ignore list
 vignettes/cache
@@ -27,5 +28,10 @@ AEModel_weights.h5
 ucsc.knownGenes.db
 test_nb_model.txt
 
+# ignore Rcpp objects
+src/*.o
+src/*.so
+
 #' tmp files
 .DS_Store
+
