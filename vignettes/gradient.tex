@@ -37,7 +37,8 @@ ll=& \sum_{ij} k_{ij} \log{(\mu_{ij})} +
 For the derivation of the gradient only the first and third term need to be considered, 
 as all other terms are independent of $\mu$.
 
-Computing the derivative of the first term with respect to the matrix $\matr{W}$ by subsituting the autoencoder model for $\mu$. Here the operations $\log[a]$ and $\exp[a]$ are understood to be element-wise.
+Computing the derivative of the first term with respect to the matrix $\matr{W}$ by subsituting the autoencoder model for $\mu$. 
+Here the operations $\log[\matr{A}]$ and $\exp[\matr{A}]$ are understood to be element-wise for a matrix or vector $\matr{A}$,
 
 \begin{align*}
 &\frac{d}{dw_{ab}}\sum_{ij} k_{ij} \log{(\mu_{ij})} \\
@@ -45,7 +46,7 @@ Computing the derivative of the first term with respect to the matrix $\matr{W}$
 &= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} (\matr{X} \matr{W} \matr{W}^T + \matr{b}) \\
 &= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j) \\
 &= \sum_{ij} k_{ij} (x_{ia} w_{jb} + \delta_{aj} \sum_{l} x_{il}w_{lb}) \\
-&= \sum_{ij} x_{ia} k_{ij} w_{jb} + \sum_{il} k_{ia} x_{il} w_{lb} \\
+&= \sum_{ij} x_{ia} k_{ij} w_{jb} + \sum_{il} k_{ia} x_{il} w_{lb}. \\
 \end{align*}
 Which can be written as:
 \begin{align*}
