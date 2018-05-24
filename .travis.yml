@@ -26,7 +26,7 @@ install:
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
   - R -e 'BiocParallel::multicoreWorkers()'
-  - R -e 'devtools::install()'
+  - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, threads=4)'
 
 script:
   - R CMD build --no-build-vignettes .

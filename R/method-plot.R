@@ -383,8 +383,7 @@ plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3,
         dt[, padjust:=assays(ods)[['padjust']][geneID,]]
         dt[, zScore:=assays(ods)[['zScore']][geneID,]]
         dt[, aberrant:=aberrant(ods, padj=padjCut, zScore=zScoreCut)[geneID,]]
-        colors <- ifelse(any(dt[,aberrant]), c("gray", "red"), "gray")
-        #colors <- ifelse(any(dt[,aberrant]), c("#d3d3d3", "#b22222"), "gray")
+        colors <- ifelse(any(dt[,aberrant]), c("gray", "firebrick"), "gray")
         
     } else {
         dt[,aberrant:=FALSE]
