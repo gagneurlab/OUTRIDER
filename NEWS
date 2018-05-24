@@ -1,3 +1,11 @@
+R IMPLEMENTATION OF THE AUTOENCODER
+-----------------------------
+    o Adding the R implementation of the autoencoder
+    o little changes in default values
+    o updating and completing documentation
+    o Bufixes
+
+
 MINOR BUGFIXES AND UPDATE OF AUTOCORRECTION 0.99.6
 -----------------------------
     o Minor changes in plotting functions

@@ -1,7 +1,7 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 0.99.6
+Version: 0.99.7
 Date: 2018-05-23
 Maintainer: Christian Mertes <mertes@in.tum.de>
 URL: https://github.com/gagneurlab/OURIDER
