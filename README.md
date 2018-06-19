@@ -1,6 +1,6 @@
 # OUTRIDER #
 OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
-[Paper on bioRxiv](https://www.biorxiv.org/content/early/2018/05/24/322149)
+[Paper on bioRxiv](https://www.biorxiv.org/content/early/2018/06/14/322149)
 
 [![Pipeline status](https://travis-ci.org/gagneurlab/OUTRIDER.svg?branch=master)](https://travis-ci.org/gagneurlab/OUTRIDER)
 [![Version](https://img.shields.io/badge/Version-0.99.7-orange.svg)](https://github.com/gagneurlab/OUTRIDER/blob/master)
