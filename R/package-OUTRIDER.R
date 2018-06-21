@@ -89,7 +89,7 @@ NULL
 #'     due to the nature of data.table and ggplot/plotly
 #' @noRd
 globalVariables(c("disp", "padjust", "pValue", "zScore", "padj_rank", "mu", 
-        "l2fc", "sampleID", "normcounts", "sample.rank", "N2", "color",
+        "l2fc", "sampleID", "normcounts", "sample.rank", "N2", "color", "obs",
         "Var1", "Var2", "value", "medianCts", "norm_rank", ".x",
         "passedFilter", "loggeomeans"), package="OUTRIDER")
 

@@ -5,7 +5,7 @@
 \alias{plotDispEsts,OutriderDataSet-method}
 \title{Dispersion estimation plot}
 \usage{
-\S4method{plotDispEsts}{OutriderDataSet}(object, compareDisp = TRUE)
+\S4method{plotDispEsts}{OutriderDataSet}(object, compareDisp = NULL)
 }
 \arguments{
 \item{object}{An OutriderDataSet}

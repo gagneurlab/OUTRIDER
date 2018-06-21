@@ -1,8 +1,6 @@
 
-compileResults <- function(object, padj=0.05, zScore=3, 
+compileResults <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
                     round=TRUE, all=FALSE){
-    padjCut <- padj
-    zScoreCut <- zScore
     features <- c("pValue", "padjust", "zScore", "l2fc")
     if(!"pValue" %in% assayNames(object)){
         stop(paste0("The P-values are not computed yet. Please run the ",
@@ -19,7 +17,7 @@ compileResults <- function(object, padj=0.05, zScore=3,
     }
     
     if(all==FALSE){
-        object <- object[rowMins(assays(object)[['padjust']]) <= padjCut]
+        object <- object[rowMins(assays(object)[['padjust']]) <= padjCutoff]
         if(dim(object)[1]==0){
             warning('No significant events: use all=TRUE to print all counts.')
             return(data.table(geneID='a', sampleID='a', pValue=0.1, padjust=0.1,
@@ -70,7 +68,8 @@ compileResults <- function(object, padj=0.05, zScore=3,
     
     if(all==FALSE){
         tidyresults <- tidyresults[
-                padjust <= padjCut & abs(zScore) >= zScoreCut][order(padjust)]
+                padjust <= padjCutoff & abs(zScore) >= zScoreCutoff][
+                        order(padjust)]
     }
     tidyresults[,padj_rank := rank(padjust), by = sampleID]
     
@@ -89,8 +88,8 @@ compileResults <- function(object, padj=0.05, zScore=3,
 #' This function extracts all results based on the given filter criteria.
 #' 
 #' @param object OutriderDataSet
-#' @param padj padj cutoff
-#' @param zScore absolute Z-score cutoff 
+#' @param padjCutoff padj cutoff
+#' @param zScoreCutoff absolute Z-score cutoff 
 #' @param round rounding the results.
 #' @param all By default FALSE, only significant read counts are listed in the 
 #' results. 
@@ -112,4 +111,9 @@ compileResults <- function(object, padj=0.05, zScore=3,
 #' @rdname results
 #' @aliases results results,OutriderDataSet-method
 #' @export results
+#' @export
+setGeneric("results", function(object, ...) standardGeneric("results"))
+
+#' @export results
+#' @export
 setMethod("results", "OutriderDataSet", compileResults)

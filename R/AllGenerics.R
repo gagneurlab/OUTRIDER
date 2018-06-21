@@ -1,7 +1,3 @@
-#' @rdname results
-#' @export
-setGeneric("results", function(object, ...) standardGeneric("results"))
-
 
 counts.replace.OutriderDataSet <- function(object, value){
     assays(object)[["counts"]] <- value

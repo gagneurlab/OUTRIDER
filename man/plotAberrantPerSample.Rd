@@ -5,15 +5,17 @@
 \alias{plotAberrantPerSamplePlotly}
 \title{Plot aberrant events per sample}
 \usage{
-plotAberrantPerSample(ods, padj = 0.05, main = NULL, outlierRatio = 0.001,
-  col = brewer.pal(3, "Dark2")[c(1, 2)], yadjust = c(1.2, 1.2),
-  labLine = c(3.5, 3), ylab = "#Aberrantly expressed genes",
-  labCex = par()$cex, ...)
+plotAberrantPerSample(ods, padjCutoff = 0.05, zScoreCutoff = 0,
+  main = NULL, outlierRatio = 0.001, col = brewer.pal(3, "Dark2")[c(1,
+  2)], yadjust = c(1.2, 1.2), labLine = c(3.5, 3),
+  ylab = "#Aberrantly expressed genes", labCex = par()$cex, ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
 
-\item{padj}{adjusted pvalue cutoff.}
+\item{padjCutoff}{Adjusted P-value cutoff.}
+
+\item{zScoreCutoff}{Z-score cutoff value.}
 
 \item{main}{string passed to main (title) of the plot.}
 

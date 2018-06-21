@@ -4,9 +4,8 @@
 \alias{plotExpressionRank}
 \title{Expression rank plot}
 \usage{
-plotExpressionRank(ods, geneID, padjCutoff = 0.05, zScoreCutoff = 3,
-  normalized = TRUE, basePlot = FALSE, main = NULL, log = TRUE,
-  col = c("gray", "firebrick"), ...)
+plotExpressionRank(ods, geneID, padjCutoff = 0.05, zScoreCutoff = 0,
+  normalized = TRUE, basePlot = FALSE, main = NULL)
 }
 \arguments{
 \item{ods}{An OutriderDataSet.}
@@ -14,7 +13,9 @@ plotExpressionRank(ods, geneID, padjCutoff = 0.05, zScoreCutoff = 3,
 \item{geneID}{Id or name of gene wich should be plotted. 
 If multiple gene ids are supplied mulitple plots will be made.}
 
-\item{padjCutoff}{Padj cutoff for coloring significant genes}
+
+\item{padjCutoff}{padj cutoff for coloring significant genes}
+
 
 \item{zScoreCutoff}{Z-score cutoff for coloring significant genes}
 
