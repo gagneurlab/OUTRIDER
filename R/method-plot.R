@@ -64,8 +64,6 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
             main <- paste0('Q-Q plot for gene: ', geneID)
         }
         pVal <- as.numeric(assay(ods[geneID,], 'pValue'))
-        padjust <- as.numeric(assay(ods[geneID,], 'padjust'))
-        zScore <- as.numeric(assay(ods[geneID,], 'zScore'))
         #plot all points with cex=1 for single gene.
         plotPoint <- TRUE
         pointCex <- 1
@@ -73,8 +71,8 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
         #TODO why does the col ifelse above not work?
         col <- c('black', 'firebrick')
         #data table with expected and observerd log10(pValues)
-        df <- data.table(obs= -log10(pVal), 
-            col=ifelse(padjust < padj & abs(zScore) > zScoreCutoff, col[2],col[1]),
+        df <- data.table(obs= -log10(pVal), col=ifelse(aberrant(ods[geneID,], 
+            padj=padj,zScore=zScoreCutoff), col[2],col[1]),
             pch=pch, subset=FALSE, plotPoint=plotPoint)[order(-obs)]  
     }
     # global QQplot
