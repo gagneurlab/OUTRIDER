@@ -13,13 +13,15 @@
 #' @param legendPos set legendpos, by default topleft.
 #' @param col set color
 #' @param pch integer or character to be used for plotting points
+#' @param xlim The x limits for the plot or NULL to use the data range
+#' @param ylim The y limits for the plot or NULL to use the data range
 #' @param ... additional arguments for the internal plotQQ function.
 #'             This arguments are currently used for development.
 #' 
 #' @return None
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(20, 400)
+#' ods <- makeExampleOutriderDataSet(500, 300)
 #' ods <- OUTRIDER(ods)
 #' plotQQ(ods, 1)
 #' plotQQ(ods, global=TRUE, filterOutliers=TRUE)
@@ -285,7 +287,7 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0,
 #' @return None or a plotly object
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(10, 100)
+#' ods <- makeExampleOutriderDataSet(1000, 100)
 #' ods <- OUTRIDER(ods)
 #' plotExpressionRank(ods, 1)
 #' plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
@@ -342,8 +344,8 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
     if('padjust' %in% assayNames(ods) & 'zScore' %in% assayNames(ods)){
         dt[, padjust  := assays(ods)[['padjust']][geneID,]]
         dt[, zScore   := assays(ods)[['zScore']][geneID,]]
-        dt[, aberrant := aberrant(
-                ods, padj=padjCutoff, zScore=zScoreCutoff)[geneID,]]
+        dt[, aberrant := aberrant(ods, padjCutoff=padjCutoff,
+                zScoreCutoff=zScoreCutoff)[geneID,]]
         dt[aberrant == TRUE, color:=col[2]]
     } else {
         dt[,aberrant:=FALSE]
@@ -599,7 +601,7 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' 
 #' @examples
 #' 
-#' ods <- makeExampleOutriderDataSet()
+#' ods <- makeExampleOutriderDataSet(500, 100)
 #' ods <- OUTRIDER(ods)
 #' 
 #' plotAberrantPerSample(ods)

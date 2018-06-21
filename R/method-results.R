@@ -116,4 +116,8 @@ setGeneric("results", function(object, ...) standardGeneric("results"))
 
 #' @export results
 #' @export
-setMethod("results", "OutriderDataSet", compileResults)
+setMethod("results", "OutriderDataSet", function(object, 
+                    padjCutoff=0.05, zScoreCutoff=0, round=TRUE, all=FALSE){
+    compileResults(object, padjCutoff=0.05, zScoreCutoff=0,
+            round=TRUE, all=FALSE)
+})

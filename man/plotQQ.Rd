@@ -32,6 +32,10 @@ plotQQ(ods, geneID = NULL, global = FALSE, padjCutoff = 0.05,
 
 \item{pch}{integer or character to be used for plotting points}
 
+\item{xlim}{The x limits for the plot or NULL to use the data range}
+
+\item{ylim}{The y limits for the plot or NULL to use the data range}
+
 \item{col}{set color}
 
 \item{...}{additional arguments for the internal plotQQ function.
