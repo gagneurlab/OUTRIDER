@@ -67,7 +67,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, zScoreCutoff
         col <- c('black', 'firebrick')
         #data table with expected and observerd log10(pValues)
         df <- data.table(obs= -log10(pVal), col=ifelse(aberrant(ods[geneID,], 
-            padjCutoff=padjCutoff,zScoreCutoff=zScoreCutoff), col[2],col[1]),
+            padjCutoff=padjCutoff,zScoreCutoff=zScoreCutoff, by='sample'), col[2],col[1]),
             pch=pch, subset=FALSE, plotPoint=plotPoint)[order(-obs)]  
     }
     # global QQplot
