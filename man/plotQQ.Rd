@@ -6,7 +6,8 @@
 \usage{
 plotQQ(ods, geneID = NULL, global = FALSE, padjCutoff = 0.05,
   zScoreCutoff = 0, main = NULL, sample = TRUE, legendPos = "topleft",
-  outlierRatio = 0.001, conf.alpha = 0.05, pch = 16, col = NULL, ...)
+  outlierRatio = 0.001, conf.alpha = 0.05, pch = 16, xlim = NULL,
+  ylim = NULL, col = NULL, ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}

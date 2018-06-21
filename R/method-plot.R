@@ -291,7 +291,7 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0,
 #' plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
 #' 
 #' @export
-plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=3, 
+plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0, 
                     normalized=TRUE, basePlot=FALSE, main=NULL, log=TRUE,
                     col=c("gray", "firebrick"), ...){
     # check user input
