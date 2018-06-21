@@ -27,7 +27,11 @@ sourceCpp("src/matMult.cpp")
 #' @export
 autoCorrect <- function(ods, q=20, theta=25, 
                     implementation=c("R", "python"), ...){
+    
     # error checking
+    if(q >= nrow(ods)){
+        stop("Please use a q smaller than the number of features.")
+    }
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
                    "the autoCorrect function"))

@@ -42,7 +42,7 @@
 #'         
 #' @importFrom DelayedArray rowMins
 #' 
-#' @importFrom S4Vectors DataFrame rowSums colSums
+#' @importFrom S4Vectors DataFrame rowSums colSums metadata metadata<-
 #' 
 #' @importFrom utils read.table head compareVersion
 #' 
