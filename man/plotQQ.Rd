@@ -4,10 +4,11 @@
 \alias{plotQQ}
 \title{Plot a QQ-plot for a given gene}
 \usage{
-plotQQ(ods, geneID, global = FALSE, padj = 0.05, zScore = 3,
-  subset = 1:ncol(ods), main = NULL, maxOutlier = NULL, sample = TRUE,
-  legendPos = "topleft", filterOutliers = FALSE, conf.alpha = 0.05,
-  outlierRatio = 0.001, col = c("black", "#fdb462"), ...)
+plotQQ(ods, geneID = NULL, global = FALSE, padjCutoff = 0.05,
+  zScoreCutoff = 0, main = NULL, sample = TRUE, legendPos = "topleft",
+  outlierRatio = 0.001, conf.alpha = 0.05, pch = 16,
+  col = ifelse(isTRUE(global), c("#1b9e77", "#d95f02"), c("black",
+  "firebrick")), ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
@@ -16,26 +17,19 @@ plotQQ(ods, geneID, global = FALSE, padj = 0.05, zScore = 3,
 
 \item{global}{Flag to plot a global QQ-plot, default FALSE}
 
-\item{padj}{significance level to mark outliers}
+\item{padjCutoff}{significance level to mark outliers}
 
-\item{zScore}{Z-score cutoff to coloring outliers}
-
-\item{subset}{samples to subset for}
+\item{zScoreCutoff}{Z-score cutoff to coloring outliers}
 
 \item{main}{title for the plot}
-
-\item{maxOutlier}{y-axis range for the plot}
 
 \item{sample}{sample points for QQplot, only used, when global==TRUE.}
 
 \item{legendPos}{set legendpos, by default topleft.}
 
-\item{filterOutliers}{If TRUE, in the global QQ plot the full data set will
-be compared against the for outlier sample filtered data set}
+\item{outlierRatio}{The fraction to be used for the outlier sample filtering}
 
 \item{conf.alpha}{if set, a confidence interval is plotted}
-
-\item{outlierRatio}{The fraction to be used for the outlier sample filtering}
 
 \item{col}{set color}
 

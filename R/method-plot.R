@@ -24,10 +24,11 @@
 #' plotQQ(ods, global=TRUE, filterOutliers=TRUE)
 #' 
 #' @export
-plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, zScoreCutoff=3,
-                main=NULL, sample=TRUE, legendPos="topleft", outlierRatio=0.001,
-                conf.alpha=0.05, pch=16, col=ifelse(isTRUE(global),
-                c('#1b9e77', '#d95f02'), c('black', 'firebrick')), ...){
+plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, 
+                zScoreCutoff=0, main=NULL, sample=TRUE, legendPos="topleft",
+                outlierRatio=0.001, conf.alpha=0.05, pch=16, 
+                col=ifelse(isTRUE(global), c('#1b9e77', '#d95f02'), 
+                        c('black', 'firebrick')), ...){
     
 #TODO- how to handle very extreme outliers?
 #TODO maybe we can set cex = 0.5 for the points in case of the global QQplot
@@ -67,7 +68,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, zScoreCutoff
         col <- c('black', 'firebrick')
         #data table with expected and observerd log10(pValues)
         df <- data.table(obs= -log10(pVal), col=ifelse(aberrant(ods[geneID,], 
-            padjCutoff=padjCutoff,zScoreCutoff=zScoreCutoff), col[2],col[1]),
+            padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff), col[2],col[1]),
             pch=pch, subset=FALSE, plotPoint=plotPoint)[order(-obs)]  
     }
     # global QQplot
@@ -181,7 +182,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, zScoreCutoff
 #' plotVolcano(ods, 1)
 #' 
 #' @export 
-plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCut=3, 
+plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0, 
                 main=NULL, basePlot=FALSE, col=c("gray", "firebrick")){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
@@ -204,7 +205,7 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCut=3,
     }
     if(length(sampleID) > 1){
         sapply(sampleID, plotVolcano, ods=ods, padjCutoff=padjCutoff, 
-                zScoreCut=zScoreCut, basePlot=basePlot)
+                zScoreCutoff=zScoreCutoff, basePlot=basePlot)
         return()
     }
     
@@ -217,7 +218,8 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCut=3,
             medianCts = rowMedians(counts(ods, normalized=TRUE)),
             expRank   = apply(
                     counts(ods, normalized=TRUE), 2, rank)[,sampleID])
-    aberrant <- as.data.table(aberrant(ods[,sampleID]), padjCutoff, zScoreCut)
+    aberrant <- as.data.table(aberrant(ods[,sampleID]), padjCutoff=padjCutoff,
+            zScoreCutoff=zScoreCutoff)
     setnames(aberrant, 2, 'aberrant')
     dt <- cbind(dt, aberrant)
     
@@ -270,7 +272,7 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCut=3,
 #' @param geneID Id of gene wich should be plotted. 
 #' If multiple gene ids are supplied mulitple plots will be made.
 #' @param padjCutoff padj cutoff for coloring significant genes
-#' @param zScoreCut Z-score cutoff for coloring significant genes
+#' @param zScoreCutoff Z-score cutoff for coloring significant genes
 #' @param normalized if TRUE the normalized counts are used 
 #'             otherwise the raw counts
 #' @param basePlot R base plot version.
@@ -283,7 +285,7 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCut=3,
 #' plotExpressionRank(ods, 1)
 #' 
 #' @export
-plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCut=3, 
+plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0, 
                     normalized=TRUE, basePlot=FALSE, main=NULL){
     if(missing(geneID)){
         stop("Please Specify which gene should be plotted, geneID = 'geneA'")
@@ -303,7 +305,8 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCut=3,
     }
     if(length(geneID) > 1){
         sapply(geneID, plotExpressionRank, ods=ods, padjCutoff=padjCutoff, 
-                zScoreCut=zScoreCut, basePlot=basePlot, normalized=normalized)
+                zScoreCutoff=zScoreCutoff, basePlot=basePlot, 
+               normalized=normalized)
         return()
     }
     dt <- data.table(
@@ -315,7 +318,8 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCut=3,
     if('padjust' %in% assayNames(ods) & 'zScore' %in% assayNames(ods)){
         dt[, padjust:=assays(ods)[['padjust']][geneID,]]
         dt[, zScore:=assays(ods)[['zScore']][geneID,]]
-        dt[, aberrant:=aberrant(ods, padj=padjCutoff, zScore=zScoreCut)[geneID,]]
+        dt[, aberrant:=aberrant(ods, padjCutoff=padjCutoff, 
+                zScoreCutoff=zScoreCutoff)[geneID,]]
         colors <- ifelse(any(dt[,aberrant]), c("gray", "firebrick"), "gray")
         
     } else {
@@ -551,7 +555,8 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' @aliases plotAberrantPerSample plotAberrantPerSamplePlotly
 #' 
 #' @param ods OutriderDataSet
-#' @param padj adjusted pvalue cutoff.
+#' @param padjCutoff Adjusted P-value cutoff.
+#' @param zScoreCutoff Z-score cutoff value.
 #' @param outlierRatio The fraction to be used for the outlier sample filtering
 #' @param ... further arguments to \code{aberrant}
 #' @param main string passed to main (title) of the plot.
@@ -570,7 +575,8 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' plotAberrantPerSample(ods)
 #' 
 #' @export
-plotAberrantPerSample <- function(ods, padj=0.05, main=NULL, outlierRatio=0.001,
+plotAberrantPerSample <- function(ods, padjCutoff=0.05, zScoreCutoff=0,
+                    main=NULL, outlierRatio=0.001,
                     col=brewer.pal(3, 'Dark2')[c(1,2)], yadjust=c(1.2, 1.2), 
                     labLine=c(3.5, 3), ylab="#Aberrantly expressed genes", 
                     labCex=par()$cex, ...){
@@ -579,7 +585,8 @@ plotAberrantPerSample <- function(ods, padj=0.05, main=NULL, outlierRatio=0.001,
         main <- 'Aberrant Genes per Sample'
     }
     
-    count_vector <- sort(aberrant(ods, by="sample", padj=padj, ...))
+    count_vector <- sort(aberrant(ods, by="sample", padjCutoff=padjCutoff, 
+            zScoreCutoff=zScoreCutoff, ...))
     ylim = c(0.4, max(1, count_vector)*1.1)
     replace_zero_unknown = 0.5
     ticks= c(replace_zero_unknown, signif(10^seq(

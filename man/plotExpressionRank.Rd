@@ -4,7 +4,7 @@
 \alias{plotExpressionRank}
 \title{Expression rank plot}
 \usage{
-plotExpressionRank(ods, geneID, padjCut = 0.05, zScoreCut = 3,
+plotExpressionRank(ods, geneID, padjCutoff = 0.05, zScoreCutoff = 0,
   normalized = TRUE, basePlot = FALSE, main = NULL)
 }
 \arguments{
@@ -13,9 +13,9 @@ plotExpressionRank(ods, geneID, padjCut = 0.05, zScoreCut = 3,
 \item{geneID}{Id of gene wich should be plotted. 
 If multiple gene ids are supplied mulitple plots will be made.}
 
-\item{padjCut}{padj cutoff for coloring significant genes}
+\item{padjCutoff}{padj cutoff for coloring significant genes}
 
-\item{zScoreCut}{Z-score cutoff for coloring significant genes}
+\item{zScoreCutoff}{Z-score cutoff for coloring significant genes}
 
 \item{normalized}{if TRUE the normalized counts are used 
 otherwise the raw counts}

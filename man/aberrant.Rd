@@ -4,14 +4,15 @@
 \alias{aberrant}
 \title{aberrant}
 \usage{
-aberrant(ods, padj = 0.05, zScore = 3, by = c("none", "sample", "gene"))
+aberrant(ods, padjCutoff = 0.05, zScoreCutoff = 3, by = c("none",
+  "sample", "gene"))
 }
 \arguments{
 \item{ods}{a OutriderDataSet object}
 
-\item{padj}{the padjusted cutoff}
+\item{padjCutoff}{the padjust cutoff}
 
-\item{zScore}{the absolute Z-score cutoff, 
+\item{zScoreCutoff}{the absolute Z-score cutoff, 
 if NA or NULL no Z-score cutoff is used}
 
 \item{by}{if the results should be summarized by 'sample', 

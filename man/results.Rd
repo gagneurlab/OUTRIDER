@@ -10,17 +10,17 @@ object.}
 \usage{
 results(object, ...)
 
-\S4method{results}{OutriderDataSet}(object, padj = 0.05, zScore = 3,
-  round = TRUE, all = FALSE)
+\S4method{results}{OutriderDataSet}(object, padjCutoff = 0.05,
+  zScoreCutoff = 0, round = TRUE, all = FALSE)
 }
 \arguments{
 \item{object}{OutriderDataSet}
 
 \item{...}{additional arguments, currently not used}
 
-\item{padj}{padj cutoff}
+\item{padjCutoff}{padj cutoff}
 
-\item{zScore}{absolute Z-score cutoff}
+\item{zScoreCutoff}{absolute Z-score cutoff}
 
 \item{round}{rounding the results.}
 
