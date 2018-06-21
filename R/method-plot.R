@@ -1,11 +1,4 @@
 
-#' This function is defined because its used in a FraseR function, but should
-#' not be used within this package!
-#' @noRd
-getPlotDistributionData <- function(gr=NULL, fds=NULL, type=NULL){
-    stop("This method should not be called within the ods package!")
-}
-
 #'
 #' Plot a QQ-plot for a given gene
 #' 
@@ -57,79 +50,82 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
     }
     # Singel gene QQplot.
     if(isFALSE(global)){
-        if(is.null(geneID))
+        if(is.null(geneID)){
             stop('Please provide a geneID')
+        }
         # Produce multiple qqplot if geneID is a vector.
         if(length(geneID)>1L){
             sapply(geneID, plotQQ, main=main, legendPos=legendPos, col=col[1],
                    global=FALSE)
-        }else{
-        #Plot QQplot for single gene.
-            if(is.null(main)){
-                main <- paste0('Q-Q plot for gene: ', geneID)
-            }
-            #TODO can it be written without as.numeric
-            pVal <- as.numeric(assay(ods[geneID,], 'pValue'))
-            padjust <- as.numeric(assay(ods[geneID,], 'padjust'))
-            zScore <- as.numeric(assay(ods[geneID,], 'zScore'))
-            #plot all points with cex=1 for single gene.
-            plotPoint <- TRUE
-            pointCex <- 1
-            
-            #TODO why does the col ifelse above not work?
-            col <- c('black', 'firebrick')
-            #data table with expected and observerd log10(pValues)
-            df <- data.table(obs= -log10(pVal), 
-                col=ifelse(padjust < padj & abs(zScore) > zScoreCutoff, col[2],col[1]),
-                pch=pch)[order(-obs)]  
-            df[,exp:= -log10(ppoints(length(pVal)))]
+            return()
         }
+        #Plot QQplot for single gene.
+        if(is.null(main)){
+            main <- paste0('Q-Q plot for gene: ', geneID)
+        }
+        pVal <- as.numeric(assay(ods[geneID,], 'pValue'))
+        padjust <- as.numeric(assay(ods[geneID,], 'padjust'))
+        zScore <- as.numeric(assay(ods[geneID,], 'zScore'))
+        #plot all points with cex=1 for single gene.
+        plotPoint <- TRUE
+        pointCex <- 1
+        
+        #TODO why does the col ifelse above not work?
+        col <- c('black', 'firebrick')
+        #data table with expected and observerd log10(pValues)
+        df <- data.table(obs= -log10(pVal), 
+            col=ifelse(padjust < padj & abs(zScore) > zScoreCutoff, col[2],col[1]),
+            pch=pch, subset=FALSE, plotPoint=plotPoint)[order(-obs)]  
+        df[,exp:= -log10(ppoints(length(pVal)))]
     }
     # global QQplot
     else {
-        # if(is.null(main)){
-        #     main <- 'Global Q-Q plot'
-        # }
-        # 
-        # #plot subssetted values
-        # if(isTRUE(filterOutliers)){
-        #     odssub <- ods[,subset][,aberrant(ods, by='s', padj=padj, 
-        #             zScore=zScore) < outlierRatio*length(ods)]
-        #     pvalues <- -log10(sort(assay(odssub, 'pValue')))
-        #     exp_p <- -log10(ppoints(length(pvalues)))
-        #     plotPoint <- TRUE
-        #     if(isTRUE(sample)){
-        #         lo <- length(exp_p)
-        #         plotPoint <- 1:lo %in% unique(sort(c(1:min(lo, 5000), 
-        #                 sample(1:lo, size=min(lo, 30000)))))
-        #     }
-        #     points(exp_p[plotPoint], pvalues[plotPoint], pch=16, col=col[2],
-        #            cex = 0.5)
-        #     legend(legendPos, c("Full data set", "Filtered data set", paste0(
-        #                     "CI (\u03B1 = ", signif(conf.alpha, 2), ")")),
-        #             lty=1, lwd=6, col=c(col, "gray"))
-        # }
+        if(is.null(main)){
+            main <- 'Global Q-Q plot'
+        }
+        pVal <- as.numeric(assay(ods, 'pValue'))
+        plotPoint <- TRUE
+        pointCex <- 1
         
-        # Reducing Point size for global QQplot.
-        pointCex <- .5
+        col <- c('#1b9e77', '#d95f02')
+        #data table with expected and observerd log10(pValues)
+        df <- data.table(obs= -log10(pVal), 
+            col=col[1],
+            pch=pch, subset=FALSE, 
+            plotPoint=plotPoint)[order(-obs)]  
+        
+        if(!is.null(outlierRatio)){
+            odssub <- ods[,aberrant(ods, by='s', padj=padj,
+                zScore=zScoreCutoff) < outlierRatio*length(ods)]
+            pVal <- as.numeric(assay(odssub, 'pValue'))
+            
+            dfsub <- data.table(obs= -log10(pVal), 
+                col=col[2],
+                pch=pch, subset=TRUE, 
+                plotPoint=plotPoint)[order(-obs)] 
+            df <- rbind(df, dfsub)
+        }
+        df <- df[order(-obs)]
+        df[,exp:= -log10(ppoints(.N)), by='subset']
         
         if(isTRUE(sample)){
-            lo <- length(obs)
-            plotPoint <- 1:lo %in% unique(sort(c(1:min(lo, 5000), 
-                sample(1:lo, size=min(lo, 30000)))))
+            df[,plotPoint:= 1:.N %in% unique(sort(c(1:min(.N, 5000),
+                sample(1:.N, size=min(.N, 30000)))))]
         }
+            
+        # Reducing Point size for global QQplot.
+        pointCex <- .5
     }
     
-    plot(df[,exp], df[,obs], main=main, 
-        xlab=expression(paste(-log[10], " (expected ", italic(P), "-value)")),
-        ylab=expression(paste(-log[10], " (observed ", italic(P), "-value)")),
-        pch=df[,pch], col=df[,col], ...)
+    plot(NA, xlim=range(df[,exp]), ylim=range(df[,obs]), main=main,
+         xlab=expression(paste(-log[10], " (expected ", italic(P), "-value)")),
+         ylab=expression(paste(-log[10], " (observed ", italic(P), "-value)")))
     
     
     # confidence band
     # http://genome.sph.umich.edu/wiki/Code_Sample:_Generating_QQ_Plots_in_R
     if(is.numeric(conf.alpha)){
-        exp <- df[,exp]
+        exp <- df[subset==FALSE,exp]
         len <- length(exp)
         getY <- function(x, exp){
             x1 <- exp[2]
@@ -144,14 +140,27 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
         polygon(col="gray", border="gray", x=c(rev(exp), max(exp)+c(1,1), exp),
                 y=-log10(c(
                     rev(upper), getY(upper, exp), getY(lower, exp), lower)))
-        legend(legendPos, paste0("CI (\u03B1 = ",
-            signif(conf.alpha, 2), ")"), lty=1, lwd=7, col="gray")
     }
+    
+    #Add legend
+    if(isTRUE(global)){
+        legend(legendPos, c("Full data set", "Filtered data set", paste0(
+        "CI (\u03B1 = ", signif(conf.alpha, 2), ")")),
+        lty=1, lwd=6, col=c(col, "gray"))
+    } else {
+        if(is.numeric(conf.alpha)){
+            legend(legendPos, paste0("CI (\u03B1 = ",
+            signif(conf.alpha, 2), ")"), lty=1, lwd=7, col="gray")
+        }
+    }
+    
+    #Add points to plot.
+    points(df[,exp], df[,obs],  
+         pch=df[,pch], col=df[,col])
     
     # diagonal and grid
     abline(0,1,col="firebrick")
     grid()
-    
     return(invisible())
 }
 
