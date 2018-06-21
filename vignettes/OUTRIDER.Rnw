@@ -222,13 +222,13 @@ our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMu
 or create it yourself from the UCSC website\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
 
 <<create txdb, eval=FALSE>>=
-library(RMySQL)
+library(RMariaDB)
 library(AnnotationDbi)
 txdbUrl <- paste0("https://i12g-gagneurweb.in.tum.de/public/",
         "paper/mitoMultiOmics/ucsc.knownGenes.db")
 download.file(txdbUrl, "ucsc.knownGenes.db")
 txdb <- loadDb("ucsc.knownGenes.db")
-con <- dbConnect(MySQL(), host='genome-mysql.cse.ucsc.edu', 
+con <- dbConnect(MariaDB(), host='genome-mysql.cse.ucsc.edu', 
         dbname="hg19", user='genome')
 map <- dbGetQuery(con, 'select kgId AS TXNAME, geneSymbol from kgXref')
 
