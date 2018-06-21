@@ -27,7 +27,7 @@
 #' @export
 plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, 
                 zScoreCutoff=0, main=NULL, sample=TRUE, legendPos="topleft",
-                outlierRatio=0.001, conf.alpha=0.05, pch=16, 
+                outlierRatio=0.001, conf.alpha=0.05, pch=16, xlim=NULL, ylim=NULL,
                 col=NULL, ...){
 
     stopifnot(isScalarLogical(global))
@@ -109,8 +109,13 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     }
     # compute expected pValues.
     df[,exp:= -log10(ppoints(.N)), by='subset']
-    
-    plot(NA, xlim=range(df[,exp]), ylim=range(df[,obs]), main=main,
+    if(is.null(xlim)){
+        xlim=range(df[,exp])
+    }
+    if(is.null(ylim)){
+        ylim=range(df[,obs])
+    }
+    plot(NA, xlim=xlim, ylim=ylim, main=main,
          xlab=expression(paste(-log[10], " (expected ", italic(P), "-value)")),
          ylab=expression(paste(-log[10], " (observed ", italic(P), "-value)")))
     
@@ -264,25 +269,39 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0,
 #' Plot expression over expression rank per gene.
 #' The plot can be used before and after fitting. 
 #' 
-#' @param ods A OUTRIDER data set.
-#' @param geneID Id of gene wich should be plotted. 
-#' If multiple gene ids are supplied mulitple plots will be made.
-#' @param padjCutoff padj cutoff for coloring significant genes
+#' @param ods An OutriderDataSet.
+#' @param geneID Id or name of gene wich should be plotted. 
+#'             If multiple gene ids are supplied mulitple plots will be made.
+#' @param padjCutoff Padj cutoff for coloring significant genes
 #' @param zScoreCutoff Z-score cutoff for coloring significant genes
-#' @param normalized if TRUE the normalized counts are used 
+#' @param normalized If TRUE the normalized counts are used,
 #'             otherwise the raw counts
-#' @param basePlot R base plot version.
-#' @param main string passed to main (title) of the plot.
-#' @return None
+#' @param basePlot If FALSE, the default, the plotly framework is used,
+#'             else if TRUE the R base plot version is used
+#' @param main String passed to main (title) of the plot.
+#' @param col Color to use for coloring the points. c(normal, significant)
+#' @param log If TRUE, the default, counts are plotted in log10.
+#' @param ... Additional parameters passed to plot() or plot_ly().
+#' @return None or a plotly object
 #' 
 #' @examples
 #' ods <- makeExampleOutriderDataSet(10, 100)
 #' ods <- OUTRIDER(ods)
 #' plotExpressionRank(ods, 1)
+#' plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
 #' 
 #' @export
-plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0, 
-                    normalized=TRUE, basePlot=FALSE, main=NULL){
+plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=3, 
+                    normalized=TRUE, basePlot=FALSE, main=NULL, log=TRUE,
+                    col=c("gray", "firebrick"), ...){
+    # check user input
+    if(!is(ods, "OutriderDataSet")){
+        stop("Please provide an OutriderDataSet")
+    }
+    if(isTRUE(normalized) & is.null(sizeFactors(ods))){
+        stop("Please calculate the sizeFactors or normalization factors ",
+                "before plotting normlized counts.")
+    }
     if(missing(geneID)){
         stop("Please Specify which gene should be plotted, geneID = 'geneA'")
     }    
@@ -299,45 +318,56 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
     if(!all(geneID %in% rownames(ods))){
         stop('The gene IDs are not within the data set.')
     }
+    if(length(col) != 2){
+        stop("Please provide two colors as a vector.")
+    }
+    
+    # apply over each gene if vector
     if(length(geneID) > 1){
         sapply(geneID, plotExpressionRank, ods=ods, padjCutoff=padjCutoff, 
                 zScoreCutoff=zScoreCutoff, basePlot=basePlot, 
-               normalized=normalized)
+                normalized=normalized)
         return()
     }
+    
+    # get data frame
     dt <- data.table(
         sampleID = colnames(ods),
         normcounts = as.integer(counts(ods, normalized=normalized)[geneID,]))
+    dt[,normcounts:=normcounts + ifelse(isTRUE(log), 1, 0)]
     
     dt[, medianCts:= median(normcounts)]
     dt[, norm_rank:= rank(normcounts, ties.method = 'first')]
+    dt[, color:=col[1]]
     if('padjust' %in% assayNames(ods) & 'zScore' %in% assayNames(ods)){
-        dt[, padjust:=assays(ods)[['padjust']][geneID,]]
-        dt[, zScore:=assays(ods)[['zScore']][geneID,]]
-        dt[, aberrant:=aberrant(ods, padjCutoff=padjCutoff, 
-                zScoreCutoff=zScoreCutoff)[geneID,]]
-        colors <- ifelse(any(dt[,aberrant]), c("gray", "firebrick"), "gray")
-        
+        dt[, padjust  := assays(ods)[['padjust']][geneID,]]
+        dt[, zScore   := assays(ods)[['zScore']][geneID,]]
+        dt[, aberrant := aberrant(
+                ods, padj=padjCutoff, zScore=zScoreCutoff)[geneID,]]
+        dt[aberrant == TRUE, color:=col[2]]
     } else {
         dt[,aberrant:=FALSE]
-        colors <- "gray"
     }
-
+    ylab <- paste0(ifelse(isTRUE(normalized), "Normalized", "Raw"),
+            " counts", ifelse(isTRUE(log), " + 1", ""))
+    main <- ifelse(!is.null(main), main, geneID)
+    
+    # plot it
     if(isTRUE(basePlot)){
-        dt[,plot(norm_rank, normcounts + 1, log = 'y', pch=16,
-                col=ifelse(dt[,aberrant], 'firebrick', 'grey'), 
-                main=ifelse(!is.null(main), main, geneID), 
-                xlab = 'Sample rank', ylab = 'Normalized counts + 1')]
+        dt[,plot(norm_rank, normcounts,
+                log=ifelse(isTRUE(log), "y", ""), pch=16, col=color,
+                main=main, xlab='Sample rank', ylab=ylab)]
         grid(equilogs=FALSE)
-    }else{
+    } else {
         plot_ly(
             data=dt,
             x=~norm_rank,
-            y=~normcounts+1,
+            y=~normcounts,
             type="scatter",
             mode="markers",
-            color=~aberrant,
-            colors=colors,
+            marker = list(
+                color=~color
+            ),
             text=~paste0(
                 "Gene ID: ", geneID,
                 "<br>Sample ID: ", sampleID,
@@ -351,9 +381,13 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
                     paste0("<br>Z-score: ", round(zScore, digits = 1))
                 }
             )
-        ) %>% layout(xaxis=list(showline=TRUE, title='Sample Rank'),
-                yaxis=list(type='log', dtick='D0', exponentformat='power',
-                        title='Normalized counts + 1'))
+        ) %>% layout(title=main,
+                xaxis=list(showline=TRUE, title='Sample Rank'),
+                yaxis=list(type=ifelse(isTRUE(log), 'log', 'linear'), 
+                        dtick=ifelse(isTRUE(log), "D1", 
+                                signif(diff(range(dt[,normcounts]))/10, 1)), 
+                        exponentformat='power',
+                        title=ylab))
     }
 }
 

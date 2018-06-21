@@ -8,24 +8,33 @@ plotExpressionRank(ods, geneID, padjCutoff = 0.05, zScoreCutoff = 0,
   normalized = TRUE, basePlot = FALSE, main = NULL)
 }
 \arguments{
-\item{ods}{A OUTRIDER data set.}
+\item{ods}{An OutriderDataSet.}
 
-\item{geneID}{Id of gene wich should be plotted. 
+\item{geneID}{Id or name of gene wich should be plotted. 
 If multiple gene ids are supplied mulitple plots will be made.}
+
 
 \item{padjCutoff}{padj cutoff for coloring significant genes}
 
+
 \item{zScoreCutoff}{Z-score cutoff for coloring significant genes}
 
-\item{normalized}{if TRUE the normalized counts are used 
+\item{normalized}{If TRUE the normalized counts are used,
 otherwise the raw counts}
 
-\item{basePlot}{R base plot version.}
+\item{basePlot}{If FALSE, the default, the plotly framework is used,
+else if TRUE the R base plot version is used}
 
-\item{main}{string passed to main (title) of the plot.}
+\item{main}{String passed to main (title) of the plot.}
+
+\item{log}{If TRUE, the default, counts are plotted in log10.}
+
+\item{col}{Color to use for coloring the points. c(normal, significant)}
+
+\item{...}{Additional parameters passed to plot() or plot_ly().}
 }
 \value{
-None
+None or a plotly object
 }
 \description{
 Plot expression over expression rank per gene.
@@ -35,5 +44,6 @@ The plot can be used before and after fitting.
 ods <- makeExampleOutriderDataSet(10, 100)
 ods <- OUTRIDER(ods)
 plotExpressionRank(ods, 1)
+plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
 
 }
