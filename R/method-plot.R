@@ -750,7 +750,15 @@ plotFPKM <- function(ods){
 #' plotDispEsts(ods)
 #'
 setMethod("plotDispEsts", signature(object="OutriderDataSet"), 
-                    function(object, compareDisp=TRUE){
+                    function(object, compareDisp=NULL){
+    # validate input                 
+    if(!'disp' %in% names(mcols(object))){
+        stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods)
+             or ods <- fit(ods)')
+    } 
+    if(is.null(compareDisp)){
+        compareDisp <-'weights' %in% names(metadata(object))
+    }
     # disp from OUTRIDER
     odsVals <- getDispEstsData(object)
     legText <- c("OUTRIDER fit")
@@ -770,16 +778,16 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
          pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
          main="Dispersion estimates versus mean expression")
     if(!is.null(nonAutoVals)){
-        points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="firebrick")
+        points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="black")
     }
-    points(odsVals$mu, 1/odsVals$disp, pch='.', col='black')
+    points(odsVals$mu, 1/odsVals$disp, pch='.', col='firebrick')
     
     # plot fit
-    lines(odsVals$xpred, odsVals$ypred, lwd=2, col="black")
+    lines(odsVals$xpred, odsVals$ypred, lwd=2, col="firebrick")
     if(isTRUE(compareDisp)){
-        lines(odsVals$xpred, nonAutoVals$ypred, lwd=2, col="firebrick")
-        legText <- c("before correction fit", "autoCorrect fit")
-        legCol <- c('firebrick', "black")
+        lines(odsVals$xpred, nonAutoVals$ypred, lwd=2, col="black")
+        legText <- c("before correction fit", "OUTRIDER fit")
+        legCol <- c('black', 'firebrick')
     }
     
     legend("bottomleft", legText, col=legCol, pch=20, lty=1, lwd=3)
