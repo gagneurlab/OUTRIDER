@@ -27,12 +27,8 @@
 plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, 
                 zScoreCutoff=0, main=NULL, sample=TRUE, legendPos="topleft",
                 outlierRatio=0.001, conf.alpha=0.05, pch=16, 
-                col=ifelse(isTRUE(global), c('#1b9e77', '#d95f02'), 
-                        c('black', 'firebrick')), ...){
-    
-#TODO- how to handle very extreme outliers?
-#TODO maybe we can set cex = 0.5 for the points in case of the global QQplot
-    
+                col=NULL, ...){
+
     stopifnot(isScalarLogical(global))
     if(length(col) == 2 & isTRUE(global)){
         col <- col[2:1]
@@ -59,13 +55,13 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         if(is.null(main)){
             main <- paste0('Q-Q plot for gene: ', geneID)
         }
+        if(is.null(col)){
+            col <- c('black', 'firebrick')
+        }
         pVal <- as.numeric(assay(ods[geneID,], 'pValue'))
         #plot all points with cex=1 for single gene.
         plotPoint <- TRUE
         pointCex <- 1
-        
-        #TODO why does the col ifelse above not work?
-        col <- c('black', 'firebrick')
         #data table with expected and observerd log10(pValues)
         df <- data.table(obs= -log10(pVal), col=ifelse(aberrant(ods[geneID,], 
                                 padjCutoff=padjCutoff, 
@@ -78,11 +74,14 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         if(is.null(main)){
             main <- 'Global Q-Q plot'
         }
+        if(is.null(col)){
+            col <- c('#1b9e77', '#d95f02')
+        }
         pVal <- as.numeric(assay(ods, 'pValue'))
         plotPoint <- TRUE
-        pointCex <- 1
+        # Reducing Point size for global QQplot.
+        pointCex <- .5
         
-        col <- c('#1b9e77', '#d95f02')
         #data table with expected and observerd log10(pValues)
         df <- data.table(obs= -log10(pVal), 
             col=col[1],
@@ -106,9 +105,6 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
             df[,plotPoint:= 1:.N %in% unique(sort(c(1:min(.N, 5000),
                 sample(1:.N, size=min(.N, 30000)))))]
         }
-            
-        # Reducing Point size for global QQplot.
-        pointCex <- .5
     }
     # compute expected pValues.
     df[,exp:= -log10(ppoints(.N)), by='subset']
@@ -152,7 +148,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     
     #Add points to plot.
     points(df[,exp], df[,obs],  
-         pch=df[,pch], col=df[,col])
+         pch=df[,pch], col=df[,col], cex=pointCex)
     
     # diagonal and grid
     abline(0,1,col="firebrick")

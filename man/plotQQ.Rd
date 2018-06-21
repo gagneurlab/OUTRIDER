@@ -6,9 +6,7 @@
 \usage{
 plotQQ(ods, geneID = NULL, global = FALSE, padjCutoff = 0.05,
   zScoreCutoff = 0, main = NULL, sample = TRUE, legendPos = "topleft",
-  outlierRatio = 0.001, conf.alpha = 0.05, pch = 16,
-  col = ifelse(isTRUE(global), c("#1b9e77", "#d95f02"), c("black",
-  "firebrick")), ...)
+  outlierRatio = 0.001, conf.alpha = 0.05, pch = 16, col = NULL, ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
