@@ -760,7 +760,7 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
              or ods <- fit(ods)')
     } 
     if(is.null(compareDisp)){
-        compareDisp <-'weights' %in% names(metadata(object))
+        compareDisp <- 'weights' %in% names(metadata(object))
     }
     # disp from OUTRIDER
     odsVals <- getDispEstsData(object)
