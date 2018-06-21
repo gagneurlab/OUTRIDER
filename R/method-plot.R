@@ -1,11 +1,4 @@
 
-#' This function is defined because its used in a FraseR function, but should
-#' not be used within this package!
-#' @noRd
-getPlotDistributionData <- function(gr=NULL, fds=NULL, type=NULL){
-    stop("This method should not be called within the ods package!")
-}
-
 #'
 #' Plot a QQ-plot for a given gene
 #' 
@@ -36,115 +29,102 @@ getPlotDistributionData <- function(gr=NULL, fds=NULL, type=NULL){
 #' plotQQ(ods, global=TRUE, filterOutliers=TRUE)
 #' 
 #' @export
-plotQQ <- function(ods, geneID, global=FALSE, padj=0.05, zScore=3,
-                    subset=1:ncol(ods), main=NULL, maxOutlier=NULL, sample=TRUE,
-                    legendPos="topleft", filterOutliers=FALSE, conf.alpha=0.05, 
-                    outlierRatio=0.001, col=c('black', '#fdb462'), ...){
+plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
+                main=NULL, sample=TRUE, legendPos="topleft", outlierRatio=0.001,
+                conf.alpha=0.05, pch=16, col=ifelse(isTRUE(global),
+                c('#1b9e77', '#d95f02'), c('black', 'firebrick')), ...){
+    
+#TODO- how to handle very extreme outliers?
+#TODO maybe we can set cex = 0.5 for the points in case of the global QQplot
+    
     stopifnot(isScalarLogical(global))
     if(length(col) == 2 & isTRUE(global)){
         col <- col[2:1]
     }
-    if(isFALSE(global)){
-        if(!is.null(geneID)){
-            ods <- ods[geneID,]
+    if(is.null(main)){
+        if(isTRUE(global)){
+            
+        } else {
+            main <- paste0('Q-Q plot for gene: ', geneID)
         }
+    }
+    # Singel gene QQplot.
+    if(isFALSE(global)){
+        if(is.null(geneID)){
+            stop('Please provide a geneID')
+        }
+        # Produce multiple qqplot if geneID is a vector.
+        if(length(geneID)>1L){
+            sapply(geneID, plotQQ, main=main, legendPos=legendPos, col=col[1],
+                   global=FALSE)
+            return()
+        }
+        #Plot QQplot for single gene.
         if(is.null(main)){
             main <- paste0('Q-Q plot for gene: ', geneID)
         }
-        sapply(1:length(ods), function(i){
-            data <- list(pvalues=assays(ods)[['pValue']][i,])
-            if(isScalarNumeric(padj, na.ok=FALSE)){
-                data[['aberrant']] <- aberrant(ods[i,], 
-                        padj=padj, zScore=zScore)
-            }
-            plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, 
-                    legendPos=legendPos, col=col[1], ...)
-        })
+        pVal <- as.numeric(assay(ods[geneID,], 'pValue'))
+        #plot all points with cex=1 for single gene.
+        plotPoint <- TRUE
+        pointCex <- 1
+        
+        #TODO why does the col ifelse above not work?
+        col <- c('black', 'firebrick')
+        #data table with expected and observerd log10(pValues)
+        df <- data.table(obs= -log10(pVal), col=ifelse(aberrant(ods[geneID,], 
+            padj=padj,zScore=zScoreCutoff), col[2],col[1]),
+            pch=pch, subset=FALSE, plotPoint=plotPoint)[order(-obs)]  
     }
+    # global QQplot
     else {
         if(is.null(main)){
             main <- 'Global Q-Q plot'
         }
-        data <- list(pvalues=assay(ods, 'pValue')[,subset])
-        plotQQplot.FraseR(data=data, maxOutlier=maxOutlier, main=main, 
-                legendPos=legendPos, sample=sample, col=col[1], global=global, 
-                ...)
+        pVal <- as.numeric(assay(ods, 'pValue'))
+        plotPoint <- TRUE
+        pointCex <- 1
         
-        #plot subssetted values
-        if(isTRUE(filterOutliers)){
-            odssub <- ods[,subset][,aberrant(ods, by='s', padj=padj, 
-                    zScore=zScore) < outlierRatio*length(ods)]
-            pvalues <- -log10(sort(assay(odssub, 'pValue')))
-            exp_p <- -log10(ppoints(length(pvalues)))
-            plotPoint <- TRUE
-            if(isTRUE(sample)){
-                lo <- length(exp_p)
-                plotPoint <- 1:lo %in% unique(sort(c(1:min(lo, 5000), 
-                        sample(1:lo, size=min(lo, 30000)))))
-            }
-            points(exp_p[plotPoint], pvalues[plotPoint], pch=16, col=col[2],
-                   cex = 0.5)
-            legend(legendPos, c("Full data set", "Filtered data set", paste0(
-                            "CI (\u03B1 = ", signif(conf.alpha, 2), ")")),
-                    lty=1, lwd=6, col=c(col, "gray"))
+        col <- c('#1b9e77', '#d95f02')
+        #data table with expected and observerd log10(pValues)
+        df <- data.table(obs= -log10(pVal), 
+            col=col[1],
+            pch=pch, subset=FALSE, 
+            plotPoint=plotPoint)[order(-obs)]  
+        
+        if(!is.null(outlierRatio)){
+            odssub <- ods[,aberrant(ods, by='s', padj=padj,
+                zScore=zScoreCutoff) < outlierRatio*length(ods)]
+            pVal <- as.numeric(assay(odssub, 'pValue'))
+            
+            dfsub <- data.table(obs= -log10(pVal), 
+                col=col[2],
+                pch=pch, subset=TRUE, 
+                plotPoint=plotPoint)[order(-obs)] 
+            df <- rbind(df, dfsub)
         }
-    }
-    return(invisible())
-}
-
-#'
-#' qqplot
-#'
-#' @noRd
-plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL, 
-                    maxOutlier=2, conf.alpha=0.05, sample=FALSE, pch=16,
-                    breakTies=FALSE, main="Q-Q plot", legendPos="topleft",
-                    col='black', global=FALSE){
-    if(isScalarLogical(conf.alpha)){
-        conf.alpha <- ifelse(isTRUE(conf.alpha), 0.05, NA)
-    }
-    
-    # get data
-    if(is.null(data)){
-        if(is.null(gr) | is.null(fds) | is.null(type)){
-            stop(paste0("If data is not provided gr, fds and type", 
-                    "needs to be passed on."))
+        df <- df[order(-obs)]
+        
+        if(isTRUE(sample)){
+            df[,plotPoint:= 1:.N %in% unique(sort(c(1:min(.N, 5000),
+                sample(1:.N, size=min(.N, 30000)))))]
         }
-        #TODO data <- getPlotDistributionData(gr, fds, type)
-        stop('Implement for FraseR!')
+            
+        # Reducing Point size for global QQplot.
+        pointCex <- .5
     }
+    # compute expected pValues.
+    df[,exp:= -log10(ppoints(.N)), by='subset']
     
-    # points
-    obs <- sort(data$pvalues)
-    obs[obs == 0] <- min(obs[obs != 0]) * 0.1
-    obs <- -log10(obs)
-    obs[is.na(obs)] <- 0
-    if(length(obs) < 2){
-        warning("There are no pvalues or all are NA!")
-        return(FALSE)
-    }
-    if(breakTies){
-        obs <- breakTies(obs, logBase=10, decreasing=TRUE)
-    }
-    exp <- -log10(ppoints(length(obs)))
-    len <- length(exp)
-    
-    # limits for nice plotting
-    maxPoint <- max(c(exp, obs))
-    ylim <- range(0, maxPoint)
-    if(isScalarNumeric(maxOutlier, na.ok=FALSE)){
-        ylim <- range(0, min(exp[1]*maxOutlier, maxPoint))
-    }
-    
-    # main plot area
-    plot(NA, main=main, xlim=range(exp), ylim=ylim,
-        xlab=expression(paste(-log[10], " (expected ", italic(P), "-value)")),
-        ylab=expression(paste(-log[10], " (observed ", italic(P), "-value)")))
+    plot(NA, xlim=range(df[,exp]), ylim=range(df[,obs]), main=main,
+         xlab=expression(paste(-log[10], " (expected ", italic(P), "-value)")),
+         ylab=expression(paste(-log[10], " (observed ", italic(P), "-value)")))
     
     
     # confidence band
     # http://genome.sph.umich.edu/wiki/Code_Sample:_Generating_QQ_Plots_in_R
     if(is.numeric(conf.alpha)){
+        exp <- df[subset==FALSE,exp]
+        len <- length(exp)
         getY <- function(x, exp){
             x1 <- exp[2]
             x2 <- exp[1]
@@ -157,76 +137,31 @@ plotQQplot.FraseR <- function(gr=NULL, fds=NULL, type=NULL, data=NULL,
         lower <- qbeta(1-conf.alpha/2, 1:len, rev(1:len))
         polygon(col="gray", border="gray", x=c(rev(exp), max(exp)+c(1,1), exp),
                 y=-log10(c(
-                        rev(upper), getY(upper, exp), getY(lower, exp), lower)))
+                    rev(upper), getY(upper, exp), getY(lower, exp), lower)))
     }
     
-    # grid
-    grid()
-    
-    plotPoint <- TRUE
-    if(isTRUE(sample)){
-        lo <- length(obs)
-        plotPoint <- 1:lo %in% unique(sort(c(1:min(lo, 5000), 
-                sample(1:lo, size=min(lo, 30000)))))
-    }
-    
-    # add the points
-    #TODO- how to handle very extreme outliers?
-    #TODO maybe we can set cex = 0.5 for the points in case of the global QQplot
+    #Add legend
     if(isTRUE(global)){
-        pointCex <- .5
-    }else{
-        pointCex <- 1
+        legend(legendPos, c("Full data set", "Filtered data set", paste0(
+        "CI (\u03B1 = ", signif(conf.alpha, 2), ")")),
+        lty=1, lwd=6, col=c(col, "gray"))
+    } else {
+        if(is.numeric(conf.alpha)){
+            legend(legendPos, paste0("CI (\u03B1 = ",
+            signif(conf.alpha, 2), ")"), lty=1, lwd=7, col="gray")
+        }
     }
     
-    outOfRange <- obs > max(ylim)
-    points(exp[plotPoint & !outOfRange], obs[plotPoint & !outOfRange], pch=pch, 
-            cex=pointCex, col=col)
+    #Add points to plot.
+    points(df[,exp], df[,obs],  
+         pch=df[,pch], col=df[,col])
     
     # diagonal and grid
     abline(0,1,col="firebrick")
-    
-    # plot outliers
-    if(sum(outOfRange) > 0){
-        points(exp[plotPoint & outOfRange], rep(max(ylim), sum(outOfRange)),
-                pch=2, col='red')
-    }
-    
-    if('aberrant' %in% names(data) && any(data$aberrant)){
-        points(exp[1:sum(data$aberrant)], obs[1:sum(data$aberrant)], 
-                pch=pch, col='firebrick')
-    }
-    
-    if(is.numeric(conf.alpha)){
-        legend(legendPos, paste0("CI (\u03B1 = ",
-                signif(conf.alpha, 2), ")"), lty=1, lwd=7, col="gray")
-    }
+    grid()
     return(invisible())
 }
 
-#'
-#' breaks ties in a qq plot to get a better distributed p-value plot
-#' @noRd
-breakTies <- function(x, logBase=10, decreasing=TRUE){
-    intervals <- sort(unique(c(0, x)))
-    idxintervals <- findInterval(x, intervals)
-    for(idx in as.integer(names(which(table(idxintervals) > 1)))){
-        if(is.numeric(logBase)){
-            minval <- logBase^-intervals[idx+1]
-            maxval <- logBase^-intervals[idx]
-            rand   <- runif(sum(idxintervals==idx), minval, maxval)
-            rand   <- -log(rand, logBase)
-        } else {
-            minval <- intervals[idx]
-            maxval <- intervals[idx+1]
-            rand   <- runif(sum(idxintervals==idx), minval, maxval)
-        }
-        x[idxintervals==idx] <- rand
-    }
-    if(!is.na(decreasing)){
-        x <- sort(x, decreasing=TRUE)
-    }
-}
 
 
 
@@ -252,7 +187,7 @@ breakTies <- function(x, logBase=10, decreasing=TRUE){
 #' 
 #' @export 
 plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, 
-                    main=NULL, basePlot=FALSE, col=c("gray", "firebrick")){
+                main=NULL, basePlot=FALSE, col=c("gray", "firebrick")){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
     }
