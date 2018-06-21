@@ -147,7 +147,7 @@ OutriderDataSet <- function(se=NULL, countData=NULL, colData=NULL, ...) {
 #' ods3
 #' 
 #' @export 
-makeExampleOutriderDataSet <- function(n=1000, m=100, ..., 
+makeExampleOutriderDataSet <- function(n=1000, m=100, freq = 1E-2, zScore = 6, inj='both', ..., 
                     dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall')){
     dataset <- match.arg(dataset)
     if(dataset != 'none'){
@@ -160,6 +160,8 @@ makeExampleOutriderDataSet <- function(n=1000, m=100, ...,
     ans <- OutriderDataSet(se=makeExampleDESeqDataSet(n=n, m=m*2, ...))
     ans <- ans[,c(1:m-1, m+1)]
     colnames(ans)[m] <- paste0("sample", m)
+    ans <- injectOutliers(ans, freq = freq, zScore = zScore, inj=inj)
+    
     return(ans)
 }
 
