@@ -34,7 +34,7 @@ This function extracts all results based on the given filter criteria.
 set.seed(42)
 ods <- makeExampleOutriderDataSet()
 ods <- OUTRIDER(ods)
-res <- results(ods)
+res <- results(ods, all=TRUE)
 
 res
 

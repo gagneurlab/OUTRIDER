@@ -17,7 +17,7 @@
 #' ods <- OUTRIDER(ods)
 #' 
 #' assays(ods)[['pValue']][1:10,1:10]
-#' res <- results(ods)
+#' res <- results(ods, all=TRUE)
 #' plotVolcano(ods, 1)
 #' 
 #' @export
