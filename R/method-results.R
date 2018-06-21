@@ -111,4 +111,9 @@ compileResults <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #' @rdname results
 #' @aliases results results,OutriderDataSet-method
 #' @export results
+#' @export
+setGeneric("results", function(object, ...) standardGeneric("results"))
+
+#' @export results
+#' @export
 setMethod("results", "OutriderDataSet", compileResults)
