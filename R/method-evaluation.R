@@ -7,8 +7,8 @@
 #' gene or sample.
 #' 
 #' @param ods a OutriderDataSet object
-#' @param padj the padjusted cutoff 
-#' @param zScore the absolute Z-score cutoff, 
+#' @param padjCutoff the padjust cutoff 
+#' @param zScoreCutoff the absolute Z-score cutoff, 
 #'             if NA or NULL no Z-score cutoff is used
 #' @param by if the results should be summarized by 'sample', 
 #'             'gene' or not at all.
@@ -27,10 +27,10 @@
 #' @rdname aberrant
 #' 
 #' @export
-aberrant <- function(ods, padj=0.05, zScore=3, by=c("none", "sample", "gene")){
-    aberrantEvents <- assays(ods)[['padjust']] < padj
-    if(isScalarNumeric(zScore, na.ok=FALSE)){
-        aberrantEvents <- aberrantEvents & abs(assays(ods)[['zScore']]) > zScore
+aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=3, by=c("none", "sample", "gene")){
+    aberrantEvents <- assays(ods)[['padjust']] < padjCutoff
+    if(isScalarNumeric(zScoreCutoff, na.ok=FALSE)){
+        aberrantEvents <- aberrantEvents & abs(assays(ods)[['zScore']]) > zScoreCutoff
     }
     
     return(switch(match.arg(by),
