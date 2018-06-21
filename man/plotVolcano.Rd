@@ -30,7 +30,7 @@ None
 Volcano plot for a given sample over all genes.
 }
 \examples{
-ods <- makeExampleOutriderDataSet(10, 100)
+ods <- makeExampleOutriderDataSet(1000, 100)
 ods <- OUTRIDER(ods)
 plotVolcano(ods, 1)
 

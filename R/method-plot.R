@@ -176,7 +176,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
 #' @return None
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(10, 100)
+#' ods <- makeExampleOutriderDataSet(1000, 100)
 #' ods <- OUTRIDER(ods)
 #' plotVolcano(ods, 1)
 #' 
@@ -216,23 +216,19 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0,
             normCts   = as.vector(counts(ods[,sampleID], normalized=TRUE)),
             medianCts = rowMedians(counts(ods, normalized=TRUE)),
             expRank   = apply(
-                    counts(ods, normalized=TRUE), 2, rank)[,sampleID])
-    aberrant <- as.data.table(aberrant(ods[,sampleID]), padjCutoff=padjCutoff,
-            zScoreCutoff=zScoreCutoff)
-    setnames(aberrant, 2, 'aberrant')
-    dt <- cbind(dt, aberrant)
+                    counts(ods, normalized=TRUE), 2, rank)[,sampleID],
+            aberrant  = aberrant(ods, padjCutoff=padjCutoff,
+                    zScoreCutoff=zScoreCutoff)[,sampleID],
+            color=col[1])
+    dt[aberrant == TRUE, color:=col[2]]
     
     # remove the NAs from the zScores for plotting
     dt[is.na(zScore),zScore:=0]
     
-    
-    if(all(dt[,aberrant==FALSE])){
-        col <- col[1]
-    }
-    if(basePlot == TRUE){
-        dt[,plot(zScore, -log10(pValue), col=ifelse(aberrant, col[2], col[1]), 
-            pch=16, cex=.7, xlab='Z-score', 
-            ylab=expression(paste(-log[10], "(", italic(P), "-value)")))]
+    if(isTRUE(basePlot)){
+        dt[,plot(zScore, -log10(pValue), col=color, pch=16, cex=.7, 
+                xlab='Z-score', ylab=expression(
+                        paste(-log[10], "(", italic(P), "-value)")))]
         grid(equilogs=FALSE)
         title(ifelse(!is.null(main), main, paste0("Volcano plot: ", sampleID)))
     }else{
@@ -243,8 +239,9 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0,
             #y =~pValue,
             type="scatter",
             mode="markers",
-            color=~aberrant,
-            colors=col,
+            marker = list(
+                color=~color
+            ),
             text=~paste0(
                 "Gene ID: ", GENE_ID,
                 "<br>Sample ID: ", sampleID,
@@ -255,7 +252,7 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0,
                 "<br>adj. P-value: ", signif(padjust,3),
                 "<br>Z-score: ", signif(zScore,2)
             )
-        ) #%>% layout(yaxis = list(type = "log"))
+        ) %>% layout(yaxis = list(title = "-log<sub>10</sub>(<i>P</i>-value)"))
     }
 }
 
