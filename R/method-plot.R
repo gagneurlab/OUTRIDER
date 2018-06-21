@@ -76,7 +76,6 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
         df <- data.table(obs= -log10(pVal), 
             col=ifelse(padjust < padj & abs(zScore) > zScoreCutoff, col[2],col[1]),
             pch=pch, subset=FALSE, plotPoint=plotPoint)[order(-obs)]  
-        df[,exp:= -log10(ppoints(length(pVal)))]
     }
     # global QQplot
     else {
@@ -106,7 +105,6 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
             df <- rbind(df, dfsub)
         }
         df <- df[order(-obs)]
-        df[,exp:= -log10(ppoints(.N)), by='subset']
         
         if(isTRUE(sample)){
             df[,plotPoint:= 1:.N %in% unique(sort(c(1:min(.N, 5000),
@@ -116,6 +114,8 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
         # Reducing Point size for global QQplot.
         pointCex <- .5
     }
+    # compute expected pValues.
+    df[,exp:= -log10(ppoints(.N)), by='subset']
     
     plot(NA, xlim=range(df[,exp]), ylim=range(df[,obs]), main=main,
          xlab=expression(paste(-log[10], " (expected ", italic(P), "-value)")),
