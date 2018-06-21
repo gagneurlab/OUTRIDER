@@ -4,6 +4,7 @@
 \alias{plotVolcano}
 \title{Volcano plot}
 \usage{
+
 plotVolcano(ods, sampleID, padjCutoff = 0.05, zScoreCutoff = 0,
   main = NULL, basePlot = FALSE, col = c("gray", "firebrick"))
 }
