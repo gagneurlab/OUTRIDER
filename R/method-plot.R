@@ -256,6 +256,9 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
     }
+    if(!all(c('padjust', 'zScore') %in% assayNames(ods))){
+        stop('Calculate Z-scores and P-values first.')
+    }
     if(is.logical(sampleID)){
         sampleID <- which(sampleID)
     }
@@ -750,7 +753,15 @@ plotFPKM <- function(ods){
 #' plotDispEsts(ods)
 #'
 setMethod("plotDispEsts", signature(object="OutriderDataSet"), 
-                    function(object, compareDisp=TRUE){
+                    function(object, compareDisp=NULL){
+    # validate input                 
+    if(!'disp' %in% names(mcols(object))){
+        stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods)
+             or ods <- fit(ods)')
+    } 
+    if(is.null(compareDisp)){
+        compareDisp <-'weights' %in% names(metadata(object))
+    }
     # disp from OUTRIDER
     odsVals <- getDispEstsData(object)
     legText <- c("OUTRIDER fit")
@@ -770,72 +781,18 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
          pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
          main="Dispersion estimates versus mean expression")
     if(!is.null(nonAutoVals)){
-        points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="firebrick")
+        points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="black")
     }
-    points(odsVals$mu, 1/odsVals$disp, pch='.', col='black')
+    points(odsVals$mu, 1/odsVals$disp, pch='.', col='firebrick')
     
     # plot fit
-    lines(odsVals$xpred, odsVals$ypred, lwd=2, col="black")
+    lines(odsVals$xpred, odsVals$ypred, lwd=2, col="firebrick")
     if(isTRUE(compareDisp)){
-        lines(odsVals$xpred, nonAutoVals$ypred, lwd=2, col="firebrick")
-        legText <- c("before correction fit", "autoCorrect fit")
-        legCol <- c('firebrick', "black")
+        lines(odsVals$xpred, nonAutoVals$ypred, lwd=2, col="black")
+        legText <- c("before correction fit", "OUTRIDER fit")
+        legCol <- c('black', 'firebrick')
     }
     
     legend("bottomleft", legText, col=legCol, pch=20, lty=1, lwd=3)
 })
-
-getDispEstsData <- function(ods, mu=NULL){
-    odsMu <- rowMeans(counts(ods, normalized=TRUE))
-    if(is.null(mu)){
-        mu <- odsMu
-    }
-    disp <- mcols(ods)$disp
-    xidx <- 10^(seq.int(log10(min(mu))-1, log10(max(mu))+0.1, length.out = 500))
-
-    # fit DESeq2 parametric Disp Fit
-    fit <- parametricDispersionFit(mu, 1/disp)
-    pred <- fit(xidx)
-    return(list(
-        mu=mu,
-        disp=disp,
-        xpred=xidx,
-        ypred=pred,
-        fit=fit
-    ))
-}
-
-#'
-#' This function is not exported from DESeq2. Therefore we copied it over to
-#' here. If DESeq2 will export this function we can use it instead.
-#' 
-#' TODO
-#' 
-#' @noRd
-parametricDispersionFit <- function (means, disps){
-    coefs <- c(0.1, 1)
-    iter <- 0
-    while (TRUE) {
-        residuals <- disps/(coefs[1] + coefs[2]/means)
-        good <- which((residuals > 1e-04) & (residuals < 15))
-        suppressWarnings({
-            fit <- glm(disps[good] ~ I(1/means[good]), 
-                    family = Gamma(link = "identity"), 
-                    start = coefs)
-        })
-        oldcoefs <- coefs
-        coefs <- coefficients(fit)
-        if (!all(coefs > 0)) 
-            stop(simpleError("parametric dispersion fit failed"))
-        if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
-            break
-        iter <- iter + 1
-        if (iter > 10) 
-            stop(simpleError("dispersion fit did not converge"))
-    }
-    names(coefs) <- c("asymptDisp", "extraPois")
-    ans <- function(q) coefs[1] + coefs[2]/q
-    attr(ans, "coefficients") <- coefs
-    ans
-}
 
