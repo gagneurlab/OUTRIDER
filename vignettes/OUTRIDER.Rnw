@@ -19,8 +19,9 @@ BiocStyle::latex()
 @
 
 <<knitr, echo=FALSE, cache=FALSE, results="hide">>=
-library("knitr")
+library(knitr)
 opts_chunk$set(
+    concordance=TRUE,
     tidy=FALSE,
     dev="png",
     fig.width=7,
@@ -40,7 +41,6 @@ opts_chunk$set(
 }
 
 \begin{document}
-\SweaveOpts{concordance=TRUE}
 
 <<include=FALSE>>=
 library(knitr)
