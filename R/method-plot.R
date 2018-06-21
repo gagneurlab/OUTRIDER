@@ -1,17 +1,12 @@
-
 #'
 #' Plot a QQ-plot for a given gene
 #' 
 #' @param ods OutriderDataSet
 #' @param geneID Gene to be plotted
 #' @param global Flag to plot a global QQ-plot, default FALSE
-#' @param padj significance level to mark outliers
-#' @param zScore Z-score cutoff to coloring outliers
-#' @param subset samples to subset for
+#' @param padjCutoff significance level to mark outliers
+#' @param zScoreCutoff Z-score cutoff to coloring outliers
 #' @param main title for the plot
-#' @param maxOutlier y-axis range for the plot
-#' @param filterOutliers If TRUE, in the global QQ plot the full data set will
-#'             be compared against the for outlier sample filtered data set
 #' @param conf.alpha if set, a confidence interval is plotted
 #' @param outlierRatio The fraction to be used for the outlier sample filtering
 #' @param sample sample points for QQplot, only used, when global==TRUE.
@@ -29,7 +24,7 @@
 #' plotQQ(ods, global=TRUE, filterOutliers=TRUE)
 #' 
 #' @export
-plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
+plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, zScoreCutoff=3,
                 main=NULL, sample=TRUE, legendPos="topleft", outlierRatio=0.001,
                 conf.alpha=0.05, pch=16, col=ifelse(isTRUE(global),
                 c('#1b9e77', '#d95f02'), c('black', 'firebrick')), ...){
@@ -72,7 +67,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
         col <- c('black', 'firebrick')
         #data table with expected and observerd log10(pValues)
         df <- data.table(obs= -log10(pVal), col=ifelse(aberrant(ods[geneID,], 
-            padj=padj,zScore=zScoreCutoff), col[2],col[1]),
+            padjCutoff=padjCutoff,zScoreCutoff=zScoreCutoff), col[2],col[1]),
             pch=pch, subset=FALSE, plotPoint=plotPoint)[order(-obs)]  
     }
     # global QQplot
@@ -92,8 +87,8 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
             plotPoint=plotPoint)[order(-obs)]  
         
         if(!is.null(outlierRatio)){
-            odssub <- ods[,aberrant(ods, by='s', padj=padj,
-                zScore=zScoreCutoff) < outlierRatio*length(ods)]
+            odssub <- ods[,aberrant(ods, by='s', padjCutoff=padjCutoff,
+                zScoreCutoff=zScoreCutoff) < outlierRatio*length(ods)]
             pVal <- as.numeric(assay(odssub, 'pValue'))
             
             dfsub <- data.table(obs= -log10(pVal), 
@@ -173,8 +168,8 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
 #' @param ods OutriderDataSet
 #' @param sampleID sample which should be plotted. 
 #'        Can also be a vector of samples. 
-#' @param padjCut padj cutoff
-#' @param zScoreCut Z-score cutoff
+#' @param padjCutoff padj cutoff
+#' @param zScoreCutoff Z-score cutoff
 #' @param basePlot R base plot version of the plot.
 #' @param col colors for the points in the form of c(non outliers, outliers)
 #' @param main string passed to main (title) of the plot.
@@ -186,7 +181,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padj=0.05, zScoreCutoff=3,
 #' plotVolcano(ods, 1)
 #' 
 #' @export 
-plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3, 
+plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCut=3, 
                 main=NULL, basePlot=FALSE, col=c("gray", "firebrick")){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
@@ -208,7 +203,7 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
         stop("Sample ID is not in the data set.")
     }
     if(length(sampleID) > 1){
-        sapply(sampleID, plotVolcano, ods=ods, padjCut=padjCut, 
+        sapply(sampleID, plotVolcano, ods=ods, padjCutoff=padjCutoff, 
                 zScoreCut=zScoreCut, basePlot=basePlot)
         return()
     }
@@ -222,7 +217,7 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
             medianCts = rowMedians(counts(ods, normalized=TRUE)),
             expRank   = apply(
                     counts(ods, normalized=TRUE), 2, rank)[,sampleID])
-    aberrant <- as.data.table(aberrant(ods[,sampleID]), padjCut, zScoreCut)
+    aberrant <- as.data.table(aberrant(ods[,sampleID]), padjCutoff, zScoreCut)
     setnames(aberrant, 2, 'aberrant')
     dt <- cbind(dt, aberrant)
     
@@ -274,7 +269,7 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
 #' @param ods A OUTRIDER data set.
 #' @param geneID Id of gene wich should be plotted. 
 #' If multiple gene ids are supplied mulitple plots will be made.
-#' @param padjCut padj cutoff for coloring significant genes
+#' @param padjCutoff padj cutoff for coloring significant genes
 #' @param zScoreCut Z-score cutoff for coloring significant genes
 #' @param normalized if TRUE the normalized counts are used 
 #'             otherwise the raw counts
@@ -288,7 +283,7 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
 #' plotExpressionRank(ods, 1)
 #' 
 #' @export
-plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3, 
+plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCut=3, 
                     normalized=TRUE, basePlot=FALSE, main=NULL){
     if(missing(geneID)){
         stop("Please Specify which gene should be plotted, geneID = 'geneA'")
@@ -307,7 +302,7 @@ plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3,
         stop('The gene IDs are not within the data set.')
     }
     if(length(geneID) > 1){
-        sapply(geneID, plotExpressionRank, ods=ods, padjCut=padjCut, 
+        sapply(geneID, plotExpressionRank, ods=ods, padjCutoff=padjCutoff, 
                 zScoreCut=zScoreCut, basePlot=basePlot, normalized=normalized)
         return()
     }
@@ -320,7 +315,7 @@ plotExpressionRank <- function(ods, geneID, padjCut=0.05, zScoreCut=3,
     if('padjust' %in% assayNames(ods) & 'zScore' %in% assayNames(ods)){
         dt[, padjust:=assays(ods)[['padjust']][geneID,]]
         dt[, zScore:=assays(ods)[['zScore']][geneID,]]
-        dt[, aberrant:=aberrant(ods, padj=padjCut, zScore=zScoreCut)[geneID,]]
+        dt[, aberrant:=aberrant(ods, padj=padjCutoff, zScore=zScoreCut)[geneID,]]
         colors <- ifelse(any(dt[,aberrant]), c("gray", "firebrick"), "gray")
         
     } else {
