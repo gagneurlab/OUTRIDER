@@ -86,9 +86,34 @@ autoCorrectR <- function(ods, q=20, theta=25){
     
     # add it to the object
     normalizationFactors(ods, replace=TRUE) <- correctionFactors
+    metadata(ods)[['weights']] <- pars
     validObject(ods)
     return(ods)
 }
+
+computeLatentSpace <- function(ods){
+    # get data
+    k <- t(counts(ods, normalized=FALSE))
+    s <- sizeFactors(ods)
+    # compute log per gene centered counts 
+    x0 <- log((1+k)/s)
+    xbar <- colMeans(x0)
+    x <- t(t(x0) - xbar)
+    
+    weights <- metadata(ods)[['weights']]
+    
+    W <- matrix(weights, nrow=ncol(k))
+    b <- W[,ncol(W)]
+    W <- W[,1:ncol(W)-1]
+    l <- t(x%*%W) 
+    
+    if(ncol(l)!=ncol(ods)){
+        stop('Error')
+    }
+    
+    return(l)
+}
+
 
 autoCorrectPCA <- function(ods, q=20, theta=25){
     # error checking
@@ -186,7 +211,7 @@ numericLossGrad <- function(fn, epsilon, w,...){
     for(i in seq_along(w)){
         eps <- rep(0, length(w))
         eps[i] <- epsilon
-        grad[i] <- fn(w + eps, ...) - fn(w -eps, ...)/2*epsilon
+        grad[i] <- (fn(w + eps, ...) - fn(w -eps, ...))/2*epsilon
     }
     return(grad)
 }
