@@ -12,6 +12,7 @@
 #' @param sample sample points for QQplot, only used, when global==TRUE.
 #' @param legendPos set legendpos, by default topleft.
 #' @param col set color
+#' @param pch integer or character to be used for plotting points
 #' @param ... additional arguments for the internal plotQQ function.
 #'             This arguments are currently used for development.
 #' 

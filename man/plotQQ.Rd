@@ -29,6 +29,8 @@ plotQQ(ods, geneID = NULL, global = FALSE, padjCutoff = 0.05,
 
 \item{conf.alpha}{if set, a confidence interval is plotted}
 
+\item{pch}{integer or character to be used for plotting points}
+
 \item{col}{set color}
 
 \item{...}{additional arguments for the internal plotQQ function.
