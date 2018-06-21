@@ -32,6 +32,9 @@ autoCorrect <- function(ods, q=20, theta=25,
     if(q >= nrow(ods)){
         stop("Please use a q smaller than the number of features.")
     }
+    if(q >= ncol(ods)){
+        stop("Please use a q smaller than the number of samples.")
+    }
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
                    "the autoCorrect function"))

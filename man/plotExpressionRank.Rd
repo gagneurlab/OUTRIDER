@@ -40,7 +40,7 @@ Plot expression over expression rank per gene.
 The plot can be used before and after fitting.
 }
 \examples{
-ods <- makeExampleOutriderDataSet(10, 100)
+ods <- makeExampleOutriderDataSet(1000, 100)
 ods <- OUTRIDER(ods)
 plotExpressionRank(ods, 1)
 plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")

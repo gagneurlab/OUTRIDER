@@ -41,7 +41,7 @@ Plot aberrant events per sample
 }
 \examples{
 
-ods <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet(500, 100)
 ods <- OUTRIDER(ods)
 
 plotAberrantPerSample(ods)

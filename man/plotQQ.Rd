@@ -48,7 +48,7 @@ None
 Plot a QQ-plot for a given gene
 }
 \examples{
-ods <- makeExampleOutriderDataSet(20, 400)
+ods <- makeExampleOutriderDataSet(500, 300)
 ods <- OUTRIDER(ods)
 plotQQ(ods, 1)
 plotQQ(ods, global=TRUE, filterOutliers=TRUE)
