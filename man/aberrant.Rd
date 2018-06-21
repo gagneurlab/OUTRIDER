@@ -4,7 +4,7 @@
 \alias{aberrant}
 \title{aberrant}
 \usage{
-aberrant(ods, padjCutoff = 0.05, zScoreCutoff = 3, by = c("none",
+aberrant(ods, padjCutoff = 0.05, zScoreCutoff = 0, by = c("none",
   "sample", "gene"))
 }
 \arguments{
