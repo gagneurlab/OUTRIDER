@@ -1,0 +1,58 @@
+variables:
+  PKGNAME:     "OUTRIDER"
+  PKGDIR:      "./"
+  R_LIBS_U:    "tmp_lib"
+  RVER:        "3.4.2-Bioc3.5"
+  PyVER:       "3-5.0.1"
+  TEXVER:      "2016"
+  AE_REPO:     "https://github.com/gagneurlab/autoCorrection.git"
+#  CI_DEBUG_TRACE: "true"
+
+stages:
+  - RCheck
+  - BiocCheck
+  - CovR
+  - Vignette
+
+before_script:
+  - module load "i12g/anaconda/$PyVER"
+  - module load "i12g/R/$RVER"
+  - module load "i12g/texlive/$TEXVER"
+  - mkdir $R_LIBS_U
+  - python -m venv --without-pip "$R_LIBS_U/python-env" 
+  - source "$R_LIBS_U/python-env/bin/activate"
+  - wget https://bootstrap.pypa.io/get-pip.py
+  - python get-pip.py
+  - pip install --upgrade "git+$AE_REPO@master"
+  - touch "$R_LIBS_U/python-env/include/.empty"
+  - R --vanilla CMD build --no-build-vignettes --no-manual $PKGDIR
+  - PKG_FILE_NAME=$(ls -1t *.tar.gz | head -n 1)
+  - R_LIBS_USER=$R_LIBS_U Rscript --vanilla -e "install.packages('${PKG_FILE_NAME}', lib='$R_LIBS_U', repo=NULL)"
+
+R-check:
+  stage: RCheck
+  when: always
+  tags: [shell]
+  script:
+    - R_LIBS_USER=$R_LIBS_U R --vanilla CMD check --no-vignettes --timings "${PKG_FILE_NAME}"
+
+R-BiocCheck:
+  stage: BiocCheck
+  when: always
+  tags: [shell]
+  script:
+    - R_LIBS_USER=$R_LIBS_U R --vanilla CMD BiocCheck --new-package --no-check-vignettes "${PKG_FILE_NAME}"
+
+R-coverage:
+  stage: CovR
+  when: always
+  tags: [shell]
+  script:
+    - R_LIBS_USER=$R_LIBS_U Rscript --vanilla -e "library('scared'); covr::package_coverage('$PKGDIR')"
+
+R-check_vignettes:
+  stage: Vignette
+  when: always
+  tags: [shell]
+  script:
+    - R_LIBS_USER=$R_LIBS_U R --vanilla CMD Sweave --engine=knitr::knitr --pdf "$PKGDIR/vignettes/$PKGNAME.Rnw"
