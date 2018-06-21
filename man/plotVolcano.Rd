@@ -4,8 +4,8 @@
 \alias{plotVolcano}
 \title{Volcano plot}
 \usage{
-plotVolcano(ods, sampleID, padjCut = 0.05, zScoreCut = 3, main = NULL,
-  basePlot = FALSE, col = c("gray", "firebrick"))
+plotVolcano(ods, sampleID, padjCutoff = 0.05, zScoreCutoff = 3,
+  main = NULL, basePlot = FALSE, col = c("gray", "firebrick"))
 }
 \arguments{
 \item{ods}{OutriderDataSet}
@@ -13,9 +13,9 @@ plotVolcano(ods, sampleID, padjCut = 0.05, zScoreCut = 3, main = NULL,
 \item{sampleID}{sample which should be plotted. 
 Can also be a vector of samples.}
 
-\item{padjCut}{padj cutoff}
+\item{padjCutoff}{padj cutoff}
 
-\item{zScoreCut}{Z-score cutoff}
+\item{zScoreCutoff}{Z-score cutoff}
 
 \item{main}{string passed to main (title) of the plot.}
 
