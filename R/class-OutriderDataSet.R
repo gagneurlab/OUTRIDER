@@ -161,7 +161,6 @@ makeExampleOutriderDataSet <- function(n=1000, m=100, freq = 1E-2, zScore = 6, i
     ans <- ans[,c(1:m-1, m+1)]
     colnames(ans)[m] <- paste0("sample", m)
     ans <- injectOutliers(ans, freq = freq, zScore = zScore, inj=inj)
-    
     return(ans)
 }
 
