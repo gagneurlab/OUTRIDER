@@ -2,6 +2,46 @@
 
 gridSearchEncDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3, 
                              inj='both', fitDisp=FALSE, BPPARAM=bpparam()){
+    
+    # compute auto Correction
+    ods <- estimateSizeFactors(ods)
+    
+    #eval <- sapply(c(1,5), function(i) evalAutoCorrection(ods, encoding_dim=i))
+    
+    ## Check limits of loss:
+    # Check min and max of loss by substituting
+    # counts and true Counts for the normalization Factors.
+    
+    # Max overfitting loss:
+    normalizationFactors(ods) <- counts(ods) + 1E-9
+    overfit <- evalLoss(ods)
+    # Best possible loss:
+    normalizationFactors(ods) <- assay(ods, 'trueCounts') + 1E-9
+    bestloss <- evalLoss(ods)
+    # Max underfitting loss (only taking the means of the data):
+    normalizationFactors(ods) <- matrix(rep(rowMeans(counts(ods)), 
+                                            ncol(ods)),ncol=ncol(ods)) + 1E-9
+    underfit <- evalLoss(ods)
+    print(paste0('Best possible loss (c=k): ', bestloss,
+                '  Max overfitting loss (c=kcorr): ', overfit,
+                '  Max underfitting loss (c=colMeans(kcorr): ', underfit))
+
+    #params <- c(5,10,15,20,25,30,50,100)
+    eval <- bplapply(params, 
+        function(i) evalAutoCorrection(ods, encoding_dim = i, fitDisp=fitDisp),
+            BPPARAM=BPPARAM)
+    
+    eval <- matrix(unlist(eval), ncol = 1, byrow = TRUE)
+    colnames(eval) <- c('evalLoss')
+    result <- as.data.table(cbind(params,eval))
+    
+    print(result[which.min(evalLoss),])
+    plot(result[,params], result[,evalLoss], log='x', pch=16)
+    return(result)
+}
+
+
+injectOutliers <- function(ods, freq, zScore, inj){
     # copy true counts to be able to acces them in the loss later
     assays(ods)[['trueCounts']] <- counts(ods)
     
@@ -47,53 +87,7 @@ gridSearchEncDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3,
     # save coruppted counts and index of corruption into ods
     assay(ods, 'counts') <- matrix(as.integer(counts),nrow(ods))
     assays(ods)[['trueCorruptions']] <- index 
-    
-    #Check that everything worked
-    any(counts(ods)[
-        assays(ods)[['trueCorruptions']]==0] == assay(ods, 'trueCounts')[
-            assays(ods)[['trueCorruptions']]==0])
-    head(counts(ods)[
-        assays(ods)[['trueCorruptions']]!=0] != assay(ods, 'trueCounts')[
-            assays(ods)[['trueCorruptions']]!=0])
-    any(counts(ods)[
-        assays(ods)[['trueCorruptions']]!=0] == assay(ods, 'trueCounts')[
-            assays(ods)[['trueCorruptions']]!=0])
-    
-    # compute auto Correction
-    ods <- estimateSizeFactors(ods)
-    
-    #eval <- sapply(c(1,5), function(i) evalAutoCorrection(ods, encoding_dim=i))
-    
-    ## Check limits of loss:
-    # Check min and max of loss by substituting
-    # counts and true Counts for the normalization Factors.
-    
-    # Max overfitting loss:
-    normalizationFactors(ods) <- counts(ods) + 1E-9
-    overfit <- evalLoss(ods)
-    # Best possible loss:
-    normalizationFactors(ods) <- assay(ods, 'trueCounts') + 1E-9
-    bestloss <- evalLoss(ods)
-    # Max underfitting loss (only taking the means of the data):
-    normalizationFactors(ods) <- matrix(rep(rowMeans(counts(ods)), 
-                                            ncol(ods)),ncol=ncol(ods)) + 1E-9
-    underfit <- evalLoss(ods)
-    print(paste0('Best possible loss (c=k): ', bestloss,
-                '  Max overfitting loss (c=kcorr): ', overfit,
-                '  Max underfitting loss (c=colMeans(kcorr): ', underfit))
-
-    #params <- c(5,10,15,20,25,30,50,100)
-    eval <- bplapply(params, 
-        function(i) evalAutoCorrection(ods, encoding_dim = i, fitDisp=fitDisp),
-            BPPARAM=BPPARAM)
-    
-    eval <- matrix(unlist(eval), ncol = 1, byrow = TRUE)
-    colnames(eval) <- c('evalLoss')
-    result <- as.data.table(cbind(params,eval))
-    
-    print(result[which.min(evalLoss),])
-    plot(result[,params], result[,evalLoss], log='x', pch=16)
-    return(result)
+    return(ods)
 }
 
 
