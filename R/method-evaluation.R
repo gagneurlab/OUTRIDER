@@ -27,10 +27,12 @@
 #' @rdname aberrant
 #' 
 #' @export
-aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=3, by=c("none", "sample", "gene")){
+aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=0, 
+                    by=c("none", "sample", "gene")){
     aberrantEvents <- assays(ods)[['padjust']] < padjCutoff
     if(isScalarNumeric(zScoreCutoff, na.ok=FALSE)){
-        aberrantEvents <- aberrantEvents & abs(assays(ods)[['zScore']]) > zScoreCutoff
+        aberrantEvents <- aberrantEvents & 
+                abs(assays(ods)[['zScore']]) > zScoreCutoff
     }
     
     return(switch(match.arg(by),
