@@ -256,6 +256,9 @@ plotVolcano <- function(ods, sampleID, padjCut=0.05, zScoreCut=3,
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
     }
+    if(!all(c('padjust', 'zScore') %in% assayNames(ods))){
+        stop('Calculate Z-scores and P-values first.')
+    }
     if(is.logical(sampleID)){
         sampleID <- which(sampleID)
     }
