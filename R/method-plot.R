@@ -27,7 +27,7 @@
 #' @export
 plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, 
                 zScoreCutoff=0, main=NULL, sample=TRUE, legendPos="topleft",
-                outlierRatio=0.001, conf.alpha=0.05, pch=16, 
+                outlierRatio=0.001, conf.alpha=0.05, pch=16, xlim=NULL, ylim=NULL,
                 col=NULL, ...){
 
     stopifnot(isScalarLogical(global))
@@ -109,8 +109,13 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     }
     # compute expected pValues.
     df[,exp:= -log10(ppoints(.N)), by='subset']
-    
-    plot(NA, xlim=range(df[,exp]), ylim=range(df[,obs]), main=main,
+    if(is.null(xlim)){
+        xlim=range(df[,exp])
+    }
+    if(is.null(ylim)){
+        ylim=range(df[,obs])
+    }
+    plot(NA, xlim=xlim, ylim=ylim, main=main,
          xlab=expression(paste(-log[10], " (expected ", italic(P), "-value)")),
          ylab=expression(paste(-log[10], " (observed ", italic(P), "-value)")))
     
