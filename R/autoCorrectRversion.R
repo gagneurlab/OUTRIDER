@@ -50,23 +50,22 @@ autoCorrect <- function(ods, q=20, theta=25,
 #' 
 #' Autoencoder function to correct for co-founders.
 #'
-#' @param ods 
-#' @param q 
-#' @param theta 
+#' @param ods An uormalized OUTRIDER data set
+#' @param q the encoding dimension used.
+#' @param theta value used in the likelihood (default=25).
 #' 
 #' @noRd
 autoCorrectR <- function(ods, q=20, theta=25){
-    
-    # get data
+
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
-    # compute log per gene centered counts 
+    # compute log of per gene centered counts 
     x0 <- log((1+k)/s)
     xbar <- colMeans(x0)
     x <- t(t(x0) - xbar)
     
     # initialize W using PCA and bias as zeros.
-    pca <- pca(x, nPcs = q) ## could also use ppca
+    pca <- pca(x, nPcs = q) 
     pc  <- loadings(pca)
     w_guess <- c(as.vector(pc), rep(0,ncol(k)))
     # check initial loss
@@ -78,26 +77,33 @@ autoCorrectR <- function(ods, q=20, theta=25){
     w_init <- c(as.vector(pc), rnorm(ncol(k), sd=0.001))
     # optimize log likelihood
     t <- Sys.time()
-    #pars <- cmpOptGD(w_guess, k, x, s, xbar, theta)
     fit <- optim(w_init, cmpLoss, gr = cmpLossGrad, k=k, x=x, s=s, xbar=xbar, 
                  theta=theta, method="L-BFGS-B")
-    pars <- fit$par
+    w_fit <- fit$par
     print(paste0('Time elapsed: ', Sys.time() - t))
     print(
         paste0('nb-PCA loss: ',
-               loss(pars,k, x, s,xbar, theta))
+               loss(w_fit,k, x, s,xbar, theta))
     )
 
-    correctionFactors <- t(predictC(pars, k, s, xbar))
+    correctionFactors <- t(predictC(w_fit, k, s, xbar))
     stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
     
     # add it to the object
     normalizationFactors(ods, replace=TRUE) <- correctionFactors
-    metadata(ods)[['weights']] <- pars
+    metadata(ods)[['weights']] <- w_fit
     validObject(ods)
     return(ods)
 }
 
+#' function to output the latentspace determined by the autoencoder.
+#'
+#' @param ods An OUTRIDER data set
+#'
+#' @return 
+#' @export
+#'
+#' @examples
 computeLatentSpace <- function(ods){
     # get data
     k <- t(counts(ods, normalized=FALSE))
@@ -115,7 +121,7 @@ computeLatentSpace <- function(ods){
     l <- t(x%*%W) 
     
     if(ncol(l)!=ncol(ods)){
-        stop('Error')
+        stop('Dimensions do not match.')
     }
     
     return(l)
@@ -146,9 +152,9 @@ autoCorrectPCA <- function(ods, q=20, theta=25){
                loss(c(w_guess, rep(0,ncol(k))), k, x, s, xbar, theta))
     )
     
-    pars <- c(w_guess, rep(0,ncol(k)))
+    w_fit <- c(w_guess, rep(0,ncol(k)))
     
-    corrected <- predictC(pars, k, s, xbar)
+    corrected <- predictC(w_fit, k, s, xbar)
     
     correctionFactors <- t(corrected)
     stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
@@ -160,6 +166,19 @@ autoCorrectPCA <- function(ods, q=20, theta=25){
 }
 
 
+## loss and gradient of loss function accesed by the functions above. ##
+
+#' loss function
+#'
+#' @param w weight matrix 
+#' @param k counts
+#' @param x log-centered counts
+#' @param s size factors
+#' @param xbar offset 
+#' @param theta value used in the likelihood (default=25).
+#'
+#' @return Returns the negative log likelihood of the negative binomial 
+#'
 loss <- function(w, k, x, s, xbar, theta){
     ## log, size factored, and centered counts 
     #x <-  t(t(log((1+k)/s)) - xbar)
@@ -177,16 +196,17 @@ loss <- function(w, k, x, s, xbar, theta){
     - mean( ll )
 }
 
-predictC <- function(w, k, s, xbar){
-    x <-  t(t(log((1+k)/s)) - xbar)
-    W <- matrix(w, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
-    y <- t(t(x%*%W %*% t(W)) +b + xbar)
-    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
-    s*exp(y)
-}
-
+#' gradient of loss function
+#'
+#' @param w weight matrix 
+#' @param k counts
+#' @param x log-centered counts
+#' @param s size factors
+#' @param xbar offset 
+#' @param theta value used in the likelihood (default=25).
+#'
+#' @return returns the gradient of the loss function.
+#' 
 lossGrad <- function(w, k, x, s, xbar, theta){
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
@@ -209,8 +229,27 @@ lossGrad <- function(w, k, x, s, xbar, theta){
     
     #db:
     db <- colSums(kt-k)/prod(dim(k))
-           
+    
     return(c(dw, db))
+}
+
+#' Predict controlled Counts.
+
+#' @param w weight matrix 
+#' @param k counts
+#' @param s size factors
+#' @param xbar offset 
+#'
+#' @return Returns the predicted corrections (predicted means).
+#' 
+predictC <- function(w, k, s, xbar){
+    x <-  t(t(log((1+k)/s)) - xbar)
+    W <- matrix(w, nrow=ncol(k))
+    b <- W[,ncol(W)]
+    W <- W[,1:ncol(W)-1]
+    y <- t(t(x%*%W %*% t(W)) +b + xbar)
+    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
+    s*exp(y)
 }
 
 numericLossGrad <- function(fn, epsilon, w,...){
@@ -223,7 +262,7 @@ numericLossGrad <- function(fn, epsilon, w,...){
     return(grad)
 }
 
-# try to use the R compiler for the loss and grad functions.
+# Use the R compiler for the loss and grad functions.
 cmpLossGrad <- cmpfun(lossGrad)
 cmpLoss <- cmpfun(loss)
 
