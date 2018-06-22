@@ -9,6 +9,15 @@ computeLatentSpace(ods)
 \arguments{
 \item{ods}{An OUTRIDER data set}
 }
+\value{
+A matrix containing the by the autoencoder computed latent space.
+}
 \description{
 function to output the latentspace determined by the autoencoder.
+}
+\examples{
+ds <- makeExampleOutriderDataSet()
+ods <- estimateSizeFactors(ods)
+ods <- autoCorrect(ods)
+computeLatentSpace(ods)
 }

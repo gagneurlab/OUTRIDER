@@ -2,6 +2,9 @@
 compileResults <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
                     round=TRUE, all=FALSE){
     features <- c("pValue", "padjust", "zScore", "l2fc")
+    if(!is(object, 'OutriderDataSet')){
+        stop('Please provide an OutriderDataSet')
+    }
     if(!"pValue" %in% assayNames(object)){
         stop(paste0("The P-values are not computed yet. Please run the ",
                 "following command:\n\tods <- computePvalues(ods)"))

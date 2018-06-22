@@ -95,6 +95,7 @@ autoCorrectR <- function(ods, q=20, theta=25){
     # add it to the object
     normalizationFactors(ods, replace=TRUE) <- correctionFactors
     metadata(ods)[['weights']] <- w_fit
+    metadata(ods)[['dim']] <- dim(ods)
     validObject(ods)
     return(ods)
 }
@@ -104,12 +105,19 @@ autoCorrectR <- function(ods, q=20, theta=25){
 #'
 #' @param ods An OUTRIDER data set
 #'
-#' @return 
+#' @return A matrix containing the by the autoencoder computed latent space.
 #' @export
 #'
-#' @examples
+#' @examples 
+#' ds <- makeExampleOutriderDataSet()
+#' ods <- estimateSizeFactors(ods)
+#' ods <- autoCorrect(ods)
+#' computeLatentSpace(ods)
 computeLatentSpace <- function(ods){
     stopifnot(is(ods, 'OutriderDataSet'))
+    if(metadata(ods)[['dim']]!=dim(ods)){
+        stop('The ods dimension changed. Computation not possible.')
+    }
     # get data
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
