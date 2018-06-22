@@ -5,13 +5,20 @@
 \title{Create example data sets for OUTRIDER}
 \usage{
 makeExampleOutriderDataSet(n = 1000, m = 100, freq = 0.01, zScore = 6,
-  inj = "both", ..., dataset = c("none", "GTExSkinSmall",
+  inj = c("both", "low", "high"), ..., dataset = c("none", "GTExSkinSmall",
   "KremerNBaderSmall"))
 }
 \arguments{
 \item{n}{number of simulated genes}
 
 \item{m}{number of simulated samples.}
+
+\item{freq}{frequency of in-silico outliers.}
+
+\item{zScore}{absolute zScore of in-silico outliers (default =6).}
+
+\item{inj}{determines whether counts are injected with the strategy 
+('both', 'low', 'high'), default is 'both'.}
 
 \item{...}{further arguments to \code{makeExampleDESeqDataSet}}
 

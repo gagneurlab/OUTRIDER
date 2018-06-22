@@ -129,7 +129,12 @@ OutriderDataSet <- function(se=NULL, countData=NULL, colData=NULL, ...) {
 #'             One of 'none', 'GTExSkinSmall', or 'KremerNBaderSmall'.
 #' @param n number of simulated genes 
 #' @param m number of simulated samples.
+#' @param freq frequency of in-silico outliers. 
+#' @param zScore absolute zScore of in-silico outliers (default =6).
+#' @param inj determines whether counts are injected with the strategy 
+#'            ('both', 'low', 'high'), default is 'both'.
 #' @param ... further arguments to \code{makeExampleDESeqDataSet}
+#'
 #' @return An OutriderDataSet containing an example dataset. Depending on the
 #'             parameters it is based on a real data set or on simulated counts.
 #' 
@@ -147,9 +152,11 @@ OutriderDataSet <- function(se=NULL, countData=NULL, colData=NULL, ...) {
 #' ods3
 #' 
 #' @export 
-makeExampleOutriderDataSet <- function(n=1000, m=100, freq = 1E-2, zScore = 6, inj='both', ..., 
+makeExampleOutriderDataSet <- function(n=1000, m=100, freq = 1E-2, zScore = 6, 
+                    inj=c('both', 'low', 'high'), ..., 
                     dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall')){
     dataset <- match.arg(dataset)
+    inj <- match.arg(inj)
     if(dataset != 'none'){
         file <- system.file("extdata", paste0(dataset, ".tsv"), 
                 package="OUTRIDER", mustWork=TRUE)
