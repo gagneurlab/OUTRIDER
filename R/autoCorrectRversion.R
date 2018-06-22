@@ -29,6 +29,9 @@ autoCorrect <- function(ods, q=20, theta=25,
                     implementation=c("R", "python"), ...){
     
     # error checking
+    if(!is(ods, 'OutriderDataSet')){
+        stop('Please provide an OutriderDataSet')
+    }
     if(q >= nrow(ods)){
         stop("Please use a q smaller than the number of features.")
     }
@@ -96,6 +99,7 @@ autoCorrectR <- function(ods, q=20, theta=25){
     return(ods)
 }
 
+
 #' function to output the latentspace determined by the autoencoder.
 #'
 #' @param ods An OUTRIDER data set
@@ -105,6 +109,7 @@ autoCorrectR <- function(ods, q=20, theta=25){
 #'
 #' @examples
 computeLatentSpace <- function(ods){
+    stopifnot(is(ods, 'OutriderDataSet'))
     # get data
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
@@ -128,43 +133,6 @@ computeLatentSpace <- function(ods){
 }
 
 
-autoCorrectPCA <- function(ods, q=20, theta=25){
-    # error checking
-    if(is.null(sizeFactors(ods))){
-        stop(paste("Please calculate the size factors before calling", 
-                   "the autoCorrect function"))
-    }
-    # get data
-    k <- t(counts(ods, normalized=FALSE))
-    s <- sizeFactors(ods)
-    # compute log per gene centered counts 
-    x0 <- log((1+k)/s)
-    xbar <- colMeans(x0)
-    x <- t(t(x0) - xbar)
-    
-    # initialize using PCA
-    pca <- pca(x, nPcs = q) ## could also use ppca
-    pc  <- loadings(pca)
-    w_guess <- as.vector(pc)
-    # check initial loss
-    print(
-        paste0('Initial PCA loss: ',
-               loss(c(w_guess, rep(0,ncol(k))), k, x, s, xbar, theta))
-    )
-    
-    w_fit <- c(w_guess, rep(0,ncol(k)))
-    
-    corrected <- predictC(w_fit, k, s, xbar)
-    
-    correctionFactors <- t(corrected)
-    stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
-    
-    # add it to the object
-    normalizationFactors(ods, replace=TRUE) <- correctionFactors
-    validObject(ods)
-    return(ods)
-}
-
 
 ## loss and gradient of loss function accesed by the functions above. ##
 
@@ -178,11 +146,11 @@ autoCorrectPCA <- function(ods, q=20, theta=25){
 #' @param theta value used in the likelihood (default=25).
 #'
 #' @return Returns the negative log likelihood of the negative binomial 
-#'
+#' @noRd
 loss <- function(w, k, x, s, xbar, theta){
-    ## log, size factored, and centered counts 
+    ## log, size factored, and centered counts
     #x <-  t(t(log((1+k)/s)) - xbar)
-    ## encoding 
+    ## encoding
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,1:ncol(W)-1]
@@ -191,10 +159,10 @@ loss <- function(w, k, x, s, xbar, theta){
     #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
     y_exp <- s*exp(y)
 
-    ## log likelihood 
-    ll <- dnbinom(k, mu= y_exp, size=theta, log=TRUE)
-    - mean( ll )
+    ## log likelihood - truncated
+    - mean(k * (log(s)+y)) + mean((k + theta) * log(y_exp + theta))
 }
+
 
 #' gradient of loss function
 #'
@@ -206,7 +174,7 @@ loss <- function(w, k, x, s, xbar, theta){
 #' @param theta value used in the likelihood (default=25).
 #'
 #' @return returns the gradient of the loss function.
-#' 
+#' @noRd
 lossGrad <- function(w, k, x, s, xbar, theta){
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
@@ -233,8 +201,10 @@ lossGrad <- function(w, k, x, s, xbar, theta){
     return(c(dw, db))
 }
 
-#' Predict controlled Counts.
 
+#'
+#' Predict controlled Counts.
+#' 
 #' @param w weight matrix 
 #' @param k counts
 #' @param s size factors
@@ -251,6 +221,7 @@ predictC <- function(w, k, s, xbar){
     #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
     s*exp(y)
 }
+
 
 numericLossGrad <- function(fn, epsilon, w,...){
     grad <- list()
