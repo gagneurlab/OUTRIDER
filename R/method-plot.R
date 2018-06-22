@@ -31,7 +31,12 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
                 zScoreCutoff=0, main=NULL, sample=TRUE, legendPos="topleft",
                 outlierRatio=0.001, conf.alpha=0.05, pch=16, xlim=NULL, ylim=NULL,
                 col=NULL, ...){
-
+    if(!is(object, 'OutriderDataSet')){
+        stop('Please provide an OutriderDataSet')
+    }
+    if(is.null(geneID)&isFALSE(global)){
+        stop('Please provide a geneID or set global to TRUE')
+    }
     stopifnot(isScalarLogical(global))
     if(length(col) == 2 & isTRUE(global)){
         col <- col[2:1]

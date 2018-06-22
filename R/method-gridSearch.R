@@ -1,7 +1,24 @@
 #params <- c(5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,25,30,50,100)
 
-gridSearchEncDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3, 
-                             inj='both', fitDisp=FALSE, BPPARAM=bpparam()){
+#' SearchEncDim
+#' 
+#' finds the optimal encoding dimension for a given data set.
+#'
+#' @param ods OutriderDataSet
+#' @param params set of possible q values.
+#' @param freq frequncy of outlier by default 1E-2
+#' @param zScore injection Z-score, by default 3.
+#' @param inj injection strategy, by default 'both'.
+#' @param BPPARAM BPPARAM object by default bpparam().
+#'
+#' @return optimal parameter value.
+#' @export
+#'
+#' @examples
+#' ods <- makeExampleDataSet
+#' searchEncDim(ods)
+searchEncDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3, 
+                             inj='both', BPPARAM=bpparam()){
     
     # compute auto Correction
     ods <- estimateSizeFactors(ods)
@@ -40,7 +57,17 @@ gridSearchEncDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3,
     return(result)
 }
 
+## Helper functions called within SearchEncDim ##
 
+
+#' injectOutliers
+#'
+#' @param ods OutriderDataSet
+#' @param freq frequency of injected counts.
+#' @param zScore injection Z-score.
+#' @param inj injection strategy.
+#'
+#' @return and OutriderDataSet with artificially corrupted counts.
 injectOutliers <- function(ods, freq, zScore, inj){
     # copy true counts to be able to acces them in the loss later
     assays(ods)[['trueCounts']] <- counts(ods)
