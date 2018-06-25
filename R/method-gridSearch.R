@@ -1,6 +1,6 @@
 #params <- c(5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,25,30,50,100)
 
-#' SearchEncDim
+#' findEncodingDim
 #' 
 #' finds the optimal encoding dimension for a given data set.
 #'
@@ -16,8 +16,8 @@
 #'
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
-#' searchEncDim(ods)
-searchEncDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3, 
+#' findEncodingDim(ods)
+findEncodingDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3, 
                              inj='both', BPPARAM=bpparam()){
     
     # compute auto Correction
