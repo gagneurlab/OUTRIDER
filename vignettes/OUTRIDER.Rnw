@@ -105,12 +105,12 @@ apparent co-variations across samples. Read counts significantly deviating
 from the distribution are detected as outliers.
 
 Differential gene expression analysis from RNA-seq data is well-established.
-The packages \deseq{}\cite{Love2014} or \Biocpkg{edgeR}\cite{Robinson2010} provide effective 
-workflows and preprocessing steps to perform differential gene expression 
-analysis. However, these methods aim at detecting significant differences
-between groups of samples. In contrast, \outrider{} aims at detecting
-outliers within a given population. A scheme of this difference is given 
-in figure \ref{fig:deVsOutlier}.
+The packages \deseq{}\cite{Love2014} or \Biocpkg{edgeR}\cite{Robinson2010} 
+provide effective workflows and preprocessing steps to perform differential gene
+expression analysis. However, these methods aim at detecting significant 
+differences between groups of samples. In contrast, \outrider{} aims at 
+detecting outliers within a given population. A scheme of this difference is 
+given in figure \ref{fig:deVsOutlier}.
 
 <<deVsOutlier, echo=FALSE, fig.height=5, fig.cap="Scheme of workflow differences. Differences between differential gene expression analysis and outlier detection.">>=
 par.old <- par(no.readonly=TRUE)
@@ -133,21 +133,21 @@ par(par.old)
 To get started on the preprocessing step, we recommend to read the 
 introductions of the aforementioned tools or the RNA-seq workflow from
 Bioconductor. In brief, one usually starts with the raw FASTQ files from
-the RNA sequencing run. Those are then aligned to a given reference genome. As of
-now (June 2018), we recommend the STAR aligner\cite{Dobin2013}. After obtaining the aligned BAM
-files, one can map the reads to exons or genes of a GTF annotation file using HT-seq.
-The resulting count table can then be loaded into the \outrider{} package
-as we will describe below.
+the RNA sequencing run. Those are then aligned to a given reference genome. As 
+of now (June 2018), we recommend the STAR aligner\cite{Dobin2013}. After 
+obtaining the aligned BAM files, one can map the reads to exons or genes of a 
+GTF annotation file using HT-seq. The resulting count table can then be loaded 
+into the \outrider{} package as we will describe below.
 
 \section{A quick tour}
 
 Here we assume that we already have a count table and no additional 
 preprocessing needs to be done. Then we can start and obtain results with 
 3 commands. First, create an \ods{} from a count table. Second, run the full 
-pipeline using the command \Rfunction{OUTRIDER}. In the third and last step the results
-table is extracted from the \ods{} with the \Rfunction{results} function.
-Furthermore, analysis plots that are described in section \ref{sec:Results}
-can be directly created from the \ods{} object.
+pipeline using the command \Rfunction{OUTRIDER}. In the third and last step the 
+results table is extracted from the \ods{} with the \Rfunction{results} 
+function. Furthermore, analysis plots that are described in section 
+\ref{sec:Results} can be directly created from the \ods{} object.
 
 <<quick_guide, fig.height=5>>=
 library(OUTRIDER)
@@ -174,8 +174,17 @@ plotQQ(ods, res[1, geneID])
 
 \section{An \outrider{} analysis in detail}
 
-For this tutorial we will use the rare disease data set from Kremer \textit{et al}.\cite{Kremer2017}
-For testing, this package contains also a small subset of it.
+Additionally to the single wrapper function \Rfunction{OUTRIDER} to run the full 
+pipeline, the analysis can also be run step by step. The wrapper function does
+not include any preprocessing functions, discarding non expressed genes or 
+samples failing quality measurements should be done manually before running the 
+\Rfunction{OUTRIDER} function or starting the analysis pipeline.
+
+In this section we will explain the analysis functions step by step.
+
+For this tutorial we will use the rare disease data set from Kremer 
+\textit{et al}.\cite{Kremer2017} For testing, this package contains also a small
+subset of it.
 
 <<GetDataSet>>=
 URL <- paste0("https://media.nature.com/original/nature-assets/", 
@@ -188,14 +197,14 @@ ods <- OutriderDataSet(countData=ctsTable)
 
 \subsection{Preprocessing}
 
-It is recommended to apply some data preprocessing before fitting. Our
-model requires that for every gene at least one sample has at least one read (counts > 0) and 
-that we observe at least 1 read every 100 samples. Therefore,
-all genes that are not expressed must be discarded.
+It is recommended to apply some data preprocessing before fitting. Our model 
+requires that for every gene at least one sample has one read (counts > 0) and 
+that we observe one read every 100 samples. Therefore, all genes that are not 
+expressed must be discarded.
 
 We provide the function \Rfunction{filterExpression} to remove genes that have 
-low FPKM (Fragments Per Kilobase of transcript per Million mapped reads) expression values. 
-The needed annotation to estimate FPKM values 
+low FPKM (Fragments Per Kilobase of transcript per Million mapped reads) 
+expression values. The needed annotation to estimate FPKM values 
 from the counts should be the same as for the counting. Here, we normalize 
 by the total exon length of a gene.
 
@@ -214,9 +223,9 @@ map <- select(org.Hs.eg.db, keys=keys(txdb, keytype = "GENEID"),
 @
 
 The \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only well annotated 
-genes. This annotation will miss a lot of genes captured by RNA-seq. To include all predicted 
-annotations as well as non-coding RNAs please download the txdb object from 
-our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
+genes. This annotation will miss a lot of genes captured by RNA-seq. To include 
+all predicted annotations as well as non-coding RNAs please download the txdb 
+object from our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
 or create it yourself from the UCSC website\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
 
 <<create txdb, eval=FALSE, cache=FALSE>>=
@@ -247,11 +256,11 @@ ods <- ods[mcols(ods)$passedFilter,]
 \subsection{Controlling for Confounders}
 
 A next step in any analysis workflow is to visualize the correlations
-between samples. In most RNA-seq experiments correlations between the samples can be observed. These 
-correlations are often due to confounders: technical confounders like the sequencing 
-batch or biological ones like sex. These confounders can harm the 
-detection of aberrant features. Therefore, we provide options to control 
-for them.
+between samples. In most RNA-seq experiments correlations between the samples 
+can be observed, which are often due to confounders: technical ones like the 
+sequencing batch or biological ones like sex. These confounders can harm the 
+detection of aberrant features. Therefore, we provide options to control for 
+them.
 
 <<plotting_between_sample_correlations>>=
 
@@ -278,7 +287,7 @@ samples should be reduced and close to zero.
 
 # automatically control for confounders 
 ods <- estimateSizeFactors(ods)
-# ods <- autoCorrect(ods, q=13)
+ods <- autoCorrect(ods, q=13)
 
 # Heatmap of the sample correlation after controlling
 ods <- plotCountCorHeatmap(ods, normalized=TRUE)
@@ -290,15 +299,6 @@ It must be computed beforehand using any method. Its purpose is to normalize
 for technical effects or control for additional expression patterns.
 
 \subsection{Fitting the negative binomial model}
-
-After all the preprocessing part, we can finally start fitting and testing the data. 
-We provide a single wrapper function \Rfunction{OUTRIDER} to run the full 
-pipeline, but it can also be run step by step. By default the 
-\Rfunction{OUTRIDER} function runs all analysis functions and controls the 
-counts using \Rfunction{autoCorrect}. It does not include any preprocessing
-functions. Discarding non expressed genes or samples failing quality measurements should be done manually 
-before running the \Rfunction{OUTRIDER} function or starting the analysis
-pipeline.
 
 To fit the dispersion and the mean, the \Rfunction{fit} function is applied
 to the \ods{}.
@@ -349,8 +349,8 @@ The Z-scores are calculated using:
     z_{ij} = \frac{l_{j} - \mu_j^l}{\sigma_j^l}
 \end{equation}
 \begin{equation*}
-    l_{ij} = \log_2{(\frac{k_{ij} + 1}{c_{ij}})}
-\end{equation*},
+    l_{ij} = \log_2{(\frac{k_{ij} + 1}{c_{ij}})},
+\end{equation*}
 
 where $\mu_j^l$ is the mean and $\sigma_j^l$ the 
 standard deviation of gene $j$ and $l_{ij}$ is the log 

@@ -45,7 +45,7 @@ autoCorrect <- function(ods, q=20, theta=25,
     
     # pass on to the correct implementation
     if(match.arg(implementation)=='R'){
-        return(autoCorrectR(ods, q, theta))
+        return(autoCorrectR(ods, q, theta, ...))
     }
     return(autoCorrectPython(ods, ...))
 }
@@ -58,8 +58,12 @@ autoCorrect <- function(ods, q=20, theta=25,
 #' @param theta value used in the likelihood (default=25).
 #' 
 #' @noRd
-autoCorrectR <- function(ods, q=20, theta=25){
-
+autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
+    
+    if(!'factr' %in% names(control)){
+        control$factr <- 1E9
+    }
+    
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
     # compute log of per gene centered counts 
@@ -81,9 +85,14 @@ autoCorrectR <- function(ods, q=20, theta=25){
     # optimize log likelihood
     t <- Sys.time()
     fit <- optim(w_init, cmpLoss, gr = cmpLossGrad, k=k, x=x, s=s, xbar=xbar, 
-        theta=theta, method="L-BFGS-B")
+        theta=theta, method="L-BFGS-B", control=control, ...)
+    #Check that fit converged
+    if(fit$convergence!=0){
+        warning(paste0("Fit didn't converge with warning: ", fit$message))
+    }
+        
     w_fit <- fit$par
-    print(paste0('Time elapsed: ', Sys.time() - t))
+    print(Sys.time() - t)
     print(
         paste0('nb-PCA loss: ',
             loss(w_fit,k, x, s,xbar, theta))
@@ -207,6 +216,7 @@ lossGrad <- function(w, k, x, s, xbar, theta){
     
     return(c(dw, db))
 }
+
 
 
 #'
