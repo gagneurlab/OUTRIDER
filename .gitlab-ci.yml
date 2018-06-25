@@ -55,4 +55,4 @@ R-check_vignettes:
   when: always
   tags: [shell]
   script:
-    - R_LIBS_USER=$R_LIBS_U R --vanilla CMD Sweave --engine=knitr::knitr --pdf "$PKGDIR/vignettes/$PKGNAME.Rnw"
+    - cd "$PKGDIR/vignettes/" && R_LIBS_USER=../../$R_LIBS_U R --vanilla CMD Sweave --engine=knitr::knitr --pdf "$PKGNAME.Rnw"
