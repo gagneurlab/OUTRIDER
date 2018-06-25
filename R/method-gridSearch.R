@@ -15,7 +15,7 @@
 #' @export
 #'
 #' @examples
-#' ods <- makeExampleDataSet
+#' ods <- makeExampleOutriderDataSet()
 #' searchEncDim(ods)
 searchEncDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3, 
                              inj='both', BPPARAM=bpparam()){
