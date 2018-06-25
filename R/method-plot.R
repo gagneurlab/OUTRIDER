@@ -30,7 +30,7 @@
 plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, 
                 zScoreCutoff=0, main=NULL, sample=TRUE, legendPos="topleft",
                 outlierRatio=0.001, conf.alpha=0.05, pch=16, xlim=NULL, 
-                col=NULL, ...){
+                ylim=NULL, col=NULL, ...){
     if(!is(ods, 'OutriderDataSet')){
         stop('Please provide an OutriderDataSet')
     }
