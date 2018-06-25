@@ -190,10 +190,8 @@ filterZeros <- function(x, filterGenes=FALSE){
     passed <- rowMax(counts(x)) > 0
     mcols(x)['passedFilter'] <- passed
     
-    message(paste0(sum(!passed), " genes ", ifelse(filterGenes, 
-            "are filtered out ", "did not passed the filter "), 
-            "due to zero counts. This is ", 
-            signif(sum(!passed)/length(passed)*100, 3), 
+    message(paste0(sum(!passed), " genes did not passed the filter due to ", 
+            "zero counts. This is ", signif(sum(!passed)/length(passed)*100, 3), 
             "% of the genes."))
     
     if(isTRUE(filterGenes)){
