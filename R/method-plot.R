@@ -784,7 +784,7 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
 #' @export
 #'
 #' @examples
-#' ods <- makeExampleOutriderDataSet(ods)
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
 #' plotPowerAnalysis(ods)
