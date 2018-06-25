@@ -136,11 +136,11 @@ par(par.old)
 To get started on the preprocessing step, we recommend to read the 
 introductions of the aforementioned tools or the RNA-seq workflow from
 Bioconductor. In brief, one usually starts with the raw FASTQ files from
-the RNA sequencing run. Those are then aligned to a given reference genome. As of
-now (May 2018), we recommend the STAR aligner. After obtaining the aligned BAM
-files, one can map the reads to exons or genes of a GTF annotation file using HT-seq.
-The resulting count table can then be loaded into the \outrider{} package
-as we will describe below.
+the RNA sequencing run. Those are then aligned to a given reference genome. 
+As of now (May 2018), we recommend the STAR aligner. After obtaining the aligned
+BAM files, one can map the reads to exons or genes of a GTF annotation file 
+using HT-seq. The resulting count table can then be loaded into the \outrider{} 
+package as we will describe below.
 
 \section{A quick tour}
 
@@ -271,8 +271,9 @@ as done in \deseq{}.
 
 Additionally, the \Rfunction{autoCorrect} function calls an 
 autoencoder, which automatically controls for confounders present in the data.
-Therefore an encoding dimension q needs to be set or the default value 20 is used.
-The optimal value of q can be determinde using the \Rfunction{gridSearchEncDim} function. 
+Therefore an encoding dimension q needs to be set or the default value 20 is 
+used. The optimal value of q can be determinde using the
+\Rfunction{gridSearchEncDim} function. 
 After controlling for co-founders, the heatmap should be plotted again.
 If it worked, no batches should be present and the correlations between 
 samples should be close to zero.
@@ -333,8 +334,9 @@ If required a one-sided test can be performed using the
 alternative argument and specifying 'less' or 'greater' depending on 
 the research question. Multiple testing correction is done across all genes
 in a per-sample fashion using Benjamini-Yekutieli's false discovery rate method
-(Benjamini and Yekutieli, 2001). Alternatively, all other by \Rfunction{p.adjust}
-supported methods can be used via the \Robject{method} parameter.
+(Benjamini and Yekutieli, 2001). Alternatively, all other by 
+\Rfunction{p.adjust} supported methods can be used via the \Robject{method} 
+parameter.
 
 <<pValue_computation>>=
 # compute pValues (nominal and adjusted)

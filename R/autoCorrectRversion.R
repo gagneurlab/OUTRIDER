@@ -40,7 +40,7 @@ autoCorrect <- function(ods, q=20, theta=25,
     }
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
-                   "the autoCorrect function"))
+            "the autoCorrect function"))
     }
     
     # pass on to the correct implementation
@@ -74,19 +74,19 @@ autoCorrectR <- function(ods, q=20, theta=25){
     # check initial loss
     print(
         paste0('Initial PCA loss: ',
-               loss(w_guess, k, x, s, xbar, theta))
+            loss(w_guess, k, x, s, xbar, theta))
     )
     
     w_init <- c(as.vector(pc), rnorm(ncol(k), sd=0.001))
     # optimize log likelihood
     t <- Sys.time()
     fit <- optim(w_init, cmpLoss, gr = cmpLossGrad, k=k, x=x, s=s, xbar=xbar, 
-                 theta=theta, method="L-BFGS-B")
+        theta=theta, method="L-BFGS-B")
     w_fit <- fit$par
     print(paste0('Time elapsed: ', Sys.time() - t))
     print(
         paste0('nb-PCA loss: ',
-               loss(w_fit,k, x, s,xbar, theta))
+            loss(w_fit,k, x, s,xbar, theta))
     )
 
     correctionFactors <- t(predictC(w_fit, k, s, xbar))
