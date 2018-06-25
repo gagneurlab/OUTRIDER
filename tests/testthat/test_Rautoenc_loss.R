@@ -38,19 +38,20 @@ loss(w, k, x, s, xbar, theta)
 numericLossGrad <- function(fn, epsilon, w,...){
     grad <- list()
     for(i in seq_along(w)){
-        eps <- rep(0, length(w))
+        eps <- integer(length(w))
         eps[i] <- epsilon
-        grad[i] <- (fn(w + eps, ...) - fn(w -eps, ...))/2*epsilon
+        grad[i] <- (fn(w + eps, ...) - fn(w -eps, ...))/(2*epsilon)
     }
     return(grad)
 }
 
 # testing the gradient
-plot(numericLossGrad(loss, 1E-5, w, k=k, x=x, s=s, xbar=xbar, theta=25),
-     lossGrad(w, k, x, s, xbar, theta))
+plot(numericLossGrad(loss, 1E-8, w, k=k, x=x, s=s, xbar=xbar, theta=25),
+     lossGrad(w, k, x, s, xbar, theta));abline(0,1)
 
 for(i in 1:5){
     w <- c(rnorm(p*q, sd=1/p*q), rep(0,p))
-    print(cor(as.numeric(numericLossGrad(loss, 1E-3, w, k=k, x=x, s=s, xbar=xbar, theta=theta)),
-     lossGrad(w, k, x, s, xbar, theta)) > 0.99)
+    expect_equal(lossGrad(w, k, x, s, xbar, theta), 
+        as.numeric(numericLossGrad(
+            loss, 1E-8, w, k=k, x=x, s=s, xbar=xbar, theta=25)), tol=0.0001)
 }
