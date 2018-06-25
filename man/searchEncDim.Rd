@@ -27,6 +27,6 @@ optimal parameter value.
 finds the optimal encoding dimension for a given data set.
 }
 \examples{
-ods <- makeExampleDataSet
+ods <- makeExampleOutriderDataSet()
 searchEncDim(ods)
 }
