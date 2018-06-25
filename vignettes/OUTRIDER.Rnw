@@ -21,7 +21,6 @@ BiocStyle::latex()
 <<knitr, echo=FALSE, cache=FALSE, results="hide">>=
 library(knitr)
 opts_chunk$set(
-    concordance=TRUE,
     tidy=FALSE,
     dev="png",
     fig.width=7,
@@ -43,10 +42,7 @@ opts_chunk$set(
 \begin{document}
 
 <<include=FALSE>>=
-library(knitr)
-opts_chunk$set(
-concordance=TRUE
-)
+opts_chunk$set(concordance=TRUE)
 @
 
 
@@ -56,13 +52,13 @@ concordance=TRUE
 
 In the field of diagnostics of rare diseases, \rna{} is emerging as an 
 important and complementary tool for whole exome and whole genome sequencing. 
-\outrider{} is a framework which detects aberrant gene expression within a 
+\outrider{} is a framework that detects aberrant gene expression within a 
 group of samples. It uses the negative binomial distribution which is fitted 
 for each gene over all samples. We additionally provide an autoencoder, 
 which automatically controls for co-variation before fitting. After fitting,
 each sample can be tested for aberrantly expressed genes. Furthermore,
-\outrider{} provides methods to easily filter unexpressed genes and 
-visualize the results.
+\outrider{} provides methods to easily filter unexpressed genes and to 
+analyse as well as to visualize the results.
 
 \vspace{3em}
 
@@ -101,7 +97,7 @@ if(multicoreWorkers() >= 4){
 @
 
 \section{Introduction}
-\outrider{} (OUTlier in Rna-seq fInDER) is a tool to find aberrantly expressed
+\outrider{} (OUTlier in RNA-seq fInDER) is a tool to find aberrantly expressed
 genes in RNA-seq samples. It does so by fitting a negative binomial model 
 to RNA-seq read counts, correcting for variations in sequencing depth and 
 apparent co-variations across samples. Read counts significantly deviating 
@@ -137,7 +133,7 @@ To get started on the preprocessing step, we recommend to read the
 introductions of the aforementioned tools or the RNA-seq workflow from
 Bioconductor. In brief, one usually starts with the raw FASTQ files from
 the RNA sequencing run. Those are then aligned to a given reference genome. As of
-now (May 2018), we recommend the STAR aligner. After obtaining the aligned BAM
+now (June 2018), we recommend the STAR aligner. After obtaining the aligned BAM
 files, one can map the reads to exons or genes of a GTF annotation file using HT-seq.
 The resulting count table can then be loaded into the \outrider{} package
 as we will describe below.
@@ -146,11 +142,11 @@ as we will describe below.
 
 Here we assume that we already have a count table and no additional 
 preprocessing needs to be done. Then we can start and obtain results with 
-3 commands. First, create an \ods{} from a count table, then run the full 
-pipeline using the command \Rfunction{OUTRIDER}. In a third step, a results
-table can be generated from the \ods{} with the \Rfunction{results} function.
-Furthermore, analysis plots, which are described in section \ref{sec:Results},
-can be created from the \ods{} object directly.
+3 commands. First, create an \ods{} from a count table. Second, run the full 
+pipeline using the command \Rfunction{OUTRIDER}. In the third and last step the result
+table is extracted from the \ods{} with the \Rfunction{results} function.
+Furthermore, analysis plots that are described in section \ref{sec:Results}
+can be directly created from the \ods{} object.
 
 <<quick_guide, fig.height=5>>=
 library(OUTRIDER)
@@ -171,15 +167,14 @@ ods <- OUTRIDER(ods)
 res <- results(ods)
 head(res)
 
-# example of a QQplot for the first outlier
-geneID <- res[1, geneID]
-plotQQ(ods, geneID)
+# example of a Q-Q plot for the most significant outlier
+plotQQ(ods, res[1, geneID])
 @
 
 \section{An \outrider{} analysis in detail}
 
 For this Tutorial we will use the full rare disease data set from Kremer 
-et al. For testing, this package contains also a subset of it.
+\italic{et al}. For testing, this package contains also a subset of it.
 
 <<GetDataSet>>=
 URL <- paste0("https://media.nature.com/original/nature-assets/", 
@@ -193,12 +188,12 @@ ods <- OutriderDataSet(countData=ctsTable)
 \subsection{Preprocessing}
 
 It is recommended to apply some data preprocessing before fitting. Our
-model requires that for every gene there is at least one sample with counts and 
-for large data sets, that there is at least one count in 100 samples. Therefore,
+model requires that for every gene at least one sample has at least one read (counts > 0) and 
+that we observer at least 1 read every 100 samples. Therefore,
 all genes that are not expressed must be discarded.
 
-We provide the function \Rfunction{filterExpression} to remove genes which have 
-low FPKM expression values. The needed annotation to estimate FPKM values 
+We provide the function \Rfunction{filterExpression} to remove genes that have 
+low FPKM (Fragments Per Kilo base per Million reads) expression values. The needed annotation to estimate FPKM values 
 from the counts should be the same as for the counting. Here, we normalize 
 by the total exon length of a gene.
 
@@ -217,7 +212,7 @@ map <- select(org.Hs.eg.db, keys=keys(txdb, keytype = "GENEID"),
 @
 
 The \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only well annotated 
-genes. This annotation will miss a lot of genes. To include all predicted 
+genes. This annotation will miss a lot of genes captured by RNA-seq. To include all predicted 
 annotations as well as non-coding RNAs please download the txdb object from 
 our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
 or create it yourself from the UCSC website\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
@@ -236,7 +231,7 @@ map <- dbGetQuery(con, 'select kgId AS TXNAME, geneSymbol from kgXref')
 @
 
 <<filtering, fig.height=5>>=
-# calculating FPKM values and only labeling not expressed genes
+# calculate FPKM values and only label not expressed genes
 ods <- filterExpression(ods, txdb, mapping=map, 
         filterGenes=FALSE, savefpkm=TRUE)
 
