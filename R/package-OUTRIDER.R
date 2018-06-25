@@ -34,9 +34,10 @@
 #' @importFrom methods validObject is new as 
 #' 
 #' @importFrom ggplot2 ggplot geom_point aes geom_hline geom_vline 
-#'          geom_vline ggtitle theme element_text geom_tile
+#'          geom_vline ggtitle theme element_text geom_tile geom_line
 #'          geom_segment scale_colour_manual scale_y_log10 labs unit
-#'          geom_histogram scale_x_log10 scale_fill_manual
+#'          geom_histogram scale_x_log10 scale_fill_manual ylim
+#'          
 #' 
 #' @importFrom scales trans_format math_format         
 #'         
