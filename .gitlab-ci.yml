@@ -2,22 +2,20 @@ variables:
   PKGNAME:     "OUTRIDER"
   PKGDIR:      "./"
   R_LIBS_U:    "tmp_lib"
-  RVER:        "3.4.2-Bioc3.5"
+  RVER:        "3.5.0-Bioc3.7"
   PyVER:       "3-5.0.1"
   TEXVER:      "2016"
   AE_REPO:     "https://github.com/gagneurlab/autoCorrection.git"
 #  CI_DEBUG_TRACE: "true"
 
 stages:
-  - RCheck
-  - BiocCheck
-  - CovR
-  - Vignette
+  - testing
 
 before_script:
   - module load "i12g/anaconda/$PyVER"
   - module load "i12g/R/$RVER"
   - module load "i12g/texlive/$TEXVER"
+  - export R_LIBS_U="${CI_JOB_ID}_${R_LIBS_U}"
   - mkdir $R_LIBS_U
   - python -m venv --without-pip "$R_LIBS_U/python-env" 
   - source "$R_LIBS_U/python-env/bin/activate"
@@ -30,28 +28,28 @@ before_script:
   - R_LIBS_USER=$R_LIBS_U Rscript --vanilla -e "install.packages('${PKG_FILE_NAME}', lib='$R_LIBS_U', repo=NULL)"
 
 R-check:
-  stage: RCheck
+  stage: testing
   when: always
   tags: [shell]
   script:
     - R_LIBS_USER=$R_LIBS_U R --vanilla CMD check --no-vignettes --timings "${PKG_FILE_NAME}"
 
 R-BiocCheck:
-  stage: BiocCheck
+  stage: testing
   when: always
   tags: [shell]
   script:
     - R_LIBS_USER=$R_LIBS_U R --vanilla CMD BiocCheck --new-package --no-check-vignettes "${PKG_FILE_NAME}"
 
 R-coverage:
-  stage: CovR
+  stage: testing
   when: always
   tags: [shell]
   script:
     - R_LIBS_USER=$R_LIBS_U Rscript --vanilla -e "library('scared'); covr::package_coverage('$PKGDIR')"
 
 R-check_vignettes:
-  stage: Vignette
+  stage: testing
   when: always
   tags: [shell]
   script:
