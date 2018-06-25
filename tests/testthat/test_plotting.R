@@ -11,9 +11,9 @@ test_that("plotting", {
     
     expect_null(plotQQ(ods, 1))
     expect_null(plotQQ(ods, global=TRUE))
-    expect_null(plotQQ(ods, global=TRUE, breakTies=TRUE))
-    expect_null(plotQQ(ods, global=TRUE, filterOutliers=TRUE))
-    
+    expect_null(plotQQ(ods, global=TRUE, outlierRatio = 0.001))
+    expect_null(plotQQ(ods, global=TRUE, outlierRatio = NULL))
+
     expect_null(plotAberrantPerSample(ods))
     
     expect_is(plotFPKM(ods), 'ggplot')
