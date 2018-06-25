@@ -34,20 +34,11 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     if(!is(ods, 'OutriderDataSet')){
         stop('Please provide an OutriderDataSet')
     }
-    if(is.null(geneID)&isFALSE(global)){
+    stopifnot(isScalarLogical(global))
+    if(is.null(geneID) & isFALSE(global)){
         stop('Please provide a geneID or set global to TRUE')
     }
-    stopifnot(isScalarLogical(global))
-    if(length(col) == 2 & isTRUE(global)){
-        col <- col[c(2,1)]
-    }
-    if(is.null(main)){
-        if(isTRUE(global)){
-            
-        } else {
-            main <- paste0('Q-Q plot for gene: ', geneID)
-        }
-    }
+
     # Singel gene QQplot.
     if(isFALSE(global)){
         if(is.null(geneID)){
@@ -55,7 +46,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         }
         # Produce multiple qqplot if geneID is a vector.
         if(length(geneID)>1L){
-            sapply(geneID, plotQQ, main=main, legendPos=legendPos, col=col[1],
+            sapply(geneID, plotQQ, main=main, legendPos=legendPos, col=col,
                    global=FALSE)
             return()
         }
@@ -68,54 +59,43 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         }
         pVal <- as.numeric(assay(ods[geneID,], 'pValue'))
         #plot all points with cex=1 for single gene.
-        plotPoint <- TRUE
         pointCex <- 1
         #data table with expected and observerd log10(pValues)
-        df <- data.table(obs= -log10(pVal), col=ifelse(aberrant(ods[geneID,], 
-                                padjCutoff=padjCutoff, 
-                                zScoreCutoff=zScoreCutoff, by='sample'), 
-                        col[2], col[1]),
-                pch=pch, subset=FALSE, plotPoint=plotPoint)[order(-obs)]
-    }
+        aberrantEvent <- aberrant(ods[geneID,], padjCutoff=padjCutoff,
+                zScoreCutoff=zScoreCutoff, by='sample')
+        df <- data.table(obs= -log10(pVal), pch=pch, subset=FALSE, 
+                col=ifelse(aberrantEvent, col[2], col[1]))
+    
     # global QQplot
-    else {
+    } else {
         if(is.null(main)){
             main <- 'Global Q-Q plot'
         }
         if(is.null(col)){
-            col <- c('#1b9e77', '#d95f02')
+            col <- c('#d95f02', '#1b9e77')
         }
         pVal <- as.numeric(assay(ods, 'pValue'))
-        plotPoint <- TRUE
+        
         # Reducing Point size for global QQplot.
         pointCex <- .5
         
         #data table with expected and observerd log10(pValues)
-        df <- data.table(obs= -log10(pVal), 
-            col=col[1],
-            pch=pch, subset=FALSE, 
-            plotPoint=plotPoint)[order(-obs)]  
+        df <- data.table(obs= -log10(pVal), col=col[1], pch=pch, subset=FALSE)
         
         if(!is.null(outlierRatio)){
             odssub <- ods[,aberrant(ods, by='s', padjCutoff=padjCutoff,
-                zScoreCutoff=zScoreCutoff) < outlierRatio*length(ods)]
+                    zScoreCutoff=zScoreCutoff) < outlierRatio*length(ods)]
             pVal <- as.numeric(assay(odssub, 'pValue'))
             
-            dfsub <- data.table(obs= -log10(pVal), 
-                col=col[2],
-                pch=pch, subset=TRUE, 
-                plotPoint=plotPoint)[order(-obs)] 
+            dfsub <- data.table(obs= -log10(pVal), col=col[2], pch=pch,
+                    subset=TRUE)
             df <- rbind(df, dfsub)
         }
-        df <- df[order(-obs)]
-        
-        if(isTRUE(sample)){
-            df[,plotPoint:=seq_len(.N) %in% c(seq_len(min(.N, 5000)), 
-                    sample(seq_len(.N), size=min(.N, 30000)))]
-        }
     }
+    
     # compute expected pValues.
-    df[,exp:= -log10(ppoints(.N)), by='subset']
+    df <- df[order(subset, -obs)]
+    df[,exp:=-log10(ppoints(.N)), by='subset']
     if(is.null(xlim)){
         xlim=range(df[,exp])
     }
@@ -161,8 +141,15 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     }
     
     #Add points to plot.
-    points(df[,exp], df[,obs],  
-         pch=df[,pch], col=df[,col], cex=pointCex)
+    if(isTRUE(sample)){
+        sample <- c(5000, 30000)
+    }
+    if(is.numeric(sample) & length(sample) == 2){
+        plotPoint <- df[,seq_len(.N) %in% c(seq_len(min(.N, sample[1])), 
+                sample(seq_len(.N), size=min(.N, sample[2]))), by='subset'][,V1]
+        df <- df[plotPoint]
+    }
+    df[,points(exp, obs, pch=pch, col=col, cex=pointCex)]
     
     # diagonal and grid
     abline(0,1,col="firebrick")
