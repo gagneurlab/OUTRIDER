@@ -92,7 +92,7 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
     }
         
     w_fit <- fit$par
-    print(Sys.time() - t))
+    print(Sys.time() - t)
     print(
         paste0('nb-PCA loss: ',
             loss(w_fit,k, x, s,xbar, theta))
