@@ -111,10 +111,10 @@ readNBModel <- function(ods, modelFile){
     }
     model <- fread(modelFile)
     if(!all(rownames(ods) %in% model[,rownames])){
-        stop(paste("We could not find all needed fit parameters in the model.",
-                "We are missing the following features: ", paste(collapse="\n",
-                    head(rownames(ods)[rownames(ods) %in% model[,rownames]], 20)
-                )))
+        failedFeatures <- rownames(ods)[rownames(ods) %in% model[,rownames]]
+        stop("We could not find all needed fit parameters in the model. ",
+                "We are missing the following features: ", 
+                paste(collapse="\n", head(failedFeatures, 20)))
     }
     
     # overwrite fit parameters of object
@@ -168,8 +168,7 @@ parametricDispersionFit <- function (means, disps){
         good <- which((residuals > 1e-04) & (residuals < 15))
         suppressWarnings({
             fit <- glm(disps[good] ~ I(1/means[good]), 
-                       family = Gamma(link = "identity"), 
-                       start = coefs)
+                    family=Gamma(link="identity"), start=coefs)
         })
         oldcoefs <- coefs
         coefs <- coefficients(fit)

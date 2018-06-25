@@ -78,5 +78,5 @@ NULL
 globalVariables(c("color", "disp", "frac", "Fraction", "loggeomeans", 
         "medianCts", "mu", "negLog10pVal", "normcounts", "norm_rank", "obs", 
         "padj_rank", "padjust", "passedFilter", "pValue", "sampleID", 
-        "value", "Var1", "Var2", ".x", "zScore"), package="OUTRIDER")
+        "value", "V1", "Var1", "Var2", ".x", "zScore"), package="OUTRIDER")
 

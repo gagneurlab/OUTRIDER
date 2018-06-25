@@ -47,7 +47,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         # Produce multiple qqplot if geneID is a vector.
         if(length(geneID)>1L){
             sapply(geneID, plotQQ, main=main, legendPos=legendPos, col=col,
-                   global=FALSE)
+                    global=FALSE)
             return()
         }
         #Plot QQplot for single gene.
@@ -103,8 +103,10 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         ylim=range(df[,obs])
     }
     plot(NA, xlim=xlim, ylim=ylim, main=main,
-         xlab=expression(paste(-log[10], " (expected ", italic(P), "-value)")),
-         ylab=expression(paste(-log[10], " (observed ", italic(P), "-value)")))
+            xlab=expression(
+                    paste(-log[10], " (expected ", italic(P), "-value)")),
+            ylab=expression(
+                    paste(-log[10], " (observed ", italic(P), "-value)")))
     
     
     # confidence band
@@ -315,7 +317,7 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
     if(is.numeric(geneID)){
         if(!(is.numeric(geneID) && max(geneID) <= nrow(ods))){
             stop(paste('Gene index is out of bounds:', 
-                       paste(geneID, collapse=", ")))
+                    paste(geneID, collapse=", ")))
         }
         geneID <- rownames(ods)[geneID]
     }
@@ -727,8 +729,8 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
                     function(object, compareDisp=NULL){
     # validate input                 
     if(!'disp' %in% names(mcols(object))){
-        stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods)
-             or ods <- fit(ods)')
+        stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods) ',
+                'or ods <- fit(ods)')
     } 
     if(is.null(compareDisp)){
         compareDisp <- 'weights' %in% names(metadata(object))
@@ -749,8 +751,8 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     
     # plot dispersion
     plot(NA, xlim=range(odsVals$mu), ylim=range(1/odsVals$disp),
-         pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
-         main="Dispersion estimates versus mean expression")
+            pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
+            main="Dispersion estimates versus mean expression")
     if(!is.null(nonAutoVals)){
         points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="black")
     }

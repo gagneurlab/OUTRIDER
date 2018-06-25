@@ -103,9 +103,9 @@ fitNegBinom <- function(index, ctsData, normF, dropExtremeRank){
         normF <- normF[index,]
     }
     if(is.null(normF)){
-        stop(paste("Please provide sizeFactors or normalizationFactors", 
-                   "for better estimates!\n  To overcome this just set the", 
-                   "sizeFactors like this:\n    sizeFactors(ods) <- 1"))
+        stop("Please provide sizeFactors or normalizationFactors ", 
+                "for better estimates!\n  To overcome this just set the ", 
+                "sizeFactors like this:\n    sizeFactors(ods) <- 1")
     }
     if(isTRUE(dropExtremeRank)){
         #option to remove extreme points from distribution prior to fitting.
