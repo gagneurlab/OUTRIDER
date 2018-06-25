@@ -109,6 +109,9 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     
     # confidence band
     # http://genome.sph.umich.edu/wiki/Code_Sample:_Generating_QQ_Plots_in_R
+    if(isTRUE(conf.alpha)){
+        conf.alpha <- 0.05
+    }
     if(is.numeric(conf.alpha)){
         exp <- df[subset==FALSE,exp]
         len <- length(exp)
@@ -128,18 +131,6 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
                     rev(upper), getY(upper, exp), getY(lower, exp), lower)))
     }
     
-    #Add legend
-    if(isTRUE(global)){
-        legend(legendPos, c("Full data set", "Filtered data set", paste0(
-        "CI (\u03B1 = ", signif(conf.alpha, 2), ")")),
-        lty=1, lwd=6, col=c(col, "gray"))
-    } else {
-        if(is.numeric(conf.alpha)){
-            legend(legendPos, paste0("CI (\u03B1 = ",
-            signif(conf.alpha, 2), ")"), lty=1, lwd=7, col="gray")
-        }
-    }
-    
     #Add points to plot.
     if(isTRUE(sample)){
         sample <- c(5000, 30000)
@@ -154,6 +145,24 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     # diagonal and grid
     abline(0,1,col="firebrick")
     grid()
+    
+    #Add legend
+    if(isTRUE(global)){
+        legenddt <- data.table(onlyFull=c(TRUE, FALSE, TRUE),
+                text=c("Full data set", "Filtered data set", 
+                        paste0("CI (\u03B1 = ", signif(conf.alpha, 2), ")")),
+                lty=1, lwd=6, col=c(col, "gray"))
+        if(length(unique(df[,subset])) == 1){
+            legenddt <- legenddt[onlyFull == TRUE]
+        }
+        legenddt[,legend(legendPos, text, lty=lty, lwd=lwd, col=col)]
+    } else {
+        if(is.numeric(conf.alpha)){
+            legend(legendPos, lty=1, lwd=7, col="gray",
+                    paste0("CI (\u03B1 = ", signif(conf.alpha, 2), ")"))
+        }
+    }
+    
     return(invisible())
 }
 
@@ -682,7 +691,7 @@ plotFPKM <- function(ods){
     
     if(any(histdata$fpkm == 0)){
         numZero <- sum(histdata$fpkm == 0)
-        message(paste(numZero, "sample-gene combinations are zero. This is",
+        message(paste0(numZero, " sample-gene combinations are zero. This is ",
                 signif(numZero/nrow(histdata)*100, 3), "% of the data"))
         histdata <- histdata[fpkm != 0]
     }
@@ -691,7 +700,7 @@ plotFPKM <- function(ods){
         geom_histogram(bins = 100) +
         scale_fill_manual(values = c("grey","darkgreen")) +
         theme(legend.position = c(0.1, 0.9)) +
-        scale_x_log10(labels = trans_format("log10", math_format(10^.x)))+
+        scale_x_log10(labels = trans_format("log10", math_format(10^.x))) +
         labs(x='FPKM', y='Frequency')
     p
 }
