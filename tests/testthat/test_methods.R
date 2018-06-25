@@ -30,11 +30,13 @@ test_that("result method", {
 })
 
 test_that("normalization method", {
-    ods <- makeExampleOutriderDataSet()
-    counts(ods[1:3,1]) <- matrix(c(1L,2L,3L), ncol = 1)
-    normalizationFactors(ods[1:3,1]) <- matrix(c(5L,5L,5L), ncol = 1)
+    ods <- makeExampleOutriderDataSet()[seq_len(3),1]
+    counts(ods) <- matrix(c(1L,2L,3L), ncol=1)
+    expect_null(normalizationFactors(ods))
+    nMat <- matrix(5L, ncol=1, nrow=3)
+    normalizationFactors(ods) <- nMat
+    expect_equivalent(normalizationFactors(ods), nMat)
     expect_error(results(ods), "The P-values are not computed yet..*")
-    
 })
 
 test_that("fit method", {
