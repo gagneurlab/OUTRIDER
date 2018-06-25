@@ -37,7 +37,7 @@
 #'          
 #' @importFrom gplots barplot2 bluered heatmap.2
 #' 
-#' @importFrom graphics plot abline axis box grid legend mtext par points 
+#' @importFrom graphics plot abline axis box grid legend lines mtext par points 
 #'          polygon text title
 #' 
 #' @importFrom matrixStats rowSds rowMedians rowQuantiles
