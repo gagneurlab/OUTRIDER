@@ -127,17 +127,10 @@ evalLoss <- function(ods, theta = 25){
     return(eval)
 }
 
-evalAutoCorrection <- function(ods, encoding_dim=20, fitDisp=FALSE){
+evalAutoCorrection <- function(ods, encoding_dim=20){
     
     ods <- autoCorrect(ods, q= encoding_dim)
-    if(isTRUE(fitDisp)){
-        print('Fitting disp')
-        ods <- fit(ods)
-        theta <- mcols(ods)[['disp']]
-    }else{
-        theta <- 25
-    }
-    
+    theta <- 25
     eloss <- evalLoss(ods, theta)
     
     print(paste0('Evaluation loss: ', eloss))
