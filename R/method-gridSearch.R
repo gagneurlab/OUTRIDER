@@ -45,7 +45,7 @@ findEncodingDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3,
 
     #params <- c(5,10,15,20,25,30,50,100)
     eval <- bplapply(params, 
-        function(i) evalAutoCorrection(ods, encoding_dim = i, fitDisp=fitDisp),
+        function(i) evalAutoCorrection(ods, encoding_dim = i),
             BPPARAM=BPPARAM)
     
     eval <- matrix(unlist(eval), ncol = 1, byrow = TRUE)
