@@ -7,7 +7,7 @@
 plotQQ(ods, geneID = NULL, global = FALSE, padjCutoff = 0.05,
   zScoreCutoff = 0, main = NULL, sample = TRUE, legendPos = "topleft",
   outlierRatio = 0.001, conf.alpha = 0.05, pch = 16, xlim = NULL,
-  ylim = NULL, col = NULL, ...)
+  col = NULL, ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
@@ -34,12 +34,12 @@ plotQQ(ods, geneID = NULL, global = FALSE, padjCutoff = 0.05,
 
 \item{xlim}{The x limits for the plot or NULL to use the data range}
 
-\item{ylim}{The y limits for the plot or NULL to use the data range}
-
 \item{col}{set color}
 
 \item{...}{additional arguments for the internal plotQQ function.
 This arguments are currently used for development.}
+
+\item{ylim}{The y limits for the plot or NULL to use the data range}
 }
 \value{
 None

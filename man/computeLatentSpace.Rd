@@ -16,7 +16,7 @@ A matrix containing the by the autoencoder computed latent space.
 function to output the latentspace determined by the autoencoder.
 }
 \examples{
-ds <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- autoCorrect(ods)
 computeLatentSpace(ods)
