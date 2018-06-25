@@ -18,7 +18,7 @@
 #' ods <- makeExampleOutriderDataSet()
 #' findEncodingDim(ods)
 findEncodingDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3, 
-                             inj='both', BPPARAM=bpparam()){
+                    inj='both', BPPARAM=bpparam()){
     
     # compute auto Correction
     ods <- estimateSizeFactors(ods)
@@ -119,22 +119,20 @@ injectOutliers <- function(ods, freq, zScore, inj){
 
 
 #evaluate loss = 1/n * Sum(log-likelihood(k | c))
-evalLoss <- function(ods, theta = 25){
+evalLoss <- function(ods, theta=25){
     N_corrupted <- sum(abs(assay(ods, 'trueCorruptions')))
     kTrue <- assay(ods, 'trueCounts')[assay(ods, 'trueCorruptions')!=0]
     c <- assay(ods, 'normalizationFactors')[assay(ods, 'trueCorruptions')!=0]
-    eval <- sum(-dnbinom(kTrue, mu=c , size = theta, log = TRUE))/N_corrupted
+    eval <- sum(-dnbinom(kTrue, mu=c , size=theta, log=TRUE))/N_corrupted
     return(eval)
 }
 
-evalAutoCorrection <- function(ods, encoding_dim=20){
+evalAutoCorrection <- function(ods, encoding_dim=20, theta=25){
     
-    ods <- autoCorrect(ods, q= encoding_dim)
-    theta <- 25
+    ods <- autoCorrect(ods, q=encoding_dim)
     eloss <- evalLoss(ods, theta)
     
     print(paste0('Evaluation loss: ', eloss))
     return(eloss)
-                 
 }
 
