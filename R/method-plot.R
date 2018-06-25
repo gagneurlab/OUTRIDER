@@ -797,9 +797,8 @@ plotPowerAnalysis <- function(ods){
     
     dt[,negLog10pVal:=-log10(pVal)]
     dt[,Fraction:=as.factor(frac)]
-    ggplot(dt, aes(mean, negLog10pVal, col=Fraction)) + geom_line() + 
+    ggplot(dt, aes(mean, negLog10pVal, col=Fraction)) +  
+        geom_smooth(method=lm, formula = y ~ splines::bs(x, 10), se = FALSE) +
         scale_x_log10(breaks=c(1,5,10,50,100,500,1000,5000,10000)) + 
         labs(x="Mean", y='-log10(P-value)') + ylim(0,15)
-        
-    
 }
