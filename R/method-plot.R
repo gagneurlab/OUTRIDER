@@ -770,3 +770,36 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     legend("bottomleft", legText, col=legCol, pch=20, lty=1, lwd=3)
 })
 
+
+
+#' PowerAnalysis Plot
+#'
+#' The spikes in the plot do come from the fraction not beeing integer valued,
+#' but the negative binomial is only defined for integer values.
+#'
+#' @param ods OutriderDataSet
+#'
+#' @return a plot showing, wich P-value can be theoretically reached for 
+#' specified fractions of expression reads.
+#' @export
+#'
+#' @examples
+#' ods <- makeExampleOutriderDataSet()
+#' ods <- fit(ods)
+#' plotPowerAnalysis(ods)
+plotPowerAnalysis <- function(ods){
+    dispfit <-getDispEstsData(ods)
+    m <- 10^seq.int(0,4,length.out = 1E4)
+    d <- 1/dispfit$fit(m)
+    dt<-rbindlist(lapply(c(0,0.1,0.2,0.3,0.5), function(frac) 
+        data.table(mean=m, disp=d, frac=frac, 
+                   pVal=pnbinom(frac * m, mu = m, size=d))))
+    
+    dt[,negLog10pVal:=-log10(pVal)]
+    dt[,Fraction:=as.factor(frac)]
+    ggplot(dt, aes(mean, negLog10pVal, col=Fraction)) + geom_line() + ylim(0,15) +
+        scale_x_log10(breaks=c(1,5,10,50,100,500,1000,5000,10000)) + 
+        labs(x="Mean", y='-log10(P-value)')
+        
+    
+}
