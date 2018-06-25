@@ -34,9 +34,19 @@ w <- c(rnorm(p*q, sd=1/p*q), rep(0,p))
 # expect a real positiv number.
 loss(w, k, x, s, xbar, theta)
 
+# numeric Gradient
+numericLossGrad <- function(fn, epsilon, w,...){
+    grad <- list()
+    for(i in seq_along(w)){
+        eps <- rep(0, length(w))
+        eps[i] <- epsilon
+        grad[i] <- (fn(w + eps, ...) - fn(w -eps, ...))/2*epsilon
+    }
+    return(grad)
+}
 
 # testing the gradient
-plot(numericLossGrad(loss, 1E-8, w, k=k, x=x, s=s, xbar=xbar, theta=25),
+plot(numericLossGrad(loss, 1E-5, w, k=k, x=x, s=s, xbar=xbar, theta=25),
      lossGrad(w, k, x, s, xbar, theta))
 
 for(i in 1:5){

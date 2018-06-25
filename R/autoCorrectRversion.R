@@ -230,16 +230,6 @@ predictC <- function(w, k, s, xbar){
 }
 
 
-numericLossGrad <- function(fn, epsilon, w,...){
-    grad <- list()
-    for(i in seq_along(w)){
-        eps <- rep(0, length(w))
-        eps[i] <- epsilon
-        grad[i] <- (fn(w + eps, ...) - fn(w -eps, ...))/2*epsilon
-    }
-    return(grad)
-}
-
 # Use the R compiler for the loss and grad functions.
 cmpLossGrad <- cmpfun(lossGrad)
 cmpLoss <- cmpfun(loss)
