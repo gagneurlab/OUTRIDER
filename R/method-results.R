@@ -19,7 +19,7 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
     }
     
     if(isFALSE(all)){
-        object <- object[aberrant(ods, padjCutoff=padjCutoff, 
+        object <- object[aberrant(object, padjCutoff=padjCutoff, 
                 zScoreCutoff=zScoreCutoff, by="gene") > 0,]
         if(dim(object)[1]==0){
             warning('No significant events: use all=TRUE to print all counts.')
