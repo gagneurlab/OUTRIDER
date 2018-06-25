@@ -109,7 +109,7 @@ autoCorrectR <- function(ods, q=20, theta=25){
 #' @export
 #'
 #' @examples 
-#' ds <- makeExampleOutriderDataSet()
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' ods <- autoCorrect(ods)
 #' computeLatentSpace(ods)
@@ -136,7 +136,6 @@ computeLatentSpace <- function(ods){
     if(ncol(l)!=ncol(ods)){
         stop('Dimensions do not match.')
     }
-    
     return(l)
 }
 
