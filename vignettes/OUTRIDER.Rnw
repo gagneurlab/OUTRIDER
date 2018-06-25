@@ -7,6 +7,8 @@
 
 \usepackage{amsmath}
 \usepackage{verbatim}
+\usepackage[nottoc]{tocbibind}
+
 \newcommand{\outrider}{\Biocpkg{OUTRIDER}}
 \newcommand{\rna}{RNA-seq}
 \newcommand{\deseq}{\Biocpkg{DESeq2}}
@@ -28,7 +30,7 @@ opts_chunk$set(
     dpi = 300,
     message=FALSE,
     warning=FALSE,
-    cache=TRUE
+    cache=FALSE
 )
 @
 
@@ -44,7 +46,6 @@ opts_chunk$set(
 <<include=FALSE>>=
 opts_chunk$set(concordance=TRUE)
 @
-
 
 \maketitle
 
@@ -104,7 +105,7 @@ apparent co-variations across samples. Read counts significantly deviating
 from the distribution are detected as outliers.
 
 Differential gene expression analysis from RNA-seq data is well-established.
-The packages \deseq{} or \Biocpkg{edgeR} provide effective 
+The packages \deseq{}\cite{Love2014} or \Biocpkg{edgeR}\cite{Robinson2010} provide effective 
 workflows and preprocessing steps to perform differential gene expression 
 analysis. However, these methods aim at detecting significant differences
 between groups of samples. In contrast, \outrider{} aims at detecting
@@ -133,7 +134,7 @@ To get started on the preprocessing step, we recommend to read the
 introductions of the aforementioned tools or the RNA-seq workflow from
 Bioconductor. In brief, one usually starts with the raw FASTQ files from
 the RNA sequencing run. Those are then aligned to a given reference genome. As of
-now (June 2018), we recommend the STAR aligner. After obtaining the aligned BAM
+now (June 2018), we recommend the STAR aligner\cite{Dobin2013}. After obtaining the aligned BAM
 files, one can map the reads to exons or genes of a GTF annotation file using HT-seq.
 The resulting count table can then be loaded into the \outrider{} package
 as we will describe below.
@@ -143,7 +144,7 @@ as we will describe below.
 Here we assume that we already have a count table and no additional 
 preprocessing needs to be done. Then we can start and obtain results with 
 3 commands. First, create an \ods{} from a count table. Second, run the full 
-pipeline using the command \Rfunction{OUTRIDER}. In the third and last step the result
+pipeline using the command \Rfunction{OUTRIDER}. In the third and last step the results
 table is extracted from the \ods{} with the \Rfunction{results} function.
 Furthermore, analysis plots that are described in section \ref{sec:Results}
 can be directly created from the \ods{} object.
@@ -173,8 +174,8 @@ plotQQ(ods, res[1, geneID])
 
 \section{An \outrider{} analysis in detail}
 
-For this Tutorial we will use the full rare disease data set from Kremer 
-\italic{et al}. For testing, this package contains also a subset of it.
+For this tutorial we will use the rare disease data set from Kremer \textit{et al}.\cite{Kremer2017}
+For testing, this package contains also a small subset of it.
 
 <<GetDataSet>>=
 URL <- paste0("https://media.nature.com/original/nature-assets/", 
@@ -189,11 +190,12 @@ ods <- OutriderDataSet(countData=ctsTable)
 
 It is recommended to apply some data preprocessing before fitting. Our
 model requires that for every gene at least one sample has at least one read (counts > 0) and 
-that we observer at least 1 read every 100 samples. Therefore,
+that we observe at least 1 read every 100 samples. Therefore,
 all genes that are not expressed must be discarded.
 
 We provide the function \Rfunction{filterExpression} to remove genes that have 
-low FPKM (Fragments Per Kilo base per Million reads) expression values. The needed annotation to estimate FPKM values 
+low FPKM (Fragments Per Kilobase of transcript per Million mapped reads) expression values. 
+The needed annotation to estimate FPKM values 
 from the counts should be the same as for the counting. Here, we normalize 
 by the total exon length of a gene.
 
@@ -217,7 +219,7 @@ annotations as well as non-coding RNAs please download the txdb object from
 our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
 or create it yourself from the UCSC website\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
 
-<<create txdb, eval=FALSE>>=
+<<create txdb, eval=FALSE, cache=FALSE>>=
 library(RMySQL)
 library(AnnotationDbi)
 txdbUrl <- paste0("https://i12g-gagneurweb.in.tum.de/public/",
@@ -231,53 +233,52 @@ map <- dbGetQuery(con, 'select kgId AS TXNAME, geneSymbol from kgXref')
 @
 
 <<filtering, fig.height=5>>=
-# calculate FPKM values and only label not expressed genes
+# calculate FPKM values and label not expressed genes
 ods <- filterExpression(ods, txdb, mapping=map, 
         filterGenes=FALSE, savefpkm=TRUE)
 
-# display the pre distribution of counts.
+# display the FPKM distribution of counts.
 plotFPKM(ods)
 
 # do the actual subsetting based on the filtering labels
-ods <- filterExpression(ods, txdb, mapping=map,
-        filterGenes=TRUE, savefpkm=TRUE)
+ods <- ods[mcols(ods)$passedFilter,]
 @
 
 \subsection{Controlling for Confounders}
 
 A next step in any analysis workflow is to visualize the correlations
-between samples. Here, we observe that samples are correlated. These 
-correlations are often due to confounders, technical like the sequencing 
-batch, or biological ones like sex. These confounders can harm the 
+between samples. In most RNA-seq experiments correlations between the samples can be observed. These 
+correlations are often due to confounders: technical confounders like the sequencing 
+batch or biological ones like sex. These confounders can harm the 
 detection of aberrant features. Therefore, we provide options to control 
 for them.
 
 <<plotting_between_sample_correlations>>=
 
 # Heatmap of the sample correlation
-# it annotates also the clusters resulting from the dendrogram
+# it can also annotate the clusters resulting from the dendrogram
 ods <- plotCountCorHeatmap(ods, normalized=FALSE, nCluster=4)
 
 @
 
 We have different ways to control for confounders present in the data.
 The first and standard way is to calculate the \Rfunction{sizeFactors} 
-as done in \deseq{}. 
+as done in \deseq{}\cite{Love2014}.
 
 Additionally, the \Rfunction{autoCorrect} function calls an 
-autoencoder, which automatically controls for confounders present in the data.
-Therefore an encoding dimension q needs to be set or the default value 20 is 
-used. The optimal value of q can be determinde using the
-\Rfunction{gridSearchEncDim} function. 
-After controlling for co-founders, the heatmap should be plotted again.
+autoencoder that automatically controls for confounders present in the data.
+Therefore an encoding dimension $q$ needs to be set or the default value 20 is 
+used. The optimal value of $q$ can be determinde using the
+\Rfunction{findEncodingDim} function. 
+After controlling for confounders, the heatmap should be plotted again.
 If it worked, no batches should be present and the correlations between 
-samples should be close to zero.
+samples should be reduced and close to zero.
 
 <<controlling_for_confounders>>=
 
 # automatically control for confounders 
 ods <- estimateSizeFactors(ods)
-ods <- autoCorrect(ods, q=13)
+# ods <- autoCorrect(ods, q=13)
 
 # Heatmap of the sample correlation after controlling
 ods <- plotCountCorHeatmap(ods, normalized=TRUE)
@@ -288,14 +289,14 @@ Alternatively, a \Rfunction{normalizationFactor} matrix can be provided.
 It must be computed beforehand using any method. Its purpose is to normalize
 for technical effects or control for additional expression patterns.
 
-\subsection{Fitting}
+\subsection{Fitting the negative binomial model}
 
-After all the preprocessing part, we can finally start fitting and testing. 
+After all the preprocessing part, we can finally start fitting and testing the data. 
 We provide a single wrapper function \Rfunction{OUTRIDER} to run the full 
 pipeline, but it can also be run step by step. By default the 
 \Rfunction{OUTRIDER} function runs all analysis functions and controls the 
 counts using \Rfunction{autoCorrect}. It does not include any preprocessing
-functions. Discarding genes or samples should be done manually 
+functions. Discarding non expressed genes or samples failing quality measurements should be done manually 
 before running the \Rfunction{OUTRIDER} function or starting the analysis
 pipeline.
 
@@ -303,14 +304,14 @@ To fit the dispersion and the mean, the \Rfunction{fit} function is applied
 to the \ods{}.
 
 <<fitting>>=
-# fit NB to each feature
+# fit negative binomial distribution to each feature
 ods <- fit(ods)
 
 # plot dispersion versus mean counts 
 plotDispEsts(ods)
 @
 
-\subsection{P-value computation}
+\subsection{P-value calculation}
 
 After determining the fit parameters, two-sided P-values are computed using 
 the following equation:
@@ -318,7 +319,7 @@ the following equation:
 \begin{equation}
     p_{ij} = 2 \cdot min \left\{\frac{1}{2}, \sum_{0}^{k_{ij}} 
         NB(\mu_{ij} ,\theta_i), 1 - \sum_{0}^{k_{ij-1}} 
-        NB(\mu_{ij} ,\theta_i) \right\}
+        NB(\mu_{ij} ,\theta_i) \right\},
 \end{equation}
 
 where the $\frac{1}{2}$ term handles the case of both terms exceeding 0.5, 
@@ -326,37 +327,37 @@ which can happen due to the discrete nature of the negative binomial
 distribution. Here $\mu_{ij}$ are computed as the product of the fitted 
 correction values from the autoencoder and the fitted mean adjustements. 
 If required a one-sided test can be performed using the 
-alternative argument and specifying 'less' or 'greater' depending on 
+argument \Robject{alternative} and specifying 'less' or 'greater' depending on 
 the research question. Multiple testing correction is done across all genes
-in a per-sample fashion using Benjamini-Yekutieli's false discovery rate method
-(Benjamini and Yekutieli, 2001). Alternatively, all other by 
-\Rfunction{p.adjust} supported methods can be used via the \Robject{method} 
-parameter.
+in a per-sample fashion using Benjamini-Yekutieli's false discovery rate method\cite{Benjamini2001}.
+Alternatively, all adjustment methods supported by 
+\Rfunction{p.adjust} can be used via the \Robject{method} 
+argument.
 
 <<pValue_computation>>=
-# compute pValues (nominal and adjusted)
+# compute P-values (nominal and adjusted)
 ods <- computePvalues(ods, alternative="two.sided", method="BY")
 @
 
 \subsection{Z-score calculation}
-The Z-scores on the log2 transformed counts can be used for visualization,
+The Z-scores on the log transformed counts can be used for visualization,
 filtering, and ranking of samples. By running the \Rfunction{computeZscores}
 function, the Z-scores are computed and stored in the \ods{} object.
 The Z-scores are calculated using:
 
 \begin{equation}
-    z_{ij} = \frac{l_{ij} - \mu_j^l}{\sigma_j^l}
+    z_{ij} = \frac{l_{j} - \mu_j^l}{\sigma_j^l}
 \end{equation}
 \begin{equation*}
-    l_{ij} = \log{(\frac{k_{ij} + 1}{c_{ij}})}
-\end{equation*}
+    l_{ij} = \log_2{(\frac{k_{ij} + 1}{c_{ij}})}
+\end{equation*},
 
-Where $\mu_j^l$ is the mean and $\sigma_j^l$ the 
-standard deviation of $l_{ij}$ for gene $j$. Here $l_{ij}$ are the log2 
-transformed counts after correction for confounders.
+where $\mu_j^l$ is the mean and $\sigma_j^l$ the 
+standard deviation of gene $j$ and $l_{ij}$ is the log 
+transformed count after correction for confounders.
 
 <<zScore_computation>>=
-# compute and store the Z-scores
+# compute the Z-scores
 ods <- computeZscores(ods)
 @
 
@@ -364,8 +365,8 @@ ods <- computeZscores(ods)
 \label{sec:Results}
 The \outrider{} package offers multiple ways to display the results. It 
 creates a results table containing all the values computed during the analysis.
-Furthermore, it offers various plot functions, which guide the user 
-through the analysis. 
+Furthermore, it offers various plot functions that guide the user 
+through the analysis.
 
 \subsection{Results table}
 
@@ -373,13 +374,13 @@ The \Rfunction{results} function gathers all the previously computed values
 and combines them into one table.
 
 <<results>>=
-# get results (only significant, padj < 0.05)
-res <- results(ods, zScore=0)
+# get results (default only significant, padj < 0.05)
+res <- results(ods)
 head(res)
 dim(res)
 
-# setting a different significant level or filtering for Z-scores
-res <- results(ods, padj=0.1, zScore=2)
+# setting a different significance level and filtering by Z-scores
+res <- results(ods, padjCutoff=0.1, zScoreCutoff=2)
 head(res)
 dim(res)
 @
@@ -388,27 +389,27 @@ dim(res)
 \subsection{Number of aberrant genes per sample}
 
 One quantity of interest is the number of aberrantly expressed genes 
-per sample. This can be displayed using the \Rfunction{plotAberrantPerSample}
-plotting function. Alternatively, the \Rfunction{aberrant} function can be 
-used to compute the number of aberrant counts. Those can be computed by sample,
-gene or in the whole data set. These numbers depend on the 
-cutoffs, which can be specified in both functions.
+per sample. This can be displayed using the plotting function \Rfunction{plotAberrantPerSample}.
+Alternatively, the function \Rfunction{aberrant} can be 
+used to compute the number of aberrant events. Those can be computed by sample,
+gene or in the whole data set through the paramter \Robject{by}. These numbers depend on the 
+cutoffs, which can be specified in both functions (\Robject{padjCutoff} and \Robject{zScoreCutoff}.
 
 <<aberrantperSample, fig.height=5>>=
 # number of aberrant genes per sample
 tail(sort(aberrant(ods, by="sample")))
 tail(sort(aberrant(ods, by="gene", zScore=1)))
 
-# plotting the aberrant events per sample
-plotAberrantPerSample(ods, padj=0.05)
+# plot the aberrant events per sample
+plotAberrantPerSample(ods, padjCutoff=0.05)
 @
 
 \subsection{Volcano plots}
 
 To view the distribution of P-values on a sample level, volcano plots can 
 be displayed. Most of the plots make use of the \CRANpkg{plotly} 
-framework to create interactive plots. For the vignette, we will always use 
-the basic R functionality from \CRANpkg{graphics}. 
+framework to create interactive plots. For this vignette, we will always use 
+the basic R functionality from \CRANpkg{graphics} by setting the argument \Rcode{basePlot} to \Rcode{TRUE}.
 
 <<volcano, fig.height=5>>=
 # MUC1344 is a diagnosed sample from Kremer et al.
@@ -416,7 +417,7 @@ plotVolcano(ods, "MUC1344", basePlot=TRUE)
 @
 
 
-\subsection{Gene plots}
+\subsection{Gene level plots}
 
 Additionally, we include two plots at the gene level. 
 \Rfunction{plotExpressionRank} plots the counts in ascending order. 
@@ -428,7 +429,7 @@ are displayed for each data point. The user can access this information
 by hovering over each data point with the mouse.
 
 <<visualization2, fig.height=5>>=
-# expression rank of an outlier gene
+# expression rank of a gene with outlier events
 plotExpressionRank(ods, "TIMMDC1", basePlot=TRUE)
 @
 
@@ -439,8 +440,10 @@ P-values for the other points. Here is an example with two outliers:
 
 <<visualization3, fig.height=5>>=
 ## QQ-plot for a given gene
-plotQQ(ods, "TIMMDC1", legendPos="topleft")
+plotQQ(ods, "TIMMDC1")
 @
+
+\bibliography{bibliography}
 
 \section*{Session info}
 
