@@ -143,7 +143,7 @@ computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
         warning(paste0("Some genes (n=", length(missingNames), 
                 ") are not found in the annotation. Setting 'basepairs' == 1. ",
                 "The first 6 names are:\n", 
-                paste(missingNames[1:min(6, length(missingNames))], 
+                paste(missingNames[seq_len(min(6, length(missingNames)))],
                         collapse=", ")))
         mcols(ods[is.na(mcols(ods)['basepairs'])[,1]])['basepairs'] <- 1
     }

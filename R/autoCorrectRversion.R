@@ -130,7 +130,7 @@ computeLatentSpace <- function(ods){
     
     W <- matrix(weights, nrow=ncol(k))
     b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
+    W <- W[,seq_len(ncol(W)-1)]
     l <- t(x%*%W) 
     
     if(ncol(l)!=ncol(ods)){
@@ -160,7 +160,7 @@ loss <- function(w, k, x, s, xbar, theta){
     ## encoding
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
+    W <- W[,seq_len(ncol(W)-1)]
 
     y <- t(t(x%*%W %*% t(W)) + xbar + b)
     #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
@@ -185,7 +185,7 @@ loss <- function(w, k, x, s, xbar, theta){
 lossGrad <- function(w, k, x, s, xbar, theta){
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
+    W <- W[,seq_len(ncol(W)-1)]
     
     # dW:
     #t1 <- t(x) %*% k %*% tWe
@@ -223,7 +223,7 @@ predictC <- function(w, k, s, xbar){
     x <-  t(t(log((1+k)/s)) - xbar)
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
+    W <- W[,seq_len(ncol(W)-1)]
     y <- t(t(x%*%W %*% t(W)) +b + xbar)
     #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
     s*exp(y)

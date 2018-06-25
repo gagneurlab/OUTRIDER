@@ -85,22 +85,23 @@ OutriderDataSet <- function(se=NULL, countData=NULL, colData=NULL, ...) {
         }
         if(!"condition" %in% colnames(colData(se))){
             createdCondition <- TRUE
-            colData(se)$condition <- factor(paste0('C', 1:dim(se)[2]))
+            colData(se)$condition <- factor(paste0('C', seq_len(ncol(se))))
         }
         se <- DESeqDataSet(se, design=~condition, ...)
         
     } else if(!is.null(countData)){
         if(is.null(colData)){
             colData <- DataFrame(
-                condition = factor(paste0("C", 1:dim(countData)[2])))
-            rownames(colData) <- paste0("sample", 1:dim(countData)[2])
+                condition = factor(paste0("C", seq_len(ncol(countData)))))
+            rownames(colData) <- paste0("sample", seq_len(ncol(countData)))
             if(!is.null(colnames(countData))){
                 rownames(colData) <- colnames(countData)
             }
         } else {
             if(!"condition" %in% colnames(colData)){
                 createdCondition <- TRUE
-                colData$condition <- factor(paste0("C", 1:dim(countData[2])))
+                colData$condition <- factor(
+                        paste0("C", seq_len(ncol(countData))))
             }
         }
         se <- DESeqDataSetFromMatrix(countData=countData, 
@@ -165,7 +166,7 @@ makeExampleOutriderDataSet <- function(n=1000, m=100, freq = 1E-2, zScore = 6,
     }
     
     ans <- OutriderDataSet(se=makeExampleDESeqDataSet(n=n, m=m*2, ...))
-    ans <- ans[,c(1:m-1, m+1)]
+    ans <- ans[,seq_len(m)]
     colnames(ans)[m] <- paste0("sample", m)
     ans <- injectOutliers(ans, freq = freq, zScore = zScore, inj=inj)
     return(ans)

@@ -90,12 +90,12 @@ injectOutliers <- function(ods, freq, zScore, inj){
     list_index <- which(index != 0, arr.ind = TRUE)
     # compute size factor normalized counts.
     # don't use it on the ods to not influence the later calculation.
-    sf <- DESeq2::estimateSizeFactorsForMatrix(counts(ods))
+    sf <- estimateSizeFactorsForMatrix(counts(ods))
     normtable <- t(t(counts(ods))/sf)
     counts <- counts(ods)
     
     n_rejected <- 0
-    for(i in 1:dim(list_index)[1]){
+    for(i in seq_len(nrow(list_index))){
         cts <- as.numeric(normtable[list_index[i,'row'],])
         fc <- zScore * sd(log2(1 + cts))
         clcount <- index[list_index[i,'row'], list_index[i,'col']]*fc + 

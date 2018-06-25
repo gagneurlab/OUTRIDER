@@ -39,7 +39,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     }
     stopifnot(isScalarLogical(global))
     if(length(col) == 2 & isTRUE(global)){
-        col <- col[2:1]
+        col <- col[c(2,1)]
     }
     if(is.null(main)){
         if(isTRUE(global)){
@@ -110,8 +110,8 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         df <- df[order(-obs)]
         
         if(isTRUE(sample)){
-            df[,plotPoint:= 1:.N %in% unique(sort(c(1:min(.N, 5000),
-                sample(1:.N, size=min(.N, 30000)))))]
+            df[,plotPoint:=seq_len(.N) %in% c(seq_len(min(.N, 5000)), 
+                    sample(seq_len(.N), size=min(.N, 30000)))]
         }
     }
     # compute expected pValues.
@@ -132,6 +132,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     if(is.numeric(conf.alpha)){
         exp <- df[subset==FALSE,exp]
         len <- length(exp)
+        slen <- seq_len(len)
         getY <- function(x, exp){
             x1 <- exp[2]
             x2 <- exp[1]
@@ -140,8 +141,8 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
             m <- (y2-y1)/(x2-x1)
             return(10^-(y1 + m*((x2+1)-x1)))
         }
-        upper <- qbeta(conf.alpha/2,   1:len, rev(1:len))
-        lower <- qbeta(1-conf.alpha/2, 1:len, rev(1:len))
+        upper <- qbeta(    conf.alpha/2, slen, rev(slen))
+        lower <- qbeta(1 - conf.alpha/2, slen, rev(slen))
         polygon(col="gray", border="gray", x=c(rev(exp), max(exp)+c(1,1), exp),
                 y=-log10(c(
                     rev(upper), getY(upper, exp), getY(lower, exp), lower)))
@@ -638,7 +639,7 @@ plotAberrantPerSample <- function(ods, padjCutoff=0.05, zScoreCutoff=0,
         col=col[(!count_vector < length(ods)*outlierRatio) + 1], main=main)
     
     n_names <- floor(length(count_vector)/20)
-    xnames= c(1:n_names*20)
+    xnames= seq_len(n_names*20)
     axis(side=1, at= c(0,bp[xnames,]), labels= c(0,xnames))
     axis(side=2, at=ticks, labels= labels_for_ticks, ylog=TRUE, las=2)
     
@@ -802,7 +803,7 @@ plotPowerAnalysis <- function(ods){
     dt[,negLog10pVal:=-log10(pVal)]
     dt[,Fraction:=as.factor(frac)]
     ggplot(dt, aes(mean, negLog10pVal, col=Fraction)) +  
-        geom_smooth(method=lm, formula = y ~ splines::bs(x, 10), se = FALSE) +
+        geom_smooth(method=lm, formula = y ~ bs(x, 10), se = FALSE) +
         scale_x_log10(breaks=c(1,5,10,50,100,500,1000,5000,10000)) + 
         labs(x="Mean", y='-log10(P-value)') + ylim(0,15) 
 }
