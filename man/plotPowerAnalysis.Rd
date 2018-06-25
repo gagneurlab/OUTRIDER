@@ -18,7 +18,8 @@ The spikes in the plot do come from the fraction not beeing integer valued,
 but the negative binomial is only defined for integer values.
 }
 \examples{
-ods <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet(ods)
+ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
 plotPowerAnalysis(ods)
 }
