@@ -4,7 +4,7 @@
 \alias{OutriderDataSet}
 \title{The constructor function for OutriderSettings}
 \usage{
-OutriderDataSet(se = NULL, countData = NULL, colData = NULL, ...)
+OutriderDataSet(se, countData, colData, ...)
 }
 \arguments{
 \item{se}{RangedSummarizedExperiment object}

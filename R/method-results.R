@@ -111,12 +111,11 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
 #' @docType methods
 #' @name results
 #' @rdname results
-#' @aliases results results,OutriderDataSet-method
 #' @export results
 #' @export
 setGeneric("results", function(object, ...) standardGeneric("results"))
 
-#' @export results
+#' @rdname results
 #' @export
 setMethod("results", "OutriderDataSet", function(object, 
                     padjCutoff=0.05, zScoreCutoff=0, round=TRUE, all=FALSE, 

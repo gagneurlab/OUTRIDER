@@ -77,46 +77,36 @@ setMethod("show", "OutriderDataSet", function(object) {
 #'     ods
 #'     
 #' @export
-OutriderDataSet <- function(se=NULL, countData=NULL, colData=NULL, ...) {
-    createdCondition <- FALSE
-    if(!is.null(se)){
+OutriderDataSet <- function(se, countData, colData, ...) {
+    
+    # use SummarizedExperiment object
+    if(!missing(se)){
         if(!is(se, "SummarizedExperiment")){
             stop("'se' must be a RangedSummarizedExperiment object")
         }
-        if(!"condition" %in% colnames(colData(se))){
-            createdCondition <- TRUE
-            colData(se)$condition <- factor(paste0('C', seq_len(ncol(se))))
-        }
-        se <- DESeqDataSet(se, design=~condition, ...)
-        
-    } else if(!is.null(countData)){
-        if(is.null(colData)){
-            colData <- DataFrame(
-                condition = factor(paste0("C", seq_len(ncol(countData)))))
-            rownames(colData) <- paste0("sample", seq_len(ncol(countData)))
-            if(!is.null(colnames(countData))){
-                rownames(colData) <- colnames(countData)
+        se <- DESeqDataSet(se, design=~1, ...)
+    
+    # use raw count data
+    } else if(!missing(countData)){
+        if(missing(colData)){
+            cols <- colnames(countData)
+            if(is.null(cols)){
+                cols <- paste0("sample", seq_len(ncol(countData)))
             }
-        } else {
-            if(!"condition" %in% colnames(colData)){
-                createdCondition <- TRUE
-                colData$condition <- factor(
-                        paste0("C", seq_len(ncol(countData))))
-            }
+            colData <- DataFrame(sampleID=cols)
+            rownames(colData) <- colData[['sampleID']]
+            colnames(countData) <- colData[['sampleID']]
         }
         se <- DESeqDataSetFromMatrix(countData=countData, 
-                colData=colData, design=~condition, ...)
+                colData=colData, design=~1, ...)
         
+    # nothing provided
     } else {
-        stop("One of the se or countData parameter has to be defined!")
+        stop("At least one of the se or countData argument has to be defined!")
     }
     
     obj <- new("OutriderDataSet", se)
     validObject(obj)
-    
-    if(createdCondition){
-        colData(obj)$condition <- NULL
-    }
     
     return(obj)
 }
@@ -131,7 +121,7 @@ OutriderDataSet <- function(se=NULL, countData=NULL, colData=NULL, ...) {
 #' @param n number of simulated genes 
 #' @param m number of simulated samples.
 #' @param freq frequency of in-silico outliers. 
-#' @param zScore absolute zScore of in-silico outliers (default =6).
+#' @param zScore absolute zScore of in-silico outliers (default 6).
 #' @param inj determines whether counts are injected with the strategy 
 #'            ('both', 'low', 'high'), default is 'both'.
 #' @param ... further arguments to \code{makeExampleDESeqDataSet}
@@ -153,9 +143,11 @@ OutriderDataSet <- function(se=NULL, countData=NULL, colData=NULL, ...) {
 #' ods3
 #' 
 #' @export 
-makeExampleOutriderDataSet <- function(n=1000, m=100, freq = 1E-2, zScore = 6, 
-                    inj=c('both', 'low', 'high'), ..., 
-                    dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall')){
+makeExampleOutriderDataSet <- function(n=1000, m=100, freq=1E-2, zScore=6, 
+                    inj=c('both', 'low', 'high'),
+                    dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall'),
+                    ...){
+    
     dataset <- match.arg(dataset)
     inj <- match.arg(inj)
     if(dataset != 'none'){
