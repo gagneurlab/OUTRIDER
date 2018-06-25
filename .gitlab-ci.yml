@@ -46,7 +46,7 @@ R-coverage:
   when: always
   tags: [shell]
   script:
-    - R_LIBS_USER=$R_LIBS_U Rscript --vanilla -e "library('scared'); covr::package_coverage('$PKGDIR')"
+    - R_LIBS_USER=$R_LIBS_U Rscript --vanilla -e "library('$PKGNAME'); covr::package_coverage('$PKGDIR')"
 
 R-check_vignettes:
   stage: testing
