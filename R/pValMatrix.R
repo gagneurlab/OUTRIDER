@@ -68,7 +68,7 @@ pValMatrix <- function(ods, alternative, BPPARAM){
         normF <- sizeFactors(ods)
     }
     
-    pValMat <- bplapply(seq_along(ods), pValNorm, ctsData=ctsData, disp=disp,
+    pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, disp=disp,
             mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
     
     pValMat <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
@@ -100,38 +100,27 @@ pValMatrix <- function(ods, alternative, BPPARAM){
 #'
 #' @return p Value
 #' @noRd
-pVal <- function(x, size, mu, s, alternative){
-    pless <- pnbinom(x, size = size, mu = s*mu)
+pVal <- function(index, ctsData, disp, mu, normFact, alternative){
+    x    <- ctsData[index,]
+    size <- disp[index]
+    mu   <- mu[index]
+    
+    # check if you did not get only sizeFactors
+    if(is.matrix(normFact)){
+        normFact <- normFact[index,]
+    }
+    
+    pless <- pnbinom(x, size=size, mu=normFact*mu)
     if(alternative == "less"){
         return(pless)
     }
     
-    dval <- dnbinom(x, size = size, mu = s*mu)
+    dval <- dnbinom(x, size=size, mu=normFact*mu)
     if(alternative ==  "greater"){
         return(1 - pless + dval)
     }
     
-    return(2 * vapply(seq_along(pless), function(i) {
-            min(0.5, pless[i], 1 - pless[i] + dval[i]) }, numeric(1)))
-}
-
-
-#' pValues per gene
-#' computes pValues of all samples for a given gene.
-#' 
-#' @param index of gene
-#' @param ods object
-#'
-#' @return vector of pValues
-#' @noRd
-pValNorm <- function(index, ctsData, disp, mu, normFact, alternative){
-    data <- ctsData[index,]
-    disp <- disp[index]
-    mu   <- mu[index]
-    if(is.matrix(normFact)){
-        normFact <- normFact[index,]
-    }
-    pVal(data, size=disp, mu=mu, normFact, alternative=alternative)
+    return(2 * pmin(0.5, pless, 1 - pless + dval))
 }
 
 
@@ -154,10 +143,12 @@ pValNorm <- function(index, ctsData, disp, mu, normFact, alternative){
 #' ods <- padjMatrix(ods, method='fdr')
 #' head(assays(ods[,1:10])[["padjust"]])
 #' 
-#' @export
+#' @noRd
 padjMatrix <- function(ods, method='BH'){
     padj <- apply(assays(ods)[["pValue"]], 2, p.adjust, method=method)
-    assays(ods)[["padjust"]] <- padj 
+    assays(ods)[["padjust"]] <- padj
+    
     validObject(ods)
     return(ods)
 }
+
