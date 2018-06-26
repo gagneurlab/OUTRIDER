@@ -2,24 +2,27 @@
 % Please edit documentation in R/method-plot.R
 \name{plotPowerAnalysis}
 \alias{plotPowerAnalysis}
-\title{PowerAnalysis Plot}
+\title{PowerAnalysis plot}
 \usage{
 plotPowerAnalysis(ods)
 }
 \arguments{
-\item{ods}{OutriderDataSet}
+\item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
 }
 \value{
-a plot showing, wich P-value can be theoretically reached for 
-specified fractions of expression reads.
+The ggplot object
 }
 \description{
-The spikes in the plot do come from the fraction not beeing integer valued,
-but the negative binomial is only defined for integer values.
+The power analysis plot should give the user a ruff estimate of the events
+one can be detected with OUTRIDER. Based on the dispersion of the provided
+OUTRIDER data set the theoretical P-value over the mean expression is
+plotted. This is done for different expression levels. The curves are 
+smooths to make the reading of the plot easier.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
 plotPowerAnalysis(ods)
+
 }

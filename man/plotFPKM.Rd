@@ -2,18 +2,19 @@
 % Please edit documentation in R/method-plot.R
 \name{plotFPKM}
 \alias{plotFPKM}
-\title{Plot histogram of FPKM values}
+\title{Distribution plot of FPKM values}
 \usage{
 plotFPKM(ods)
 }
 \arguments{
-\item{ods}{a OutriderDataSet object containing the reads and fpkm values}
+\item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
 }
 \value{
-a ggplot object containing the FPKM plot
+A ggplot object containing the FPKM plot
 }
 \description{
-Plot histogram of FPKM values
+Plots the distribution of FPKM values. It also can compare between
+filtered and non filtered features.
 }
 \examples{
 ctsFile <- system.file('extdata', 'GTExSkinSmall.tsv', package='OUTRIDER')

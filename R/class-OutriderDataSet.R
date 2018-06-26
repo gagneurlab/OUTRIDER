@@ -1,49 +1,72 @@
-#######################
-## OutriderDataSet
-## ====================
-
-
-#' OutriderDataSet
 #'
-#' This class is designed to store the whole OUTRIDER data set
-#' needed for an analysis of a disease cohort
-#'
-#' @author Christian Mertes \email{mertes@@in.tum.de}
+#' OutriderDataSet class and constructors 
+#' 
+#' @description The OutriderDataSet class is designed to store the whole OUTRIDER data set
+#' needed for an analysis. It is a subclass of 
+#' \code{RangedSummarizedExperiment}. All calculated values and results are 
+#' stored as assays or as annotation in the mcols structure provided by the
+#' \code{RangedSummarizedExperiment} class.
+#' 
+#' @param se An RangedSummarizedExperiment object or any object which inherits
+#'             from it and contains a count matrix as the first element in the
+#'             assay list.
+#' @param countData A simple count matrix. If dim names are provided, they have
+#'             to be unique. This is only used if no \code{se} object is
+#'             provided.
+#' @param colData Additional to the count data a \code{DataFrame} can be 
+#'             provided to annotate the samples. 
+#' @param ... Further arguments can be passed to
+#'             \code{\link[DESeq2]{DESeqDataSet}}, which is used to parse the
+#'             user input and create the initial 
+#'             \code{RangedSummarizedExperiment} object. 
+#' @return An OutriderDataSet object.
+#' 
+#' @author Christian Mertes \email{mertes@@in.tum.de}, 
+#'             Felix Brechtmann \email{brechtma@@in.tum.de}
+#' 
+#' @rdname OutriderDataSet-class
+#' 
+#' @examples
+#' 
+#' ods <- makeExampleOutriderDataSet()
+#' ods
+#'    
 setClass("OutriderDataSet", contains="RangedSummarizedExperiment")
-
-## Validity
-## ========
 
 #
 # check sample annotation within the colData slot of the SE object
 #
 validateCounts <- function(object) {
-    cts <- assays(object)[['counts']]
-    if(!is.null(cts)){
-        if(!is.integer(cts)){
-            return("Please provide a integer count table.")
-        }
+    if(!"counts" %in% assayNames(object)){
+        return("No counts are detected. Please provide a count matrix.")
+    }
+    if(!is.integer(assay(object, "counts"))){
+        return("Please provide an integer count table.")
     }
     NULL
 }
 
-checkRowNames <- function(object){
-    NULL
+checkNames <- function(object){
+    n <- rownames(object)
+    if(!is.null(n) && any(duplicated(n))){
+        return("Please provide unique rownames or no rownames at all.")
+    }
+    n <- colnames(object)
+    if(!is.null(n) && any(duplicated(n))){
+        return("Please provide unique colnames or no colnames at all.")
+    }
 }
 
 
 ## general validate function
 validateOutriderDataSet <- function(object) {
     c(
-        checkRowNames(object),
+        checkNames(object),
         validateCounts(object)
     )
 }
 setValidity("OutriderDataSet", validateOutriderDataSet)
 
-
-## Cosmetics (the show function)
-## =============================
 
 ## show method for OutriderDataSet
 showOutriderDataSet <- function(object) {
@@ -55,27 +78,8 @@ setMethod("show", "OutriderDataSet", function(object) {
     showOutriderDataSet(object)
 })
 
-## Constructor
-## ==========
 
-#'
-#' The constructor function for OutriderSettings
-#' 
-#' Eather a RangedSummarizedExperiment object or a count table has to be 
-#' provided.
-#' 
-#' @param se RangedSummarizedExperiment object
-#' @param countData countData 
-#' @param colData additional Annotation Data
-#' @param ... Any parameters corresponding to the slots and their possible
-#' values. See \linkS4class{OutriderDataSet}
-#' @return A OutriderDataSet object.
-#' @author Christian Mertes \email{mertes@@in.tum.de}
-#' 
-#' @examples
-#'     ods <- makeExampleOutriderDataSet()
-#'     ods
-#'     
+#' @rdname OutriderDataSet-class
 #' @export
 OutriderDataSet <- function(se, countData, colData, ...) {
     

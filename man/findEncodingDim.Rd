@@ -12,9 +12,9 @@ findEncodingDim(ods, params = seq(5, 30, 5), freq = 0.01, zScore = 3,
 
 \item{params}{Set of possible q values.}
 
-\item{freq}{Frequency of outlier by default 1E-2}
+\item{freq}{Frequency of outlier, defaults to 1E-2}
 
-\item{zScore}{Injection Z-score, by default 3.}
+\item{zScore}{Injection Z-score, defaults to 3.}
 
 \item{inj}{Injection strategy, by default 'both'.}
 
@@ -25,7 +25,7 @@ The optimal encoding dimension
 }
 \description{
 Finds the optimal encoding dimension for a given data set by running a 
-grid search based on the provided params.
+grid search based on the provided parameter set.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()

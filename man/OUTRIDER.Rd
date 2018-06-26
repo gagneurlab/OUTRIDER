@@ -7,16 +7,18 @@
 OUTRIDER(object, autoCorrect = TRUE, nbModelFile = NULL)
 }
 \arguments{
-\item{object}{main OutriderDataSet object, which contains all the data}
+\item{object}{An OutriderDataSet object containing the counts}
 
-\item{autoCorrect}{if TRUE the raw read counts will be controled 
+\item{autoCorrect}{If TRUE, the default, the raw read counts are controled 
 for confounders by the autoencoder}
 
 \item{nbModelFile}{The file where the negative binomial model should be saved}
 }
 \value{
-OutriderDataSet with all the computed values. The values can be 
-            accessed by: \code{assays(ods)[['value']]}
+OutriderDataSet with all the computed values. The values are stored
+            as assays and can be accessed by: \code{assays(ods)[['value']]}.
+            To get a full list of calculated values run:
+            \code{assayNames(ods)}
 }
 \description{
 The OUTRIDER function runs the default OUTRIDER pipline. 
@@ -27,12 +29,12 @@ To have more control over each analysis step one can call each
 function seperatly.
 
 \enumerate{
-  \item \code{\link{estimateSizeFactors}} to calculte the sizeFactors
-  \item \code{\link{autoCorrect}} to correct for confounding effects
-  \item \code{\link{fit}} to fit the negative binomial model
-  \item \code{\link{computePvalues}} to calculate the nominal and 
+    \item \code{\link{estimateSizeFactors}} to calculte the sizeFactors
+    \item \code{\link{autoCorrect}} to correct for confounding effects
+    \item \code{\link{fit}} to fit the negative binomial model
+    \item \code{\link{computePvalues}} to calculate the nominal and 
               adjusted P-values
-  \item \code{\link{computeZscores}} to calculate the z scores
+    \item \code{\link{computeZscores}} to calculate the z scores
 }
 }
 \examples{

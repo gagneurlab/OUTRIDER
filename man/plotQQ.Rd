@@ -2,50 +2,49 @@
 % Please edit documentation in R/method-plot.R
 \name{plotQQ}
 \alias{plotQQ}
-\title{Plot a QQ-plot for a given gene}
+\title{Q-Q plots}
 \usage{
 plotQQ(ods, geneID = NULL, global = FALSE, padjCutoff = 0.05,
-  zScoreCutoff = 0, main = NULL, sample = TRUE, legendPos = "topleft",
-  outlierRatio = 0.001, conf.alpha = 0.05, pch = 16, xlim = NULL,
-  ylim = NULL, col = NULL, ...)
+  zScoreCutoff = 0, main = NULL, samplePoints = TRUE,
+  legendPos = "topleft", outlierRatio = 0.001, conf.alpha = 0.05,
+  pch = 16, xlim = NULL, ylim = NULL, col = NULL)
 }
 \arguments{
-\item{ods}{OutriderDataSet}
+\item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
 
-\item{geneID}{Gene to be plotted}
+\item{geneID}{A gene as character or index, which should be plotted.
+It can also be a vector.}
 
-\item{global}{Flag to plot a global QQ-plot, default FALSE}
+\item{global}{Flag to plot a global Q-Q plot, default FALSE}
 
-\item{padjCutoff}{significance level to mark outliers}
+\item{padjCutoff}{Significance level to mark outliers}
 
-\item{zScoreCutoff}{Z-score cutoff to coloring outliers}
+\item{zScoreCutoff}{Z-score cutoff to mark outliers}
 
-\item{main}{title for the plot}
+\item{main}{Title for the plot, can be NULL, which is the default}
 
-\item{sample}{sample points for QQplot, only used, when global==TRUE.}
+\item{samplePoints}{Sample points for Q-Q plot, defaults to max 30k points}
 
-\item{legendPos}{set legendpos, by default topleft.}
+\item{legendPos}{Set legendpos, by default topleft.}
 
 \item{outlierRatio}{The fraction to be used for the outlier sample filtering}
 
-\item{conf.alpha}{if set, a confidence interval is plotted}
+\item{conf.alpha}{If set, a confidence interval is plotted}
 
-\item{pch}{integer or character to be used for plotting points}
+\item{pch}{Integer or character to be used for plotting the points}
 
-\item{xlim}{The x limits for the plot or NULL to use the data range}
+\item{xlim}{The x limits for the plot or NULL to use the full data range}
 
-\item{ylim}{The y limits for the plot or NULL to use the data range}
+\item{ylim}{The y limits for the plot or NULL to use the full data range}
 
-\item{col}{set color}
-
-\item{...}{additional arguments for the internal plotQQ function.
-This arguments are currently used for development.}
+\item{col}{Set color for the points. If set, it must be a character vector 
+of length 2. (1. normal point; 2. outlier point)}
 }
 \value{
 None
 }
 \description{
-Plot a QQ-plot for a given gene
+Plot a Q-Q plot for a given gene or a Q-Q plot over the full data set.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(500, 300)
