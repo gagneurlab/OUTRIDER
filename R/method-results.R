@@ -17,7 +17,9 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
                 "analysis before extracting the results.",
                 "\n\tods <- OUTRIDER(ods)"))
     }
-    
+    if(isTRUE(round)){
+        round <- 2
+    }
     if(isFALSE(all)){
         object <- object[aberrant(object, padjCutoff=padjCutoff, 
                 zScoreCutoff=zScoreCutoff, by="gene") > 0,]
@@ -74,11 +76,11 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
     tidyresults[,padj_rank:=rank(padjust), by=sampleID]
     tidyresults <- tidyresults[order(padjust)]
     
-    if(isTRUE(round)){
+    if(is.numeric(round)){
         col2round <- c("normcounts", "mu", "zScore", "l2fc", "disp",
                 "meanCorrected")
         devNull <- sapply(col2round, function(x){
-                tidyresults[,c(x):=round(get(x), 2)] })
+                tidyresults[,c(x):=round(get(x), as.integer(round))] })
     }
     return(tidyresults)
 }
@@ -118,7 +120,7 @@ setGeneric("results", function(object, ...) standardGeneric("results"))
 #' @rdname results
 #' @export
 setMethod("results", "OutriderDataSet", function(object, 
-                    padjCutoff=0.05, zScoreCutoff=0, round=TRUE, all=FALSE, 
+                    padjCutoff=0.05, zScoreCutoff=0, round=2, all=FALSE, 
                     ...){
     compileResults(object, padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff,
             round=round, all=all, ...)

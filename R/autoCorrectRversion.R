@@ -234,7 +234,7 @@ lossGrad <- function(w, k, x, s, xbar, theta){
 #' @param xbar offset 
 #'
 #' @return Returns the predicted corrections (predicted means).
-#' 
+#' @noRd
 predictC <- function(w, k, s, xbar){
     x <-  t(t(log((1+k)/s)) - xbar)
     W <- matrix(w, nrow=ncol(k))
