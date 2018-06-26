@@ -444,6 +444,14 @@ P-values for the other points. Here is an example with two outliers:
 plotQQ(ods, "TIMMDC1")
 @
 
+
+\section{Details}
+
+<<visualizationSigLevels, fig.height=5>>=
+## P-values versus Mean Count
+plotPowerAnalysis(ods)
+@
+
 \bibliography{bibliography}
 
 \section*{Session info}
