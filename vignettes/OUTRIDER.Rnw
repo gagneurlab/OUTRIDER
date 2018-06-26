@@ -8,6 +8,7 @@
 \usepackage{amsmath}
 \usepackage{verbatim}
 \usepackage[nottoc]{tocbibind}
+\usepackage{graphicx}
 
 \newcommand{\outrider}{\Biocpkg{OUTRIDER}}
 \newcommand{\rna}{RNA-seq}
@@ -103,6 +104,15 @@ genes in RNA-seq samples. It does so by fitting a negative binomial model
 to RNA-seq read counts, correcting for variations in sequencing depth and 
 apparent co-variations across samples. Read counts significantly deviating 
 from the distribution are detected as outliers.
+
+
+\begin{figure}
+    \includegraphics[width=0.8\textwidth]{autoencoder_sketch.png}
+    \caption{Context-dependent outlier detection. The algorithm identifies gene expression outliers whose read counts are significantly aberrant given the co-variations typically observed across genes in an RNA sequencing data set. This is illustrated by a read count (left panel, fifth column, second row from the bottom) that is exceptionally high in the context of correlated samples (left six samples) but not in absolute terms for this given gene. To capture commonly seen biological and technical contexts, an autoencoder models co-variations in an unsupervised fashion and predicts read count expectations. By comparing the earlier mentioned read count with these context-dependent expectations, it is revealed as exceptionally high (right panel). The lower panels illustrate the distribution of read counts before and after applying the correction for the relevant gene. The red dotted lines depict significance cutoffs.}
+    \label{fig:Autoencoder}
+\end{figure}
+
+
 
 Differential gene expression analysis from RNA-seq data is well-established.
 The packages \deseq{}\cite{Love2014} or \Biocpkg{edgeR}\cite{Robinson2010} 
@@ -447,10 +457,14 @@ plotQQ(ods, "TIMMDC1")
 
 \section{Details}
 
+We provide the \Rfunction{plotPowerAnalysis} function to show, what kind of 
+changes can be significant depending on the mean count.
 <<visualizationSigLevels, fig.height=5>>=
 ## P-values versus Mean Count
 plotPowerAnalysis(ods)
 @
+Here, we see that it is only for sufficiently high expressed genes possible, to 
+obtain significant P-values. Especially for the downregulation cases.
 
 \bibliography{bibliography}
 
