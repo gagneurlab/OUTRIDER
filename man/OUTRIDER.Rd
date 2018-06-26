@@ -2,7 +2,7 @@
 % Please edit documentation in R/OUTRIDER.R
 \name{OUTRIDER}
 \alias{OUTRIDER}
-\title{OUTRIDER - Full analysis pipeline}
+\title{OUTRIDER - Finding aberrant expression events}
 \usage{
 OUTRIDER(object, autoCorrect = TRUE, nbModelFile = NULL)
 }
@@ -20,8 +20,20 @@ OutriderDataSet with all the computed values. The values can be
 }
 \description{
 The OUTRIDER function runs the default OUTRIDER pipline. 
-Combinig the fit, the computation of zScores and pValues.
-All computed values are returned as a OutriderDataSet object.
+Combinig the fit, the computation of z scores and P-values.
+All computed values are returned as an OutriderDataSet object.
+
+To have more control over each analysis step one can call each 
+function seperatly.
+
+\enumerate{
+  \item \code{\link{estimateSizeFactors}} to calculte the sizeFactors
+  \item \code{\link{autoCorrect}} to correct for confounding effects
+  \item \code{\link{fit}} to fit the negative binomial model
+  \item \code{\link{computePvalues}} to calculate the nominal and 
+              adjusted P-values
+  \item \code{\link{computeZscores}} to calculate the z scores
+}
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")

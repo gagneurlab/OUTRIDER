@@ -114,28 +114,31 @@ OutriderDataSet <- function(se, countData, colData, ...) {
 #'
 #' Create example data sets for OUTRIDER
 #' 
-#' Creates an example data set from a file or a generates a random counts.
+#' Creates an example data set from a file or simulates a data set based 
+#' on random counts following a negative binomial distribution with injected
+#' outliers with a fixed z score away from the mean of the gene.
 #' 
-#' @param dataset here one can select from the two example data sets.
-#'             One of 'none', 'GTExSkinSmall', or 'KremerNBaderSmall'.
-#' @param n number of simulated genes 
-#' @param m number of simulated samples.
-#' @param freq frequency of in-silico outliers. 
-#' @param zScore absolute zScore of in-silico outliers (default 6).
-#' @param inj determines whether counts are injected with the strategy 
+#' @param dataset If "none", the default, an example data set is simulated. 
+#'             One can also use example data set included in the package by
+#'             specifying 'GTExSkinSmall' or 'KremerNBaderSmall'
+#' @param n Number of simulated genes 
+#' @param m Number of simulated samples
+#' @param freq Frequency of in-silico outliers
+#' @param zScore Absolute z score of in-silico outliers (default 6).
+#' @param inj Determines whether counts are injected with the strategy 
 #'            ('both', 'low', 'high'), default is 'both'.
-#' @param ... further arguments to \code{makeExampleDESeqDataSet}
+#' @param ... Further arguments to \code{makeExampleDESeqDataSet}
 #'
 #' @return An OutriderDataSet containing an example dataset. Depending on the
-#'             parameters it is based on a real data set or on simulated counts.
+#'             parameters it is based on a real data set or it is simulated
 #' 
 #' @examples
 #' # A generic dataset 
 #' ods1 <- makeExampleOutriderDataSet()
 #' ods1
 #' 
-#' # A generic dataset with specificed sample size
-#' ods2 <- makeExampleOutriderDataSet(n=10, m=100)
+#' # A generic dataset with specificed sample size and injection method
+#' ods2 <- makeExampleOutriderDataSet(n=500, m=50, inj='low')
 #' ods2
 #' 
 #' # A subset of a real world dataset from GTEx 

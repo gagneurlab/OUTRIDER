@@ -1,9 +1,21 @@
 #' 
-#' OUTRIDER - Full analysis pipeline
+#' OUTRIDER - Finding aberrant expression events
 #' 
-#' The OUTRIDER function runs the default OUTRIDER pipline. 
-#' Combinig the fit, the computation of zScores and pValues.
-#' All computed values are returned as a OutriderDataSet object.
+#' @description The OUTRIDER function runs the default OUTRIDER pipline. 
+#' Combinig the fit, the computation of z scores and P-values.
+#' All computed values are returned as an OutriderDataSet object.
+#' 
+#' To have more control over each analysis step one can call each 
+#' function seperatly.
+#' 
+#' \enumerate{
+#'   \item \code{\link{estimateSizeFactors}} to calculte the sizeFactors
+#'   \item \code{\link{autoCorrect}} to correct for confounding effects
+#'   \item \code{\link{fit}} to fit the negative binomial model
+#'   \item \code{\link{computePvalues}} to calculate the nominal and 
+#'               adjusted P-values
+#'   \item \code{\link{computeZscores}} to calculate the z scores
+#' }
 #' 
 #' @param object main OutriderDataSet object, which contains all the data 
 #' @param autoCorrect if TRUE the raw read counts will be controled 
