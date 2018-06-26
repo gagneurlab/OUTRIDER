@@ -22,8 +22,7 @@ findEncodingDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3,
     
     # compute auto Correction
     ods <- estimateSizeFactors(ods)
-    
-    #eval <- sapply(c(1,5), function(i) evalAutoCorrection(ods, encoding_dim=i))
+    ods <- injectOutliers(ods, freq=freq, zScore=zScore, inj=inj)
     
     ## Check limits of loss:
     # Check min and max of loss by substituting

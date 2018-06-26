@@ -38,15 +38,28 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     if(is.null(geneID) & isFALSE(global)){
         stop('Please provide a geneID or set global to TRUE')
     }
-
     # Singel gene QQplot.
     if(isFALSE(global)){
         if(is.null(geneID)){
             stop('Please provide a geneID')
         }
+        if(is.logical(geneID)){
+            geneID <- which(geneID)
+        }
+        if(is.numeric(geneID)){
+            if(!(is.numeric(geneID) && max(geneID) <= nrow(ods))){
+                stop(paste('Gene index is out of bounds:', 
+                           paste(geneID, collapse=", ")))
+            }
+            geneID <- rownames(ods)[geneID]
+        }
+        if(!all(geneID %in% rownames(ods))){
+            stop("Gene ID is not in the data set.")
+        }
+    
         # Produce multiple qqplot if geneID is a vector.
         if(length(geneID)>1L){
-            sapply(geneID, plotQQ, main=main, legendPos=legendPos, col=col,
+            sapply(geneID, plotQQ, ods=ods, main=main, legendPos=legendPos, col=col,
                     global=FALSE)
             return()
         }
@@ -801,8 +814,10 @@ plotPowerAnalysis <- function(ods){
     
     dt[,negLog10pVal:=-log10(pVal)]
     dt[,Fraction:=as.factor(frac)]
-    ggplot(dt, aes(mean, negLog10pVal, col=Fraction)) +  
+    dt[,ExprType:= ifelse(frac<1, 'Downregulation', 'Overexpression')]
+    ggplot(dt, aes(mean, negLog10pVal, col=Fraction, linetype=ExprType)) +  
         geom_smooth(method=lm, formula = y ~ bs(x, 10), se = FALSE) +
         scale_x_log10(breaks=c(1,5,10,50,100,500,1000,5000,10000)) + 
-        labs(x="Mean", y='-log10(P-value)') + ylim(0,15) 
+        labs(x="Mean", y='-log10(P-value)',color='Expression level', 
+             linetype='Expression type') + ylim(0,15) 
 }

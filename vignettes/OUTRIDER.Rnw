@@ -8,6 +8,7 @@
 \usepackage{amsmath}
 \usepackage{verbatim}
 \usepackage[nottoc]{tocbibind}
+\usepackage{graphicx}
 
 \newcommand{\outrider}{\Biocpkg{OUTRIDER}}
 \newcommand{\rna}{RNA-seq}
@@ -103,6 +104,15 @@ genes in RNA-seq samples. It does so by fitting a negative binomial model
 to RNA-seq read counts, correcting for variations in sequencing depth and 
 apparent co-variations across samples. Read counts significantly deviating 
 from the distribution are detected as outliers.
+
+
+\begin{figure}
+    \includegraphics[width=0.8\textwidth]{autoencoder_sketch.png}
+    \caption{Context-dependent outlier detection. The algorithm identifies gene expression outliers whose read counts are significantly aberrant given the co-variations typically observed across genes in an RNA sequencing data set. This is illustrated by a read count (left panel, fifth column, second row from the bottom) that is exceptionally high in the context of correlated samples (left six samples) but not in absolute terms for this given gene. To capture commonly seen biological and technical contexts, an autoencoder models co-variations in an unsupervised fashion and predicts read count expectations. By comparing the earlier mentioned read count with these context-dependent expectations, it is revealed as exceptionally high (right panel). The lower panels illustrate the distribution of read counts before and after applying the correction for the relevant gene. The red dotted lines depict significance cutoffs.}
+    \label{fig:Autoencoder}
+\end{figure}
+
+
 
 Differential gene expression analysis from RNA-seq data is well-established.
 The packages \deseq{}\cite{Love2014} or \Biocpkg{edgeR}\cite{Robinson2010} 
@@ -323,15 +333,14 @@ the following equation:
 \end{equation}
 
 where the $\frac{1}{2}$ term handles the case of both terms exceeding 0.5, 
-which can happen due to the discrete nature of the negative binomial 
-distribution. Here $\mu_{ij}$ are computed as the product of the fitted 
-correction values from the autoencoder and the fitted mean adjustements. 
-If required a one-sided test can be performed using the 
-argument \Robject{alternative} and specifying 'less' or 'greater' depending on 
-the research question. Multiple testing correction is done across all genes
-in a per-sample fashion using Benjamini-Yekutieli's false discovery rate method\cite{Benjamini2001}.
-Alternatively, all adjustment methods supported by 
-\Rfunction{p.adjust} can be used via the \Robject{method} 
+which can happen due to the discrete nature of counts. Here $\mu_{ij}$ are 
+computed as the product of the fitted correction values from the autoencoder and
+the fitted mean adjustements. If required a one-sided test can be performed 
+using the argument \Robject{alternative} and specifying 'less' or 'greater' 
+depending on the research question. Multiple testing correction is done across 
+all genes in a per-sample fashion using Benjamini-Yekutieli's false discovery 
+rate method\cite{Benjamini2001}. Alternatively, all adjustment methods supported
+by \Rfunction{p.adjust} can be used via the \Robject{method} 
 argument.
 
 <<pValue_computation>>=
@@ -346,7 +355,7 @@ function, the Z-scores are computed and stored in the \ods{} object.
 The Z-scores are calculated using:
 
 \begin{equation}
-    z_{ij} = \frac{l_{j} - \mu_j^l}{\sigma_j^l}
+    z_{ij} = \frac{l_{ij} - \mu_j^l}{\sigma_j^l}
 \end{equation}
 \begin{equation*}
     l_{ij} = \log_2{(\frac{k_{ij} + 1}{c_{ij}})},
@@ -389,16 +398,17 @@ dim(res)
 \subsection{Number of aberrant genes per sample}
 
 One quantity of interest is the number of aberrantly expressed genes 
-per sample. This can be displayed using the plotting function \Rfunction{plotAberrantPerSample}.
-Alternatively, the function \Rfunction{aberrant} can be 
-used to compute the number of aberrant events. Those can be computed by sample,
-gene or in the whole data set through the paramter \Robject{by}. These numbers depend on the 
-cutoffs, which can be specified in both functions (\Robject{padjCutoff} and \Robject{zScoreCutoff}.
+per sample. This can be displayed using the plotting function 
+\Rfunction{plotAberrantPerSample}. Alternatively, the function 
+\Rfunction{aberrant} can be used to identify aberrant events, which can be 
+summed by sample or gene using the paramter \Robject{by}. These numbers depend 
+on the cutoffs, which can be specified in both functions (\Robject{padjCutoff} 
+and \Robject{zScoreCutoff}).
 
 <<aberrantperSample, fig.height=5>>=
 # number of aberrant genes per sample
 tail(sort(aberrant(ods, by="sample")))
-tail(sort(aberrant(ods, by="gene", zScore=1)))
+tail(sort(aberrant(ods, by="gene", zScoreCutoff=1)))
 
 # plot the aberrant events per sample
 plotAberrantPerSample(ods, padjCutoff=0.05)
@@ -409,7 +419,8 @@ plotAberrantPerSample(ods, padjCutoff=0.05)
 To view the distribution of P-values on a sample level, volcano plots can 
 be displayed. Most of the plots make use of the \CRANpkg{plotly} 
 framework to create interactive plots. For this vignette, we will always use 
-the basic R functionality from \CRANpkg{graphics} by setting the argument \Rcode{basePlot} to \Rcode{TRUE}.
+the basic R functionality from \CRANpkg{graphics} by setting the argument 
+\Rcode{basePlot} to \Rcode{TRUE}.
 
 <<volcano, fig.height=5>>=
 # MUC1344 is a diagnosed sample from Kremer et al.
@@ -422,7 +433,7 @@ plotVolcano(ods, "MUC1344", basePlot=TRUE)
 Additionally, we include two plots at the gene level. 
 \Rfunction{plotExpressionRank} plots the counts in ascending order. 
 By default, the controlled counts are plotted. To plot raw counts, the argument 
-\Robject{normalized} can be set to FALSE. 
+\Robject{normalized} can be set to \Rcode{FALSE}. 
 
 When using the \CRANpkg{plotly} framework for plotting, all computed values 
 are displayed for each data point. The user can access this information 
@@ -442,6 +453,18 @@ P-values for the other points. Here is an example with two outliers:
 ## QQ-plot for a given gene
 plotQQ(ods, "TIMMDC1")
 @
+
+
+\section{Details}
+
+We provide the \Rfunction{plotPowerAnalysis} function to show, what kind of 
+changes can be significant depending on the mean count.
+<<visualizationSigLevels, fig.height=5>>=
+## P-values versus Mean Count
+plotPowerAnalysis(ods)
+@
+Here, we see that it is only for sufficiently high expressed genes possible, to 
+obtain significant P-values. Especially for the downregulation cases.
 
 \bibliography{bibliography}
 
