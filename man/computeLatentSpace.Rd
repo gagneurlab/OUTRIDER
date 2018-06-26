@@ -20,6 +20,6 @@ determined by the autoencoder.
 ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- autoCorrect(ods)
-head(computeLatentSpace(ods))
+computeLatentSpace(ods)[1:6,1:6]
 
 }
