@@ -6,7 +6,6 @@
 #' If no normalization factors are provided only the sizeFactors are used.
 #' 
 #' @param object An OutriderDataSet
-#' @param modelFile file name to save the estimated parameters
 #' @param BPPARAM by default bpparam()
 #' @param ... additional arguments, currently not used.
 #' @return An OutriderDataSet object with the fitted model. Accessible through:
@@ -29,12 +28,11 @@ setGeneric("fit", function(object, ...) standardGeneric("fit"))
 
 #' @rdname fit
 #' @export
-setMethod("fit", "OutriderDataSet", function(object, modelFile=NULL, 
-                    BPPARAM=bpparam()){
-    fitNB(object, modelFile=modelFile, BPPARAM=BPPARAM)
+setMethod("fit", "OutriderDataSet", function(object, BPPARAM=bpparam()){
+    fitNB(object, BPPARAM=BPPARAM)
 })
 
-fitNB <- function(ods, modelFile, BPPARAM){
+fitNB <- function(ods, BPPARAM){
     ctsData <- counts(ods)
     normF <- normalizationFactors(ods)
     if(is.null(normF)){
@@ -51,12 +49,8 @@ fitNB <- function(ods, modelFile, BPPARAM){
     
     fitparameters <- DataFrame(t(matrix(unlist(fitparameters), nrow = 2)))
     mcols(ods)[c('mu', 'disp')] <- fitparameters
-    validObject(ods)
     
-    # write out model file if requested
-    if(!is.null(modelFile)){
-        writeNBModel(ods, modelFile)
-    }
+    validObject(ods)
     return(ods)
 }
 

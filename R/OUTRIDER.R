@@ -20,7 +20,6 @@
 #' @param object An OutriderDataSet object containing the counts
 #' @param autoCorrect If TRUE, the default, the raw read counts are controled 
 #'             for confounders by the autoencoder
-#' @param nbModelFile The file where the negative binomial model should be saved
 #' @return OutriderDataSet with all the computed values. The values are stored
 #'             as assays and can be accessed by: \code{assays(ods)[['value']]}.
 #'             To get a full list of calculated values run:
@@ -35,23 +34,26 @@
 #' plotVolcano(ods, 1)
 #' 
 #' @export
-OUTRIDER <- function(object, autoCorrect=TRUE, nbModelFile=NULL){
+OUTRIDER <- function(object, autoCorrect=TRUE){
+    
     message(paste0(date(), ": SizeFactor estimation ..."))
     object <- estimateSizeFactors(object)
-    if(autoCorrect == TRUE){
+    
+    if(isTRUE(autoCorrect)){
         message(paste0(date(), ": Running auto correct ..."))
         object <- autoCorrect(object, q=20)
     }
-    if(is.null(nbModelFile) || !file.exists(nbModelFile)){
-        message(paste0(date(), ": Fitting the data ..."))
-        object <- fit(object, modelFile=nbModelFile)
-        nbModelFile=NULL
-    } else {
-        message("Using existing NB parameters from model: ", nbModelFile)
-    }
+    
+    message(paste0(date(), ": Fitting the data ..."))
+    object <- fit(object)
+    
     message(paste0(date(), ": P-value calculation ..."))
-    object <- computePvalues(object, modelFile=nbModelFile)
+    object <- computePvalues(object)
+    
     message(paste0(date(), ": Zscore calculation ..."))
     object <- computeZscores(object)
+    
+    validObject(object)
     return(object)
 }
+

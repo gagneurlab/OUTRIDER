@@ -4,15 +4,13 @@
 \alias{OUTRIDER}
 \title{OUTRIDER - Finding aberrant expression events}
 \usage{
-OUTRIDER(object, autoCorrect = TRUE, nbModelFile = NULL)
+OUTRIDER(object, autoCorrect = TRUE)
 }
 \arguments{
 \item{object}{An OutriderDataSet object containing the counts}
 
 \item{autoCorrect}{If TRUE, the default, the raw read counts are controled 
 for confounders by the autoencoder}
-
-\item{nbModelFile}{The file where the negative binomial model should be saved}
 }
 \value{
 OutriderDataSet with all the computed values. The values are stored

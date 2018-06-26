@@ -11,7 +11,6 @@
 #'             the alternative hypothesis used to calculate the P-values,
 #'             defaults to "two.sided"
 #' @param method Method used for multiple testing
-#' @param modelFile The file name where the fit model should be taken from
 #' @param BPPARAM Can be used to parallelize the computation, defaults to
 #'             bpparam()
 #' @param ... additional params, currently not used.
@@ -45,11 +44,7 @@ setGeneric("computePvalues",
 #' @export
 setMethod("computePvalues", "OutriderDataSet", function(object, 
                     alternative=c("two.sided", "greater", "less"), 
-                    method='BY', modelFile=NULL, BPPARAM=bpparam()){
-    if(!is.null(modelFile)){
-        object <- readNBModel(object, modelFile)
-        object <- estimateSizeFactors(object)
-    }
+                    method='BY', BPPARAM=bpparam()){
     alternative <- match.arg(alternative)
     object <- pValMatrix(object, alternative, BPPARAM=BPPARAM)
     padjMatrix(object, method)

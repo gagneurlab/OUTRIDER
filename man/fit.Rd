@@ -9,15 +9,12 @@
 \usage{
 fit(object, ...)
 
-\S4method{fit}{OutriderDataSet}(object, modelFile = NULL,
-  BPPARAM = bpparam())
+\S4method{fit}{OutriderDataSet}(object, BPPARAM = bpparam())
 }
 \arguments{
 \item{object}{An OutriderDataSet}
 
 \item{...}{additional arguments, currently not used.}
-
-\item{modelFile}{file name to save the estimated parameters}
 
 \item{BPPARAM}{by default bpparam()}
 }

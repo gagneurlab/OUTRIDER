@@ -11,7 +11,7 @@ computePvalues(object, ...)
 
 \S4method{computePvalues}{OutriderDataSet}(object,
   alternative = c("two.sided", "greater", "less"), method = "BY",
-  modelFile = NULL, BPPARAM = bpparam())
+  BPPARAM = bpparam())
 }
 \arguments{
 \item{object}{An OutriderDataSet}
@@ -23,8 +23,6 @@ the alternative hypothesis used to calculate the P-values,
 defaults to "two.sided"}
 
 \item{method}{Method used for multiple testing}
-
-\item{modelFile}{The file name where the fit model should be taken from}
 
 \item{BPPARAM}{Can be used to parallelize the computation, defaults to
 bpparam()}
