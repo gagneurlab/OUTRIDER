@@ -1,22 +1,25 @@
 #' 
-#' This is the main function to calculate all P-values.
+#' Calculate P-values
 #' 
-#' Computes two matrices with the same dimension as the count matrix, 
-#' which contain the corresponding P-values and adjusted P-values to every 
-#' count.
+#' This function computes the P-values based on fitted negative binomial model.
+#' It computes two matrices with the same dimension as the count matrix
+#' (samples x genes), which contain the corresponding P-values and 
+#' adjusted P-values to every count. 
 #' 
-#' 
-#' @param object object
-#' @param alternative "two.sided", "greater" or "less" P-values can 
-#'             be computed, default is "two.sided"
-#' @param method method used for multiple testing
+#' @param object An OutriderDataSet
+#' @param alternative Can be one of "two.sided", "greater" or "less" to specify
+#'             the alternative hypothesis used to calculate the P-values,
+#'             defaults to "two.sided"
+#' @param method Method used for multiple testing
 #' @param modelFile The file name where the fit model should be taken from
-#' @param BPPARAM by default bpparam()
+#' @param BPPARAM Can be used to parallelize the computation, defaults to
+#'             bpparam()
 #' @param ... additional params, currently not used.
 #' 
-#' @return An OutriderDataSet object with computed P-values and padjusted values
+#' @return An OutriderDataSet object with computed nominal and adjusted P-values
 #' 
 #' @seealso p.adjust
+#' 
 #' @docType methods
 #' @name computePvalues
 #' @rdname computePvalues

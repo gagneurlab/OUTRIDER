@@ -5,7 +5,7 @@
 \alias{computePvalues}
 \alias{computePvalues,OutriderDataSet-method}
 \alias{computePvalues,OutriderDataSet-method}
-\title{This is the main function to calculate all P-values.}
+\title{Calculate P-values}
 \usage{
 computePvalues(object, ...)
 
@@ -14,26 +14,29 @@ computePvalues(object, ...)
   modelFile = NULL, BPPARAM = bpparam())
 }
 \arguments{
-\item{object}{object}
+\item{object}{An OutriderDataSet}
 
 \item{...}{additional params, currently not used.}
 
-\item{alternative}{"two.sided", "greater" or "less" P-values can 
-be computed, default is "two.sided"}
+\item{alternative}{Can be one of "two.sided", "greater" or "less" to specify
+the alternative hypothesis used to calculate the P-values,
+defaults to "two.sided"}
 
-\item{method}{method used for multiple testing}
+\item{method}{Method used for multiple testing}
 
 \item{modelFile}{The file name where the fit model should be taken from}
 
-\item{BPPARAM}{by default bpparam()}
+\item{BPPARAM}{Can be used to parallelize the computation, defaults to
+bpparam()}
 }
 \value{
-An OutriderDataSet object with computed P-values and padjusted values
+An OutriderDataSet object with computed nominal and adjusted P-values
 }
 \description{
-Computes two matrices with the same dimension as the count matrix, 
-which contain the corresponding P-values and adjusted P-values to every 
-count.
+This function computes the P-values based on fitted negative binomial model.
+It computes two matrices with the same dimension as the count matrix
+(samples x genes), which contain the corresponding P-values and 
+adjusted P-values to every count.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")

@@ -2,18 +2,18 @@
 % Please edit documentation in R/autoCorrectPython.R
 \name{autoCorrectPython}
 \alias{autoCorrectPython}
-\title{autoCorrect}
+\title{Autoencoder function to correct for confounders (Pyhton implementation).}
 \usage{
 autoCorrectPython(ods, save = FALSE, predict = FALSE, epochs = 250,
   param_path = NULL, param_exp_name = NULL, verbose = FALSE,
   modelName = NULL, modelDirectory = NULL, seed = NULL)
 }
 \arguments{
-\item{ods}{an OutriderDataSet object}
+\item{ods}{An OutriderDataSet object}
 
-\item{save}{if TRUE, the fitted model will be saved to the given location.}
+\item{save}{If TRUE, the fitted model will be saved to the given location.}
 
-\item{predict}{run autoCorrect in predict mode, which means that the 
+\item{predict}{Run autoCorrect in predict mode, which means that the 
 prediction is based on a given model. Need a prefitted model.}
 
 \item{epochs}{The number of epochs used for the autoCorrection training.}
@@ -22,7 +22,7 @@ prediction is based on a given model. Need a prefitted model.}
 
 \item{param_exp_name}{Name of the parameter file}
 
-\item{verbose}{if TRUE further information about the training/predicting
+\item{verbose}{If TRUE further information about the training/predicting
 of the autoencoder is printed.}
 
 \item{modelName}{Name of the model to read/write}
@@ -30,7 +30,7 @@ of the autoencoder is printed.}
 \item{modelDirectory}{The directory where the model is located 
 or should be stored}
 
-\item{seed}{if this is an integer it will be used to set the seed in the 
+\item{seed}{If this is an integer it will be used to set the seed in the 
 python runtime environment}
 }
 \value{

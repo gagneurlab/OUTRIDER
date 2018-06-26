@@ -2,22 +2,24 @@
 % Please edit documentation in R/autoCorrectRversion.R
 \name{computeLatentSpace}
 \alias{computeLatentSpace}
-\title{function to output the latentspace determined by the autoencoder.}
+\title{Extracting the latent space}
 \usage{
 computeLatentSpace(ods)
 }
 \arguments{
-\item{ods}{An OUTRIDER data set}
+\item{ods}{An OutriderDataSet}
 }
 \value{
-A matrix containing the by the autoencoder computed latent space.
+A matrix containing the latent space determined by the autoencoder.
 }
 \description{
-function to output the latentspace determined by the autoencoder.
+Extracts the latent space from the OutriderDataSet object 
+determined by the autoencoder.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- autoCorrect(ods)
-computeLatentSpace(ods)
+head(computeLatentSpace(ods))
+
 }

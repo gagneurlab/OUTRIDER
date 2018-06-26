@@ -15,17 +15,17 @@ filterExpression(x, ...)
 \arguments{
 \item{x}{An OutriderDataSet object}
 
-\item{...}{additional arguments passed to \code{computeGeneLength}}
+\item{...}{Additional arguments passed to \code{computeGeneLength}}
 
-\item{gtfFile}{a txdb object or a GTF/GFF file to be used as annotation}
+\item{gtfFile}{A txdb object or a GTF/GFF file to be used as annotation}
 
-\item{fpkmCutoff}{the threshold for filtering based on the FPKM value}
+\item{fpkmCutoff}{The threshold for filtering based on the FPKM value}
 
-\item{filterGenes}{if TRUE, the default, the object is subseted.}
+\item{filterGenes}{If TRUE, the default, the object is subseted.}
 
-\item{savefpkm}{if TRUE the FPKM values are saved as assay}
+\item{savefpkm}{If TRUE the FPKM values are saved as assay}
 
-\item{onlyZeros}{filter only based on zero counts on a gene}
+\item{onlyZeros}{Filter only based on zero counts on a gene}
 }
 \value{
 An OutriderDataSet containing the \code{passedFilter} column, which
@@ -33,8 +33,8 @@ An OutriderDataSet containing the \code{passedFilter} column, which
             filterGenes is TRUE the object is already subsetted.
 }
 \description{
-To filter out none expressed genes this method uses the fpkm values to 
-get a comparable value over genes. To calcute the fpkm values the user 
+To filter out none expressed genes this method uses the FPKM values to 
+get a comparable value over genes. To calcute the FPKM values the user 
 needs to provide a GTF file or the basepair parameter as described in 
 \code{\link[DESeq2]{fpkm}}.
 }
