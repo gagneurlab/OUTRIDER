@@ -119,7 +119,7 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0, pch=16,
 #' ods <- makeExampleOutriderDataSet(500, 300)
 #' ods <- OUTRIDER(ods)
 #' plotQQ(ods, 1)
-#' plotQQ(ods, global=TRUE, filterOutliers=TRUE)
+#' plotQQ(ods, global=TRUE, outlierRatio=0.001)
 #' 
 #' @export
 plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, 
@@ -713,7 +713,7 @@ plotFPKM <- function(ods){
 #' Plotting the dispersion of the OutriderDataSet model against the normalized 
 #' mean count.
 #' 
-#' @inheritParams plotVolcano
+#' @param object An OutriderDataSet object containing the fitted model
 #' @param compareDisp If TRUE, the default, and if the autoCorrect normalization
 #'             was used it computes the dispersion without autoCorrect and 
 #'             plots it for comparison.

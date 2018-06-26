@@ -50,6 +50,6 @@ Plot a Q-Q plot for a given gene or a Q-Q plot over the full data set.
 ods <- makeExampleOutriderDataSet(500, 300)
 ods <- OUTRIDER(ods)
 plotQQ(ods, 1)
-plotQQ(ods, global=TRUE, filterOutliers=TRUE)
+plotQQ(ods, global=TRUE, outlierRatio=0.001)
 
 }
