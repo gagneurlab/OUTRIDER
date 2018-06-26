@@ -2,12 +2,12 @@
 #' Find the optimal encoding dimension
 #' 
 #' Finds the optimal encoding dimension for a given data set by running a 
-#' grid search based on the provided params.
+#' grid search based on the provided parameter set.
 #'
 #' @param ods An OutriderDataSet
 #' @param params Set of possible q values.
-#' @param freq Frequency of outlier by default 1E-2
-#' @param zScore Injection Z-score, by default 3.
+#' @param freq Frequency of outlier, defaults to 1E-2
+#' @param zScore Injection Z-score, defaults to 3.
 #' @param inj Injection strategy, by default 'both'.
 #' @param BPPARAM BPPARAM object by default bpparam().
 #'

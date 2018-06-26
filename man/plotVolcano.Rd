@@ -4,27 +4,30 @@
 \alias{plotVolcano}
 \title{Volcano plot}
 \usage{
-plotVolcano(ods, sampleID, padjCutoff = 0.05, zScoreCutoff = 0,
+plotVolcano(ods, sampleID, padjCutoff = 0.05, zScoreCutoff = 0, pch = 16,
   main = NULL, basePlot = FALSE, col = c("gray", "firebrick"))
 }
 \arguments{
-\item{ods}{OutriderDataSet}
+\item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
 
-\item{sampleID}{sample which should be plotted. 
-Can also be a vector of samples.}
+\item{sampleID}{A sampleID, which should be plotted. Can also be a vector.}
 
-\item{padjCutoff}{padj cutoff}
+\item{padjCutoff}{Significance level to mark outliers}
 
-\item{zScoreCutoff}{Z-score cutoff}
+\item{zScoreCutoff}{Z-score cutoff to mark outliers}
 
-\item{main}{string passed to main (title) of the plot.}
+\item{pch}{Integer or character to be used for plotting the points}
 
-\item{basePlot}{R base plot version of the plot.}
+\item{main}{Title for the plot, can be NULL, which is the default}
 
-\item{col}{colors for the points in the form of c(non outliers, outliers)}
+\item{basePlot}{if TRUE, use the R base plot version, else use the plotly 
+framekwork, which is the default}
+
+\item{col}{Set color for the points. If set, it must be a character vector 
+of length 2. (1. normal point; 2. outlier point)}
 }
 \value{
-None
+The plotly object or NULL if if base R is used
 }
 \description{
 Volcano plot for a given sample over all genes.

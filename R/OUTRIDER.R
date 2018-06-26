@@ -1,16 +1,30 @@
 #' 
-#' OUTRIDER - Full analysis pipeline
+#' OUTRIDER - Finding aberrant expression events
 #' 
-#' The OUTRIDER function runs the default OUTRIDER pipline. 
-#' Combinig the fit, the computation of zScores and pValues.
-#' All computed values are returned as a OutriderDataSet object.
+#' @description The OUTRIDER function runs the default OUTRIDER pipline. 
+#' Combinig the fit, the computation of z scores and P-values.
+#' All computed values are returned as an OutriderDataSet object.
 #' 
-#' @param object main OutriderDataSet object, which contains all the data 
-#' @param autoCorrect if TRUE the raw read counts will be controled 
-#'             for confounders by the autoencoder 
+#' To have more control over each analysis step one can call each 
+#' function seperatly.
+#' 
+#' \enumerate{
+#'     \item \code{\link{estimateSizeFactors}} to calculte the sizeFactors
+#'     \item \code{\link{autoCorrect}} to correct for confounding effects
+#'     \item \code{\link{fit}} to fit the negative binomial model
+#'     \item \code{\link{computePvalues}} to calculate the nominal and 
+#'               adjusted P-values
+#'     \item \code{\link{computeZscores}} to calculate the z scores
+#' }
+#' 
+#' @param object An OutriderDataSet object containing the counts
+#' @param autoCorrect If TRUE, the default, the raw read counts are controled 
+#'             for confounders by the autoencoder
 #' @param nbModelFile The file where the negative binomial model should be saved
-#' @return OutriderDataSet with all the computed values. The values can be 
-#'             accessed by: \code{assays(ods)[['value']]}
+#' @return OutriderDataSet with all the computed values. The values are stored
+#'             as assays and can be accessed by: \code{assays(ods)[['value']]}.
+#'             To get a full list of calculated values run:
+#'             \code{assayNames(ods)}
 #'
 #' @examples
 #' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")

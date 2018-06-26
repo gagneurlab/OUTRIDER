@@ -17,7 +17,7 @@ filterExpression(x, ...)
 
 \item{...}{Additional arguments passed to \code{computeGeneLength}}
 
-\item{gtfFile}{A txdb object or a GTF/GFF file to be used as annotation}
+\item{gtfFile}{A txDb object or a GTF/GFF file to be used as annotation}
 
 \item{fpkmCutoff}{The threshold for filtering based on the FPKM value}
 
@@ -30,10 +30,10 @@ filterExpression(x, ...)
 \value{
 An OutriderDataSet containing the \code{passedFilter} column, which
             indicates if the given gene passed the filtering threshold. If
-            filterGenes is TRUE the object is already subsetted.
+            \code{filterGenes} is TRUE the object is already subsetted.
 }
 \description{
-To filter out none expressed genes this method uses the FPKM values to 
+To filter out non expressed genes this method uses the FPKM values to 
 get a comparable value over genes. To calcute the FPKM values the user 
 needs to provide a GTF file or the basepair parameter as described in 
 \code{\link[DESeq2]{fpkm}}.

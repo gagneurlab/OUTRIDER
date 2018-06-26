@@ -9,36 +9,39 @@ makeExampleOutriderDataSet(n = 1000, m = 100, freq = 0.01, zScore = 6,
   "KremerNBaderSmall"), ...)
 }
 \arguments{
-\item{n}{number of simulated genes}
+\item{n}{Number of simulated genes}
 
-\item{m}{number of simulated samples.}
+\item{m}{Number of simulated samples}
 
-\item{freq}{frequency of in-silico outliers.}
+\item{freq}{Frequency of in-silico outliers}
 
-\item{zScore}{absolute zScore of in-silico outliers (default 6).}
+\item{zScore}{Absolute z score of in-silico outliers (default 6).}
 
-\item{inj}{determines whether counts are injected with the strategy 
+\item{inj}{Determines whether counts are injected with the strategy 
 ('both', 'low', 'high'), default is 'both'.}
 
-\item{dataset}{here one can select from the two example data sets.
-One of 'none', 'GTExSkinSmall', or 'KremerNBaderSmall'.}
+\item{dataset}{If "none", the default, an example data set is simulated. 
+One can also use example data set included in the package by
+specifying 'GTExSkinSmall' or 'KremerNBaderSmall'}
 
-\item{...}{further arguments to \code{makeExampleDESeqDataSet}}
+\item{...}{Further arguments to \code{makeExampleDESeqDataSet}}
 }
 \value{
 An OutriderDataSet containing an example dataset. Depending on the
-            parameters it is based on a real data set or on simulated counts.
+            parameters it is based on a real data set or it is simulated
 }
 \description{
-Creates an example data set from a file or a generates a random counts.
+Creates an example data set from a file or simulates a data set based 
+on random counts following a negative binomial distribution with injected
+outliers with a fixed z score away from the mean of the gene.
 }
 \examples{
 # A generic dataset 
 ods1 <- makeExampleOutriderDataSet()
 ods1
 
-# A generic dataset with specificed sample size
-ods2 <- makeExampleOutriderDataSet(n=10, m=100)
+# A generic dataset with specificed sample size and injection method
+ods2 <- makeExampleOutriderDataSet(n=500, m=50, inj='low')
 ods2
 
 # A subset of a real world dataset from GTEx 

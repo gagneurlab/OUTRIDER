@@ -2,28 +2,22 @@
 % Please edit documentation in R/method-plot.R
 \name{plotCountCorHeatmap}
 \alias{plotCountCorHeatmap}
-\alias{plotCountCorHeatmapPlotly}
 \title{Correlation heatmap}
 \usage{
-plotCountCorHeatmap(x, normalized = TRUE, rowCentered = TRUE,
+plotCountCorHeatmap(ods, normalized = TRUE, rowCentered = TRUE,
   rowCoFactor = NULL, rowColSet = "Set1", colCoFactor = NULL,
   colColSet = "Set2", nCluster = 4, main = "Count correlation heatmap",
   annotateCluster = TRUE, dendrogram = "both", basePlot = TRUE,
   names = c("both", "row", "col", "none"), ...)
-
-plotCountCorHeatmapPlotly(x, normalized = TRUE, rowCentered = TRUE,
-  rowCoFactor = NULL, rowColSet = "Set1", colCoFactor = NULL,
-  colColSet = "Set2", nCluster = 4, main = "Count correlation heatmap",
-  annotateCluster = TRUE, dendrogram = "both", ...)
 }
 \arguments{
-\item{x}{An OutriderDataSet object}
+\item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
 
-\item{normalized}{if TRUE, the normalized counts are used, default.}
+\item{normalized}{If TRUE, the normalized counts are used, the default}
 
-\item{rowCentered}{if TRUE, the counts are rowwise (genewise) centered}
+\item{rowCentered}{If TRUE, the counts are row-wise (gene-wise) centered}
 
-\item{rowCoFactor}{a vector of co-factors for color coding the rows}
+\item{rowCoFactor}{A vector of co-factors for color coding the rows}
 
 \item{rowColSet}{A vector of colors or a color set from RColorBrewer}
 
@@ -33,24 +27,25 @@ plotCountCorHeatmapPlotly(x, normalized = TRUE, rowCentered = TRUE,
 
 \item{nCluster}{An integer to be used for cutting the dendrogram into groups}
 
-\item{main}{The title for the plot}
+\item{main}{Title for the plot, can be NULL, which is the default}
 
-\item{annotateCluster}{if TRUE and nCluster is a integer the grouping 
+\item{annotateCluster}{If TRUE and nCluster is an integer the grouping 
 is saved in the returned OutriderDataSet}
 
-\item{dendrogram}{character string indicating whether to draw 
+\item{dendrogram}{A character string indicating whether to draw 
 'none', 'row', 'column' or 'both' dendrograms.}
 
-\item{basePlot}{if TRUE the heatmap.2 function is used otherwise the
-interactive version from ggplotly is used.}
+\item{basePlot}{if TRUE, use the R base plot version, else use the plotly 
+framekwork, which is the default}
 
 \item{names}{character string indicating whether to draw 
 'none', 'row', 'col', or 'both' names.}
 
-\item{...}{additional arguments to the \code{heatmap.2} function}
+\item{...}{Additional arguments passed to the 
+\code{\link[gplots]{heatmap.2}} function}
 }
 \value{
-OutriderDataSet object
+An OutriderDataSet object
 }
 \description{
 Correlation heatmap of the count data of the given samples

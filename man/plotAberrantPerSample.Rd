@@ -3,7 +3,7 @@
 \name{plotAberrantPerSample}
 \alias{plotAberrantPerSample}
 \alias{plotAberrantPerSamplePlotly}
-\title{Plot aberrant events per sample}
+\title{Aberrant events per sample plot}
 \usage{
 plotAberrantPerSample(ods, padjCutoff = 0.05, zScoreCutoff = 0,
   main = NULL, outlierRatio = 0.001, col = brewer.pal(3, "Dark2")[c(1,
@@ -11,27 +11,28 @@ plotAberrantPerSample(ods, padjCutoff = 0.05, zScoreCutoff = 0,
   ylab = "#Aberrantly expressed genes", labCex = par()$cex, ...)
 }
 \arguments{
-\item{ods}{OutriderDataSet}
+\item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
 
-\item{padjCutoff}{Adjusted P-value cutoff.}
+\item{padjCutoff}{Significance level to mark outliers}
 
-\item{zScoreCutoff}{Z-score cutoff value.}
+\item{zScoreCutoff}{Z-score cutoff to mark outliers}
 
-\item{main}{string passed to main (title) of the plot.}
+\item{main}{Title for the plot, can be NULL, which is the default}
 
 \item{outlierRatio}{The fraction to be used for the outlier sample filtering}
 
-\item{col}{set color.}
+\item{col}{Set color for the points. If set, it must be a character vector 
+of length 2. (1. normal point; 2. outlier point)}
 
-\item{yadjust}{option to adjust position of Median and 90percentile labels.}
+\item{yadjust}{Option to adjust position of Median and 90 percentile labels.}
 
-\item{labLine}{option to move axis labels}
+\item{labLine}{Option to move axis labels}
 
-\item{ylab}{y-axis label}
+\item{ylab}{The y axis label}
 
-\item{labCex}{label cex parameter}
+\item{labCex}{The label cex parameter}
 
-\item{...}{further arguments to \code{aberrant}}
+\item{...}{Further arguments to \code{\link{aberrant}}}
 }
 \value{
 None

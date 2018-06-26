@@ -8,8 +8,6 @@
 \S4method{plotDispEsts}{OutriderDataSet}(object, compareDisp = NULL)
 }
 \arguments{
-\item{object}{An OutriderDataSet}
-
 \item{compareDisp}{If TRUE, the default, and if the autoCorrect normalization
 was used it computes the dispersion without autoCorrect and 
 plots it for comparison.}
