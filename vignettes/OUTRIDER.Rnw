@@ -103,7 +103,9 @@ if(multicoreWorkers() >= 4){
 genes in RNA-seq samples. It does so by fitting a negative binomial model 
 to RNA-seq read counts, correcting for variations in sequencing depth and 
 apparent co-variations across samples. Read counts significantly deviating 
-from the distribution are detected as outliers.
+from the distribution are detected as outliers. \outrider{} makes use of an
+autoencoder to control automatically for confounders within the data. A scheme
+of this approach is given in Figure \ref{fig:Autencoder}.
 
 
 \begin{figure}
