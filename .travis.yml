@@ -32,7 +32,7 @@ script:
   - R CMD build --no-build-vignettes .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
-  - R CMD Sweave --engine=knitr::knitr --pdf "./vignettes/OUTRIDER.Rnw"
+  - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw"
 
 after_success:
   - Rscript -e 'covr::codecov()'
