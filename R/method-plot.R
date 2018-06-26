@@ -797,9 +797,9 @@ plotPowerAnalysis <- function(ods){
     d <- 1/dispfit$fit(m)
     dt<-rbindlist(lapply(c(0,0.1,0.2,0.3,0.5, 2,5,10), function(frac) 
         data.table(mean=m, disp=d, frac=frac, 
-            pVal=pmin(0.5, pnbinom(frac * m, mu = m, size=d),
-                1 - pnbinom(frac * m, mu = m, size=d) + 
-                    dnbinom(frac * m, mu = m, size=d)
+            pVal=pmin(0.5, pnbinom(round(frac * m), mu = m, size=d),
+                1 - pnbinom(round(frac * m), mu = m, size=d) + 
+                    dnbinom(round(frac * m), mu = m, size=d)
             )
         )))
     
