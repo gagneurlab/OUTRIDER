@@ -3,26 +3,17 @@ variables:
   PKGDIR:      "./"
   R_LIBS_U:    "tmp_lib"
   RVER:        "3.5.0-Bioc3.7"
-  PyVER:       "3-5.0.1"
   TEXVER:      "2016"
-  AE_REPO:     "https://github.com/gagneurlab/autoCorrection.git"
 #  CI_DEBUG_TRACE: "true"
 
 stages:
   - testing
 
 before_script:
-  - module load "i12g/anaconda/$PyVER"
   - module load "i12g/R/$RVER"
   - module load "i12g/texlive/$TEXVER"
   - export R_LIBS_U="${CI_JOB_ID}_${R_LIBS_U}"
   - mkdir $R_LIBS_U
-  - python -m venv --without-pip "$R_LIBS_U/python-env" 
-  - source "$R_LIBS_U/python-env/bin/activate"
-  - wget https://bootstrap.pypa.io/get-pip.py
-  - python get-pip.py
-  - pip install --upgrade "git+$AE_REPO@master"
-  - touch "$R_LIBS_U/python-env/include/.empty"
   - R --vanilla CMD build --no-build-vignettes --no-manual $PKGDIR
   - PKG_FILE_NAME=$(ls -1t *.tar.gz | head -n 1)
   - R_LIBS_USER=$R_LIBS_U Rscript --vanilla -e "install.packages('${PKG_FILE_NAME}', lib='$R_LIBS_U', repo=NULL)"

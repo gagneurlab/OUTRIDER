@@ -464,7 +464,7 @@ changes can be significant depending on the mean count.
 plotPowerAnalysis(ods)
 @
 Here, we see that it is only for sufficiently high expressed genes possible, to 
-obtain significant P-values. Especially for the downregulation cases.
+obtain significant P-values, especially for the downregulation cases.
 
 \bibliography{bibliography}
 
