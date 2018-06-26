@@ -86,24 +86,28 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
 }
 
 #' 
-#' Accessor functions for the 'result' object in a OutriderDataSet
-#' object. 
+#' Accessor function for the 'results' object in an OutriderDataSet object. 
 #' 
-#' This function extracts all results based on the given filter criteria.
+#' This function assembles a results table of significant outlier events based
+#' on the given filter criteria. The table contains various information 
+#' accumulated over the analysis pipeline. 
 #' 
-#' @param object OutriderDataSet
-#' @param padjCutoff padj cutoff
-#' @param zScoreCutoff absolute Z-score cutoff 
-#' @param round rounding the results.
+#' @param object An OutriderDataSet
+#' @param padjCutoff The significant theshold to be applied
+#' @param zScoreCutoff If provided additionally a z score threashold is applied
+#' @param round Can be TRUE, defaults to 2, or an integer used for rounding
+#'             with \code{\link[base]{round}} to make the output
+#'             more user friendly
 #' @param all By default FALSE, only significant read counts are listed in the 
-#' results. 
-#' @param ... additional arguments, currently not used
+#'             results. If TRUE all results are assembled resulting in a 
+#'             data.table of length samples x genes
+#' @param ... Additional arguments, currently not used
 #' 
 #' @return A data.table where each row is an outlier event and the columns
 #'             contain additional information about this event. Eg padj, l2fc
 #' 
 #' @examples
-#' set.seed(42)
+#' 
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- OUTRIDER(ods)
 #' res <- results(ods, all=TRUE)
