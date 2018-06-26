@@ -74,17 +74,16 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
     # initialize W using PCA and bias as zeros.
     pca <- pca(x, nPcs = q) 
     pc  <- loadings(pca)
-    w_guess <- c(as.vector(pc), rep(0,ncol(k)))
+    w_guess <- c(as.vector(pc), numeric(ncol(k)))
     # check initial loss
     print(
         paste0('Initial PCA loss: ',
             loss(w_guess, k, x, s, xbar, theta))
     )
-    
-    w_init <- c(as.vector(pc), rnorm(ncol(k), sd=0.001))
+
     # optimize log likelihood
     t <- Sys.time()
-    fit <- optim(w_init, cmpLoss, gr = cmpLossGrad, k=k, x=x, s=s, xbar=xbar, 
+    fit <- optim(w_guess, cmpLoss, gr = cmpLossGrad, k=k, x=x, s=s, xbar=xbar, 
         theta=theta, method="L-BFGS-B", control=control, ...)
     #Check that fit converged
     if(fit$convergence!=0){
