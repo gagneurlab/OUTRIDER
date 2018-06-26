@@ -2,22 +2,23 @@
 % Please edit documentation in R/autoCorrectRversion.R
 \name{autoCorrect}
 \alias{autoCorrect}
-\title{Autoencoder function to correct for co-founders.}
+\title{Autoencoder function to correct for confounders.}
 \usage{
 autoCorrect(ods, q = 20, theta = 25, implementation = c("R", "python"),
   ...)
 }
 \arguments{
-\item{ods}{an OutriderDataSet object}
+\item{ods}{An OutriderDataSet object}
 
-\item{q}{the encoding dimensions}
+\item{q}{The encoding dimensions}
 
-\item{theta}{the dispersion parameter}
+\item{theta}{The dispersion parameter}
 
-\item{implementation}{"R", the default will use the R implementation or 
+\item{implementation}{"R", the default, will use the R implementation or 
 "python" to use the python/tensorflow experimental implementation}
 
-\item{...}{passed on to the autoencoder implementing method.}
+\item{...}{passed on to the autoencoder implementing method. In the case of 
+the R implementation it is passed to the optim function.}
 }
 \value{
 An ods object including the control factors

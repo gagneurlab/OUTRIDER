@@ -1,22 +1,22 @@
 #' 
-#' autoCorrect
+#' Autoencoder function to correct for confounders (Pyhton implementation).
 #' 
 #' This is the wrapper function for the Python based autoCorrect method. 
 #' It calls the autoencoder correction factor estimation.
 #'
-#' @param ods an OutriderDataSet object
-#' @param predict run autoCorrect in predict mode, which means that the 
+#' @param ods An OutriderDataSet object
+#' @param predict Run autoCorrect in predict mode, which means that the 
 #'             prediction is based on a given model. Need a prefitted model.
-#' @param save if TRUE, the fitted model will be saved to the given location.
+#' @param save If TRUE, the fitted model will be saved to the given location.
 #' @param epochs The number of epochs used for the autoCorrection training.
 #' @param modelName Name of the model to read/write
 #' @param modelDirectory The directory where the model is located 
 #'             or should be stored
 #' @param param_path The directory where the optimal parameters are stored
 #' @param param_exp_name Name of the parameter file
-#' @param verbose if TRUE further information about the training/predicting
+#' @param verbose If TRUE further information about the training/predicting
 #'             of the autoencoder is printed.
-#' @param seed if this is an integer it will be used to set the seed in the 
+#' @param seed If this is an integer it will be used to set the seed in the 
 #'             python runtime environment
 #' 
 #' @return An ods object including the control factors 

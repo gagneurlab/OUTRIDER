@@ -1,18 +1,19 @@
 sourceCpp("src/matMult.cpp")
 
 #' 
-#' Autoencoder function to correct for co-founders.
+#' Autoencoder function to correct for confounders.
 #' 
 #' This is the wrapper function for the autoencoder implementation. 
 #' It can be used to call the standard R implementation or the experimental
 #' Python implementation.
 #'
-#' @param ods an OutriderDataSet object
-#' @param q the encoding dimensions
-#' @param theta the dispersion parameter
-#' @param implementation "R", the default will use the R implementation or 
+#' @param ods An OutriderDataSet object
+#' @param q The encoding dimensions
+#' @param theta The dispersion parameter
+#' @param implementation "R", the default, will use the R implementation or 
 #'             "python" to use the python/tensorflow experimental implementation
-#' @param ... passed on to the autoencoder implementing method.
+#' @param ... passed on to the autoencoder implementing method. In the case of 
+#'             the R implementation it is passed to the optim function. 
 #' 
 #' @return An ods object including the control factors 
 #'
@@ -51,7 +52,7 @@ autoCorrect <- function(ods, q=20, theta=25,
 }
     
 #' 
-#' Autoencoder function to correct for co-founders.
+#' Autoencoder function to correct for confounders.
 #'
 #' @param ods An uormalized OUTRIDER data set
 #' @param q the encoding dimension used.
@@ -110,23 +111,29 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
 }
 
 
-#' function to output the latentspace determined by the autoencoder.
+#' 
+#' Extracting the latent space
+#' 
+#' Extracts the latent space from the OutriderDataSet object 
+#' determined by the autoencoder.
 #'
-#' @param ods An OUTRIDER data set
+#' @param ods An OutriderDataSet
 #'
-#' @return A matrix containing the by the autoencoder computed latent space.
-#' @export
+#' @return A matrix containing the latent space determined by the autoencoder.
 #'
 #' @examples 
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' ods <- autoCorrect(ods)
-#' computeLatentSpace(ods)
+#' head(computeLatentSpace(ods))
+#' 
+#' @export
 computeLatentSpace <- function(ods){
     stopifnot(is(ods, 'OutriderDataSet'))
     if(metadata(ods)[['dim']]!=dim(ods)){
         stop('The ods dimension changed. Computation not possible.')
     }
+    
     # get data
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)

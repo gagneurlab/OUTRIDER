@@ -1,19 +1,17 @@
-## Evaluation functions
-
-
-#' aberrant
 #' 
-#' identifies the aberrant counts or returns the number of aberrant counts per
-#' gene or sample.
+#' Number of aberrant events
 #' 
-#' @param ods a OutriderDataSet object
-#' @param padjCutoff the padjust cutoff 
-#' @param zScoreCutoff the absolute Z-score cutoff, 
+#' Identifies the aberrant events and returns the number of aberrant counts per
+#' gene or sample or returns a matrix indicating aberrant events.
+#' 
+#' @param ods An OutriderDataSet object
+#' @param padjCutoff The padjust cutoff 
+#' @param zScoreCutoff The absolute Z-score cutoff, 
 #'             if NA or NULL no Z-score cutoff is used
 #' @param by if the results should be summarized by 'sample', 
-#'             'gene' or not at all.
+#'             'gene' or not at all (default).
 #'
-#' @return the number of aberrent events by gene or sample or a TRUE/FALSE 
+#' @return The number of aberrent events by gene or sample or a TRUE/FALSE 
 #'       matrix of the size sample x gene of aberrent events.
 #' 
 #' @examples

@@ -6,7 +6,7 @@
 \alias{counts,OutriderDataSet-method}
 \alias{counts<-,OutriderDataSet,matrix-method}
 \alias{counts<-,OutriderDataSet,matrix-method}
-\title{Accessors for the 'counts' slot of a OutriderDataSet object.}
+\title{Accessors for the 'counts' slot of an OutriderDataSet object.}
 \usage{
 \S4method{counts}{OutriderDataSet}(object, normalized = FALSE, offset = 0)
 
@@ -17,7 +17,7 @@
 
 \item{normalized}{TRUE/FALSE whether counts should be normalized}
 
-\item{offset}{pseudocount offset by default 0.}
+\item{offset}{Pseudocount offset by default 0.}
 
 \item{value}{An integer matrix containing the counts}
 }
@@ -26,17 +26,16 @@ A matrix containing the counts
 }
 \description{
 The counts slot holds the count data as a matrix of non-negative integer
-count values, one row for each observational unit (gene or the like), and one
+count values, one row for each observational unit (eg.: gene), and one
 column for each sample.
 }
 \details{
-By default this function returns the raw counts.
-If conrols/normalizations are computed the normalized counts can be returned 
-using normalized = TRUE.
-The offset parameter can be used to add a pseudocount to the count before 
-dividing by the normalization. This can be usefull when the log(counts) 
-should be computed and in case the controll values are in the same oder of 
-magnited as the counts.
+By default this function returns the raw counts. If conrol factors are
+computed or provided the normalized counts can be returned using 
+normalized = TRUE. The offset parameter can be used to add a pseudocount
+to the count before dividing by the normalization. This can be usefull 
+when the log(counts) are computed and in case the controll values are in 
+the same oder of magnited as the counts.
 }
 \examples{
 

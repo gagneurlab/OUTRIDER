@@ -24,19 +24,18 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0) {
 }
 
 #' 
-#' Accessors for the 'counts' slot of a OutriderDataSet object.
+#' Accessors for the 'counts' slot of an OutriderDataSet object.
 #' 
 #' The counts slot holds the count data as a matrix of non-negative integer
-#' count values, one row for each observational unit (gene or the like), and one
+#' count values, one row for each observational unit (eg.: gene), and one
 #' column for each sample. 
 #'
-#' By default this function returns the raw counts.
-#' If conrols/normalizations are computed the normalized counts can be returned 
-#' using normalized = TRUE.
-#' The offset parameter can be used to add a pseudocount to the count before 
-#' dividing by the normalization. This can be usefull when the log(counts) 
-#' should be computed and in case the controll values are in the same oder of 
-#' magnited as the counts.
+#' By default this function returns the raw counts. If conrol factors are
+#' computed or provided the normalized counts can be returned using 
+#' normalized = TRUE. The offset parameter can be used to add a pseudocount
+#' to the count before dividing by the normalization. This can be usefull 
+#' when the log(counts) are computed and in case the controll values are in 
+#' the same oder of magnited as the counts.
 #'
 #' @docType methods
 #' @name counts
@@ -46,7 +45,7 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0) {
 #'
 #' @param object OutriderDataSet
 #' @param normalized TRUE/FALSE whether counts should be normalized
-#' @param offset pseudocount offset by default 0.
+#' @param offset Pseudocount offset by default 0.
 #' @param value An integer matrix containing the counts
 #' @return A matrix containing the counts
 #' 
@@ -108,8 +107,13 @@ normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
 }
 
 #' 
-#' Accessor functions for the normalization factors in a OutriderDataSet
+#' Accessor functions for the normalization factors in an OutriderDataSet
 #' object.
+#' 
+#' To normalize raw count data normalization factors can be provided as
+#' a matrix. When running \code{\link{autoCorrect}} the normalization factors 
+#' are stored within the OutriderDataset object. This normalization factors are
+#' then used to compute the normalized counts.
 #'
 #' @seealso DESeq2::normalizationFactors
 #' @docType methods
@@ -120,14 +124,16 @@ normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
 #'         normalizationFactors<-,OutriderDataSet,DataFrame-method 
 #'         normalizationFactors<-,OutriderDataSet,NULL-method
 #'         
-#' @param object a \code{OutriderDataSet} object.
-#' @param value the matrix of normalization factors
-#' @param replace if old values are present values are replcaed. If set to false
-#'                old and new values are multiplied.
+#' @param object An \code{OutriderDataSet} object.
+#' @param value The matrix of normalization factors
+#' @param replace If old values are present values are replcaed. If set to false
+#'             old and new values are multiplied.
 #' @param ... additional arguments
 #' @return A numeric matrix containing the normalization factors or the 
 #'             OutriderDataSet object with an updated 
 #'             \code{normalizationFactors} assay.
+#' 
+#' @seealso \code{\link{sizeFactors}}
 #' 
 #' @examples
 #'

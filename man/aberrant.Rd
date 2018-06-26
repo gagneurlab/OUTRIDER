@@ -2,29 +2,29 @@
 % Please edit documentation in R/method-evaluation.R
 \name{aberrant}
 \alias{aberrant}
-\title{aberrant}
+\title{Number of aberrant events}
 \usage{
 aberrant(ods, padjCutoff = 0.05, zScoreCutoff = 0, by = c("none",
   "sample", "gene"))
 }
 \arguments{
-\item{ods}{a OutriderDataSet object}
+\item{ods}{An OutriderDataSet object}
 
-\item{padjCutoff}{the padjust cutoff}
+\item{padjCutoff}{The padjust cutoff}
 
-\item{zScoreCutoff}{the absolute Z-score cutoff, 
+\item{zScoreCutoff}{The absolute Z-score cutoff, 
 if NA or NULL no Z-score cutoff is used}
 
 \item{by}{if the results should be summarized by 'sample', 
-'gene' or not at all.}
+'gene' or not at all (default).}
 }
 \value{
-the number of aberrent events by gene or sample or a TRUE/FALSE 
+The number of aberrent events by gene or sample or a TRUE/FALSE 
       matrix of the size sample x gene of aberrent events.
 }
 \description{
-identifies the aberrant counts or returns the number of aberrant counts per
-gene or sample.
+Identifies the aberrant events and returns the number of aberrant counts per
+gene or sample or returns a matrix indicating aberrant events.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(n=50)

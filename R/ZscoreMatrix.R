@@ -1,12 +1,19 @@
 #' 
-#' Z score matrix
+#' Z score computation
 #' 
-#' computes the z scores for every log2 fold-change compared
-#' to the mean(normalizedCounts)
+#' Computes the z scores for every count in the matrix. 
+#' The z score is defined in the log2 space as follows:
+#' \ifelse{html}{
+#'     \out{z<sub>ij</sub> = (l<sub>ij</sub> - mu<sub>j</sub><sup>l</sup>)/
+#'             sigma<sub>j</sub><sup>l</sup>}}{
+#'     \deqn{z_{ij} = \frac{l_{ij} - \mu_j^l}{\sigma_j^l}}},
+#' where l is the log2 transformed normalized count and mu and sigma the 
+#' mean and standard deviation for gene j, respectively.
 #' 
 #' @param ods OutriderDataSet
-#' @param ... further arguments passed to \code{ZscoreMatrix}
-#' @return matrix of z scores and l2fc
+#' @param ... Further arguments passed to \code{ZscoreMatrix}
+#' @return An OutriderDataSet containing the z score matrix ("zScore") and
+#'     the log2 fold changes ("l2fc") as asasys.
 #' 
 #' @docType methods
 #' @name computeZscores
@@ -20,7 +27,7 @@
 #' assays(ods)[['zScore']][1:10,1:10]
 #' assays(ods)[["l2fc"]][1:10,1:10]
 #' 
-#' @export
+#' @exportMethod computeZscores
 setGeneric("computeZscores", 
         function(ods, ...) standardGeneric("computeZscores"))
 

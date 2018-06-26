@@ -11,7 +11,7 @@
 \alias{normalizationFactors<-,OutriderDataSet,DataFrame-method}
 \alias{normalizationFactors<-,OutriderDataSet,data.frame-method}
 \alias{normalizationFactors<-,OutriderDataSet,NULL-method}
-\title{Accessor functions for the normalization factors in a OutriderDataSet
+\title{Accessor functions for the normalization factors in an OutriderDataSet
 object.}
 \usage{
 \S4method{normalizationFactors}{OutriderDataSet}(object)
@@ -28,11 +28,11 @@ object.}
 \S4method{normalizationFactors}{OutriderDataSet,`NULL`}(object) <- value
 }
 \arguments{
-\item{object}{a \code{OutriderDataSet} object.}
+\item{object}{An \code{OutriderDataSet} object.}
 
-\item{value}{the matrix of normalization factors}
+\item{value}{The matrix of normalization factors}
 
-\item{replace}{if old values are present values are replcaed. If set to false
+\item{replace}{If old values are present values are replcaed. If set to false
 old and new values are multiplied.}
 
 \item{...}{additional arguments}
@@ -43,8 +43,10 @@ A numeric matrix containing the normalization factors or the
             \code{normalizationFactors} assay.
 }
 \description{
-Accessor functions for the normalization factors in a OutriderDataSet
-object.
+To normalize raw count data normalization factors can be provided as
+a matrix. When running \code{\link{autoCorrect}} the normalization factors 
+are stored within the OutriderDataset object. This normalization factors are
+then used to compute the normalized counts.
 }
 \examples{
 
@@ -67,4 +69,6 @@ all(normalizationFactors(ods) == t(sizeFactors(ods) * t(normFactors)))
 }
 \seealso{
 DESeq2::normalizationFactors
+
+\code{\link{sizeFactors}}
 }
