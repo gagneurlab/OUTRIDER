@@ -134,6 +134,9 @@ readNBModel <- function(ods, modelFile){
 #' 
 #' @noRd
 getDispEstsData <- function(ods, mu=NULL){
+    if(!'disp' %in% colnames(mcols(ods))){
+        stop('Please fit the ods first. ods <- fit(ods)')
+    }
     odsMu <- rowMeans(counts(ods, normalized=TRUE))
     if(is.null(mu)){
         mu <- odsMu
