@@ -323,15 +323,14 @@ the following equation:
 \end{equation}
 
 where the $\frac{1}{2}$ term handles the case of both terms exceeding 0.5, 
-which can happen due to the discrete nature of the negative binomial 
-distribution. Here $\mu_{ij}$ are computed as the product of the fitted 
-correction values from the autoencoder and the fitted mean adjustements. 
-If required a one-sided test can be performed using the 
-argument \Robject{alternative} and specifying 'less' or 'greater' depending on 
-the research question. Multiple testing correction is done across all genes
-in a per-sample fashion using Benjamini-Yekutieli's false discovery rate method\cite{Benjamini2001}.
-Alternatively, all adjustment methods supported by 
-\Rfunction{p.adjust} can be used via the \Robject{method} 
+which can happen due to the discrete nature of counts. Here $\mu_{ij}$ are 
+computed as the product of the fitted correction values from the autoencoder and
+the fitted mean adjustements. If required a one-sided test can be performed 
+using the argument \Robject{alternative} and specifying 'less' or 'greater' 
+depending on the research question. Multiple testing correction is done across 
+all genes in a per-sample fashion using Benjamini-Yekutieli's false discovery 
+rate method\cite{Benjamini2001}. Alternatively, all adjustment methods supported
+by \Rfunction{p.adjust} can be used via the \Robject{method} 
 argument.
 
 <<pValue_computation>>=
@@ -346,7 +345,7 @@ function, the Z-scores are computed and stored in the \ods{} object.
 The Z-scores are calculated using:
 
 \begin{equation}
-    z_{ij} = \frac{l_{j} - \mu_j^l}{\sigma_j^l}
+    z_{ij} = \frac{l_{ij} - \mu_j^l}{\sigma_j^l}
 \end{equation}
 \begin{equation*}
     l_{ij} = \log_2{(\frac{k_{ij} + 1}{c_{ij}})},
@@ -389,16 +388,17 @@ dim(res)
 \subsection{Number of aberrant genes per sample}
 
 One quantity of interest is the number of aberrantly expressed genes 
-per sample. This can be displayed using the plotting function \Rfunction{plotAberrantPerSample}.
-Alternatively, the function \Rfunction{aberrant} can be 
-used to compute the number of aberrant events. Those can be computed by sample,
-gene or in the whole data set through the paramter \Robject{by}. These numbers depend on the 
-cutoffs, which can be specified in both functions (\Robject{padjCutoff} and \Robject{zScoreCutoff}.
+per sample. This can be displayed using the plotting function 
+\Rfunction{plotAberrantPerSample}. Alternatively, the function 
+\Rfunction{aberrant} can be used to identify aberrant events, which can be 
+summed by sample or gene using the paramter \Robject{by}. These numbers depend 
+on the cutoffs, which can be specified in both functions (\Robject{padjCutoff} 
+and \Robject{zScoreCutoff}).
 
 <<aberrantperSample, fig.height=5>>=
 # number of aberrant genes per sample
 tail(sort(aberrant(ods, by="sample")))
-tail(sort(aberrant(ods, by="gene", zScore=1)))
+tail(sort(aberrant(ods, by="gene", zScoreCutoff=1)))
 
 # plot the aberrant events per sample
 plotAberrantPerSample(ods, padjCutoff=0.05)
@@ -409,7 +409,8 @@ plotAberrantPerSample(ods, padjCutoff=0.05)
 To view the distribution of P-values on a sample level, volcano plots can 
 be displayed. Most of the plots make use of the \CRANpkg{plotly} 
 framework to create interactive plots. For this vignette, we will always use 
-the basic R functionality from \CRANpkg{graphics} by setting the argument \Rcode{basePlot} to \Rcode{TRUE}.
+the basic R functionality from \CRANpkg{graphics} by setting the argument 
+\Rcode{basePlot} to \Rcode{TRUE}.
 
 <<volcano, fig.height=5>>=
 # MUC1344 is a diagnosed sample from Kremer et al.
@@ -422,7 +423,7 @@ plotVolcano(ods, "MUC1344", basePlot=TRUE)
 Additionally, we include two plots at the gene level. 
 \Rfunction{plotExpressionRank} plots the counts in ascending order. 
 By default, the controlled counts are plotted. To plot raw counts, the argument 
-\Robject{normalized} can be set to FALSE. 
+\Robject{normalized} can be set to \Rcode{FALSE}. 
 
 When using the \CRANpkg{plotly} framework for plotting, all computed values 
 are displayed for each data point. The user can access this information 
