@@ -30,7 +30,7 @@
 #' 
 #' @importFrom GenomicFeatures makeTxDbFromGFF exonsBy
 #' 
-#' @importFrom GenomicRanges reduce width
+#' @importFrom GenomicRanges GRanges IRanges reduce width 
 #' 
 #' @importFrom ggplot2 aes geom_histogram geom_smooth geom_tile geom_point 
 #'          ggplot labs scale_x_log10 scale_fill_manual theme ylim
@@ -40,7 +40,7 @@
 #' @importFrom graphics plot abline axis box grid legend lines mtext par points 
 #'          polygon text title
 #' 
-#' @importFrom matrixStats rowSds rowMedians rowQuantiles
+#' @importFrom matrixStats rowSds rowMedians rowQuantiles rowMeans2
 #' 
 #' @importFrom pcaMethods pca loadings
 #' 
@@ -63,7 +63,7 @@
 #' @importFrom stats cor coefficients cutree dist dnbinom hclust p.adjust 
 #'          setNames sd  
 #'          quantile optim var pnbinom  median ppoints qbeta runif 
-#'            lm predict rnorm glm Gamma
+#'            lm predict rnorm glm Gamma rnbinom
 #' 
 #' @importFrom utils read.table head compareVersion
 #' 

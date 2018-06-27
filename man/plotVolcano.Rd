@@ -33,7 +33,7 @@ The plotly object or NULL if if base R is used
 Volcano plot for a given sample over all genes.
 }
 \examples{
-ods <- makeExampleOutriderDataSet(1000, 100)
+ods <- makeExampleOutriderDataSet()
 ods <- OUTRIDER(ods)
 plotVolcano(ods, 1)
 
