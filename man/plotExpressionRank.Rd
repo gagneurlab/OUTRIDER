@@ -9,26 +9,27 @@ plotExpressionRank(ods, geneID, padjCutoff = 0.05, zScoreCutoff = 0,
   col = c("gray", "firebrick"), ...)
 }
 \arguments{
-\item{ods}{An OutriderDataSet.}
+\item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
 
-\item{geneID}{Id or name of gene wich should be plotted. 
-If multiple gene ids are supplied mulitple plots will be made.}
+\item{geneID}{A gene as character or index, which should be plotted.
+It can also be a vector.}
 
-\item{padjCutoff}{Padj cutoff for coloring significant genes}
+\item{padjCutoff}{Significance level to mark outliers}
 
-\item{zScoreCutoff}{Z-score cutoff for coloring significant genes}
+\item{zScoreCutoff}{Z-score cutoff to mark outliers}
 
 \item{normalized}{If TRUE the normalized counts are used,
 otherwise the raw counts}
 
-\item{basePlot}{If FALSE, the default, the plotly framework is used,
-else if TRUE the R base plot version is used}
+\item{basePlot}{if TRUE, use the R base plot version, else use the plotly 
+framekwork, which is the default}
 
-\item{main}{String passed to main (title) of the plot.}
+\item{main}{Title for the plot, can be NULL, which is the default}
 
 \item{log}{If TRUE, the default, counts are plotted in log10.}
 
-\item{col}{Color to use for coloring the points. c(normal, significant)}
+\item{col}{Set color for the points. If set, it must be a character vector 
+of length 2. (1. normal point; 2. outlier point)}
 
 \item{...}{Additional parameters passed to plot() or plot_ly().}
 }

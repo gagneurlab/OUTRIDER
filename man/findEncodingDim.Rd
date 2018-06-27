@@ -2,29 +2,30 @@
 % Please edit documentation in R/method-gridSearch.R
 \name{findEncodingDim}
 \alias{findEncodingDim}
-\title{findEncodingDim}
+\title{Find the optimal encoding dimension}
 \usage{
 findEncodingDim(ods, params = seq(5, 30, 5), freq = 0.01, zScore = 3,
   inj = "both", BPPARAM = bpparam())
 }
 \arguments{
-\item{ods}{OutriderDataSet}
+\item{ods}{An OutriderDataSet}
 
-\item{params}{set of possible q values.}
+\item{params}{Set of possible q values.}
 
-\item{freq}{frequncy of outlier by default 1E-2}
+\item{freq}{Frequency of outlier, defaults to 1E-2}
 
-\item{zScore}{injection Z-score, by default 3.}
+\item{zScore}{Injection Z-score, defaults to 3.}
 
-\item{inj}{injection strategy, by default 'both'.}
+\item{inj}{Injection strategy, by default 'both'.}
 
 \item{BPPARAM}{BPPARAM object by default bpparam().}
 }
 \value{
-optimal parameter value.
+The optimal encoding dimension
 }
 \description{
-finds the optimal encoding dimension for a given data set.
+Finds the optimal encoding dimension for a given data set by running a 
+grid search based on the provided parameter set.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()

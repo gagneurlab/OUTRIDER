@@ -1,22 +1,22 @@
 #' 
 #' Filter expression
 #' 
-#' To filter out none expressed genes this method uses the fpkm values to 
-#' get a comparable value over genes. To calcute the fpkm values the user 
+#' To filter out non expressed genes this method uses the FPKM values to 
+#' get a comparable value over genes. To calcute the FPKM values the user 
 #' needs to provide a GTF file or the basepair parameter as described in 
 #' \code{\link[DESeq2]{fpkm}}.
 #' 
 #' @rdname filterExpression
 #' @param x An OutriderDataSet object
-#' @param filterGenes if TRUE, the default, the object is subseted.
-#' @param onlyZeros filter only based on zero counts on a gene
-#' @param gtfFile a txdb object or a GTF/GFF file to be used as annotation
-#' @param fpkmCutoff the threshold for filtering based on the FPKM value
-#' @param savefpkm if TRUE the FPKM values are saved as assay
-#' @param ... additional arguments passed to \code{computeGeneLength}
+#' @param filterGenes If TRUE, the default, the object is subseted.
+#' @param onlyZeros Filter only based on zero counts on a gene
+#' @param gtfFile A txDb object or a GTF/GFF file to be used as annotation
+#' @param fpkmCutoff The threshold for filtering based on the FPKM value
+#' @param savefpkm If TRUE the FPKM values are saved as assay
+#' @param ... Additional arguments passed to \code{computeGeneLength}
 #' @return An OutriderDataSet containing the \code{passedFilter} column, which
 #'             indicates if the given gene passed the filtering threshold. If
-#'             filterGenes is TRUE the object is already subsetted.
+#'             \code{filterGenes} is TRUE the object is already subsetted.
 #' 
 #' @examples 
 #' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
@@ -73,14 +73,18 @@ filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes,
 }
 
 #' 
-#' Computes for each gene based on the GTF file the exon length
+#' Extracting the gene length from annotations
+#' 
+#' Computes the length for each gene based on the given GTF file or annotation.
+#' Here the length of a gene is defind by the total number of bases covered
+#' by exons.
 #' 
 #' @param ods An OutriderDataSet for which the gene length should be computed.
-#' @param gtfFile Can be a gft file or an txDb object with annotation.
-#' @param format the format parameter from \code{makeTxDbFromGFF}
-#' @param mapping if set, it is used to map gene names between gtf and ods. 
-#'             This should be a 2 column data.frame: 1. column GTF names 
-#'             and 2. column ods names.  
+#' @param gtfFile Can be a GTF file or an txDb object with annotation.
+#' @param format The format parameter from \code{makeTxDbFromGFF}
+#' @param mapping If set, it is used to map gene names between the GFT and the
+#'             ods object. This should be a 2 column data.frame: 
+#'             1. column GTF names and 2. column ods names.
 #' @param ... further arguments to \code{makeTxDbFromGFF}
 #' 
 #' @return An OutriderDataSet containing a \code{basepairs} column with the 

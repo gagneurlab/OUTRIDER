@@ -75,7 +75,8 @@ NULL
 #' TODO This is to get rid of the warnings of undefined variables
 #'     due to the nature of data.table and ggplot/plotly
 #' @noRd
-globalVariables(c("color", "disp", "frac", "Fraction", "loggeomeans", "lty", 
+globalVariables(c("color", "disp", "frac", "Fraction", "ExprType", 
+        "loggeomeans", "lty", 
         "lwd", "medianCts", "mu", "negLog10pVal", "normcounts", "norm_rank", 
         "obs", "onlyFull", "padj_rank", "padjust", "passedFilter", "pValue", 
         "sampleID", "value", "V1", "Var1", "Var2", ".x", "zScore"), 

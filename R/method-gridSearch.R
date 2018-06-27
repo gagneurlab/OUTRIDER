@@ -1,17 +1,17 @@
-#params <- c(5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,25,30,50,100)
-
-#' findEncodingDim
 #' 
-#' finds the optimal encoding dimension for a given data set.
+#' Find the optimal encoding dimension
+#' 
+#' Finds the optimal encoding dimension for a given data set by running a 
+#' grid search based on the provided parameter set.
 #'
-#' @param ods OutriderDataSet
-#' @param params set of possible q values.
-#' @param freq frequncy of outlier by default 1E-2
-#' @param zScore injection Z-score, by default 3.
-#' @param inj injection strategy, by default 'both'.
+#' @param ods An OutriderDataSet
+#' @param params Set of possible q values.
+#' @param freq Frequency of outlier, defaults to 1E-2
+#' @param zScore Injection Z-score, defaults to 3.
+#' @param inj Injection strategy, by default 'both'.
 #' @param BPPARAM BPPARAM object by default bpparam().
 #'
-#' @return optimal parameter value.
+#' @return The optimal encoding dimension
 #' @export
 #'
 #' @examples
@@ -22,8 +22,7 @@ findEncodingDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3,
     
     # compute auto Correction
     ods <- estimateSizeFactors(ods)
-    
-    #eval <- sapply(c(1,5), function(i) evalAutoCorrection(ods, encoding_dim=i))
+    ods <- injectOutliers(ods, freq=freq, zScore=zScore, inj=inj)
     
     ## Check limits of loss:
     # Check min and max of loss by substituting
@@ -68,6 +67,7 @@ findEncodingDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3,
 #' @param inj injection strategy.
 #'
 #' @return and OutriderDataSet with artificially corrupted counts.
+#' @noRd
 injectOutliers <- function(ods, freq, zScore, inj){
     # copy true counts to be able to acces them in the loss later
     assays(ods)[['trueCounts']] <- counts(ods)
@@ -118,7 +118,10 @@ injectOutliers <- function(ods, freq, zScore, inj){
 }
 
 
-#evaluate loss = 1/n * Sum(log-likelihood(k | c))
+#' 
+#' evaluate loss = 1/n * Sum(log-likelihood(k | c))
+#' 
+#' @noRd
 evalLoss <- function(ods, theta=25){
     N_corrupted <- sum(abs(assay(ods, 'trueCorruptions')))
     kTrue <- assay(ods, 'trueCounts')[assay(ods, 'trueCorruptions')!=0]

@@ -5,21 +5,16 @@
 \alias{fit}
 \alias{fit,OutriderDataSet-method}
 \alias{fit,OutriderDataSet-method}
-\title{Fit negative bionmial distribution}
+\title{Fit the negative binomial distribution}
 \usage{
 fit(object, ...)
 
-\S4method{fit}{OutriderDataSet}(object, dropExtremeRank = FALSE,
-  modelFile = NULL, BPPARAM = bpparam())
+\S4method{fit}{OutriderDataSet}(object, BPPARAM = bpparam())
 }
 \arguments{
-\item{object}{OutriderDataSet}
+\item{object}{An OutriderDataSet}
 
 \item{...}{additional arguments, currently not used.}
-
-\item{dropExtremeRank}{Default FALSE, should not be used anymore.}
-
-\item{modelFile}{file name to save the estimated parameters}
 
 \item{BPPARAM}{by default bpparam()}
 }
@@ -29,7 +24,8 @@ An OutriderDataSet object with the fitted model. Accessible through:
 }
 \description{
 Fit a negative binomial (NB) distribution to the counts per gene
-over all samples using the precomputed control factors.
+over all samples using if available the precomputed control factors.
+If no normalization factors are provided only the sizeFactors are used.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")

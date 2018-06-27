@@ -4,37 +4,41 @@
 \name{results}
 \alias{results}
 \alias{results,OutriderDataSet-method}
-\title{Accessor functions for the 'result' object in a OutriderDataSet
-object.}
+\title{Accessor function for the 'results' object in an OutriderDataSet object.}
 \usage{
 results(object, ...)
 
 \S4method{results}{OutriderDataSet}(object, padjCutoff = 0.05,
-  zScoreCutoff = 0, round = TRUE, all = FALSE, ...)
+  zScoreCutoff = 0, round = 2, all = FALSE, ...)
 }
 \arguments{
-\item{object}{OutriderDataSet}
+\item{object}{An OutriderDataSet}
 
-\item{...}{additional arguments, currently not used}
+\item{...}{Additional arguments, currently not used}
 
-\item{padjCutoff}{padj cutoff}
+\item{padjCutoff}{The significant theshold to be applied}
 
-\item{zScoreCutoff}{absolute Z-score cutoff}
+\item{zScoreCutoff}{If provided additionally a z score threashold is applied}
 
-\item{round}{rounding the results.}
+\item{round}{Can be TRUE, defaults to 2, or an integer used for rounding
+with \code{\link[base]{round}} to make the output
+more user friendly}
 
 \item{all}{By default FALSE, only significant read counts are listed in the 
-results.}
+results. If TRUE all results are assembled resulting in a 
+data.table of length samples x genes}
 }
 \value{
 A data.table where each row is an outlier event and the columns
             contain additional information about this event. Eg padj, l2fc
 }
 \description{
-This function extracts all results based on the given filter criteria.
+This function assembles a results table of significant outlier events based
+on the given filter criteria. The table contains various information 
+accumulated over the analysis pipeline.
 }
 \examples{
-set.seed(42)
+
 ods <- makeExampleOutriderDataSet()
 ods <- OUTRIDER(ods)
 res <- results(ods, all=TRUE)

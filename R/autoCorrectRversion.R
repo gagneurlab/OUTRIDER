@@ -1,18 +1,19 @@
 sourceCpp("src/matMult.cpp")
 
 #' 
-#' Autoencoder function to correct for co-founders.
+#' Autoencoder function to correct for confounders.
 #' 
 #' This is the wrapper function for the autoencoder implementation. 
 #' It can be used to call the standard R implementation or the experimental
 #' Python implementation.
 #'
-#' @param ods an OutriderDataSet object
-#' @param q the encoding dimensions
-#' @param theta the dispersion parameter
-#' @param implementation "R", the default will use the R implementation or 
+#' @param ods An OutriderDataSet object
+#' @param q The encoding dimensions
+#' @param theta The dispersion parameter
+#' @param implementation "R", the default, will use the R implementation or 
 #'             "python" to use the python/tensorflow experimental implementation
-#' @param ... passed on to the autoencoder implementing method.
+#' @param ... passed on to the autoencoder implementing method. In the case of 
+#'             the R implementation it is passed to the optim function. 
 #' 
 #' @return An ods object including the control factors 
 #'
@@ -51,7 +52,7 @@ autoCorrect <- function(ods, q=20, theta=25,
 }
     
 #' 
-#' Autoencoder function to correct for co-founders.
+#' Autoencoder function to correct for confounders.
 #'
 #' @param ods An uormalized OUTRIDER data set
 #' @param q the encoding dimension used.
@@ -74,17 +75,16 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
     # initialize W using PCA and bias as zeros.
     pca <- pca(x, nPcs = q) 
     pc  <- loadings(pca)
-    w_guess <- c(as.vector(pc), rep(0,ncol(k)))
+    w_guess <- c(as.vector(pc), numeric(ncol(k)))
     # check initial loss
     print(
         paste0('Initial PCA loss: ',
             loss(w_guess, k, x, s, xbar, theta))
     )
-    
-    w_init <- c(as.vector(pc), rnorm(ncol(k), sd=0.001))
+
     # optimize log likelihood
     t <- Sys.time()
-    fit <- optim(w_init, cmpLoss, gr = cmpLossGrad, k=k, x=x, s=s, xbar=xbar, 
+    fit <- optim(w_guess, cmpLoss, gr = cmpLossGrad, k=k, x=x, s=s, xbar=xbar, 
         theta=theta, method="L-BFGS-B", control=control, ...)
     #Check that fit converged
     if(fit$convergence!=0){
@@ -110,23 +110,29 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
 }
 
 
-#' function to output the latentspace determined by the autoencoder.
+#' 
+#' Extracting the latent space
+#' 
+#' Extracts the latent space from the OutriderDataSet object 
+#' determined by the autoencoder.
 #'
-#' @param ods An OUTRIDER data set
+#' @param ods An OutriderDataSet
 #'
-#' @return A matrix containing the by the autoencoder computed latent space.
-#' @export
+#' @return A matrix containing the latent space determined by the autoencoder.
 #'
 #' @examples 
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' ods <- autoCorrect(ods)
-#' computeLatentSpace(ods)
+#' head(computeLatentSpace(ods))
+#' 
+#' @export
 computeLatentSpace <- function(ods){
     stopifnot(is(ods, 'OutriderDataSet'))
     if(metadata(ods)[['dim']]!=dim(ods)){
         stop('The ods dimension changed. Computation not possible.')
     }
+    
     # get data
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
@@ -228,7 +234,7 @@ lossGrad <- function(w, k, x, s, xbar, theta){
 #' @param xbar offset 
 #'
 #' @return Returns the predicted corrections (predicted means).
-#' 
+#' @noRd
 predictC <- function(w, k, s, xbar){
     x <-  t(t(log((1+k)/s)) - xbar)
     W <- matrix(w, nrow=ncol(k))

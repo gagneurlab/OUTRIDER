@@ -1,12 +1,11 @@
 #'
-#' Fit negative bionmial distribution
+#' Fit the negative binomial distribution
 #' 
 #' Fit a negative binomial (NB) distribution to the counts per gene
-#' over all samples using the precomputed control factors.
+#' over all samples using if available the precomputed control factors.
+#' If no normalization factors are provided only the sizeFactors are used.
 #' 
-#' @param object OutriderDataSet
-#' @param dropExtremeRank Default FALSE, should not be used anymore.
-#' @param modelFile file name to save the estimated parameters
+#' @param object An OutriderDataSet
 #' @param BPPARAM by default bpparam()
 #' @param ... additional arguments, currently not used.
 #' @return An OutriderDataSet object with the fitted model. Accessible through:
@@ -29,36 +28,29 @@ setGeneric("fit", function(object, ...) standardGeneric("fit"))
 
 #' @rdname fit
 #' @export
-setMethod("fit", "OutriderDataSet", function(object, dropExtremeRank=FALSE, 
-                    modelFile=NULL, BPPARAM=bpparam()){
-    fitNB(object, dropExtremeRank=dropExtremeRank, modelFile=modelFile, 
-            BPPARAM=BPPARAM)
+setMethod("fit", "OutriderDataSet", function(object, BPPARAM=bpparam()){
+    fitNB(object, BPPARAM=BPPARAM)
 })
 
-
-fitNB <- function(ods, dropExtremeRank, modelFile, BPPARAM){
+fitNB <- function(ods, BPPARAM){
     ctsData <- counts(ods)
     normF <- normalizationFactors(ods)
     if(is.null(normF)){
         normF <- sizeFactors(ods)
     }
     if(is.null(normF)){
-        stop(paste("Please provide sizeFactors or normalizationFactors", 
-                "for better estimates!\n  To overcome this just set the", 
-                "sizeFactors like this:\n    sizeFactors(ods) <- 1"))
+        stop("Please provide sizeFactors or normalizationFactors for better ",
+                "estimates!\n  To compute the sizeFactors please run at least:", 
+                " ods <- estimateSizeFactors(ods).")
     }
     
     fitparameters <- bplapply(seq_along(ods), fitNegBinom, normF=normF,
-            ctsData=ctsData, dropExtremeRank=dropExtremeRank, BPPARAM=BPPARAM)
+            ctsData=ctsData, BPPARAM=BPPARAM)
     
     fitparameters <- DataFrame(t(matrix(unlist(fitparameters), nrow = 2)))
     mcols(ods)[c('mu', 'disp')] <- fitparameters
-    validObject(ods)
     
-    # write out model file if requested
-    if(!is.null(modelFile)){
-        writeNBModel(ods, modelFile)
-    }
+    validObject(ods)
     return(ods)
 }
 
@@ -97,26 +89,12 @@ gradloglikelihood <- function(sizemu, x, SizeF){
 
 
 #fit for individual gene
-fitNegBinom <- function(index, ctsData, normF, dropExtremeRank){
+fitNegBinom <- function(index, ctsData, normF){
     data <- ctsData[index,]
     if(is.matrix(normF)){
         normF <- normF[index,]
     }
-    if(is.null(normF)){
-        stop("Please provide sizeFactors or normalizationFactors ", 
-                "for better estimates!\n  To overcome this just set the ", 
-                "sizeFactors like this:\n    sizeFactors(ods) <- 1")
-    }
-    if(isTRUE(dropExtremeRank)){
-        #option to remove extreme points from distribution prior to fitting.
-        r <- rank(data)
-        ndrop <- round(length(r)*0.01)
-        data <- data[r>ndrop & r<length(r)-ndrop]
-        normF <- normF[r>ndrop & r<length(r)-ndrop]
-        # if(NF != 1){
-        #     NF <- NF[r>ndrop & r<length(r)-ndrop]
-        # }
-    }
+    stopifnot(!is.null(normF))
     
     ##correct s factor
     est <- optim(par=initialSizeMu(data, normF), fn=loglikelihood, 
@@ -124,8 +102,5 @@ fitNegBinom <- function(index, ctsData, normF, dropExtremeRank){
         lower=c(0.01,0.01))
     c(est$par["mu"], est$par["size"])
 } 
-
-
-
 
 

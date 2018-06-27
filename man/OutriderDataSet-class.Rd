@@ -3,11 +3,45 @@
 \docType{class}
 \name{OutriderDataSet-class}
 \alias{OutriderDataSet-class}
-\title{OutriderDataSet}
+\alias{OutriderDataSet}
+\title{OutriderDataSet class and constructors}
+\usage{
+OutriderDataSet(se, countData, colData, ...)
+}
+\arguments{
+\item{se}{An RangedSummarizedExperiment object or any object which inherits
+from it and contains a count matrix as the first element in the
+assay list.}
+
+\item{countData}{A simple count matrix. If dim names are provided, they have
+to be unique. This is only used if no \code{se} object is
+provided.}
+
+\item{colData}{Additional to the count data a \code{DataFrame} can be 
+provided to annotate the samples.}
+
+\item{...}{Further arguments can be passed to
+\code{\link[DESeq2]{DESeqDataSet}}, which is used to parse the
+user input and create the initial 
+\code{RangedSummarizedExperiment} object.}
+}
+\value{
+An OutriderDataSet object.
+}
 \description{
-This class is designed to store the whole OUTRIDER data set
-needed for an analysis of a disease cohort
+The OutriderDataSet class is designed to store the whole OUTRIDER data set
+needed for an analysis. It is a subclass of 
+\code{RangedSummarizedExperiment}. All calculated values and results are 
+stored as assays or as annotation in the mcols structure provided by the
+\code{RangedSummarizedExperiment} class.
+}
+\examples{
+
+ods <- makeExampleOutriderDataSet()
+ods
+   
 }
 \author{
-Christian Mertes \email{mertes@in.tum.de}
+Christian Mertes \email{mertes@in.tum.de}, 
+            Felix Brechtmann \email{brechtma@in.tum.de}
 }
