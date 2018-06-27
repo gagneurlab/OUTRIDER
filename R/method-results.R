@@ -110,6 +110,7 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
 #' 
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- OUTRIDER(ods)
+#' 
 #' res <- results(ods, all=TRUE)
 #' 
 #' res

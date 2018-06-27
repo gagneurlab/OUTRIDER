@@ -39,7 +39,7 @@ the same oder of magnited as the counts.
 }
 \examples{
 
-ods <- makeExampleOutriderDataSet(n=111, m=10)
+ods <- makeExampleOutriderDataSet(100, 20)
 counts(ods)[1:10,1:10]
 
 ods <- estimateSizeFactors(ods)

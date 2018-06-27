@@ -129,7 +129,7 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
 #' @export
 computeLatentSpace <- function(ods){
     stopifnot(is(ods, 'OutriderDataSet'))
-    if(metadata(ods)[['dim']]!=dim(ods)){
+    if(any(metadata(ods)[['dim']]!=dim(ods))){
         stop('The ods dimension changed. Computation not possible.')
     }
     

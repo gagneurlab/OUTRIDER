@@ -27,11 +27,11 @@ Identifies the aberrant events and returns the number of aberrant counts per
 gene or sample or returns a matrix indicating aberrant events.
 }
 \examples{
-ods <- makeExampleOutriderDataSet(n=50)
+ods <- makeExampleOutriderDataSet()
 ods <- OUTRIDER(ods)
 
 aberrant(ods)[1:10,1:10]
-aberrant(ods, by="sample")
-aberrant(ods, by="gene")
+tail(sort(aberrant(ods, by="sample")))
+tail(sort(aberrant(ods, by="gene")))
 
 }

@@ -17,7 +17,7 @@
 #' @aliases fit fit,OutriderDataSet-method
 #' 
 #' @examples 
-#' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
 #' 

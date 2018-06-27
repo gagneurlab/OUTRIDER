@@ -25,16 +25,13 @@
 #' @aliases computePvalues computePvalues,OutriderDataSet-method
 #' 
 #' @examples 
-#' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
+#' 
 #' ods <- computePvalues(ods)
 #' 
 #' assays(ods)[['pValue']][1:10,1:10]
-#' 
-#' ods <- computeZscores(ods)
-#' res <- results(ods)
-#' res
 #' 
 #' @exportMethod computePvalues
 setGeneric("computePvalues", 
@@ -128,15 +125,6 @@ pVal <- function(index, ctsData, disp, mu, normFact, alternative){
 #' @param ods OutriderDataSet
 #' @param method adjustment method, by default 'BH'
 #' @return OutriderDataSet containing adjusted pValues
-#' 
-#' @examples 
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- OUTRIDER(ods)
-#' ods <- padjMatrix(ods, method='BH')
-#' head(assays(ods)[["padjust"]][,1:10])
-#'
-#' ods <- padjMatrix(ods, method='fdr')
-#' head(assays(ods[,1:10])[["padjust"]])
 #' 
 #' @noRd
 padjMatrix <- function(ods, method='BH'){

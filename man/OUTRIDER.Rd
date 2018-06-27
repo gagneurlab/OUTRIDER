@@ -36,11 +36,14 @@ function seperatly.
 }
 }
 \examples{
-ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
+ods <- makeExampleOutriderDataSet()
 ods <- OUTRIDER(ods)
 
 assays(ods)[['pValue']][1:10,1:10]
 res <- results(ods, all=TRUE)
+res
+
+plotAberrantPerSample(ods)
 plotVolcano(ods, 1)
 
 }

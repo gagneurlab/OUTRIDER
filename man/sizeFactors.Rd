@@ -40,7 +40,7 @@ existing model.
 }
 \examples{
 
-ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
+ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 head(sizeFactors(ods))
 

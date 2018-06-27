@@ -1,4 +1,3 @@
-
 #'
 #' This is a helper function to generate a nice color pallet for plotting
 #' 

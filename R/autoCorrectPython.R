@@ -94,12 +94,3 @@ checkAutoCorrectExists <- function(){
     return(TRUE)
 }
 
-setupPythonEnv <- function(envname='OUTRIDER', useConda=TRUE, ...){
-
-    #conda_create(envname, ...)
-    #conda_install('autoCorrection', envname=envname, pip=TRUE)
-    # use_conda(envname)
-    #use_condaenv(envname, require=TRUE)
-
-}
-

@@ -16,8 +16,9 @@
 #' @return The plotly object or NULL if if base R is used
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(1000, 100)
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- OUTRIDER(ods)
+#' 
 #' plotVolcano(ods, 1)
 #' 
 #' @export 
@@ -116,10 +117,13 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0, pch=16,
 #' @return None
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(500, 300)
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- OUTRIDER(ods)
+#' 
 #' plotQQ(ods, 1)
+#' \donttest{
 #' plotQQ(ods, global=TRUE, outlierRatio=0.001)
+#' }
 #' 
 #' @export
 plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, 
@@ -294,8 +298,9 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
 #' @return None or a plotly object
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(1000, 100)
-#' ods <- OUTRIDER(ods)
+#' ods <- makeExampleOutriderDataSet()
+#' ods <- estimateSizeFactors(ods)
+#' 
 #' plotExpressionRank(ods, 1)
 #' plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
 #' 
@@ -427,11 +432,14 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
+#' 
 #' ods <- plotCountCorHeatmap(ods, annotateCluster=TRUE)
 #' 
+#' \donttest{
 #' sex <- sample(c("female", "male"), dim(ods)[2], replace=TRUE)
 #' colData(ods)$sex <- sex 
 #' plotCountCorHeatmap(ods, colCoFactor="sex")
+#' }
 #' 
 #' @export
 plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE, 
@@ -603,7 +611,7 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' 
 #' @examples
 #' 
-#' ods <- makeExampleOutriderDataSet(500, 100)
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- OUTRIDER(ods)
 #' 
 #' plotAberrantPerSample(ods)
@@ -723,6 +731,7 @@ plotFPKM <- function(ods){
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
+#' 
 #' plotDispEsts(ods)
 #' 
 #' @exportMethod plotDispEsts
@@ -772,7 +781,7 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
 
 
 
-#' 
+#'
 #' PowerAnalysis plot
 #'
 #' The power analysis plot should give the user a ruff estimate of the events
@@ -788,7 +797,10 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
+#'
+#' \donttest{
 #' plotPowerAnalysis(ods)
+#' }
 #' 
 #' @export
 plotPowerAnalysis <- function(ods){

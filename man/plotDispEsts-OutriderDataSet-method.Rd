@@ -25,6 +25,7 @@ mean count.
 ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
+
 plotDispEsts(ods)
 
 }

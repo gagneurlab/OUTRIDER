@@ -53,10 +53,13 @@ Correlation heatmap of the count data of the given samples
 \examples{
 ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
+
 ods <- plotCountCorHeatmap(ods, annotateCluster=TRUE)
 
+\donttest{
 sex <- sample(c("female", "male"), dim(ods)[2], replace=TRUE)
 colData(ods)$sex <- sex 
 plotCountCorHeatmap(ods, colCoFactor="sex")
+}
 
 }

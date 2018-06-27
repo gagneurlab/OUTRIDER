@@ -41,7 +41,7 @@ ods1 <- makeExampleOutriderDataSet()
 ods1
 
 # A generic dataset with specificed sample size and injection method
-ods2 <- makeExampleOutriderDataSet(n=500, m=50, inj='low')
+ods2 <- makeExampleOutriderDataSet(n=300, m=50, inj='low')
 ods2
 
 # A subset of a real world dataset from GTEx 

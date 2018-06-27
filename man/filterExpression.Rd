@@ -8,9 +8,8 @@
 \usage{
 filterExpression(x, ...)
 
-\S4method{filterExpression}{OutriderDataSet}(x, gtfFile = NULL,
-  fpkmCutoff = 1, filterGenes = FALSE, savefpkm = FALSE,
-  onlyZeros = FALSE, ...)
+\S4method{filterExpression}{OutriderDataSet}(x, gtfFile, fpkmCutoff = 1,
+  filterGenes = TRUE, savefpkm = FALSE, onlyZeros = FALSE, ...)
 }
 \arguments{
 \item{x}{An OutriderDataSet object}
@@ -42,13 +41,13 @@ needs to provide a GTF file or the basepair parameter as described in
 ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 annotationFile <- system.file("extdata", 
     "gencode.v19.genes.small.gtf.gz", package="OUTRIDER")
-ods <- filterExpression(ods, annotationFile)
+ods <- filterExpression(ods, annotationFile, filterGenes=FALSE)
 
 mcols(ods)['passedFilter']
 fpkm(ods)[1:10,1:10]
 dim(ods)
 
-ods <- filterExpression(ods, annotationFile, filterGenes=TRUE)
+ods <- ods[mcols(ods)[['passedFilter']]]
 dim(ods)
 
 }

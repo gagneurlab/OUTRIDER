@@ -22,13 +22,13 @@
 #' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 #' annotationFile <- system.file("extdata", 
 #'     "gencode.v19.genes.small.gtf.gz", package="OUTRIDER")
-#' ods <- filterExpression(ods, annotationFile)
+#' ods <- filterExpression(ods, annotationFile, filterGenes=FALSE)
 #' 
 #' mcols(ods)['passedFilter']
 #' fpkm(ods)[1:10,1:10]
 #' dim(ods)
 #' 
-#' ods <- filterExpression(ods, annotationFile, filterGenes=TRUE)
+#' ods <- ods[mcols(ods)[['passedFilter']]]
 #' dim(ods)
 #' 
 #' @export
@@ -37,14 +37,14 @@ setGeneric("filterExpression",
 
 #' @rdname filterExpression
 #' @export
-setMethod("filterExpression", "OutriderDataSet", function(x, gtfFile=NULL, 
-                    fpkmCutoff=1, filterGenes=FALSE, savefpkm=FALSE, 
+setMethod("filterExpression", "OutriderDataSet", function(x, gtfFile, 
+                    fpkmCutoff=1, filterGenes=TRUE, savefpkm=FALSE, 
                     onlyZeros=FALSE, ...){
     x <- filterZeros(x, filterGenes=filterGenes)
     if(onlyZeros == TRUE){
         return(x)
     }
-    if(!is.null(gtfFile)){
+    if(!missing(gtfFile)){
         x <- computeGeneLength(x, gtfFile=gtfFile, ...)
     }
     filterExp(x, fpkmCutoff=fpkmCutoff, filterGenes=filterGenes, 
@@ -101,6 +101,7 @@ filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes,
 #' mcols(ods)['basepairs']
 #' fpkm(ods)[1:10,1:10]
 #' 
+#' \donttest{
 #' library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 #' library(org.Hs.eg.db)
 #' ods <- makeExampleOutriderDataSet(dataset="KremerNBaderSmall")
@@ -111,6 +112,7 @@ filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes,
 #' 
 #' mcols(ods)['basepairs']
 #' fpkm(ods)[1:10,1:10]
+#' }
 #' 
 #' @export
 computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
