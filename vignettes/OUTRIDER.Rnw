@@ -5,19 +5,7 @@
 
 \documentclass[11pt]{article}
 
-\usepackage{amsmath}
-\usepackage{verbatim}
-\usepackage[nottoc]{tocbibind}
-\usepackage{graphicx}
-
-\newcommand{\outrider}{\Biocpkg{OUTRIDER}}
-\newcommand{\rna}{RNA-seq}
-\newcommand{\deseq}{\Biocpkg{DESeq2}}
-\newcommand{\ods}{\Rclass{OutriderDataSet}}
-
-\title{OUTRIDER - OUTlier RNA-Seq fInDER}
-
-<<style, eval=TRUE, echo=FALSE, results="asis">>=
+<<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
 BiocStyle::latex()
 @
 
@@ -28,12 +16,23 @@ opts_chunk$set(
     dev="png",
     fig.width=7,
     fig.height=7,
-    dpi = 300,
+    dpi=300,
     message=FALSE,
     warning=FALSE,
     cache=FALSE
 )
 @
+
+\usepackage{amsmath}
+\usepackage{verbatim}
+\usepackage[nottoc]{tocbibind}
+
+\newcommand{\outrider}{\Biocpkg{OUTRIDER}}
+\newcommand{\rna}{RNA-seq}
+\newcommand{\deseq}{\Biocpkg{DESeq2}}
+\newcommand{\ods}{\Rclass{OutriderDataSet}}
+
+\title{OUTRIDER - OUTlier in RNA-Seq fInDER}
 
 \author{
     Felix Brechtmann$^{1}$, Christian Mertes$^{1}$, Agne Matuseviciute$^{1}$, 
@@ -384,7 +383,7 @@ through the analysis.
 The \Rfunction{results} function gathers all the previously computed values
 and combines them into one table.
 
-<<results>>=
+<<results fun>>=
 # get results (default only significant, padj < 0.05)
 res <- results(ods)
 head(res)

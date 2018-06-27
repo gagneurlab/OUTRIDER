@@ -124,13 +124,19 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' ods <- autoCorrect(ods)
-#' head(computeLatentSpace(ods))
+#' computeLatentSpace(ods)[1:6,1:6]
 #' 
 #' @export
 computeLatentSpace <- function(ods){
     stopifnot(is(ods, 'OutriderDataSet'))
+    if(!'weights' %in% names(metadata(ods))){
+        stop('No weights are stored in this OutriderDataSet object. ',
+                'Please compute weights before extracting the latent space.')
+    }
     if(any(metadata(ods)[['dim']]!=dim(ods))){
-        stop('The ods dimension changed. Computation not possible.')
+        stop('The OutriderDataSet dimension changed and does not match with ',
+                'the existing weights. Please recompute the weights. ',
+                'Computation not possible on this data.')
     }
     
     # get data
