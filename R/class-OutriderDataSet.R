@@ -150,11 +150,12 @@ OutriderDataSet <- function(se, countData, colData, ...) {
 #' ods3
 #' 
 #' @export 
-makeExampleOutriderDataSet <- function(n=1000, m=100, freq=1E-2, zScore=6, 
-                    inj=c('both', 'low', 'high'),
+makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6, 
+                    inj=c('both', 'low', 'high'), sizeFactors = rep(1, m),
+                    betaSD=4, dispMeanRel = function(x) 4/x + 0.1,
                     dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall'),
                     ...){
-    
+    # load example data set 
     dataset <- match.arg(dataset)
     inj <- match.arg(inj)
     if(dataset != 'none'){
@@ -164,10 +165,67 @@ makeExampleOutriderDataSet <- function(n=1000, m=100, freq=1E-2, zScore=6,
         return(OutriderDataSet(countData=countData))
     }
     
-    ans <- OutriderDataSet(se=makeExampleDESeqDataSet(n=n, m=m*2, ...))
-    ans <- ans[,seq_len(m)]
-    colnames(ans)[m] <- paste0("sample", m)
-    ans <- injectOutliers(ans, freq = freq, zScore = zScore, inj=inj)
-    return(ans)
+    # generate in-silico data set
+    x <- rep(1, m)
+    beta <- rnorm(n, 0, betaSD)
+    dispersion <- dispMeanRel(2^beta)
+    mu <- t(2^(x %*% t(beta)) * sizeFactors)
+    countData <- matrix(rnbinom(m * n, mu = mu, size = 1/dispersion), 
+            ncol = m)
+    mode(countData) <- "integer"
+    
+    ## generate in-silico outliers.
+    # generate index of injected counts
+    index <- matrix(sample(c(0,1,-1), n*m, prob = c(1 - freq, freq/2, freq/2), 
+            replace = TRUE), nrow = n)
+    # inject on low, high or both sides
+    if(inj=='low'){
+        index <- -abs(index)
+    }
+    if(inj=='high'){
+        index <- abs(index)
+    }
+    list_index <- which(index != 0, arr.ind = TRUE)
+    
+    max_out <- 1E2 * max(countData)
+    n_rejected <- 0
+    for(i in seq_len(nrow(list_index))){
+        row <- list_index[i,'row']
+        col <- list_index[i,'col']
+        fc <- zScore * sdLogScale(mu[row,col], dispersion[row])
+        clcount <- index[row,col]*fc + 
+            log2(1 + countData[row,col])
+        #multiply size factor again
+        art_out <- round(sizeFactors[col]*2^clcount)
+        if(art_out < max_out){
+            countData[row,col] <- art_out
+        }else{
+            #remove super large outliers
+            index[row,col] <- 0 
+            n_rejected <- n_rejected + 1
+        }
+        
+    }
+    
+    colnames(countData) <- paste("sample", 1:m, sep = "")
+    rowRanges <- GRanges("1", IRanges(start = (1:n - 1) * 100 + 1, width = 100))
+    names(rowRanges) <- paste0("gene", 1:n)
+    
+    object <- OutriderDataSet(countData = countData, rowRanges = rowRanges)
+    trueVals <- DataFrame(trueBeta = beta, trueDisp = dispersion,
+                          trueMean = rowMeans2(mu))
+    mcols(trueVals) <- DataFrame(type = rep("input", ncol(trueVals)), 
+                                description = c("simulated beta values", 
+                                                "simulated means",
+                                                 "simulated dispersion values"))
+    mcols(object) <- cbind(mcols(object), trueVals)
+    return(object)
+    
+    #object <- injectOutliers(object, freq = freq, zScore = zScore, inj=inj)
+    return(object)
 }
 
+
+sdLogScale <- function(mu, disp){
+    sqrt(mu*(1+mu/disp))/(mu + 1)
+}
