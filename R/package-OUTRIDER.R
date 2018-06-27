@@ -30,7 +30,7 @@
 #' 
 #' @importFrom GenomicFeatures makeTxDbFromGFF exonsBy
 #' 
-#' @importFrom GenomicRanges GRanges IRanges reduce width 
+#' @importFrom GenomicRanges GRanges reduce width 
 #' 
 #' @importFrom ggplot2 aes geom_histogram geom_smooth geom_tile geom_point 
 #'          ggplot labs scale_x_log10 scale_fill_manual theme ylim

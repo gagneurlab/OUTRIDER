@@ -174,7 +174,6 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
     mu <- t(2^(x %*% t(beta)) * sizeFactors)
     countData <- matrix(rnbinom(m * n, mu = mu, size = 1/dispersion), 
             ncol = m)
-    mode(countData) <- "integer"
     
     ## generate in-silico outliers.
     # generate index of injected counts
@@ -208,6 +207,8 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
         }
         
     }
+    
+    mode(countData) <- "integer"
     
     colnames(countData) <- paste("sample", 1:m, sep = "")
     rowRanges <- GRanges("1", IRanges(start = (1:n - 1) * 100 + 1, width = 100))
