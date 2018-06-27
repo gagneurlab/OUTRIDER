@@ -131,7 +131,9 @@ OutriderDataSet <- function(se, countData, colData, ...) {
 #' @param zScore Absolute z score of in-silico outliers (default 6).
 #' @param inj Determines whether counts are injected with the strategy 
 #'            ('both', 'low', 'high'), default is 'both'.
-#' @param ... Further arguments to \code{makeExampleDESeqDataSet}
+#' @param sizeFactors Artificial Size Factors
+#' @param betaSD Standard deviation.
+#' @param dispMeanRel Mean dispersion relation ship. 
 #'
 #' @return An OutriderDataSet containing an example dataset. Depending on the
 #'             parameters it is based on a real data set or it is simulated
@@ -153,8 +155,8 @@ OutriderDataSet <- function(se, countData, colData, ...) {
 makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6, 
                     inj=c('both', 'low', 'high'), sizeFactors = rep(1, m),
                     betaSD=4, dispMeanRel = function(x) 4/x + 0.1,
-                    dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall'),
-                    ...){
+                    dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall')
+                    ){
     # load example data set 
     dataset <- match.arg(dataset)
     inj <- match.arg(inj)
@@ -225,7 +227,9 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
     return(object)
 }
 
-
+#' Aproximates standard deviation of counts in log2 space.
+#'
+#'@noRd
 sdLogScale <- function(mu, disp){
-    sqrt(mu*(1+mu/disp))/(mu + 1)
+    sqrt(mu*(1+mu/disp))/((mu + 1)*log(2))
 }
