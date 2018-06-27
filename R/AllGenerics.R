@@ -54,7 +54,7 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0) {
 #'
 #' @examples
 #' 
-#' ods <- makeExampleOutriderDataSet(n=111, m=10)
+#' ods <- makeExampleOutriderDataSet(100, 20)
 #' counts(ods)[1:10,1:10]
 #'
 #' ods <- estimateSizeFactors(ods)
@@ -131,7 +131,7 @@ normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
 #' 
 #' @examples
 #'
-#' ods <- makeExampleOutriderDataSet(n=111, m=10)
+#' ods <- makeExampleOutriderDataSet(100, 20)
 #'
 #' normFactors <- matrix(runif(nrow(ods)*ncol(ods),0.5,1.5),
 #'     ncol=ncol(ods),nrow=nrow(ods))

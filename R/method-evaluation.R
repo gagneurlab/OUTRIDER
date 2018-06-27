@@ -41,3 +41,4 @@ aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=0,
             gene = rowSums(aberrantEvents)
     ))
 }
+

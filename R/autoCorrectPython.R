@@ -87,10 +87,19 @@ checkAutoCorrectExists <- function(){
     
     # Check if autoCorrection version is correct
     aeVersion <- as.character(py_get_attr(autoCorrectObj, '__version__'))
-    if(compareVersion(aeVersion, "0.3.0") < 0){
+    if(compareVersion(aeVersion, "0.2.0") < 0){
         stop(paste0("Please upgrade your autoCorrection installation to have ",
                 "the required version. The current version is: ", aeVersion))
     }
     return(TRUE)
+}
+
+setupPythonEnv <- function(envname='OUTRIDER', useConda=TRUE, ...){
+
+    #conda_create(envname, ...)
+    #conda_install('autoCorrection', envname=envname, pip=TRUE)
+    # use_conda(envname)
+    #use_condaenv(envname, require=TRUE)
+
 }
 

@@ -45,4 +45,4 @@ log2fc <- function(object, normalized = TRUE){
         log2(rowMeans(counts(object, normalized = normalized, offset = 1)))
     return(l2fc)
 }
-    
+

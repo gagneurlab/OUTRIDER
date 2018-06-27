@@ -41,3 +41,4 @@ OUTRIDER <- function(object, autoCorrect=TRUE, nbModelFile=NULL){
     object <- computeZscores(object)
     return(object)
 }
+
