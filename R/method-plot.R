@@ -16,7 +16,7 @@
 #' @return The plotly object or NULL if if base R is used
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(1000, 100)
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- OUTRIDER(ods)
 #' plotVolcano(ods, 1)
 #' 
@@ -116,7 +116,7 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0, pch=16,
 #' @return None
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(500, 300)
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- OUTRIDER(ods)
 #' plotQQ(ods, 1)
 #' plotQQ(ods, global=TRUE, outlierRatio=0.001)
@@ -294,8 +294,9 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
 #' @return None or a plotly object
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(1000, 100)
-#' ods <- OUTRIDER(ods)
+#' ods <- makeExampleOutriderDataSet()
+#' ods <- estimateSizeFactors(ods)
+#' # ods <- OUTRIDER(ods)
 #' plotExpressionRank(ods, 1)
 #' plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
 #' 
@@ -604,8 +605,7 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' @examples
 #' 
 #' ods <- makeExampleOutriderDataSet(500, 100)
-#' ods <- OUTRIDER(ods)
-#' 
+#' ods <- OUTRIDER(ods, autoCorrect=FALSE)
 #' plotAberrantPerSample(ods)
 #' 
 #' @export
@@ -720,7 +720,7 @@ plotFPKM <- function(ods){
 #' @return None
 #' 
 #' @examples 
-#' ods <- makeExampleOutriderDataSet()
+#' ods <- makeExampleOutriderDataSet(500,100)
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
 #' plotDispEsts(ods)
@@ -751,7 +751,7 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     }
     
     # plot dispersion
-    plot(NA, xlim=range(odsVals$mu), ylim=range(1/odsVals$disp),
+    plot(NA, xlim=range(odsVals$xpred), ylim=range(1/odsVals$disp),
             pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
             main="Dispersion estimates versus mean expression")
     if(!is.null(nonAutoVals)){
