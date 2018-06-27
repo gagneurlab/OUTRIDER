@@ -169,7 +169,7 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
     
     # generate in-silico data set
     x <- rep(1, m)
-    beta <- rnorm(n, 0, betaSD)
+    beta <- rnorm(n, 5, betaSD)
     dispersion <- dispMeanRel(2^beta)
     mu <- t(2^(x %*% t(beta)) * sizeFactors)
     countData <- matrix(rnbinom(m * n, mu = mu, size = 1/dispersion), 
