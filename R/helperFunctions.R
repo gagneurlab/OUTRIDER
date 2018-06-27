@@ -49,7 +49,8 @@ getDispEstsData <- function(ods, mu=NULL){
         mu <- odsMu
     }
     disp <- mcols(ods)$disp
-    xidx <- 10^(seq.int(log10(min(mu))-1, log10(max(mu))+0.1, length.out = 500))
+    xidx <- 10^(seq.int(max(-5,log10(min(mu))-1), log10(max(mu))+0.1, 
+            length.out = 500))
     
     # fit DESeq2 parametric Disp Fit
     fit <- parametricDispersionFit(mu, 1/disp)

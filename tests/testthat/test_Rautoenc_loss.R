@@ -46,12 +46,11 @@ numericLossGrad <- function(fn, epsilon, w,...){
 }
 
 # testing the gradient
-plot(numericLossGrad(loss, 1E-8, w, k=k, x=x, s=s, xbar=xbar, theta=25),
-     lossGrad(w, k, x, s, xbar, theta));abline(0,1)
+#plot(numericLossGrad(loss, 1E-8, w, k=k, x=x, s=s, xbar=xbar, theta=25),
+#     lossGrad(w, k, x, s, xbar, theta));abline(0,1)
 
 for(i in 1:5){
     w <- c(rnorm(p*q, sd=1/p*q), rep(0,p))
     expect_equal(lossGrad(w, k, x, s, xbar, theta), 
-        as.numeric(numericLossGrad(
-            loss, 1E-8, w, k=k, x=x, s=s, xbar=xbar, theta=25)), tol=0.0001)
+        matrix(as.numeric(numericLossGrad(loss, 1E-8, w, k=k, x=x, s=s, xbar=xbar, theta=25)), ncol=q+1), tol=0.0001)
 }

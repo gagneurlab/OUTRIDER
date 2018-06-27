@@ -4,9 +4,10 @@
 \alias{makeExampleOutriderDataSet}
 \title{Create example data sets for OUTRIDER}
 \usage{
-makeExampleOutriderDataSet(n = 1000, m = 100, freq = 0.01, zScore = 6,
-  inj = c("both", "low", "high"), dataset = c("none", "GTExSkinSmall",
-  "KremerNBaderSmall"), ...)
+makeExampleOutriderDataSet(n = 200, m = 80, freq = 0.01, zScore = 6,
+  inj = c("both", "low", "high"), sizeFactors = rep(1, m), betaSD = 4,
+  dispMeanRel = function(x) 4/x + 0.1, dataset = c("none", "GTExSkinSmall",
+  "KremerNBaderSmall"))
 }
 \arguments{
 \item{n}{Number of simulated genes}
@@ -20,11 +21,15 @@ makeExampleOutriderDataSet(n = 1000, m = 100, freq = 0.01, zScore = 6,
 \item{inj}{Determines whether counts are injected with the strategy 
 ('both', 'low', 'high'), default is 'both'.}
 
+\item{sizeFactors}{Artificial Size Factors}
+
+\item{betaSD}{Standard deviation.}
+
+\item{dispMeanRel}{Mean dispersion relation ship.}
+
 \item{dataset}{If "none", the default, an example data set is simulated. 
 One can also use example data set included in the package by
 specifying 'GTExSkinSmall' or 'KremerNBaderSmall'}
-
-\item{...}{Further arguments to \code{makeExampleDESeqDataSet}}
 }
 \value{
 An OutriderDataSet containing an example dataset. Depending on the
@@ -41,7 +46,7 @@ ods1 <- makeExampleOutriderDataSet()
 ods1
 
 # A generic dataset with specificed sample size and injection method
-ods2 <- makeExampleOutriderDataSet(n=300, m=50, inj='low')
+ods2 <- makeExampleOutriderDataSet(n=200, m=50, inj='low')
 ods2
 
 # A subset of a real world dataset from GTEx 

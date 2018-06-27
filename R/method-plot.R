@@ -301,6 +301,10 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' 
+#' \donttest{
+#' ods <- OUTRIDER(ods)
+#' }
+#' 
 #' plotExpressionRank(ods, 1)
 #' plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
 #' 
@@ -760,7 +764,7 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     }
     
     # plot dispersion
-    plot(NA, xlim=range(odsVals$mu), ylim=range(1/odsVals$disp),
+    plot(NA, xlim=range(odsVals$xpred), ylim=range(1/odsVals$disp),
             pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
             main="Dispersion estimates versus mean expression")
     if(!is.null(nonAutoVals)){
