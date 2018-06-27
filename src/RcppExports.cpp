@@ -6,22 +6,42 @@
 
 using namespace Rcpp;
 
-// armaMatMultAtBC
-SEXP armaMatMultAtBC(arma::mat A, arma::mat B, arma::mat C);
-RcppExport SEXP _OUTRIDER_armaMatMultAtBC(SEXP ASEXP, SEXP BSEXP, SEXP CSEXP) {
+// truncLogLiklihood
+SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::mat b, arma::mat s, double theta);
+RcppExport SEXP _OUTRIDER_truncLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type C(CSEXP);
-    rcpp_result_gen = Rcpp::wrap(armaMatMultAtBC(A, B, C));
+    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type s(sSEXP);
+    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(truncLogLiklihood(k, x, W, b, s, theta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gradLogLiklihood
+SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::mat b, arma::mat s, double theta);
+RcppExport SEXP _OUTRIDER_gradLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type s(sSEXP);
+    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(gradLogLiklihood(k, x, W, b, s, theta));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_OUTRIDER_armaMatMultAtBC", (DL_FUNC) &_OUTRIDER_armaMatMultAtBC, 3},
+    {"_OUTRIDER_truncLogLiklihood", (DL_FUNC) &_OUTRIDER_truncLogLiklihood, 6},
+    {"_OUTRIDER_gradLogLiklihood", (DL_FUNC) &_OUTRIDER_gradLogLiklihood, 6},
     {NULL, NULL, 0}
 };
 
