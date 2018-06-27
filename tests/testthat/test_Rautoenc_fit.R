@@ -1,5 +1,5 @@
 
-
+set.seed(42)
 
 ## simulation of data
 n = 100 # samples
