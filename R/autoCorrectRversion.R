@@ -50,7 +50,7 @@ autoCorrect <- function(ods, q=20, theta=25,
     }
     return(autoCorrectPython(ods, ...))
 }
-    
+
 #' 
 #' Autoencoder function to correct for confounders.
 #'
@@ -79,25 +79,25 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
     # check initial loss
     print(
         paste0('Initial PCA loss: ',
-            loss(w_guess, k, x, s, xbar, theta))
+               loss(w_guess, k, x, s, xbar, theta))
     )
-
+    
     # optimize log likelihood
     t <- Sys.time()
     fit <- optim(w_guess, cmpLoss, gr = cmpLossGrad, k=k, x=x, s=s, xbar=xbar, 
-        theta=theta, method="L-BFGS-B", control=control, ...)
+                 theta=theta, method="L-BFGS-B", control=control, ...)
     #Check that fit converged
     if(fit$convergence!=0){
         warning(paste0("Fit didn't converge with warning: ", fit$message))
     }
-        
+    
     w_fit <- fit$par
     print(Sys.time() - t)
     print(
         paste0('nb-PCA loss: ',
-            loss(w_fit,k, x, s,xbar, theta))
+               loss(w_fit,k, x, s,xbar, theta))
     )
-
+    
     correctionFactors <- t(predictC(w_fit, k, s, xbar))
     stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
     
@@ -176,13 +176,11 @@ loss <- function(w, k, x, s, xbar, theta){
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,seq_len(ncol(W)-1)]
-
-    y <- t(t(x%*%W %*% t(W)) + xbar + b)
-    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
-    y_exp <- s*exp(y)
-
-    ## log likelihood - truncated
-    - mean(k * (log(s)+y)) + mean((k + theta) * log(y_exp + theta))
+    
+    
+    b <- matrix(b + xbar, ncol = ncol(k), nrow = nrow(k), byrow = TRUE)
+    s <- matrix(s, ncol = ncol(k), nrow = nrow(k))
+    truncLogLiklihood(k, x, W, b, s, theta)
 }
 
 
@@ -201,26 +199,11 @@ lossGrad <- function(w, k, x, s, xbar, theta){
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,seq_len(ncol(W)-1)]
-    
-    # dW:
-    #t1 <- t(x) %*% k %*% tWe
-    t1 <- armaMatMultAtBC(x, k, W)
-    #t2 <- t(k) %*% x %*% tWe
-    t2 <- armaMatMultAtBC(k, x, W)
-    y <- t(t(x%*%W %*% t(W)) + xbar + b)
-    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
-    y_exp <- s*exp(y)
-    kt <- (k + theta)*y_exp/(y_exp+theta)
-    #t3 <- t(x) %*% kt %*% tWe
-    t3 <- armaMatMultAtBC(x, kt, W)
-    #t4 <- t(kt) %*% x %*% tWe
-    t4 <- armaMatMultAtBC(kt, x, W)
-    dw <- (-t1 - t2 + t3 + t4)/prod(dim(k))
-    
-    #db:
-    db <- colSums(kt-k)/prod(dim(k))
-    
-    return(c(dw, db))
+
+    b <- matrix(b + xbar, ncol = ncol(k), nrow = nrow(k), byrow = TRUE)
+    s <- matrix(s, ncol = ncol(k), nrow = nrow(k))
+    grad <- gradLogLiklihood(k, x, W, b, s, theta)
+    return(grad)
 }
 
 
