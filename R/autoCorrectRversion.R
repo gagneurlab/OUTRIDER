@@ -27,7 +27,7 @@ sourceCpp("src/matMult.cpp")
 #' 
 #' @export
 autoCorrect <- function(ods, q=20, theta=25, 
-                    implementation=c("R", "python"), ...){
+                        implementation=c("R", "python"), ...){
     
     # error checking
     if(!is(ods, 'OutriderDataSet')){
@@ -41,7 +41,7 @@ autoCorrect <- function(ods, q=20, theta=25,
     }
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
-            "the autoCorrect function"))
+                   "the autoCorrect function"))
     }
     
     # pass on to the correct implementation
@@ -131,12 +131,12 @@ computeLatentSpace <- function(ods){
     stopifnot(is(ods, 'OutriderDataSet'))
     if(!'weights' %in% names(metadata(ods))){
         stop('No weights are stored in this OutriderDataSet object. ',
-                'Please compute weights before extracting the latent space.')
+             'Please compute weights before extracting the latent space.')
     }
     if(any(metadata(ods)[['dim']]!=dim(ods))){
         stop('The OutriderDataSet dimension changed and does not match with ',
-                'the existing weights. Please recompute the weights. ',
-                'Computation not possible on this data.')
+             'the existing weights. Please recompute the weights. ',
+             'Computation not possible on this data.')
     }
     
     # get data
@@ -184,8 +184,8 @@ loss <- function(w, k, x, s, xbar, theta){
     W <- W[,seq_len(ncol(W)-1)]
     
     
-    b <- matrix(b + xbar, ncol = ncol(k), nrow = nrow(k), byrow = TRUE)
-    s <- matrix(s, ncol = ncol(k), nrow = nrow(k))
+    b <- b + xbar
+    #s <- matrix(s, ncol = 1, nrow = nrow(k))
     truncLogLiklihood(k, x, W, b, s, theta)
 }
 
@@ -205,9 +205,9 @@ lossGrad <- function(w, k, x, s, xbar, theta){
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,seq_len(ncol(W)-1)]
-
-    b <- matrix(b + xbar, ncol = ncol(k), nrow = nrow(k), byrow = TRUE)
-    s <- matrix(s, ncol = ncol(k), nrow = nrow(k))
+    
+    b <- b + xbar
+    #s <- matrix(s, ncol = 1, nrow = nrow(k))
     grad <- gradLogLiklihood(k, x, W, b, s, theta)
     return(grad)
 }
