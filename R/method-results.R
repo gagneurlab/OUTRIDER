@@ -79,7 +79,7 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
     if(is.numeric(round)){
         col2round <- c("normcounts", "mu", "zScore", "l2fc", "disp",
                 "meanCorrected")
-        devNull <- sapply(col2round, function(x){
+        devNull <- lapply(col2round, function(x){
                 tidyresults[,c(x):=round(get(x), as.integer(round))] })
     }
     return(tidyresults)
