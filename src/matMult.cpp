@@ -13,46 +13,54 @@ arma::mat MatMultAtBC(arma::mat A, arma::mat B, arma::mat C){
     return(D);
 }
 
-arma::mat predict(arma::mat x, arma::mat W, arma:: mat b){
-    arma::mat D = x * W * W.t();
-    arma::mat y = (D + b);
+arma::mat predict(arma::mat x, arma::mat W, arma::vec b){
+    arma::mat y = x * W * W.t();
+    y.each_row() += b.t();
     return(y);
 }
 
-arma::mat computeLoss(arma::mat k, arma::mat y, arma::mat s, arma::mat theta){
+// Col-wise inplace elemtent-wise multiplication
+arma::mat sexpyfun(arma::mat y, arma::vec s){
+    arma::mat sexpy = arma::exp(y);
+    sexpy.each_col() %= s;
+    return(sexpy);  
+} 
+
+
+double computeLoss(arma::mat k, arma::mat y, arma::vec s, double theta){
     
-    arma::mat sexpy = s % arma::exp(y);
-    arma::mat m1=-arma::sum(k % (arma::log(s) + y),1);
-    arma::mat m2= arma::sum((k + theta) % arma::log(sexpy + theta),1);
-    arma::mat m3= arma::sum(m1+m2, 0);
-    return(m3);
+    arma::mat sexpy = sexpyfun(y, s);
+    
+    //compute log(s) + y
+    arma::vec logs = arma::log(s);
+    y.each_col() += logs;
+
+    double m1=-arma::accu(k % y);
+    double m2= arma::accu((k + theta) % arma::log(sexpy + theta));
+    return(m1+m2);
 }
 
-
-arma::mat computeKT(arma::mat k, arma::mat x, arma::mat W, arma::mat b, arma::mat s, double theta){
-    arma::mat thetaMat(size(k));
-    thetaMat.fill(theta);
+arma::mat computeKT(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta){
     arma::mat y = predict(x, W, b);
-    arma::mat sexpy = s % arma::exp(y);
-    arma::mat kt = (k + thetaMat)%sexpy/(sexpy+thetaMat);
+    arma::mat sexpy = sexpyfun(y, s);
+    arma::mat kt = (k + theta)%sexpy/(sexpy+theta);
     return(kt);
 }
 
 
+
 //TODO try mat A(5, 6);
-// A.fill(123.0); to set theta.
 // [[Rcpp::export]]
-SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::mat b, arma::mat s, double theta){
-    arma::mat thetaMat(size(k));
-    thetaMat.fill(theta);
+SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta){
     arma::mat y = predict(x, W, b);
-    
-    arma::mat Loss = computeLoss(k, y, s, thetaMat);
+    double Loss = computeLoss(k, y, s, theta);
+    cout << arma::prod(arma::size(k));
     return Rcpp::wrap(Loss);
 }
 
+
 // [[Rcpp::export]]
-SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::mat b, arma::mat s, double theta){
+SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta){
     
     arma::mat kt = computeKT(k, x, W, b, s, theta);
     
