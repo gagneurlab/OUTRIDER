@@ -7,6 +7,8 @@ cache:
 
 matrix:
   include:
+    - r: 3.4.2
+    - r: 3.4.4
     - r: bioc-release
     - r: bioc-devel
 
@@ -22,6 +24,7 @@ before_install:
 install:
   - R --version
   - which R
+  - R -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstaller')"
   - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'), Ncpu=4)"
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
