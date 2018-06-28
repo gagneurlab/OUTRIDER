@@ -85,8 +85,8 @@ OutriderDataSet <- function(se, countData, colData, ...) {
     
     # use SummarizedExperiment object
     if(!missing(se)){
-        if(!is(se, "RangedSummarizedExperiment")){
-            stop("'se' must be a RangedSummarizedExperiment object")
+        if(!is(se, "SummarizedExperiment")){
+            stop("'se' must be a SummarizedExperiment object")
         }
         se <- DESeqDataSet(se, design=~1, ...)
     
@@ -221,6 +221,8 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
             description = c("simulated beta values", "simulated means",
                 "simulated dispersion values"))
     mcols(object) <- cbind(mcols(object), trueVals)
+    metadata(object)[['trueOutliers']] <- index
+    
     return(object)
     
     return(object)

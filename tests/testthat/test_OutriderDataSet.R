@@ -1,16 +1,18 @@
 context("Testing OutriderDataSet-class")
 
 test_that("create test data set", {
-    expect_is(makeExampleOutriderDataSet(), "OutriderDataSet")
+    ods <- makeExampleOutriderDataSet(40,20)
+    expect_is(ods, "OutriderDataSet")
+    expect_equal(dim(ods), c(40,20))
+    expect_equal(dim(metadata(ods)[['trueOutliers']]), c(40,20))
 })
 
 test_that("constructur for OutriderDataSet", {
-    dds <- makeExampleOutriderDataSet()
-    expect_is(OutriderDataSet(se=as(dds, "SummarizedExperiment")),
-            "OutriderDataSet")
-    expect_is(OutriderDataSet(countData=counts(dds)), "OutriderDataSet")
-    expect_is(OutriderDataSet(countData=counts(dds), colData=colData(dds)),
-            "OutriderDataSet")
+    se <- as(makeExampleDESeqDataSet(), "SummarizedExperiment")
+    expect_is(OutriderDataSet(se=se), "OutriderDataSet")
+    expect_is(OutriderDataSet(countData=assay(se, 'counts')), "OutriderDataSet")
+    expect_is(OutriderDataSet(countData=assay(se, 'counts'), 
+            colData=colData(dds)), "OutriderDataSet")
     
     ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
     expect_is(ods, "OutriderDataSet")
