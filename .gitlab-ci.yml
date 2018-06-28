@@ -1,6 +1,6 @@
 env:
-  - RVER:        "3.5.0-Bioc3.7"
-  - RVER:        "000-devel-3.5.0-Bioc3.8"
+  RVER:        "3.5.0-Bioc3.7"
+  RVER:        "000-devel-3.5.0-Bioc3.8"
 
 variables:
   PKGNAME:     "OUTRIDER"
