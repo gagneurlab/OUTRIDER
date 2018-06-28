@@ -7,7 +7,7 @@
 using namespace Rcpp;
 
 // truncLogLiklihood
-SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::mat b, arma::mat s, double theta);
+SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta);
 RcppExport SEXP _OUTRIDER_truncLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -15,15 +15,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type s(sSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
     rcpp_result_gen = Rcpp::wrap(truncLogLiklihood(k, x, W, b, s, theta));
     return rcpp_result_gen;
 END_RCPP
 }
 // gradLogLiklihood
-SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::mat b, arma::mat s, double theta);
+SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta);
 RcppExport SEXP _OUTRIDER_gradLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -31,8 +31,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type s(sSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
     rcpp_result_gen = Rcpp::wrap(gradLogLiklihood(k, x, W, b, s, theta));
     return rcpp_result_gen;

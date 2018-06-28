@@ -1,3 +1,9 @@
+SECOND BIOCONDUCTOR SUBMISSION 0.99.10
+-----------------------------
+    o Smaller and faster example data set
+    o Loss and gradient of loss in C++
+    o Bugfixes
+
 INITIAL BIOCONDUCTOR SUBMISSION 0.99.8
 -----------------------------
     o Better documentation
