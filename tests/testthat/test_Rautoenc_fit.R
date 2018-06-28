@@ -67,3 +67,4 @@ test_that("randLoss > pcaLoss > fitGradLoss",{
     expect(randLoss >= pcaLoss)
     expect(pcaLoss >= fitGradLoss)
 })
+
