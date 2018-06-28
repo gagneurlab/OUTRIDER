@@ -39,6 +39,8 @@
 #' 
 #' @importFrom graphics plot abline axis box grid legend lines mtext par points 
 #'          polygon text title
+#'
+#' @importFrom IRanges IRanges
 #' 
 #' @importFrom matrixStats rowSds rowMedians rowQuantiles rowMeans2
 #' 
