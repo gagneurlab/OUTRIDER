@@ -3,13 +3,14 @@ context("Testing OUTRIDER main function")
 test_that("test main OUTRIDER function", {
     ods <- makeExampleOutriderDataSet(50)
     ods <- estimateSizeFactors(ods)
+    ods <- autoCorrect(ods)
     ods <- fit(ods)
     ods <- computePvalues(ods)
     ods <- computeZscores(ods)
     res <- results(ods, all=TRUE)
     expect_is(res, "data.table")
     
-    ods2 <- OUTRIDER(ods, autoCorrect=FALSE)
+    ods2 <- OUTRIDER(ods)
     res2 <- results(ods2, all=TRUE)
     
     expect_equal(ods, ods2)
