@@ -29,8 +29,8 @@ user input and create the initial
 An OutriderDataSet object.
 }
 \description{
-The OutriderDataSet class is designed to store the whole OUTRIDER data set
-needed for an analysis. It is a subclass of 
+The OutriderDataSet class is designed to store the whole 
+OUTRIDER data set needed for an analysis. It is a subclass of 
 \code{RangedSummarizedExperiment}. All calculated values and results are 
 stored as assays or as annotation in the mcols structure provided by the
 \code{RangedSummarizedExperiment} class.
