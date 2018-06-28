@@ -236,4 +236,3 @@ getWeights <- function(w, nr){
     matrix(w, nrow=nr)[,seq_len(length(w)/nr-1)]
 }
 
-s
