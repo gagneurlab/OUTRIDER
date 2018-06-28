@@ -40,7 +40,7 @@ fitNB <- function(ods, BPPARAM){
     }
     if(is.null(normF)){
         stop("Please provide sizeFactors or normalizationFactors for better ",
-                "estimates!\n  To compute the sizeFactors please run at least:", 
+                "estimates!\n  To compute the sizeFactors please run at least:",
                 " ods <- estimateSizeFactors(ods).")
     }
     

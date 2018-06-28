@@ -152,7 +152,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         if(is.numeric(geneID)){
             if(!(is.numeric(geneID) && max(geneID) <= nrow(ods))){
                 stop(paste('Gene index is out of bounds:', 
-                           paste(geneID, collapse=", ")))
+                        paste(geneID, collapse=", ")))
             }
             geneID <- rownames(ods)[geneID]
         }
@@ -346,9 +346,9 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
     
     # apply over each gene if vector
     if(length(geneID) > 1){
-        ans <- lapply(geneID, plotExpressionRank, ods=ods, padjCutoff=padjCutoff, 
-                zScoreCutoff=zScoreCutoff, basePlot=basePlot, 
-                normalized=normalized)
+        ans <- lapply(geneID, plotExpressionRank, ods=ods, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
+                basePlot=basePlot, normalized=normalized)
         if(isTRUE(basePlot)){
             return(invisible())
         }
@@ -835,5 +835,5 @@ plotPowerAnalysis <- function(ods){
         geom_smooth(method=lm, formula = y ~ bs(x, 10), se = FALSE) +
         scale_x_log10(breaks=c(1,5,10,50,100,500,1000,5000,10000)) + 
         labs(x="Mean", y='-log10(P-value)',color='Expression level', 
-             linetype='Expression type') + ylim(0,15) 
+            linetype='Expression type') + ylim(0,15) 
 }
