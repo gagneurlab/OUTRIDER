@@ -1,3 +1,4 @@
+context("Autoencoder: ")
 
 set.seed(42)
 
@@ -52,14 +53,17 @@ fit2 <- optim(c(w_guess, rep(0,p)), loss, gr = lossGrad, k=k, x=x, s=s,
         xbar=xbar, theta=25, method="L-BFGS-B", control = list(maxiter=300))
 fitGradLoss <- loss(fit2$par, k, x, s, xbar, theta)
 
-# check dimensions match.
-expect_equal(length(w_guess), p*q)
-expect_equal(length(fit$par), p*(q+1))
-expect_equal(length(lossGrad(fit$par, k, x, s, xbar, theta)), p*(q+1))
+test_that("Dimensions match.", {
+    expect_equal(length(w_guess), p*q)
+    expect_equal(length(fit$par), p*(q+1))
+    expect_equal(length(lossGrad(fit$par, k, x, s, xbar, theta)), p*(q+1))
+})
 
-# Expect that fitLoss == fitGradLoss,
-expect_equal(round(fitLoss,3), round(fitGradLoss,3))
+test_that("Losses match (fitLoss ~= fitGradLoss)",{
+    expect_equal(fitLoss, fitGradLoss, tol=0.1)
+})
 
-# Expect that randLoss > pcaLoss > fitGradLoss. 
-expect(randLoss >= pcaLoss)
-expect(pcaLoss >= fitGradLoss)
+test_that("randLoss > pcaLoss > fitGradLoss",{ 
+    expect(randLoss >= pcaLoss)
+    expect(pcaLoss >= fitGradLoss)
+})
