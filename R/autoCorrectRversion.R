@@ -1,5 +1,3 @@
-sourceCpp("src/matMult.cpp")
-
 #' 
 #' Autoencoder function to correct for confounders.
 #' 
@@ -84,7 +82,7 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
     
     # optimize log likelihood
     t <- Sys.time()
-    fit <- optim(w_guess, cmpLoss, gr = cmpLossGrad, k=k, x=x, s=s, xbar=xbar, 
+    fit <- optim(w_guess, loss, gr = lossGrad, k=k, x=x, s=s, xbar=xbar, 
                  theta=theta, method="L-BFGS-B", control=control, ...)
     #Check that fit converged
     if(fit$convergence!=0){
@@ -147,11 +145,9 @@ computeLatentSpace <- function(ods){
     xbar <- colMeans(x0)
     x <- t(t(x0) - xbar)
     
-    weights <- metadata(ods)[['weights']]
-    
-    W <- matrix(weights, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,seq_len(ncol(W)-1)]
+    w <- metadata(ods)[['weights']]
+    b <- getBias(w, ncol(k))
+    W <- getWeights(w, ncol(k))
     l <- t(x%*%W) 
     
     if(ncol(l)!=ncol(ods)){
@@ -176,16 +172,10 @@ computeLatentSpace <- function(ods){
 #' @return Returns the negative log likelihood of the negative binomial 
 #' @noRd
 loss <- function(w, k, x, s, xbar, theta){
-    ## log, size factored, and centered counts
-    #x <-  t(t(log((1+k)/s)) - xbar)
-    ## encoding
-    W <- matrix(w, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,seq_len(ncol(W)-1)]
-    
+    b <- getBias(w, ncol(k))
+    W <- getWeights(w, ncol(k))
     
     b <- b + xbar
-    #s <- matrix(s, ncol = 1, nrow = nrow(k))
     truncLogLiklihood(k, x, W, b, s, theta)
 }
 
@@ -202,14 +192,11 @@ loss <- function(w, k, x, s, xbar, theta){
 #' @return returns the gradient of the loss function.
 #' @noRd
 lossGrad <- function(w, k, x, s, xbar, theta){
-    W <- matrix(w, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,seq_len(ncol(W)-1)]
+    b <- getBias(w, ncol(k))
+    W <- getWeights(w, ncol(k))
     
     b <- b + xbar
-    #s <- matrix(s, ncol = 1, nrow = nrow(k))
-    grad <- gradLogLiklihood(k, x, W, b, s, theta)
-    return(grad)
+    gradLogLiklihood(k, x, W, b, s, theta)
 }
 
 
@@ -226,16 +213,26 @@ lossGrad <- function(w, k, x, s, xbar, theta){
 #' @noRd
 predictC <- function(w, k, s, xbar){
     x <-  t(t(log((1+k)/s)) - xbar)
-    W <- matrix(w, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,seq_len(ncol(W)-1)]
+    b <- getBias(w, ncol(k))
+    W <- getWeights(w, ncol(k))
+    
     y <- t(t(x%*%W %*% t(W)) +b + xbar)
-    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
     s*exp(y)
 }
 
+#'
+#' Get the bias term from the weights vector
+#' 
+#' @noRd
+getBias <- function(w, nr){
+    w[seq_len(nr)+(length(w)/nr-1)*nr]
+}
 
-# Use the R compiler for the loss and grad functions.
-cmpLossGrad <- cmpfun(lossGrad)
-cmpLoss <- cmpfun(loss)
+#'
+#' Get the weights matrix from the weight vector without the bias term
+#' 
+#' @noRd
+getWeights <- function(w, nr){
+    matrix(w, nrow=nr)[,seq_len(length(w)/nr-1)]
+}
 
