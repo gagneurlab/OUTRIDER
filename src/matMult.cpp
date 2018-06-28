@@ -54,6 +54,7 @@ arma::mat computeKT(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::ve
 SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta){
     arma::mat y = predict(x, W, b);
     double Loss = computeLoss(k, y, s, theta);
+    Loss /= k.n_elem;
     return Rcpp::wrap(Loss);
 }
 
@@ -72,6 +73,7 @@ SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::
     arma::mat dw = (-t1 - t2 + t3 + t4);
     arma::mat db = arma::sum(kt-k,0).t();
     arma::mat grad = join_rows(dw, db);
+    grad /= k.n_elem;
     return Rcpp::wrap(grad);
 }
 
