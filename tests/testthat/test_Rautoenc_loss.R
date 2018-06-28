@@ -34,7 +34,7 @@ w <- c(rnorm(p*q, sd=1/p*q), rep(0,p))
 test_that("loss is real number", {
     l <- loss(w, k, x, s, xbar, theta)
     expect_that(l ,is.numeric)
-    expect_that(length(l) == 1)
+    expect_equal(length(l), 1)
 })
 
 # numeric Gradient
