@@ -23,6 +23,9 @@ smooths to make the reading of the plot easier.
 ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
+
+\donttest{
 plotPowerAnalysis(ods)
+}
 
 }

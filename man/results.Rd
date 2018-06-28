@@ -41,6 +41,7 @@ accumulated over the analysis pipeline.
 
 ods <- makeExampleOutriderDataSet()
 ods <- OUTRIDER(ods)
+
 res <- results(ods, all=TRUE)
 
 res

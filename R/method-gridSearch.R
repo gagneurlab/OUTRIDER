@@ -12,11 +12,13 @@
 #' @param BPPARAM BPPARAM object by default bpparam().
 #'
 #' @return The optimal encoding dimension
-#' @export
 #'
 #' @examples
+#' \donttest{
 #' ods <- makeExampleOutriderDataSet()
 #' findEncodingDim(ods)
+#' }
+#' @export
 findEncodingDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3, 
                     inj='both', BPPARAM=bpparam()){
     
@@ -43,9 +45,8 @@ findEncodingDim <- function(ods, params=seq(5,30,5), freq=1E-2, zScore=3,
                 '  Max underfitting loss (c=colMeans(kcorr): ', underfit))
 
     #params <- c(5,10,15,20,25,30,50,100)
-    eval <- bplapply(params, 
-        function(i) evalAutoCorrection(ods, encoding_dim = i),
-            BPPARAM=BPPARAM)
+    eval <- bplapply(X=params, BPPARAM=BPPARAM, 
+            FUN=function(i) evalAutoCorrection(ods, encoding_dim=i))
     
     eval <- matrix(unlist(eval), ncol = 1, byrow = TRUE)
     colnames(eval) <- c('evalLoss')

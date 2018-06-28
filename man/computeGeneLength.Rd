@@ -39,6 +39,7 @@ ods <- computeGeneLength(ods, annotationFile)
 mcols(ods)['basepairs']
 fpkm(ods)[1:10,1:10]
 
+\donttest{
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 library(org.Hs.eg.db)
 ods <- makeExampleOutriderDataSet(dataset="KremerNBaderSmall")
@@ -49,5 +50,6 @@ ods <- computeGeneLength(ods, txdb, mapping=mapping)
 
 mcols(ods)['basepairs']
 fpkm(ods)[1:10,1:10]
+}
 
 }

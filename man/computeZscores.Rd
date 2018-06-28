@@ -30,8 +30,9 @@ where l is the log2 transformed normalized count and mu and sigma the
 mean and standard deviation for gene j, respectively.
 }
 \examples{
-ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
+ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
+
 ods <- computeZscores(ods)
 
 assays(ods)[['zScore']][1:10,1:10]

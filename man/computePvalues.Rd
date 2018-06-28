@@ -37,16 +37,13 @@ It computes two matrices with the same dimension as the count matrix
 adjusted P-values to every count.
 }
 \examples{
-ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
+ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
+
 ods <- computePvalues(ods)
 
 assays(ods)[['pValue']][1:10,1:10]
-
-ods <- computeZscores(ods)
-res <- results(ods)
-res
 
 }
 \seealso{
