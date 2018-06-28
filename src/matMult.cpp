@@ -54,7 +54,6 @@ arma::mat computeKT(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::ve
 SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta){
     arma::mat y = predict(x, W, b);
     double Loss = computeLoss(k, y, s, theta);
-    cout << arma::prod(arma::size(k));
     return Rcpp::wrap(Loss);
 }
 
