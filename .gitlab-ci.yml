@@ -3,6 +3,7 @@ variables:
   PKGDIR:      "./"
   R_LIBS_U:    "tmp_lib"
   RVER:        "3.5.0-Bioc3.7"
+  RVER:        "000-devel-3.5.0-Bioc3.8"
   TEXVER:      "2016"
 #  CI_DEBUG_TRACE: "true"
 
