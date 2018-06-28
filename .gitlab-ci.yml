@@ -1,3 +1,7 @@
+env:
+  - RVER:        "3.5.0-Bioc3.7"
+  - RVER:        "000-devel-3.5.0-Bioc3.8"
+
 variables:
   PKGNAME:     "OUTRIDER"
   PKGDIR:      "./"
@@ -13,7 +17,7 @@ stages:
 before_script:
   - module load "i12g/R/$RVER"
   - module load "i12g/texlive/$TEXVER"
-  - export R_LIBS_U="${CI_JOB_ID}_${R_LIBS_U}"
+  - export R_LIBS_U="`realpath ${CI_JOB_ID}_${R_LIBS_U}`"
   - mkdir $R_LIBS_U
   - R --vanilla CMD build --no-build-vignettes --no-manual $PKGDIR
   - PKG_FILE_NAME=$(ls -1t *.tar.gz | head -n 1)
@@ -45,4 +49,4 @@ R-check_vignettes:
   when: always
   tags: [shell]
   script:
-    - cd "$PKGDIR/vignettes/" && R_LIBS_USER=../../$R_LIBS_U R --vanilla CMD Sweave --engine=knitr::knitr --pdf "$PKGNAME.Rnw"
+    - cd "$PKGDIR/vignettes/" && R_LIBS_USER=$R_LIBS_U R --vanilla CMD Sweave --engine=knitr::knitr --pdf "$PKGNAME.Rnw"
