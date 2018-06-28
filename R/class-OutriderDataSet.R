@@ -71,7 +71,7 @@ setValidity("OutriderDataSet", validateOutriderDataSet)
 ## show method for OutriderDataSet
 showOutriderDataSet <- function(object) {
     cat("class: OutriderDataSet\n")
-    show(as(object, "SummarizedExperiment"))
+    show(as(object, "RangedSummarizedExperiment"))
 }
 
 setMethod("show", "OutriderDataSet", function(object) {
@@ -85,7 +85,7 @@ OutriderDataSet <- function(se, countData, colData, ...) {
     
     # use SummarizedExperiment object
     if(!missing(se)){
-        if(!is(se, "SummarizedExperiment")){
+        if(!is(se, "RangedSummarizedExperiment")){
             stop("'se' must be a RangedSummarizedExperiment object")
         }
         se <- DESeqDataSet(se, design=~1, ...)
@@ -210,9 +210,9 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
     
     mode(countData) <- "integer"
     
-    colnames(countData) <- paste("sample", 1:m, sep = "")
-    rowRanges <- GRanges("1", IRanges(start = (1:n - 1) * 100 + 1, width = 100))
-    names(rowRanges) <- paste0("gene", 1:n)
+    colnames(countData) <- paste("sample", seq_len(m), sep = "")
+    rowRanges <- GRanges("1", IRanges(start=seq_len(n) * 100, width=100))
+    names(rowRanges) <- paste0("gene", seq_len(n))
     
     object <- OutriderDataSet(countData = countData, rowRanges = rowRanges)
     trueVals <- DataFrame(trueBeta = beta, trueDisp = dispersion,
