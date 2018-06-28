@@ -1,8 +1,8 @@
 #'
 #' OutriderDataSet class and constructors 
 #' 
-#' @description The OutriderDataSet class is designed to store the whole OUTRIDER data set
-#' needed for an analysis. It is a subclass of 
+#' @description The OutriderDataSet class is designed to store the whole 
+#' OUTRIDER data set needed for an analysis. It is a subclass of 
 #' \code{RangedSummarizedExperiment}. All calculated values and results are 
 #' stored as assays or as annotation in the mcols structure provided by the
 #' \code{RangedSummarizedExperiment} class.
@@ -216,15 +216,13 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
     
     object <- OutriderDataSet(countData = countData, rowRanges = rowRanges)
     trueVals <- DataFrame(trueBeta = beta, trueDisp = dispersion,
-                          trueMean = rowMeans2(mu))
+            trueMean = rowMeans2(mu))
     mcols(trueVals) <- DataFrame(type = rep("input", ncol(trueVals)), 
-                                description = c("simulated beta values", 
-                                                "simulated means",
-                                                 "simulated dispersion values"))
+            description = c("simulated beta values", "simulated means",
+                "simulated dispersion values"))
     mcols(object) <- cbind(mcols(object), trueVals)
     return(object)
     
-    #object <- injectOutliers(object, freq = freq, zScore = zScore, inj=inj)
     return(object)
 }
 

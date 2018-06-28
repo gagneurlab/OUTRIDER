@@ -39,7 +39,7 @@ autoCorrect <- function(ods, q=20, theta=25,
     }
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
-                   "the autoCorrect function"))
+                    "the autoCorrect function"))
     }
     
     # pass on to the correct implementation
@@ -77,13 +77,13 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
     # check initial loss
     print(
         paste0('Initial PCA loss: ',
-               loss(w_guess, k, x, s, xbar, theta))
+                loss(w_guess, k, x, s, xbar, theta))
     )
     
     # optimize log likelihood
     t <- Sys.time()
     fit <- optim(w_guess, loss, gr = lossGrad, k=k, x=x, s=s, xbar=xbar, 
-                 theta=theta, method="L-BFGS-B", control=control, ...)
+            theta=theta, method="L-BFGS-B", control=control, ...)
     #Check that fit converged
     if(fit$convergence!=0){
         warning(paste0("Fit didn't converge with warning: ", fit$message))
@@ -93,7 +93,7 @@ autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
     print(Sys.time() - t)
     print(
         paste0('nb-PCA loss: ',
-               loss(w_fit,k, x, s,xbar, theta))
+                loss(w_fit,k, x, s,xbar, theta))
     )
     
     correctionFactors <- t(predictC(w_fit, k, s, xbar))
@@ -129,12 +129,12 @@ computeLatentSpace <- function(ods){
     stopifnot(is(ods, 'OutriderDataSet'))
     if(!'weights' %in% names(metadata(ods))){
         stop('No weights are stored in this OutriderDataSet object. ',
-             'Please compute weights before extracting the latent space.')
+                'Please compute weights before extracting the latent space.')
     }
     if(any(metadata(ods)[['dim']]!=dim(ods))){
         stop('The OutriderDataSet dimension changed and does not match with ',
-             'the existing weights. Please recompute the weights. ',
-             'Computation not possible on this data.')
+                'the existing weights. Please recompute the weights. ',
+                'Computation not possible on this data.')
     }
     
     # get data

@@ -44,9 +44,12 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0, pch=16,
         stop("Sample ID is not in the data set.")
     }
     if(length(sampleID) > 1){
-        sapply(sampleID, plotVolcano, ods=ods, padjCutoff=padjCutoff, 
+        ans <- lapply(sampleID, plotVolcano, ods=ods, padjCutoff=padjCutoff, 
                 zScoreCutoff=zScoreCutoff, basePlot=basePlot)
-        return()
+        if(isTRUE(basePlot)){
+            return(invisible())
+        }
+        return(ans)
     }
     
     dt <- data.table(
@@ -72,30 +75,31 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0, pch=16,
                         paste(-log[10], "(", italic(P), "-value)")))]
         grid(equilogs=FALSE)
         title(ifelse(!is.null(main), main, paste0("Volcano plot: ", sampleID)))
-    }else{
-        plot_ly(
-            data=dt,
-            x=~zScore,
-            y=~-log10(pValue),
-            #y =~pValue,
-            type="scatter",
-            mode="markers",
-            marker = list(
-                color=~color
-            ),
-            text=~paste0(
-                "Gene ID: ", GENE_ID,
-                "<br>Sample ID: ", sampleID,
-                "<br>Median normcount: ", round(medianCts, 2),
-                "<br>normcount: ", round(normCts, 2),
-                "<br>expression rank: ", as.integer(expRank),
-                "<br>nominal P-value: ", signif(pValue,3),
-                "<br>adj. P-value: ", signif(padjust,3),
-                "<br>Z-score: ", signif(zScore,2)
-            )
-        ) %>% layout(yaxis = list(title = "-log<sub>10</sub>(<i>P</i>-value)"))
+        return(invisible())
     }
+    plot_ly(
+        data=dt,
+        x=~zScore,
+        y=~-log10(pValue),
+        #y =~pValue,
+        type="scatter",
+        mode="markers",
+        marker = list(
+            color=~color
+        ),
+        text=~paste0(
+            "Gene ID: ", GENE_ID,
+            "<br>Sample ID: ", sampleID,
+            "<br>Median normcount: ", round(medianCts, 2),
+            "<br>normcount: ", round(normCts, 2),
+            "<br>expression rank: ", as.integer(expRank),
+            "<br>nominal P-value: ", signif(pValue,3),
+            "<br>adj. P-value: ", signif(padjust,3),
+            "<br>Z-score: ", signif(zScore,2)
+        )
+    ) %>% layout(yaxis = list(title = "-log<sub>10</sub>(<i>P</i>-value)"))
 }
+
 
 
 #'
@@ -148,7 +152,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         if(is.numeric(geneID)){
             if(!(is.numeric(geneID) && max(geneID) <= nrow(ods))){
                 stop(paste('Gene index is out of bounds:', 
-                           paste(geneID, collapse=", ")))
+                        paste(geneID, collapse=", ")))
             }
             geneID <- rownames(ods)[geneID]
         }
@@ -158,9 +162,9 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     
         # Produce multiple qqplot if geneID is a vector.
         if(length(geneID)>1L){
-            sapply(geneID, plotQQ, ods=ods, main=main, legendPos=legendPos,
+            lapply(geneID, plotQQ, ods=ods, main=main, legendPos=legendPos,
                     col=col, global=FALSE)
-            return()
+            return(invisible())
         }
         #Plot QQplot for single gene.
         if(is.null(main)){
@@ -342,10 +346,13 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
     
     # apply over each gene if vector
     if(length(geneID) > 1){
-        sapply(geneID, plotExpressionRank, ods=ods, padjCutoff=padjCutoff, 
-                zScoreCutoff=zScoreCutoff, basePlot=basePlot, 
-                normalized=normalized)
-        return()
+        ans <- lapply(geneID, plotExpressionRank, ods=ods, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
+                basePlot=basePlot, normalized=normalized)
+        if(isTRUE(basePlot)){
+            return(invisible())
+        }
+        return(ans)
     }
     
     # get data frame
@@ -376,38 +383,40 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
                 log=ifelse(isTRUE(log), "y", ""), pch=16, col=color,
                 main=main, xlab='Sample rank', ylab=ylab)]
         grid(equilogs=FALSE)
-    } else {
-        plot_ly(
-            data=dt,
-            x=~norm_rank,
-            y=~normcounts,
-            type="scatter",
-            mode="markers",
-            marker = list(
-                color=~color
-            ),
-            text=~paste0(
-                "Gene ID: ", geneID,
-                "<br>Sample ID: ", sampleID,
-                "<br>Median normcount: ", round(medianCts, digits = 1),
-                "<br>normcount: ", round(normcounts, digits = 1),
-                "<br>expression rank: ", round(norm_rank, digits = 1),
-                if(any(names(assays(ods))== 'padjust')){
-                    paste0("<br>adj. P-value: ", sprintf("%1.1E", padjust))
-                },
-                if(any(names(assays(ods))== 'zScore')){
-                    paste0("<br>Z-score: ", round(zScore, digits = 1))
-                }
-            )
-        ) %>% layout(title=main,
-                xaxis=list(showline=TRUE, title='Sample Rank'),
-                yaxis=list(type=ifelse(isTRUE(log), 'log', 'linear'), 
-                        dtick=ifelse(isTRUE(log), "D1", 
-                                signif(diff(range(dt[,normcounts]))/10, 1)), 
-                        exponentformat='power',
-                        title=ylab))
+        return(invisible())
+        
     }
+    plot_ly(
+        data=dt,
+        x=~norm_rank,
+        y=~normcounts,
+        type="scatter",
+        mode="markers",
+        marker = list(
+            color=~color
+        ),
+        text=~paste0(
+            "Gene ID: ", geneID,
+            "<br>Sample ID: ", sampleID,
+            "<br>Median normcount: ", round(medianCts, digits = 1),
+            "<br>normcount: ", round(normcounts, digits = 1),
+            "<br>expression rank: ", round(norm_rank, digits = 1),
+            if(any(names(assays(ods))== 'padjust')){
+                paste0("<br>adj. P-value: ", sprintf("%1.1E", padjust))
+            },
+            if(any(names(assays(ods))== 'zScore')){
+                paste0("<br>Z-score: ", round(zScore, digits = 1))
+            }
+        )
+    ) %>% layout(title=main,
+            xaxis=list(showline=TRUE, title='Sample Rank'),
+            yaxis=list(type=ifelse(isTRUE(log), 'log', 'linear'), 
+                    dtick=ifelse(isTRUE(log), "D1", 
+                            signif(diff(range(dt[,normcounts]))/10, 1)), 
+                    exponentformat='power',
+                    title=ylab))
 }
+
 
 
 #' 
@@ -826,5 +835,5 @@ plotPowerAnalysis <- function(ods){
         geom_smooth(method=lm, formula = y ~ bs(x, 10), se = FALSE) +
         scale_x_log10(breaks=c(1,5,10,50,100,500,1000,5000,10000)) + 
         labs(x="Mean", y='-log10(P-value)',color='Expression level', 
-             linetype='Expression type') + ylim(0,15) 
+            linetype='Expression type') + ylim(0,15) 
 }

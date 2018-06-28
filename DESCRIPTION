@@ -1,7 +1,7 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 0.99.10
+Version: 0.99.13
 Date: 2018-06-26
 Maintainer: Christian Mertes <mertes@in.tum.de>
 URL: https://github.com/gagneurlab/OURIDER
@@ -32,7 +32,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Depends:
-    R (>= 3.4), 
+    R (>= 3.5), 
     BiocParallel,
     GenomicFeatures,
     SummarizedExperiment,

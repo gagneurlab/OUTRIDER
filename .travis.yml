@@ -29,7 +29,7 @@ install:
   - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, threads=4)'
 
 script:
-  - R CMD build --no-build-vignettes .
+  - R CMD build .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
   - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw"

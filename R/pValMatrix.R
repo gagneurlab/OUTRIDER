@@ -40,8 +40,8 @@ setGeneric("computePvalues",
 #' @rdname computePvalues
 #' @export
 setMethod("computePvalues", "OutriderDataSet", function(object, 
-                    alternative=c("two.sided", "greater", "less"), 
-                    method='BY', BPPARAM=bpparam()){
+            alternative=c("two.sided", "greater", "less"), method='BY', 
+            BPPARAM=bpparam()){
     alternative <- match.arg(alternative)
     object <- pValMatrix(object, alternative, BPPARAM=BPPARAM)
     padjMatrix(object, method)
