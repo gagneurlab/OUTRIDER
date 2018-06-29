@@ -61,3 +61,5 @@ test_that("Analytic gradient ~= numeric gradient", {
                         ), ncol=q+1), tol=0.0001)
     }
 })
+
+

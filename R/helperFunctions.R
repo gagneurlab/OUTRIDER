@@ -96,3 +96,28 @@ parametricDispersionFit <- function (means, disps){
     attr(ans, "coefficients") <- coefs
     ans
 }
+
+#'
+#' Get the gene name or index 
+#' 
+#' @noRd
+getGeneIndex <- function(geneIdx, ods){
+    if(is.null(geneIdx)){
+        stop('Please provide a geneID')
+    }
+    if(is.logical(geneIdx)){
+        geneIdx <- which(geneIdx)
+    }
+    if(is.numeric(geneIdx)){
+        if(!(is.numeric(geneIdx) && max(geneIdx) <= nrow(ods))){
+            stop('Gene index is out of bounds:', paste(geneIdx, collapse=", "))
+        }
+        if(!is.null(rownames(ods))){
+            geneIdx <- rownames(ods)[geneIdx]
+        }
+    }
+    if(is.character(geneIdx) & any(!geneIdx %in% rownames(ods))){
+        stop("Gene ID is not in the data set.")
+    }
+    return(geneIdx)
+}
