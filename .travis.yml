@@ -27,7 +27,7 @@ install:
   - R --version
   - which R
   - R -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstaller')"
-  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools'), Ncpu=4)"
+  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools', 'roxygen2'), Ncpu=4)"
   - R -e "message(BiocInstaller::isDevel())"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
   - R -e 'BiocParallel::multicoreWorkers()'
@@ -37,6 +37,7 @@ script:
   - R CMD build .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
+  - R -e 'devtools::run_examples()'
   - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw"
 
 after_success:

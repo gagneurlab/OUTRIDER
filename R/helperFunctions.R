@@ -88,8 +88,10 @@ parametricDispersionFit <- function (means, disps){
         if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
             break
         iter <- iter + 1
-        if (iter > 10) 
-            stop(simpleError("dispersion fit did not converge"))
+        if (iter > 100) {
+            warning("Dispersion fit did not converge after 100 ",
+                    "iterations. We stopped here.")
+        }
     }
     names(coefs) <- c("asymptDisp", "extraPois")
     ans <- function(q) coefs[1] + coefs[2]/q
