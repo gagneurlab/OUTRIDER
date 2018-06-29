@@ -47,9 +47,9 @@ fitNB <- function(ods, BPPARAM){
     fitparameters <- bplapply(seq_along(ods), fitNegBinom, normF=normF,
             ctsData=ctsData, BPPARAM=BPPARAM)
     
-    fitparameters <- DataFrame(t(matrix(unlist(fitparameters), nrow = 2)))
-    mcols(ods)[c('mu', 'disp')] <- fitparameters
-    
+    mcols(ods)['mu']   <- vapply(fitparameters, "[[", double(1), "mu")
+    mcols(ods)['disp'] <- vapply(fitparameters, "[[", double(1), "size")
+
     validObject(ods)
     return(ods)
 }
@@ -102,7 +102,7 @@ fitNegBinom <- function(index, ctsData, normF){
             gr = gradloglikelihood, x=data, SizeF=normF, method="L-BFGS-B", 
             lower=c(0.01,0.01)),
             error = function(e){
-                    par <-list("mu"=NA_real_, "disp"=NA_real_)
+                    par <-list("mu"=NA_real_, "size"=NA_real_)
                     list(par=par)})
     c(est$par["mu"], est$par["size"])
 } 
