@@ -186,11 +186,13 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         if(!is.null(outlierRatio)){
             odssub <- ods[,aberrant(ods, by='s', padjCutoff=padjCutoff,
                     zScoreCutoff=zScoreCutoff) < outlierRatio*length(ods)]
-            pVal <- as.numeric(assay(odssub, 'pValue'))
+            if(ncol(odssub) > 0){
+                pVal <- as.numeric(assay(odssub, 'pValue'))
             
-            dfsub <- data.table(obs= -log10(pVal), col=col[2], pch=pch,
-                    subset=TRUE)
-            df <- rbind(df, dfsub)
+                dfsub <- data.table(obs= -log10(pVal), col=col[2], pch=pch,
+                        subset=TRUE)
+                df <- rbind(df, dfsub)
+            }
         }
     }
     
