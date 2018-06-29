@@ -32,8 +32,10 @@ test_nb_model.txt
 # ignore Rcpp objects
 src/*.o
 src/*.so
+src/*.dll
 
 #' tmp files
 .DS_Store
 .nfs0000*
 .*.swp
+Rplots.pdf
