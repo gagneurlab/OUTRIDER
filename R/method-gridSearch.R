@@ -14,8 +14,8 @@
 #' @return The optimal encoding dimension
 #'
 #' @examples
-#' \donttest{
 #' ods <- makeExampleOutriderDataSet()
+#' \donttest{
 #' findEncodingDim(ods)
 #' }
 #' @export
