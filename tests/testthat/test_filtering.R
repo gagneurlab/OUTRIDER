@@ -16,6 +16,6 @@ test_that("Expression filtering", {
             'Some genes \\(n=(999|783)\\) are not found')
     
     expect_warning(filterExpression(ods, gtfFile=txdb, mapping=map, save=TRUE), 
-            'Some genes \\(n=(17[72]|93)\\) are not found')
+            'Some genes \\(n=(17[72]|93|90)\\) are not found')
     
 })

@@ -143,22 +143,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     }
     # Singel gene QQplot.
     if(isFALSE(global)){
-        if(is.null(geneID)){
-            stop('Please provide a geneID')
-        }
-        if(is.logical(geneID)){
-            geneID <- which(geneID)
-        }
-        if(is.numeric(geneID)){
-            if(!(is.numeric(geneID) && max(geneID) <= nrow(ods))){
-                stop(paste('Gene index is out of bounds:', 
-                        paste(geneID, collapse=", ")))
-            }
-            geneID <- rownames(ods)[geneID]
-        }
-        if(!all(geneID %in% rownames(ods))){
-            stop("Gene ID is not in the data set.")
-        }
+        geneID <- getGeneIndex(geneID, ods)
     
         # Produce multiple qqplot if geneID is a vector.
         if(length(geneID)>1L){
@@ -326,20 +311,9 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
     }
     if(missing(geneID)){
         stop("Please Specify which gene should be plotted, geneID = 'geneA'")
-    }    
-    if(is.logical(geneID)){
-        geneID <- which(geneID)
     }
-    if(is.numeric(geneID)){
-        if(!(is.numeric(geneID) && max(geneID) <= nrow(ods))){
-            stop(paste('Gene index is out of bounds:', 
-                    paste(geneID, collapse=", ")))
-        }
-        geneID <- rownames(ods)[geneID]
-    }
-    if(!all(geneID %in% rownames(ods))){
-        stop('The gene IDs are not within the data set.')
-    }
+    geneID <- getGeneIndex(geneID, ods)
+    
     if(length(col) != 2){
         stop("Please provide two colors as a vector.")
     }
@@ -727,37 +701,18 @@ plotFPKM <- function(ods){
         labs(x='FPKM', y='Frequency')
     p
 }
-    
-#'
-#' Dispersion estimation plot
-#' 
-#' Plotting the dispersion of the OutriderDataSet model against the normalized 
-#' mean count.
-#' 
-#' @param object An OutriderDataSet object containing the fitted model
-#' @param compareDisp If TRUE, the default, and if the autoCorrect normalization
-#'             was used it computes the dispersion without autoCorrect and 
-#'             plots it for comparison.
-#' @return None
-#' 
-#' @examples 
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- estimateSizeFactors(ods)
-#' ods <- fit(ods)
-#' 
-#' plotDispEsts(ods)
-#' 
-#' @exportMethod plotDispEsts
-setMethod("plotDispEsts", signature(object="OutriderDataSet"), 
-                    function(object, compareDisp=NULL){
+
+
+plotDispEsts.OUTRIDER <- function(object, compareDisp){
     # validate input                 
     if(!'disp' %in% names(mcols(object))){
         stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods) ',
                 'or ods <- fit(ods)')
     } 
-    if(is.null(compareDisp)){
+    if(missing(compareDisp)){
         compareDisp <- 'weights' %in% names(metadata(object))
     }
+    
     # disp from OUTRIDER
     odsVals <- getDispEstsData(object)
     legText <- c("OUTRIDER fit")
@@ -790,8 +745,30 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     }
     
     legend("bottomleft", legText, col=legCol, pch=20, lty=1, lwd=3)
-})
+}
 
+#'
+#' Dispersion estimation plot
+#' 
+#' Plotting the dispersion of the OutriderDataSet model against the normalized 
+#' mean count.
+#' 
+#' @param object An OutriderDataSet object containing the fitted model
+#' @param compareDisp If TRUE, the default, and if the autoCorrect normalization
+#'             was used it computes the dispersion without autoCorrect and 
+#'             plots it for comparison.
+#' @return None
+#' 
+#' @examples 
+#' ods <- makeExampleOutriderDataSet()
+#' ods <- estimateSizeFactors(ods)
+#' ods <- fit(ods)
+#' 
+#' plotDispEsts(ods)
+#' 
+#' @exportMethod plotDispEsts
+setMethod("plotDispEsts", signature(object="OutriderDataSet"), 
+        plotDispEsts.OUTRIDER)
 
 
 #'

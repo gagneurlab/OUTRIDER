@@ -47,10 +47,10 @@ pcaLoss <- loss(c(w_guess, rep(0,p)), k, x, s, xbar, theta)
 ## I feel this is too much over-fitted otherwise
 
 fit <- optim(c(w_guess, rep(0,p)), loss, k=k, s=s, x=x, xbar=xbar, theta=theta, 
-        method="L-BFGS-B", control = list(maxiter=300))
+        method="L-BFGS-B", control = list(maxit=300))
 fitLoss <- loss(fit$par, k, x, s, xbar, theta)
 fit2 <- optim(c(w_guess, rep(0,p)), loss, gr = lossGrad, k=k, x=x, s=s, 
-        xbar=xbar, theta=25, method="L-BFGS-B", control = list(maxiter=300))
+        xbar=xbar, theta=25, method="L-BFGS-B", control = list(maxit=300))
 fitGradLoss <- loss(fit2$par, k, x, s, xbar, theta)
 
 test_that("Dimensions match.", {

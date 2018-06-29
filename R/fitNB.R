@@ -97,9 +97,13 @@ fitNegBinom <- function(index, ctsData, normF){
     stopifnot(!is.null(normF))
     
     ##correct s factor
-    est <- optim(par=initialSizeMu(data, normF), fn=loglikelihood, 
-        gr = gradloglikelihood, x=data, SizeF=normF, method="L-BFGS-B", 
-        lower=c(0.01,0.01))
+    est <- tryCatch(
+            optim(par=initialSizeMu(data, normF), fn=loglikelihood, 
+            gr = gradloglikelihood, x=data, SizeF=normF, method="L-BFGS-B", 
+            lower=c(0.01,0.01)),
+            error = function(e){
+                    par <-list("mu"=NA_real_, "disp"=NA_real_)
+                    list(par=par)})
     c(est$par["mu"], est$par["size"])
 } 
 

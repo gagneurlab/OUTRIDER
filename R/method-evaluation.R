@@ -35,8 +35,8 @@ aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=0,
     
     return(switch(match.arg(by),
             none = aberrantEvents,
-            sample = colSums(aberrantEvents),
-            gene = rowSums(aberrantEvents)
+            sample = colSums(aberrantEvents, na.rm=TRUE),
+            gene = rowSums(aberrantEvents, na.rm=TRUE)
     ))
 }
 

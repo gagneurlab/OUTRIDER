@@ -28,8 +28,8 @@ Finds the optimal encoding dimension for a given data set by running a
 grid search based on the provided parameter set.
 }
 \examples{
-\donttest{
 ods <- makeExampleOutriderDataSet()
+\donttest{
 findEncodingDim(ods)
 }
 }

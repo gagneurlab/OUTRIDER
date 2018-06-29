@@ -21,7 +21,9 @@ test_that("plotting", {
     ods <- filterExpression(ods, filterGenes=FALSE, fpkmCutoff=1e5)
     expect_is(plotFPKM(ods), 'ggplot')
     
-    plotDispEsts(ods)
+    out <- plotDispEsts(ods)
+    expect_is(out, 'list')
+    expect_length(out, 2)
     
     expect_equal(class(plotVolcano(ods, 1)), c("plotly", "htmlwidget"))
     expect_null(plotVolcano(ods, 1, basePlot=TRUE))
