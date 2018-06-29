@@ -5,7 +5,8 @@ ods <- makeExampleOutriderDataSet(dataset = 'Kremer')
 res <- findEncodingDim(ods)
 
 test_that("Result has correct format", {
-    is(res, 'data.frame')
+    expect_is(res, 'data.frame')
+    expect_equal(names(res), c('params', 'evalLoss'))
 })
 
 # Test In silico outliers.
