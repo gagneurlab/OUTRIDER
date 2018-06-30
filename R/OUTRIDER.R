@@ -18,6 +18,7 @@
 #' }
 #' 
 #' @param object An OutriderDataSet object containing the counts
+#' @inheritParams autoCorrect
 #' @param autoCorrect If TRUE, the default, the raw read counts are controled 
 #'             for confounders by the autoencoder
 #' @return OutriderDataSet with all the computed values. The values are stored
@@ -37,14 +38,14 @@
 #' plotVolcano(ods, 1)
 #' 
 #' @export
-OUTRIDER <- function(object, autoCorrect=TRUE){
+OUTRIDER <- function(object, q, autoCorrect=TRUE){
     
     message(paste0(date(), ": SizeFactor estimation ..."))
     object <- estimateSizeFactors(object)
     
     if(isTRUE(autoCorrect)){
         message(paste0(date(), ": Running auto correct ..."))
-        object <- autoCorrect(object, q=20)
+        object <- autoCorrect(object, q=q)
     }
     
     message(paste0(date(), ": Fitting the data ..."))
