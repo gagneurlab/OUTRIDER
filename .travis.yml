@@ -38,9 +38,10 @@ script:
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
   - R -e 'devtools::run_examples()'
-  - if [[ $TRAVIS_R_VERSION_STRING != "3.4.0" ]]; then
-       cd vignettes;
-       R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw";
+  - cd vignettes && if [[ $TRAVIS_R_VERSION_STRING != "3.4.0" ]]; then
+        R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw";
+    else 
+        R CMD Sweave R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw" 2>&1 | tee /dev/tty | grep Error | exit `wc -l`;
     fi
 
 after_success:
