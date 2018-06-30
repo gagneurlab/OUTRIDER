@@ -4,10 +4,12 @@
 \alias{OUTRIDER}
 \title{OUTRIDER - Finding aberrant expression events}
 \usage{
-OUTRIDER(object, autoCorrect = TRUE)
+OUTRIDER(object, q, autoCorrect = TRUE)
 }
 \arguments{
 \item{object}{An OutriderDataSet object containing the counts}
+
+\item{q}{The encoding dimensions}
 
 \item{autoCorrect}{If TRUE, the default, the raw read counts are controled 
 for confounders by the autoencoder}
