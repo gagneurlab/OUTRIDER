@@ -24,18 +24,28 @@
 #' plotCountCorHeatmap(ods, normalized=TRUE)
 #' 
 #' @export
-autoCorrect <- function(ods, q=20, theta=25, 
-                        implementation=c("R", "python"), ...){
+autoCorrect <- function(ods, q, theta=25, 
+                    implementation=c("R", "python"), ...){
     
     # error checking
     if(!is(ods, 'OutriderDataSet')){
         stop('Please provide an OutriderDataSet')
     }
-    if(q >= nrow(ods)){
-        stop("Please use a q smaller than the number of features.")
-    }
-    if(q >= ncol(ods)){
-        stop("Please use a q smaller than the number of samples.")
+    if(!missing(q)){
+        if(!is.numeric(q) && q > 0){
+            stop("Please provide an integer greater then 0 for q.")
+        }
+        if(q >= nrow(ods)){
+            stop("Please use a q smaller than the number of features.")
+        }
+        if(q >= ncol(ods)){
+            stop("Please use a q smaller than the number of samples.")
+        }
+    } else {
+        q <- getBestQ(ods)
+        if(is.na(q)){
+            q <- 5
+        }
     }
     if(is.null(sizeFactors(ods))){
         stop(paste("Please calculate the size factors before calling", 
@@ -57,12 +67,12 @@ autoCorrect <- function(ods, q=20, theta=25,
 #' @param theta value used in the likelihood (default=25).
 #' 
 #' @noRd
-autoCorrectR <- function(ods, q=20, theta=25, control=list(), ...){
+autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
     }
-    
+
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
     # compute log of per gene centered counts 
