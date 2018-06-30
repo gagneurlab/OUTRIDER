@@ -8,7 +8,7 @@ test_that("Test findEncodingDim", {
     ods <- findEncodingDim(ods)
     
     expect_is(ods, 'OutriderDataSet')
-    expect_equals(metadata(ods)[['optimalEncDim']], 5)
+    expect_equal(metadata(ods)[['optimalEncDim']], 5)
     expect_equal(getBestQ(ods), 5)
     expect_is(metadata(ods)[['encDimTable']], 'data.table')
     
