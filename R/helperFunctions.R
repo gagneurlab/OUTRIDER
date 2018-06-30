@@ -123,3 +123,16 @@ getGeneIndex <- function(geneIdx, ods){
     }
     return(geneIdx)
 }
+
+getBestQ <- function(ods){
+    if('optimalEncDim' %in% names(metadata(ods))){
+        return(metadata(ods)[['optimalEncDim']])
+    }
+    if('encDimTable' %in% names(metadata(ods))){
+        return(metadata(ods)[['encDimTable']][
+            which.min(evaluationLoss),encodingDimension])
+    }
+    # warning('Please find the optimal encoding dimension by running. ')
+    return(NA_integer_)
+}
+
