@@ -58,8 +58,8 @@ group of samples. It uses the negative binomial distribution which is fitted
 for each gene over all samples. We additionally provide an autoencoder, 
 which automatically controls for co-variation before fitting. After fitting,
 each sample can be tested for aberrantly expressed genes. Furthermore,
-\outrider{} provides methods to easily filter unexpressed genes and to 
-analyse as well as to visualize the results.
+\outrider{} provides functionality to easily filter unexpressed genes, to 
+analyse the data as well as to visualize the results.
 
 \vspace{3em}
 
@@ -133,7 +133,7 @@ par(par.old)
 To get started on the preprocessing step, we recommend to read the 
 introductions of \deseq{}\cite{Love2014}, \Biocpkg{edgeR}\cite{Robinson2010} or the RNA-seq workflow from
 Bioconductor. In brief, one usually starts with the raw FASTQ files from
-the RNA sequencing run. Those are then aligned to a given reference genome. Currently
+the RNA sequencing run. Those are then aligned to a given reference genome. At the time of writing
 (June 2018), we recommend the STAR aligner\cite{Dobin2013}. After 
 obtaining the aligned BAM files, one can map the reads to exons or genes of a 
 GTF annotation file using HT-seq. The resulting count table can then be loaded 
@@ -177,16 +177,20 @@ plotQQ(ods, res[1, geneID])
 Apart from running the full pipeline using the single wrapper function \Rfunction{OUTRIDER}, 
 the analysis can also be run step by step. The wrapper function does
 not include any preprocessing functions. Discarding non expressed genes or 
-samples that fail quality measurements should be done manually before running the 
+samples failing quality measurements should be done manually before running the 
 \Rfunction{OUTRIDER} function or starting the analysis pipeline.
 
 In this section we will explain the analysis functions step by step.
 
 For this tutorial we will use the rare disease data set from Kremer 
-\textit{et al}.\cite{Kremer2017} A small subset is contained in this package 
+\textit{et al}.\cite{Kremer2017}. A small subset is contained in this package 
 for testing.
 
 <<GetDataSet>>=
+# small testing data set
+odsSmall <- makeExampleOutriderDataSet(dataset="Kremer")
+
+# full data set from Kremer et al.
 URL <- paste0("https://media.nature.com/original/nature-assets/", 
         "ncomms/2017/170612/ncomms15824/extref/ncomms15824-s1.txt")
 ctsTable <- read.table(URL, sep="\t")
@@ -259,7 +263,7 @@ ods <- ods[mcols(ods)$passedFilter,]
 The next step in any analysis workflow is to visualize the correlations
 between samples. In most RNA-seq experiments correlations between the samples 
 can be observed. These are often due to technical confounders (e.g. sequencing batch) 
-or biological confounders (e.g. sex, age). These confounders can adversly affect the 
+or biological confounders (e.g. sex, age). These confounders can adversely affect the 
 detection of aberrant features. Therefore, we provide options to control for 
 them.
 
