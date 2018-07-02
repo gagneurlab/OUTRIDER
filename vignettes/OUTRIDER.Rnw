@@ -98,10 +98,10 @@ if(multicoreWorkers() >= 4){
 @
 
 \section{Introduction}
-\outrider{} (OUTlier in RNA-seq fInDER) is a tool to find aberrantly expressed
+\outrider{} (OUTlier in RNA-seq fInDER) is a tool for finding aberrantly expressed
 genes in RNA-seq samples. It does so by fitting a negative binomial model 
-to RNA-seq read counts, correcting for variations in sequencing depth and 
-apparent co-variations across samples. Read counts significantly deviating 
+to RNA-seq read counts while correcting for variations in sequencing depth and 
+apparent co-variations across samples. Read counts that significantly deviate 
 from the distribution are detected as outliers.
 
 Differential gene expression analysis from RNA-seq data is well-established.
@@ -131,10 +131,10 @@ par(par.old)
 
 \section{Prerequisites}
 To get started on the preprocessing step, we recommend to read the 
-introductions of the aforementioned tools or the RNA-seq workflow from
+introductions of \deseq{}\cite{Love2014}, \Biocpkg{edgeR}\cite{Robinson2010} or the RNA-seq workflow from
 Bioconductor. In brief, one usually starts with the raw FASTQ files from
-the RNA sequencing run. Those are then aligned to a given reference genome. As 
-of now (June 2018), we recommend the STAR aligner\cite{Dobin2013}. After 
+the RNA sequencing run. Those are then aligned to a given reference genome. Currently
+(June 2018), we recommend the STAR aligner\cite{Dobin2013}. After 
 obtaining the aligned BAM files, one can map the reads to exons or genes of a 
 GTF annotation file using HT-seq. The resulting count table can then be loaded 
 into the \outrider{} package as we will describe below.
@@ -142,9 +142,9 @@ into the \outrider{} package as we will describe below.
 \section{A quick tour}
 
 Here we assume that we already have a count table and no additional 
-preprocessing needs to be done. Then we can start and obtain results with 
+preprocessing needs to be done. We can start and obtain results using 
 3 commands. First, create an \ods{} from a count table. Second, run the full 
-pipeline using the command \Rfunction{OUTRIDER}. In the third and last step the 
+pipeline with the command \Rfunction{OUTRIDER}. In the third and last step the 
 results table is extracted from the \ods{} with the \Rfunction{results} 
 function. Furthermore, analysis plots that are described in section 
 \ref{sec:Results} can be directly created from the \ods{} object.
@@ -174,17 +174,17 @@ plotQQ(ods, res[1, geneID])
 
 \section{An \outrider{} analysis in detail}
 
-Additionally to the single wrapper function \Rfunction{OUTRIDER} to run the full 
-pipeline, the analysis can also be run step by step. The wrapper function does
-not include any preprocessing functions, discarding non expressed genes or 
-samples failing quality measurements should be done manually before running the 
+Apart from running the full pipeline using the single wrapper function \Rfunction{OUTRIDER}, 
+the analysis can also be run step by step. The wrapper function does
+not include any preprocessing functions. Discarding non expressed genes or 
+samples that fail quality measurements should be done manually before running the 
 \Rfunction{OUTRIDER} function or starting the analysis pipeline.
 
 In this section we will explain the analysis functions step by step.
 
 For this tutorial we will use the rare disease data set from Kremer 
-\textit{et al}.\cite{Kremer2017} For testing, this package contains also a small
-subset of it.
+\textit{et al}.\cite{Kremer2017} A small subset is contained in this package 
+for testing.
 
 <<GetDataSet>>=
 URL <- paste0("https://media.nature.com/original/nature-assets/", 
@@ -197,9 +197,9 @@ ods <- OutriderDataSet(countData=ctsTable)
 
 \subsection{Preprocessing}
 
-It is recommended to apply some data preprocessing before fitting. Our model 
-requires that for every gene at least one sample has one read (counts > 0) and 
-that we observe one read every 100 samples. Therefore, all genes that are not 
+It is recommended to preprocess the data before fitting. Our model 
+requires that for every gene at least one sample has a non-zero count and 
+that we observe at least one read for every 100 samples. Therefore, all genes that are not 
 expressed must be discarded.
 
 We provide the function \Rfunction{filterExpression} to remove genes that have 
@@ -213,6 +213,7 @@ By default the cutoff is set to an FPKM value of one and only the filtered
 \ods{} object and the full object can be returned to visualize the 
 distribution of reads before and after filtering. 
 
+
 <<Preprocessing, fig.height=5>>=
 # get annotation
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
@@ -222,7 +223,7 @@ map <- select(org.Hs.eg.db, keys=keys(txdb, keytype = "GENEID"),
         keytype="ENTREZID", columns=c("SYMBOL"))
 @
 
-The \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only well annotated 
+However, the \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only well annotated 
 genes. This annotation will miss a lot of genes captured by RNA-seq. To include 
 all predicted annotations as well as non-coding RNAs please download the txdb 
 object from our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
@@ -255,10 +256,10 @@ ods <- ods[mcols(ods)$passedFilter,]
 
 \subsection{Controlling for Confounders}
 
-A next step in any analysis workflow is to visualize the correlations
+The next step in any analysis workflow is to visualize the correlations
 between samples. In most RNA-seq experiments correlations between the samples 
-can be observed, which are often due to confounders: technical ones like the 
-sequencing batch or biological ones like sex. These confounders can harm the 
+can be observed. These are often due to technical confounders (e.g. sequencing batch) 
+or biological confounders (e.g. sex, age). These confounders can adversly affect the 
 detection of aberrant features. Therefore, we provide options to control for 
 them.
 
