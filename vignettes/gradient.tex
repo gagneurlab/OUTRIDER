@@ -15,6 +15,23 @@
 
 \textbf{Supplemental Methods}
 
+\textbf{Negative Binomial model}
+
+In this paper we use the following parameterization for the Negative binomial distribution.
+
+\begin{align*}
+P(k| \mu, \theta) = \frac{\Gamma(k + \theta)}{\Gamma(k) \theta!}  
+\left ( \frac{\mu}{\mu + \theta} \right )^{x}
+\left ( \frac{\theta}{\mu + \theta} \right)^{\theta} 
+\end{align*}
+
+where the variance of the distribution is given by:
+\[
+var = \mu + \frac{\mu^2}{\theta}
+\]
+
+\textbf{Autoencoder Gradient}
+
 We use L-BFGS to fit the autoencoder model as described in the Methods.
 To speed up the fitting we implemented the gradient as derived below.
 
@@ -43,9 +60,9 @@ Here the operations $\log[\matr{A}]$ and $\exp[\matr{A}]$ are understood to be e
 \begin{align*}
 &\frac{d}{dw_{ab}}\sum_{ij} k_{ij} \log{(\mu_{ij})} \\
 &= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \log{[\exp{[\matr{X} \matr{W} \matr{W}^T + \matr{b}]}]} \\
-&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} (\matr{X} \matr{W} \matr{W}^T + \matr{b}) \\
-&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j) \\
-&= \sum_{ij} k_{ij} (x_{ia} w_{jb} + \delta_{aj} \sum_{l} x_{il}w_{lb}) \\
+&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \left (\matr{X} \matr{W} \matr{W}^T + \matr{b} \right ) \\
+&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \left (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j \right ) \\
+&= \sum_{ij} k_{ij} \left (x_{ia} w_{jb} + \delta_{aj} \sum_{l} x_{il}w_{lb} \right ) \\
 &= \sum_{ij} x_{ia} k_{ij} w_{jb} + \sum_{il} k_{ia} x_{il} w_{lb}. \\
 \end{align*}
 Which can be written as:
@@ -73,7 +90,7 @@ The derivative of the first term with respect to the bias $\matr{b}$ is computed
 
 \begin{align*}
 &\frac{d}{db_{a}}\sum_{ij} k_{ij} \log{(\mu_{ij})} \\
-&= \frac{d}{db_{a}}\sum_{ij} k_{ij} (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j) \\
+&= \frac{d}{db_{a}}\sum_{ij} k_{ij} \left (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j \right) \\
 &= \sum_{i} k_{ia}\\
 \end{align*}
 
