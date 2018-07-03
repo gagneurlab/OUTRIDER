@@ -4,7 +4,7 @@ Type: Package
 Version: 0.99.16
 Date: 2018-06-26
 Maintainer: Christian Mertes <mertes@in.tum.de>
-URL: https://github.com/gagneurlab/OURIDER
+URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
 Author@R: c(
     person("Felix", "Brechtmann", role=c("aut", "cre"), 
