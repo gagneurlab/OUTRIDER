@@ -27,8 +27,28 @@ P(k| \mu, \theta) = \frac{\Gamma(k + \theta)}{\Gamma(k) \theta!}
 
 where the variance of the distribution is given by:
 \[
-var = \mu + \frac{\mu^2}{\theta}
+Var = \mu + \frac{\mu^2}{\theta}
 \]
+and hence the coefficient of variation is given by:
+\[
+CV^2 = \frac{1}{\mu} + \frac{1}{\theta}
+\]
+
+
+\textbf{Computation of the default theta}
+
+We assume, a biological covariation of 20\% for large means.
+
+\begin{align*}
+CV^2 =& \frac{1}{\mu} + \frac{1}{\theta}\\
+\lim_{\mu \to \infty} CV^2 =& \frac{1}{\theta}\\
+\theta \approx& \frac{1}{CV^2}
+\end{align*}
+and hence equate a default $\theta = 25$.
+
+
+
+
 
 \textbf{Autoencoder Gradient}
 
