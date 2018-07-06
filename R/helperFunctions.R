@@ -136,3 +136,36 @@ getBestQ <- function(ods){
     return(NA_integer_)
 }
 
+checkCountRequirements <- function(ods){
+    if(ncol(ods) == 0){
+        stop("Please provide at least one sample.")
+    }
+    if(nrow(ods) == 0){
+        stop("Please provide at least one gene.")
+    }
+    if(any(rowSums(counts(ods)) == 0)){
+        stop("There are genes without any read. Please filter first the data ",
+                "with: ods <- filterExpression(ods)")
+    }
+    if(any(rowSums(counts(ods)) < ncol(ods)/100)){
+        stop("The model requires for each gene at least 1 read ", 
+                "every 100 sample. Please filte first the data with: ",
+                "ods <- filterExpression(ods)")
+    }
+    return(invisible(TRUE))
+}
+
+checkOutriderDataSet <- function(ods){
+    if(!is(ods, 'OutriderDataSet')){
+        stop('Please provide an OutriderDataSet')
+    }
+    return(invisible(TRUE))
+}
+
+checkSizeFactors <- function(ods, funName=sys.calls()[[1]]){
+    if(is.null(sizeFactors(ods))){
+        stop("Please calculate the size factors before calling the '", funName,
+                "' function. Please do: ods <- estimateSizeFactors(ods)")
+    }
+    return(invisible(TRUE))
+}
