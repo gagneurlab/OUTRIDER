@@ -171,13 +171,12 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
     x <- rep(1, m)
     beta <- rnorm(n, 6, betaSD)
     # make sure to stay in the required count range (1 read per 100 samples)
-    if(min(beta) < -3.5){
-        beta <- beta - min(beta) - 3.5
+    if(min(beta) < -1){
+        beta <- beta - min(beta) - 1
     }
     dispersion <- dispMeanRel(2^beta)
     mu <- t(2^(x %*% t(beta)) * sizeFactors)
-    countData <- matrix(rnbinom(m * n, mu = mu, size = 1/dispersion), 
-            ncol = m)
+    countData <- matrix(rnbinom(m * n, mu=mu, size=1/dispersion), ncol=m)
     
     ## generate in-silico outliers.
     # generate index of injected counts
@@ -192,7 +191,7 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
     }
     list_index <- which(index != 0, arr.ind = TRUE)
     
-    max_out <- 1E2 * max(countData)
+    max_out <- 1E2 * min(max(countData), .Machine$integer.max/1E3)
     n_rejected <- 0
     for(i in seq_len(nrow(list_index))){
         row <- list_index[i,'row']
