@@ -9,7 +9,7 @@
 #' @rdname filterExpression
 #' @param x An OutriderDataSet object
 #' @param filterGenes If TRUE, the default, the object is subseted.
-#' @param onlyZeros Filter only based on zero counts on a gene
+#' @param minCounts Filter for required read counts per gene
 #' @param gtfFile A txDb object or a GTF/GFF file to be used as annotation
 #' @param fpkmCutoff The threshold for filtering based on the FPKM value
 #' @param savefpkm If TRUE the FPKM values are saved as assay
@@ -39,9 +39,9 @@ setGeneric("filterExpression",
 #' @export
 setMethod("filterExpression", "OutriderDataSet", function(x, gtfFile, 
                     fpkmCutoff=1, filterGenes=TRUE, savefpkm=FALSE, 
-                    onlyZeros=FALSE, ...){
-    x <- filterZeros(x, filterGenes=filterGenes)
-    if(onlyZeros == TRUE){
+                    minCounts=FALSE, ...){
+    x <- filterMinCounts(x, filterGenes=filterGenes)
+    if(minCounts == TRUE){
         return(x)
     }
     if(!missing(gtfFile)){
@@ -191,9 +191,8 @@ NULL
 #' Filter zero counts
 #' 
 #' @noRd
-filterZeros <- function(x, filterGenes=FALSE){
-    stopifnot(is(x, 'OutriderDataSet'))
-    passed <- rowMax(counts(x)) > 0
+filterMinCounts <- function(x, filterGenes=FALSE){
+    passed <- !checkCountRequirements(x, test=TRUE)
     mcols(x)['passedFilter'] <- passed
     
     message(paste0(sum(!passed), " genes did not passed the filter due to ", 
