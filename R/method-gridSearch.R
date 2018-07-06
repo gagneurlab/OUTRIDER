@@ -89,7 +89,7 @@ injectOutliers <- function(ods, freq, zScore, inj){
     )
     
     #inject counts
-    max_out <- max(counts(ods))
+    max_out <- max(counts(ods), na.rm=TRUE)
     
     # compute size factor normalized counts.
     # don't use it on the ods to not influence the later calculation.
