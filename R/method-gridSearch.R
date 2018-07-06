@@ -57,6 +57,7 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 5),
     
     metadata(ods)[['optimalEncDim']] <- getBestQ(ods)
     
+    counts(ods) <- assay(ods, 'trueCounts')
     validateOutriderDataSet(ods)
     return(ods)
 }
