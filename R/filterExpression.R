@@ -101,7 +101,6 @@ filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes,
 #' mcols(ods)['basepairs']
 #' fpkm(ods)[1:10,1:10]
 #' 
-#' \donttest{
 #' library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 #' library(org.Hs.eg.db)
 #' ods <- makeExampleOutriderDataSet(dataset="KremerNBaderSmall")
@@ -112,10 +111,11 @@ filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes,
 #' 
 #' mcols(ods)['basepairs']
 #' fpkm(ods)[1:10,1:10]
-#' }
 #' 
 #' @export
 computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
+    checkOutriderDataSet(ods)
+    
     if(!is(gtfFile, "TxDb")){
         #created txdb object
         txdb <- makeTxDbFromGFF(gtfFile, format=format, ...)

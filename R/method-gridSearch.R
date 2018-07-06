@@ -14,12 +14,15 @@
 #' @return The optimal encoding dimension
 #'
 #' @examples
-#' ods <- makeExampleOutriderDataSet()
-#' \donttest{
-#' findEncodingDim(ods)
-#' }
+#' 
+#' ods <- makeExampleOutriderDataSet(180, 60)
+#' ods <- findEncodingDim(ods, params=2:9)
+#' 
+#' # plot the results of the dimension search
+#' metadata(ods)$encDimTable[plot(encodingDimension, evaluationLoss)]
+#' 
 #' @export
-findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 5),
+findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
                     freq=1E-2, zScore=3, inj='both', BPPARAM=bpparam()){
     
     # compute auto Correction
