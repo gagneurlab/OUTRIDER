@@ -4,9 +4,6 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 
-using namespace Rcpp;
-using namespace arma;
-
 arma::mat MatMultAtBC(arma::mat A, arma::mat B, arma::mat C){
     arma::mat At = A.t();
     arma::mat D = At * B * C;
@@ -40,6 +37,7 @@ double computeLoss(arma::mat k, arma::mat y, arma::vec s, double theta){
     return(m1+m2);
 }
 
+
 arma::mat computeKT(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta){
     arma::mat y = predict(x, W, b);
     arma::mat sexpy = sexpyfun(y, s);
@@ -48,10 +46,9 @@ arma::mat computeKT(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::ve
 }
 
 
-
-//TODO try mat A(5, 6);
-// [[Rcpp::export]]
-SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta){
+// [[Rcpp::export(rng=false)]]
+SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, 
+                    arma::vec s, double theta){
     arma::mat y = predict(x, W, b);
     double Loss = computeLoss(k, y, s, theta);
     Loss /= k.n_elem;
@@ -59,8 +56,9 @@ SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma:
 }
 
 
-// [[Rcpp::export]]
-SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta){
+// [[Rcpp::export(rng=false)]]
+SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, 
+                    arma::vec s, double theta){
     
     arma::mat kt = computeKT(k, x, W, b, s, theta);
     
@@ -76,5 +74,4 @@ SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::
     grad /= k.n_elem;
     return Rcpp::wrap(grad);
 }
-
 
