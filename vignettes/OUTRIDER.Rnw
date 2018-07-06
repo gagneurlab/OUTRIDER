@@ -154,7 +154,8 @@ into the \outrider{} package as we will describe below.
 
 Here we assume that we already have a count table and no additional 
 preprocessing needs to be done. Then we can start and obtain results with 
-3 commands. First, create an \ods{} from a count table. Second, run the full 
+3 commands. First, create an \ods{} from a count table or a Summarized 
+Experiment object. Second, run the full 
 pipeline using the command \Rfunction{OUTRIDER}. In the third and last step the 
 results table is extracted from the \ods{} with the \Rfunction{results} 
 function. Furthermore, analysis plots that are described in section 
@@ -194,8 +195,14 @@ samples failing quality measurements should be done manually before running the
 In this section we will explain the analysis functions step by step.
 
 For this tutorial we will use the rare disease data set from Kremer 
-\textit{et al}.\cite{Kremer2017} For testing, this package contains also a small
+\textit{et al}.\cite{Kremer2017} For testing, this package contains a small
 subset of it.
+
+\subsection{OutriderDataSet}
+To use \outrider{} create an \ods, which derives from a RangedSummarizedExperiment
+object. The \ods can be created by supplying a count matrix and optional sample 
+annotation matrices. Alternatively an existing Summarized experiment object
+from other Biocnductor backages can be used.
 
 <<GetDataSet>>=
 URL <- paste0("https://media.nature.com/original/nature-assets/", 
@@ -218,6 +225,10 @@ low FPKM (Fragments Per Kilobase of transcript per Million mapped reads)
 expression values. The needed annotation to estimate FPKM values 
 from the counts should be the same as for the counting. Here, we normalize 
 by the total exon length of a gene.
+To do so the joint lenght of all exons needs to be provided. When providing a 
+gtf, gff or TxDb object to the \Rfunction{filterExpression}, we extract this 
+information automatically. But therfore the geneID's of the count table and the 
+gtf need to match.
 
 By default the cutoff is set to an FPKM value of one and only the filtered
 \ods{} object is returned. If required, the FPKM values can be stored in the
