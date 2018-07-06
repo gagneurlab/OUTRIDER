@@ -3,18 +3,18 @@ context("Testing Find Encoding Dimension: ")
 test_that("Test findEncodingDim", {
     
     # Test Find Encoding Dimension.
+    set.seed(42)
     ods <- makeExampleOutriderDataSet(dataset = 'Kremer')
+    ods <- filterExpression(ods, filterGenes=TRUE, minCounts=TRUE)
     countsbefore <- counts(ods)
     expect_equal(getBestQ(ods), NA_integer_)
-    ods <- findEncodingDim(ods)
+    ods <- findEncodingDim(ods, params=3:6)
     
     expect_equal(countsbefore, counts(ods))
     expect_is(ods, 'OutriderDataSet')
-    expect_equal(metadata(ods)[['optimalEncDim']], 5)
-    expect_equal(getBestQ(ods), 5)
+    expect_equal(metadata(ods)[['optimalEncDim']], 3)
+    expect_equal(getBestQ(ods), 3)
     expect_is(metadata(ods)[['encDimTable']], 'data.table')
-    
-    
     
 })
 

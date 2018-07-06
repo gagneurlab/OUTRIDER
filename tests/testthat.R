@@ -1,7 +1,6 @@
-Sys.setenv("R_TESTS"="")
 library(testthat)
 library(OUTRIDER)
 
-register(SerialParam())
+register(MulticoreParam(2))
 
 test_check("OUTRIDER")
