@@ -25,7 +25,7 @@
 #' @aliases computePvalues computePvalues,OutriderDataSet-method
 #' 
 #' @examples 
-#' ods <- makeExampleOutriderDataSet()
+#' ods <- makeExampleOutriderDataSet(160, 60)
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
 #' 

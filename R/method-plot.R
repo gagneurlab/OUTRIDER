@@ -16,8 +16,9 @@
 #' @return The plotly object or NULL if if base R is used
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- OUTRIDER(ods)
+#' # no autoCorrect for speed up
+#' ods <- makeExampleOutriderDataSet(160, 60)
+#' ods <- OUTRIDER(ods, autoCorrect=FALSE)
 #' 
 #' plotVolcano(ods, 1)
 #' 
@@ -121,8 +122,9 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0, pch=16,
 #' @return None
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(150, 60)
-#' ods <- OUTRIDER(ods)
+#' # no autoCorrect for speed up
+#' ods <- makeExampleOutriderDataSet(160, 60)
+#' ods <- OUTRIDER(ods, autoCorrect=FALSE)
 #' 
 #' plotQQ(ods, 1)
 #' plotQQ(ods, global=TRUE, outlierRatio=0.001)
@@ -287,7 +289,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
 #' @return None or a plotly object
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet()
+#' ods <- makeExampleOutriderDataSet(160, 60)
 #' ods <- estimateSizeFactors(ods)
 #' 
 #' plotExpressionRank(ods, 1)
@@ -413,7 +415,7 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
 #' @return An OutriderDataSet object
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet()
+#' ods <- makeExampleOutriderDataSet(160, 60)
 #' ods <- estimateSizeFactors(ods)
 #' 
 #' ods <- plotCountCorHeatmap(ods, annotateCluster=TRUE)
@@ -591,9 +593,9 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' @aliases plotAberrantPerSample plotAberrantPerSamplePlotly
 #' 
 #' @examples
-#' 
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- OUTRIDER(ods)
+#' # no autoCorrect for speed up
+#' ods <- makeExampleOutriderDataSet(160, 60)
+#' ods <- OUTRIDER(ods, autoCorrect=FALSE)
 #' 
 #' plotAberrantPerSample(ods)
 #' 
@@ -754,7 +756,7 @@ plotDispEsts.OUTRIDER <- function(object, compareDisp){
 #' @return None
 #' 
 #' @examples 
-#' ods <- makeExampleOutriderDataSet()
+#' ods <- makeExampleOutriderDataSet(160, 60)
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
 #' 

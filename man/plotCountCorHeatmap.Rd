@@ -51,7 +51,7 @@ An OutriderDataSet object
 Correlation heatmap of the count data of the given samples
 }
 \examples{
-ods <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet(160, 60)
 ods <- estimateSizeFactors(ods)
 
 ods <- plotCountCorHeatmap(ods, annotateCluster=TRUE)

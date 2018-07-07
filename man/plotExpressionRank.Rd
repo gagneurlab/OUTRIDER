@@ -41,7 +41,7 @@ Plot expression over expression rank per gene.
 The plot can be used before and after fitting.
 }
 \examples{
-ods <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet(160, 60)
 ods <- estimateSizeFactors(ods)
 
 plotExpressionRank(ods, 1)

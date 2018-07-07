@@ -37,7 +37,7 @@ It computes two matrices with the same dimension as the count matrix
 adjusted P-values to every count.
 }
 \examples{
-ods <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet(160, 60)
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
 

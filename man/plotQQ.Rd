@@ -47,8 +47,9 @@ None
 Plot a Q-Q plot for a given gene or a Q-Q plot over the full data set.
 }
 \examples{
-ods <- makeExampleOutriderDataSet(150, 60)
-ods <- OUTRIDER(ods)
+# no autoCorrect for speed up
+ods <- makeExampleOutriderDataSet(160, 60)
+ods <- OUTRIDER(ods, autoCorrect=FALSE)
 
 plotQQ(ods, 1)
 plotQQ(ods, global=TRUE, outlierRatio=0.001)

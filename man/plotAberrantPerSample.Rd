@@ -41,9 +41,9 @@ None
 Plot aberrant events per sample
 }
 \examples{
-
-ods <- makeExampleOutriderDataSet()
-ods <- OUTRIDER(ods)
+# no autoCorrect for speed up
+ods <- makeExampleOutriderDataSet(160, 60)
+ods <- OUTRIDER(ods, autoCorrect=FALSE)
 
 plotAberrantPerSample(ods)
 

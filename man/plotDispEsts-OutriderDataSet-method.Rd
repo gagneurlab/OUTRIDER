@@ -22,7 +22,7 @@ Plotting the dispersion of the OutriderDataSet model against the normalized
 mean count.
 }
 \examples{
-ods <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet(160, 60)
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
 
