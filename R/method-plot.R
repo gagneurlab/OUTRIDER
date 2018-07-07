@@ -121,13 +121,11 @@ plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0, pch=16,
 #' @return None
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet()
+#' ods <- makeExampleOutriderDataSet(150, 60)
 #' ods <- OUTRIDER(ods)
 #' 
 #' plotQQ(ods, 1)
-#' \donttest{
 #' plotQQ(ods, global=TRUE, outlierRatio=0.001)
-#' }
 #' 
 #' @export
 plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, 
@@ -292,10 +290,6 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' 
-#' \donttest{
-#' ods <- OUTRIDER(ods)
-#' }
-#' 
 #' plotExpressionRank(ods, 1)
 #' plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
 #' 
@@ -424,11 +418,9 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
 #' 
 #' ods <- plotCountCorHeatmap(ods, annotateCluster=TRUE)
 #' 
-#' \donttest{
 #' sex <- sample(c("female", "male"), dim(ods)[2], replace=TRUE)
 #' colData(ods)$sex <- sex 
 #' plotCountCorHeatmap(ods, colCoFactor="sex")
-#' }
 #' 
 #' @export
 plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE, 
@@ -786,13 +778,11 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
 #' @return The ggplot object
 #'
 #' @examples
-#' ods <- makeExampleOutriderDataSet()
+#' ods <- makeExampleOutriderDataSet(100, 60)
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
 #'
-#' \donttest{
 #' plotPowerAnalysis(ods)
-#' }
 #' 
 #' @export
 plotPowerAnalysis <- function(ods){

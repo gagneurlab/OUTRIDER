@@ -28,9 +28,10 @@ autoCorrect <- function(ods, q, theta=25,
                     implementation=c("R", "python"), ...){
     
     # error checking
-    if(!is(ods, 'OutriderDataSet')){
-        stop('Please provide an OutriderDataSet')
-    }
+    checkOutriderDataSet(ods)
+    checkCountRequirements(ods)
+    checkSizeFactors(ods)
+    
     if(!missing(q)){
         if(!is.numeric(q) && q > 0){
             stop("Please provide an integer greater then 0 for q.")
@@ -46,10 +47,6 @@ autoCorrect <- function(ods, q, theta=25,
         if(is.na(q)){
             q <- 5
         }
-    }
-    if(is.null(sizeFactors(ods))){
-        stop(paste("Please calculate the size factors before calling", 
-                    "the autoCorrect function"))
     }
     
     # pass on to the correct implementation

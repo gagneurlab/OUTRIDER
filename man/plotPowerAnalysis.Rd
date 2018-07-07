@@ -20,12 +20,10 @@ plotted. This is done for different expression levels. The curves are
 smooths to make the reading of the plot easier.
 }
 \examples{
-ods <- makeExampleOutriderDataSet()
+ods <- makeExampleOutriderDataSet(100, 60)
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
 
-\donttest{
 plotPowerAnalysis(ods)
-}
 
 }

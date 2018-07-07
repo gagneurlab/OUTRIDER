@@ -33,6 +33,9 @@ setMethod("fit", "OutriderDataSet", function(object, BPPARAM=bpparam()){
 })
 
 fitNB <- function(ods, BPPARAM){
+    checkOutriderDataSet(ods)
+    checkCountRequirements(ods)
+    
     ctsData <- counts(ods)
     normF <- normalizationFactors(ods)
     if(is.null(normF)){

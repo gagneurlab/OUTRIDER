@@ -11,7 +11,6 @@ SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma:
 RcppExport SEXP _OUTRIDER_truncLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
@@ -27,7 +26,6 @@ SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::
 RcppExport SEXP _OUTRIDER_gradLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);

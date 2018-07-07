@@ -170,7 +170,7 @@ ctsTable <- read.table(ctsFile, check.names=FALSE)
 ods <- OutriderDataSet(countData=ctsTable)
 
 # filter out non expressed genes
-ods <- filterExpression(ods, onlyZeros=TRUE, filterGenes=TRUE)
+ods <- filterExpression(ods, minCounts=TRUE, filterGenes=TRUE)
 
 # run full OUTRIDER pipeline (control, fit model, calculate P-values)
 ods <- OUTRIDER(ods)
