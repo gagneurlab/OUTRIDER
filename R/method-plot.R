@@ -705,7 +705,8 @@ plotFPKM <- function(ods){
 }
 
 
-plotDispEsts.OUTRIDER <- function(object, compareDisp){
+plotDispEsts.OUTRIDER <- function(object, compareDisp, xlim, ylim, 
+            main="Dispersion estimates versus mean expression", ...){
     # validate input                 
     if(!'disp' %in% names(mcols(object))){
         stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods) ',
@@ -728,11 +729,15 @@ plotDispEsts.OUTRIDER <- function(object, compareDisp){
         ods2 <- fit(ods2)
         nonAutoVals <- getDispEstsData(ods2, odsVals$mu)
     }
-    
+    if(missing(xlim)){
+        xlim=range(odsVals$xpred)
+    }
+    if(missing(ylim)){
+        ylim=range(1/odsVals$disp)
+    }
     # plot dispersion
-    plot(NA, xlim=range(odsVals$xpred), ylim=range(1/odsVals$disp),
-            pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
-            main="Dispersion estimates versus mean expression")
+    plot(NA, xlim=xlim, ylim=ylim, pch='.', log="yx", xlab='Mean expression', 
+         ylab='Dispersion', main=main)
     if(!is.null(nonAutoVals)){
         points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="black")
     }
