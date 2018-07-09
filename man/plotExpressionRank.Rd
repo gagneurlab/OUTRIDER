@@ -44,10 +44,6 @@ The plot can be used before and after fitting.
 ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 
-\donttest{
-ods <- OUTRIDER(ods)
-}
-
 plotExpressionRank(ods, 1)
 plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
 

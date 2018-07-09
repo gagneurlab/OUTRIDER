@@ -4,7 +4,7 @@
 \alias{findEncodingDim}
 \title{Find the optimal encoding dimension}
 \usage{
-findEncodingDim(ods, params = seq(5, min(30, ncol(ods), nrow(ods)), 5),
+findEncodingDim(ods, params = seq(5, min(30, ncol(ods), nrow(ods)), 2),
   freq = 0.01, zScore = 3, inj = "both", BPPARAM = bpparam())
 }
 \arguments{
@@ -28,8 +28,11 @@ Finds the optimal encoding dimension for a given data set by running a
 grid search based on the provided parameter set.
 }
 \examples{
-ods <- makeExampleOutriderDataSet()
-\donttest{
-findEncodingDim(ods)
-}
+
+ods <- makeExampleOutriderDataSet(180, 60)
+ods <- findEncodingDim(ods, params=2:9)
+
+# plot the results of the dimension search
+metadata(ods)$encDimTable[plot(encodingDimension, evaluationLoss)]
+
 }

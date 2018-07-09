@@ -13,9 +13,9 @@ test_that("Expression filtering", {
             'rowRanges\\(object\\) has all ranges of.* FPKM values')
     
     expect_warning(filterExpression(ods, gtfFile=txdb), 
-            'Some genes \\(n=(999|783)\\) are not found')
+            'Some genes \\(n=(770|999|783)\\) are not found')
     
     expect_warning(filterExpression(ods, gtfFile=txdb, mapping=map, save=TRUE), 
-            'Some genes \\(n=(17[72]|93|90)\\) are not found')
+            'Some genes \\(n=(17[72]|93|91)\\) are not found')
     
 })

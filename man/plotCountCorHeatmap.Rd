@@ -56,10 +56,8 @@ ods <- estimateSizeFactors(ods)
 
 ods <- plotCountCorHeatmap(ods, annotateCluster=TRUE)
 
-\donttest{
 sex <- sample(c("female", "male"), dim(ods)[2], replace=TRUE)
 colData(ods)$sex <- sex 
 plotCountCorHeatmap(ods, colCoFactor="sex")
-}
 
 }

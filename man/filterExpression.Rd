@@ -9,7 +9,7 @@
 filterExpression(x, ...)
 
 \S4method{filterExpression}{OutriderDataSet}(x, gtfFile, fpkmCutoff = 1,
-  filterGenes = TRUE, savefpkm = FALSE, onlyZeros = FALSE, ...)
+  filterGenes = TRUE, savefpkm = FALSE, minCounts = FALSE, ...)
 }
 \arguments{
 \item{x}{An OutriderDataSet object}
@@ -24,7 +24,7 @@ filterExpression(x, ...)
 
 \item{savefpkm}{If TRUE the FPKM values are saved as assay}
 
-\item{onlyZeros}{Filter only based on zero counts on a gene}
+\item{minCounts}{Filter for required read counts per gene}
 }
 \value{
 An OutriderDataSet containing the \code{passedFilter} column, which
