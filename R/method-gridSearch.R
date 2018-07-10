@@ -34,16 +34,17 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
     # counts and true Counts for the normalization Factors.
     
     # Max overfitting loss:
-    normalizationFactors(ods) <- counts(ods) + 1E-9
+    normalizationFactors(ods) <- pmax(counts(ods), 1E-9)
     overfit <- evalLoss(ods)
     
     # Best possible loss:
-    normalizationFactors(ods) <- assay(ods, 'trueCounts') + 1E-9
+    normalizationFactors(ods) <- pmax(assay(ods, 'trueCounts'), 1E-9)
     bestloss <- evalLoss(ods)
     
     # Max underfitting loss (only taking the means of the data):
-    normalizationFactors(ods) <- matrix(rep(rowMeans(counts(ods)), 
-            ncol(ods)),ncol=ncol(ods)) + 1E-9
+    normalizationFactors(ods) <- matrix(
+                rep(pmax(rowMeans(counts(ods)), 1E-9), ncol(ods)),
+            ncol=ncol(ods))
     underfit <- evalLoss(ods)
     
     metadata(ods)[['boundaryCases']] = c(
@@ -92,7 +93,7 @@ injectOutliers <- function(ods, freq, zScore, inj){
     )
     
     #inject counts
-    max_out <- max(counts(ods), na.rm=TRUE)
+    max_out <- min(10*max(counts(ods), na.rm=TRUE), .Machine$integer.max)
     
     # compute size factor normalized counts.
     # don't use it on the ods to not influence the later calculation.
@@ -114,7 +115,7 @@ injectOutliers <- function(ods, freq, zScore, inj){
         
         # only insert outliers if they are different from before 
         # and not too large
-        if(art_out < 100*max_out & counts[idxRow, idxCol] != art_out){
+        if(art_out < max_out & counts[idxRow, idxCol] != art_out){
             counts[idxRow, idxCol] <- art_out
         }else{
             index[idxRow, idxCol] <- 0 
