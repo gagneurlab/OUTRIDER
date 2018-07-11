@@ -17,7 +17,7 @@ plotAberrantPerSample(ods, padjCutoff = 0.05, zScoreCutoff = 0,
 
 \item{zScoreCutoff}{Z-score cutoff to mark outliers}
 
-\item{main}{Title for the plot, can be NULL, which is the default}
+\item{main}{Title for the plot, if missing a default title will be used.}
 
 \item{outlierRatio}{The fraction to be used for the outlier sample filtering}
 
