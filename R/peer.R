@@ -1,6 +1,7 @@
 
 
 peer <- function(ods){
+    require(peer)
     
     logCts <- log2(counts(ods)+1)
     #PEER run.
