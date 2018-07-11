@@ -5,7 +5,8 @@
 \alias{plotDispEsts,OutriderDataSet-method}
 \title{Dispersion estimation plot}
 \usage{
-\S4method{plotDispEsts}{OutriderDataSet}(object, compareDisp)
+\S4method{plotDispEsts}{OutriderDataSet}(object, compareDisp, xlim, ylim,
+  main = "Dispersion estimates versus mean expression", ...)
 }
 \arguments{
 \item{object}{An OutriderDataSet object containing the fitted model}

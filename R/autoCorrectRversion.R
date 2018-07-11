@@ -25,7 +25,7 @@
 #' 
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
-                    implementation=c("R", "python"), ...){
+                    implementation=c("R", "python", "PEER"), ...){
     
     # error checking
     checkOutriderDataSet(ods)
@@ -52,6 +52,9 @@ autoCorrect <- function(ods, q, theta=25,
     # pass on to the correct implementation
     if(match.arg(implementation)=='R'){
         return(autoCorrectR(ods, q, theta, ...))
+    }
+    if(match.arg(implementation)=='PEER'){
+        return(peer(ods))
     }
     return(autoCorrectPython(ods, ...))
 }

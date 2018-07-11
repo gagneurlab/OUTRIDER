@@ -92,3 +92,4 @@ Collate:
     helperFunctions.R
     sizeFactor.R
     RcppExports.R
+    peer.R
