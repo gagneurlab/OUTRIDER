@@ -16,6 +16,9 @@
 #' 
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
+#' \dontshow{
+#'     ods <- ods[10:35,35:70]
+#' }
 #' ods <- OUTRIDER(ods)
 #' 
 #' aberrant(ods)[1:10,1:10]

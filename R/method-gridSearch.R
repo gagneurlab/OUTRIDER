@@ -15,7 +15,10 @@
 #'
 #' @examples
 #' 
-#' ods <- makeExampleOutriderDataSet(180, 60)
+#' ods <- makeExampleOutriderDataSet()
+#' \dontshow{
+#'     ods <- ods[10:35,30:70]
+#' }
 #' ods <- findEncodingDim(ods, params=2:9)
 #' 
 #' # plot the results of the dimension search
