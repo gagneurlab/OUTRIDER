@@ -4,7 +4,8 @@
 \alias{autoCorrect}
 \title{Autoencoder function to correct for confounders.}
 \usage{
-autoCorrect(ods, q, theta = 25, implementation = c("R", "python"), ...)
+autoCorrect(ods, q, theta = 25, implementation = c("R", "python", "PEER"),
+  ...)
 }
 \arguments{
 \item{ods}{An OutriderDataSet object}
@@ -29,6 +30,9 @@ Python implementation.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()
+\dontshow{
+    ods <- ods[10:35,35:70]
+}
 ods <- estimateSizeFactors(ods)
 ods <- autoCorrect(ods)
 

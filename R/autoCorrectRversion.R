@@ -17,6 +17,9 @@
 #'
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
+#' \dontshow{
+#'     ods <- ods[10:35,35:70]
+#' }
 #' ods <- estimateSizeFactors(ods)
 #' ods <- autoCorrect(ods)
 #' 
@@ -25,7 +28,7 @@
 #' 
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
-                    implementation=c("R", "python"), ...){
+                    implementation=c("R", "python", "PEER"), ...){
     
     # error checking
     checkOutriderDataSet(ods)

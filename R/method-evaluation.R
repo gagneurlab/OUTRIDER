@@ -15,9 +15,11 @@
 #'         matrix of the size sample x gene of aberrent events.
 #' 
 #' @examples
-#' # no autoCorrect for speed up
-#' ods <- makeExampleOutriderDataSet(160, 60)
-#' ods <- OUTRIDER(ods, autoCorrect=FALSE)
+#' ods <- makeExampleOutriderDataSet()
+#' \dontshow{
+#'     ods <- ods[10:35,35:70]
+#' }
+#' ods <- OUTRIDER(ods)
 #' 
 #' aberrant(ods)[1:10,1:10]
 #' tail(sort(aberrant(ods, by="sample")))
