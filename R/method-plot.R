@@ -21,6 +21,7 @@
 #' 
 #### Data specific parameters
 #' @param ods An OutriderDataSet, which is used to extract the data for plotting
+#' @param object An OutriderDataSet, see ods parameter
 #' @param sampleID A sampleID, which should be plotted. Can also be a vector.
 #' @param geneID A geneID, which should be plotted. Can also be a vector.
 #' @param padjCutoff Significance level to mark outliers
