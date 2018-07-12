@@ -49,8 +49,9 @@ ZscoreMatrix <- function(ods, normalized=TRUE, median=FALSE){
 
 
 log2fc <- function(object, normalized = TRUE){
-    l2fc <- log2(counts(object, normalized = normalized, offset = 1)) - 
-        log2(rowMeans(counts(object, normalized = normalized, offset = 1)))
+    # l2fc <- log2(counts(object, normalized = normalized, offset = 1)) - 
+    #     log2(rowMeans(counts(object, normalized = normalized, offset = 1)))
+    l2fc <- log2(counts(object, normalized = FALSE, offset = 1)) - log2(normalizationFactors(object) +1)
     return(l2fc)
 }
 
