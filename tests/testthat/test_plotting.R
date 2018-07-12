@@ -1,7 +1,7 @@
 context("Testing plot functions: ")
 
 test_that("plotting", {
-    ods <- makeExampleOutriderDataSet(n=1000, m=200)
+    ods <- makeExampleOutriderDataSet(n=40, m=40)
     ods <- OUTRIDER(ods)
     
     ods <- plotCountCorHeatmap(ods)

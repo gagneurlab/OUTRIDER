@@ -1,7 +1,7 @@
 context("Testing OUTRIDER main function")
 
 test_that("test main OUTRIDER function", {
-    ods <- makeExampleOutriderDataSet(50)
+    ods <- makeExampleOutriderDataSet(40, 40)
     ods <- estimateSizeFactors(ods)
     ods <- autoCorrect(ods)
     ods <- fit(ods)

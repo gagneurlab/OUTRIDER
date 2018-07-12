@@ -5,6 +5,7 @@ test_that("Test findEncodingDim", {
     # Test Find Encoding Dimension.
     set.seed(42)
     ods <- makeExampleOutriderDataSet(dataset = 'Kremer')
+    ods <- ods[1:40, 1:40]
     ods <- filterExpression(ods, filterGenes=TRUE, minCounts=TRUE)
     countsbefore <- counts(ods)
     expect_equal(getBestQ(ods), NA_integer_)
@@ -20,7 +21,7 @@ test_that("Test findEncodingDim", {
 
 test_that('In silico outliers',{
     
-    ods <- makeExampleOutriderDataSet(dataset = 'Kremer')
+    ods <- makeExampleOutriderDataSet(30,30)
     freq <- 1E-2
     ods <- injectOutliers(ods, freq=freq, zScore=3, inj='both')
     

@@ -38,7 +38,7 @@ test_that("normalization method", {
 })
 
 test_that("fit method", {
-    ods <- makeExampleOutriderDataSet(50)
+    ods <- makeExampleOutriderDataSet(30, 30)
     ods <- estimateSizeFactors(ods)
     ods <- fit(ods)
     expect_is(mcols(ods)[,"mu"], "numeric")
