@@ -37,15 +37,10 @@ build_script:
 test_script:
   - date
   - travis-tool.sh run_tests
-  - date
-  - Rscript -e 'devtools::test()'
-  - date
-  - Rscript -e 'devtools::run_examples(show=FALSE)'
-  - date
-  - Rscript -e 'BiocCheck::BiocCheck()' 
-  - date
-  - Rscript -e 'devtools::build_vignettes()'
-  - date
+  - Rscript -e 'date(); devtools::test()'
+  - Rscript -e 'date(); devtools::run_examples(show=FALSE)'
+  - Rscript -e 'date(); BiocCheck::BiocCheck()' 
+  - Rscript -e 'date(); devtools::build_vignettes(); date()'
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
