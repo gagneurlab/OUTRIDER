@@ -459,17 +459,7 @@ replaceOutliersCooks <- function(k, mu){
     dds <- replaceOutliers(dds)
     return(t(counts(dds)))
 }
-<<<<<<< HEAD
- 
 
-# dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
-#                               quiet=FALSE, modelMatrix = NULL,
-#                               useT=FALSE, minmu=0.1, betaPrior=FALSE,
-#                               BPPARAM=bpparam())
-# ddsr <- replaceOutliers(dds)
-# table(counts(ods) == counts(ddsr))
-=======
->>>>>>> 6d9a8eab54a399c0ff9ad0b30e2bf2b5b5180262
 
 autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
     
