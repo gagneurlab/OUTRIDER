@@ -370,7 +370,74 @@ lossGrad2 <- function(w, k, x, s, xbar, theta){
 }
 
 
+loss3 <- function(w, k, x, s, xbar, theta){
+    ## log, size factored, and centered counts 
+    #x <-  t(t(log((1+k)/s)) - xbar)
+    ## encoding 
+    W <- matrix(w, nrow=ncol(k))
+    b <- W[,ncol(W)]
+    W <- W[,1:ncol(W)-1]
+    
+    y <- t(t(x%*%W %*% t(W)) + xbar + b)
+    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
+    y_exp <- s*exp(y) -1
+    
+    ## log likelihood 
+    ll <- dnbinom(k, mu= pmax(1E-10,y_exp), size=theta, log=TRUE)
+    - mean( ll )
+}
 
+
+
+
+lossGrad3 <- function(w, k, x, s, xbar, theta){
+    W <- matrix(w, nrow=ncol(k))
+    b <- W[,ncol(W)]
+    W <- W[,1:ncol(W)-1]
+    
+    # dW:
+    t1 <- t(x) %*% (k %*% W)
+    #t1 <- armaMatMultAtBC(x, k, W)
+    t2 <- t(k) %*% (x %*% W)
+    #t2 <- armaMatMultAtBC(k, x, W)
+    y <- t(t(x%*%W %*% t(W)) + xbar + b)
+    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
+    y_exp <- s*exp(y)
+    kt <- (k + theta)*(y_exp-1)/(y_exp+theta)
+    t3 <- t(x) %*% (kt %*% W)
+    #t3 <- armaMatMultAtBC(x, kt, W)
+    t4 <- t(kt) %*% (x %*% W)
+    #t4 <- armaMatMultAtBC(kt, x, W)
+    dw <- (-t1 - t2 + t3 + t4)/prod(dim(k))
+    
+    #db:
+    db <- colSums(kt-k)/prod(dim(k))
+    
+    return(c(dw, db))
+}
+
+
+
+replaceOutliersCooks <- function(k, mu, theta=FALSE){
+    k <- t(k)
+    dds <- DESeqDataSetFromMatrix(countData=k, design=~1, 
+            colData=DataFrame(seq_len(ncol(k))))
+    dds <- estimateSizeFactors(dds)
+    if(!missing(mu)){
+        mu <- t(mu)
+        normFactors <- mu/ exp(rowMeans(log(mu)))
+        normalizationFactors(dds)  <- normFactors
+    }
+    dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
+            quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
+            betaPrior=FALSE, BPPARAM=bpparam())
+    dds <- replaceOutliers(dds)
+    if(theta==FALSE){
+        return(t(counts(dds)))
+    }else{
+        return(list(t(counts(dds)), 1/dispersions(dds)))
+    }
+}
 
 autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), ...){
     
@@ -399,31 +466,29 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), ...){
                loss(w_guess, k, x, s, xbar, theta))
     )
     
-    k_no <-replaceOutliersCooks(k, predictC(w_guess, k, s, xbar))
-    x0 <- log((1+k_no)/s)
-    xbar <- colMeans(x0)
-    x <- t(t(x0) - xbar)
-    
-    # initialize W using PCA and bias as zeros.
-    pca <- pca(x, nPcs = q) 
-    pc  <- loadings(pca)
-    w_guess <- c(as.vector(pc), numeric(ncol(k)))
-    # check initial loss
-    print(
-        paste0('Initial PCA loss: ',
-               loss(w_guess, k, x, s, xbar, theta))
-    )
-    
     # optimize log likelihood
     t <- Sys.time()
     
-        fit <- optim(w_guess, loss, gr = lossGrad, k=k, x=x, s=s, xbar=xbar, 
-                 theta=theta, method="L-BFGS-B", control=control, ...)
-    #Check that fit converged
-    if(fit$convergence!=0){
-        warning(paste0("Fit didn't converge with warning: ", fit$message))
+    w_fit <- w_guess
+    for(i in 1:10){
+        
+        k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar))
+        x0 <- log((1+k_no)/s)
+        x <- t(t(x0) - xbar)
+        
+        control$maxit <- 10    
+        fit <- optim(w_fit, loss3, gr = lossGrad3, k=k_no, x=x, s=s, xbar=xbar, 
+                     theta=theta, method="L-BFGS-B", control=control, ...)
+        
+        w_fit <- fit$par
+        message('Iteration ', i, ' loss: ', loss(w_fit, k, x, s, xbar, theta))
+        
+        #Check that fit converged
+        if(fit$convergence!=0){
+            warning(paste0("Fit didn't converge with warning: ", fit$message))
+        }
+        
     }
-    
     w_fit <- fit$par
     print(Sys.time() - t)
     print(
@@ -440,26 +505,7 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), ...){
     metadata(ods)[['dim']] <- dim(ods)
     validObject(ods)
     return(ods)
-}
-
-
-replaceOutliersCooks <- function(k, mu){
-    k <- t(k)
-    dds <- DESeqDataSetFromMatrix(countData=k, design=~1, 
-            colData=DataFrame(seq_len(ncol(k))))
-    dds <- estimateSizeFactors(dds)
-    if(!missing(mu)){
-        mu <- t(mu)
-        normFactors <- mu/ exp(rowMeans(log(mu)))
-        normalizationFactors(dds)  <- normFactors
-    }
-    dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
-            quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
-            betaPrior=FALSE, BPPARAM=bpparam())
-    dds <- replaceOutliers(dds)
-    return(t(counts(dds)))
-}
-
+}   
 
 autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
     
@@ -530,7 +576,7 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
 }   
 
 
-autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), downweight, ...){
+autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), delta, downweight, ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -540,7 +586,9 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), downwei
     s <- sizeFactors(ods)
     
     
-    k_no <-replaceOutliersCooks(k)
+    dispfit <-replaceOutliersCooks(k, theta=TRUE)
+    k_no <- dispfit[[1]]
+    theta <- dispfit[[2]]
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
@@ -548,11 +596,11 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), downwei
     
     ## intialize theta
     
-    theta <- matrix(
-        1/(0.1 + 0.1/colMeans(k)),
-        ncol = ncol(k),
-        nrow = nrow(k),
-        byrow = TRUE)
+    # theta <- matrix(
+    #     1/(0.1 + 0.1/colMeans(k)),
+    #     ncol = ncol(k),
+    #     nrow = nrow(k),
+    #     byrow = TRUE)
     
     
     # initialize W using PCA and bias as zeros.
@@ -575,7 +623,9 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), downwei
     }
     for(i in 1:10){
         
-        k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar))
+        dispfit <-replaceOutliersCooks(k, theta=TRUE)
+        k_no <- dispfit[[1]]
+        theta <- dispfit[[2]] * delta
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
