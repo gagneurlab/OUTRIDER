@@ -140,7 +140,7 @@
 #' mcols(ods)$passedFilter <- rowMeans(counts(ods)) > 10
 #' plotFPKM(ods)
 #' 
-#' plotDispEsts(ods)
+#' plotDispEsts(ods, compareDisp=FALSE)
 #' 
 #' plotPowerAnalysis(ods)
 #' 
