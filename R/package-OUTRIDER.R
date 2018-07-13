@@ -17,7 +17,7 @@
 #'          sizeFactors sizeFactors<- counts counts<-
 #'          DESeqDataSetFromMatrix DESeqDataSet
 #'          makeExampleDESeqDataSet show fpkm fpm
-#'          estimateSizeFactorsForMatrix
+#'          estimateSizeFactorsForMatrix replaceOutliers
 #' 
 #' @importFrom SummarizedExperiment colData colData<- assays assays<-
 #'          assayNames mcols mcols<- assay assay<-

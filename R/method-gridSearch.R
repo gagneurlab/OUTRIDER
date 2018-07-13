@@ -23,7 +23,7 @@
 #' 
 #' @export
 findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
-                    freq=1E-2, zScore=3, inj='both', BPPARAM=bpparam()){
+                    freq=1E-2, zScore=3, inj='both', ..., BPPARAM=bpparam()){
     
     # compute auto Correction
     ods <- estimateSizeFactors(ods)
@@ -52,8 +52,8 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
             'Max overfitting loss (c=kcorr)' = overfit,
             'Max underfitting loss (c=colMeans(kcorr)' = underfit)
 
-    eval <- bplapply(X=params, BPPARAM=BPPARAM, 
-            FUN=function(i) evalAutoCorrection(ods, encoding_dim=i))
+    eval <- bplapply(X=params, ..., BPPARAM=BPPARAM, 
+            FUN=function(i, ...) evalAutoCorrection(ods, encoding_dim=i, ...))
     
     metadata(ods)[['encDimTable']] <- data.table(
             'encodingDimension' = params,
@@ -140,9 +140,9 @@ evalLoss <- function(ods, theta=25){
     return(eval)
 }
 
-evalAutoCorrection <- function(ods, encoding_dim=20, theta=25){
+evalAutoCorrection <- function(ods, encoding_dim=20, theta=25, ...){
     
-    ods <- autoCorrect(ods, q=encoding_dim)
+    ods <- autoCorrect(ods, q=encoding_dim, ...)
     eloss <- evalLoss(ods, theta)
     
     print(paste0('Evaluation loss: ', eloss))

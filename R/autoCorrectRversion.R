@@ -50,16 +50,28 @@ autoCorrect <- function(ods, q, theta=25,
     }
     
     # pass on to the correct implementation
-    if(match.arg(implementation)=='R'){
-        return(autoCorrectR(ods, q, theta, ...))
-    }
-    if(match.arg(implementation)=='PEER'){
-        return(peer(ods))
-    }
-    if(match.arg(implementation)=='robustR'){
-        return(autoCorrectRCooksIter2(ods, q, theta, ...))
-    }
-    return(autoCorrectPython(ods, ...))
+    switch(match.arg(implementation),
+        R = {
+            impl <- "standard R"
+            ans <- autoCorrectR(ods, q, theta, ...)
+        },
+        PEER = {
+            impl <- "PEER"
+            ans <- peer(ods)
+        },
+        robustR = {
+            impl <- "robust R"
+            ans <- autoCorrectRCooksIter2(ods, q, theta, ...)
+        },
+        python = {
+            impl <- "TensorFlow"
+            ans <- autoCorrectPython(ods, ...)
+        },
+        stop("Requested autoCorrect implementation is unknown.")
+    )
+    
+    message(date(), ": Used the ", impl, " implementation for autoCorrect.")
+    return(ans)
 }
 
 #' 
@@ -433,8 +445,8 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), ...){
 
 replaceOutliersCooks <- function(k, mu){
     k <- t(k)
-    dds <- DESeqDataSetFromMatrix(countData = k, design = ~1, 
-            colData = DataFrame(rep('sample', 80)))
+    dds <- DESeqDataSetFromMatrix(countData=k, design=~1, 
+            colData=DataFrame(seq_len(ncol(k))))
     dds <- estimateSizeFactors(dds)
     if(!missing(mu)){
         mu <- t(mu)
@@ -447,14 +459,6 @@ replaceOutliersCooks <- function(k, mu){
     dds <- replaceOutliers(dds)
     return(t(counts(dds)))
 }
- 
-
-dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
-                              quiet=FALSE, modelMatrix = NULL,
-                              useT=FALSE, minmu=0.1, betaPrior=FALSE,
-                              BPPARAM=bpparam())
-ddsr <- replaceOutliers(dds)
-table(counts(ods) == counts(ddsr))
 
 autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
     
