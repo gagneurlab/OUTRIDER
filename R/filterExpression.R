@@ -163,10 +163,8 @@ computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
 #' @inheritParams DESeq2::fpkm
 #' 
 #' @examples 
-#' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
-#' annotationFile <- system.file("extdata", 
-#'     "gencode.v19.genes.small.gtf.gz", package="OUTRIDER")
-#' ods <- computeGeneLength(ods, annotationFile)
+#' ods <- makeExampleOutriderDataSet()
+#' mcols(ods)['basepairs'] <- round(rnorm(nrow(ods), 1000, 500))
 #' 
 #' mcols(ods)['basepairs']
 #' fpkm(ods)[1:10,1:10]

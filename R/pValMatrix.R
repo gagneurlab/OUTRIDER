@@ -27,7 +27,7 @@
 #' @examples 
 #' ods <- makeExampleOutriderDataSet()
 #' \dontshow{
-#'     ods <- ods[10:35,35:70]
+#'     ods <- ods[1:10,1:10]
 #' }
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)

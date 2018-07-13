@@ -30,6 +30,9 @@
 #' 
 #' ods <- makeExampleOutriderDataSet()
 #' ods
+#' 
+#' ods <- makeExampleOutriderDataSet(dataset="Kremer")
+#' ods
 #'    
 setClass("OutriderDataSet", contains="RangedSummarizedExperiment")
 

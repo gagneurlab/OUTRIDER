@@ -29,7 +29,7 @@
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
 #' \dontshow{
-#'     ods <- ods[10:35,35:70]
+#'     ods <- ods[1:15,1:15]
 #' }
 #' ods <- OUTRIDER(ods)
 #' 

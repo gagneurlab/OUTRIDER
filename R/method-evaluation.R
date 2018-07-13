@@ -17,7 +17,7 @@
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
 #' \dontshow{
-#'     ods <- ods[10:35,35:70]
+#'     ods <- ods[1:15,1:15]
 #' }
 #' ods <- OUTRIDER(ods)
 #' 
@@ -26,7 +26,6 @@
 #' tail(sort(aberrant(ods, by="gene")))
 #' 
 #' @rdname aberrant
-#' 
 #' @export
 aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=0, 
             by=c("none", "sample", "gene")){

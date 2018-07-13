@@ -41,12 +41,11 @@ accumulated over the analysis pipeline.
 
 ods <- makeExampleOutriderDataSet()
 \dontshow{
-    ods <- ods[10:35,35:70]
+    ods <- ods[1:10,1:10]
 }
 ods <- OUTRIDER(ods)
 
 res <- results(ods, all=TRUE)
-
 res
 
 }

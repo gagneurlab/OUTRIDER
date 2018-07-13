@@ -113,7 +113,7 @@
 #' ods <- makeExampleOutriderDataSet(dataset="Kremer")
 #' \dontshow{
 #'     # reduce the object size to speed up the calculations
-#'     ods <- ods[400:435,35:70]
+#'     ods <- ods[400:410,60:70]
 #' }
 #' ods <- filterExpression(ods, minCounts=TRUE)
 #' ods <- OUTRIDER(ods)

@@ -39,6 +39,9 @@ stored as assays or as annotation in the mcols structure provided by the
 
 ods <- makeExampleOutriderDataSet()
 ods
+
+ods <- makeExampleOutriderDataSet(dataset="Kremer")
+ods
    
 }
 \author{

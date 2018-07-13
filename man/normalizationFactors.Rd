@@ -50,7 +50,7 @@ then used to compute the normalized counts.
 }
 \examples{
 
-ods <- makeExampleOutriderDataSet(100, 20)
+ods <- makeExampleOutriderDataSet()
 
 normFactors <- matrix(runif(nrow(ods)*ncol(ods),0.5,1.5),
     ncol=ncol(ods),nrow=nrow(ods))
