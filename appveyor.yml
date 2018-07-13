@@ -15,38 +15,38 @@ cache:
 environment:
   matrix:
     - R_VERSION: 5.1
-      BIOC_USE_DEVEL=TRUE
+      BIOC_USE_DEVEL: TRUE
       GCC_PATH: mingw_32
       
     - R_VERSION: 5.1
-      BIOC_USE_DEVEL=FALSE
+      BIOC_USE_DEVEL: FALSE
       GCC_PATH: mingw_32
       
     - R_VERSION: 5.0
-      BIOC_USE_DEVEL=TRUE
+      BIOC_USE_DEVEL: TRUE
       GCC_PATH: mingw_32
       
     - R_VERSION: 5.0
-      BIOC_USE_DEVEL=FALSE
+      BIOC_USE_DEVEL: FALSE
       GCC_PATH: mingw_32
       
     - R_VERSION: 5.1
-      BIOC_USE_DEVEL=TRUE
+      BIOC_USE_DEVEL: TRUE
       GCC_PATH: mingw_64
       R_ARCH: x64
       
     - R_VERSION: 5.1
-      BIOC_USE_DEVEL=FALSE
+      BIOC_USE_DEVEL: FALSE
       GCC_PATH: mingw_64
       R_ARCH: x64
       
     - R_VERSION: 5.0
-      BIOC_USE_DEVEL=TRUE
+      BIOC_USE_DEVEL: TRUE
       GCC_PATH: mingw_64
       R_ARCH: x64
       
     - R_VERSION: 5.0
-      BIOC_USE_DEVEL=FALSE
+      BIOC_USE_DEVEL: FALSE
       GCC_PATH: mingw_64
       R_ARCH: x64
       
