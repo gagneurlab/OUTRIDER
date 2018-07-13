@@ -14,12 +14,41 @@ cache:
 
 environment:
   matrix:
-    - R_VERSION: devel
+    - R_VERSION: 5.1
+      BIOC_USE_DEVEL=TRUE
       GCC_PATH: mingw_32
       
-    - R_VERSION: devel
+    - R_VERSION: 5.1
+      BIOC_USE_DEVEL=FALSE
+      GCC_PATH: mingw_32
+      
+    - R_VERSION: 5.0
+      BIOC_USE_DEVEL=TRUE
+      GCC_PATH: mingw_32
+      
+    - R_VERSION: 5.0
+      BIOC_USE_DEVEL=FALSE
+      GCC_PATH: mingw_32
+      
+    - R_VERSION: 5.1
+      BIOC_USE_DEVEL=TRUE
+      GCC_PATH: mingw_64
       R_ARCH: x64
-      GCC_PATH: mingw64
+      
+    - R_VERSION: 5.1
+      BIOC_USE_DEVEL=FALSE
+      GCC_PATH: mingw_64
+      R_ARCH: x64
+      
+    - R_VERSION: 5.0
+      BIOC_USE_DEVEL=TRUE
+      GCC_PATH: mingw_64
+      R_ARCH: x64
+      
+    - R_VERSION: 5.0
+      BIOC_USE_DEVEL=FALSE
+      GCC_PATH: mingw_64
+      R_ARCH: x64
       
 build_script:
   - travis-tool.sh install_deps
