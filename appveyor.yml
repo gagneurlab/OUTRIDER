@@ -13,6 +13,7 @@ cache:
   - C:\RLibrary
 
 environment:
+  _R_CHECK_FORCE_SUGGESTS_: FALSE
   matrix:
     - R_VERSION: release
       BIOC_USE_DEVEL: TRUE
@@ -51,6 +52,7 @@ environment:
       R_ARCH: x64
       
 build_script:
+  - travis-tool.sh install_bioc BiocStyle GenomicRanges DESeq2 DelayedArray
   - travis-tool.sh install_deps
 
 test_script:
