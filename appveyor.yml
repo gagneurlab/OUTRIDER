@@ -30,9 +30,11 @@ environment:
       R_ARCH: x64
       
 build_script:
-  - travis-tool.sh install_bioc GenomicRanges DESeq2 DelayedArray
+  - travis-tool.sh install_bioc DelayedArray DESeq2 
+  - travis-tool.sh install_bioc org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
   - travis-tool.sh install_deps
-
+  - travis-tool.sh install_bioc_deps
+  
 test_script:
   - travis-tool.sh run_tests
 
