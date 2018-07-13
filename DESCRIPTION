@@ -31,7 +31,7 @@ NeedsCompilation: yes
 Encoding: UTF-8
 RoxygenNote: 6.0.1
 Depends:
-    R (>= 3.5), 
+    R (>= 3.4), 
     BiocParallel,
     GenomicFeatures,
     SummarizedExperiment,

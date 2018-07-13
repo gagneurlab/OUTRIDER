@@ -21,38 +21,16 @@ environment:
       
     - R_VERSION: release
       BIOC_USE_DEVEL: FALSE
-      GCC_PATH: mingw_32
-      
-    - R_VERSION: release
-      BIOC_USE_DEVEL: TRUE
-      GCC_PATH: mingw_32
-      
-    - R_VERSION: release
-      BIOC_USE_DEVEL: FALSE
-      GCC_PATH: mingw_32
-      
-    - R_VERSION: 5.1
-      BIOC_USE_DEVEL: TRUE
       GCC_PATH: mingw_64
       R_ARCH: x64
       
-    - R_VERSION: 5.1
-      BIOC_USE_DEVEL: FALSE
-      GCC_PATH: mingw_64
-      R_ARCH: x64
-      
-    - R_VERSION: release
-      BIOC_USE_DEVEL: TRUE
-      GCC_PATH: mingw_64
-      R_ARCH: x64
-      
-    - R_VERSION: release
+    - R_VERSION: 3.4.4
       BIOC_USE_DEVEL: FALSE
       GCC_PATH: mingw_64
       R_ARCH: x64
       
 build_script:
-  - travis-tool.sh install_bioc BiocStyle GenomicRanges DESeq2 DelayedArray
+  - travis-tool.sh install_bioc GenomicRanges DESeq2 DelayedArray
   - travis-tool.sh install_deps
 
 test_script:
