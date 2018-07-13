@@ -28,10 +28,12 @@ gene or sample or returns a matrix indicating aberrant events.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()
+runAutoCorrect <- TRUE
 \dontshow{
-    ods <- ods[1:15,1:15]
+    ods <- ods[1:10,1:10]
+    runAutoCorrect <- FALSE
 }
-ods <- OUTRIDER(ods)
+ods <- OUTRIDER(ods, autoCorrect=runAutoCorrect)
 
 aberrant(ods)[1:10,1:10]
 tail(sort(aberrant(ods, by="sample")))

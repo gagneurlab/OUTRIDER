@@ -39,10 +39,12 @@ function seperatly.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()
+runAutoCorrect <- TRUE
 \dontshow{
-    ods <- ods[1:15,1:15]
+    ods <- ods[1:10,1:10]
+    runAutoCorrect <- FALSE
 }
-ods <- OUTRIDER(ods)
+ods <- OUTRIDER(ods, autoCorrect=runAutoCorrect)
 
 assays(ods)[['pValue']][1:10,1:10]
 res <- results(ods, all=TRUE)
