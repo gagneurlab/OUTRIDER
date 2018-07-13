@@ -449,12 +449,12 @@ replaceOutliersCooks <- function(k, mu){
 }
  
 
-dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
-                              quiet=FALSE, modelMatrix = NULL,
-                              useT=FALSE, minmu=0.1, betaPrior=FALSE,
-                              BPPARAM=bpparam())
-ddsr <- replaceOutliers(dds)
-table(counts(ods) == counts(ddsr))
+# dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
+#                               quiet=FALSE, modelMatrix = NULL,
+#                               useT=FALSE, minmu=0.1, betaPrior=FALSE,
+#                               BPPARAM=bpparam())
+# ddsr <- replaceOutliers(dds)
+# table(counts(ods) == counts(ddsr))
 
 autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
     
@@ -525,7 +525,7 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
 }   
 
 
-autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), ...){
+autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), downweight, ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -544,7 +544,7 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), ...){
     ## intialize theta
     
     theta <- matrix(
-        1/(0.04 + 0.15/colMeans(k)),
+        1/(0.1 + 0.1/colMeans(k)),
         ncol = ncol(k),
         nrow = nrow(k),
         byrow = TRUE)
@@ -564,6 +564,10 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), ...){
     t <- Sys.time()
     
     w_fit <- w_guess
+    if(downweight==TRUE){
+        d <- c(rep(colMeans(k_no)<100, q),logical(ncol(k)))
+        w_fit[d] <- w_fit[d]*0.1
+    }
     for(i in 1:10){
         
         k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar))
