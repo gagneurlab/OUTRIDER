@@ -5,7 +5,7 @@
 \title{Find the optimal encoding dimension}
 \usage{
 findEncodingDim(ods, params = seq(5, min(30, ncol(ods), nrow(ods)), 2),
-  freq = 0.01, zScore = 3, inj = "both", BPPARAM = bpparam())
+  freq = 0.01, zScore = 3, inj = "both", ..., BPPARAM = bpparam())
 }
 \arguments{
 \item{ods}{An OutriderDataSet}
