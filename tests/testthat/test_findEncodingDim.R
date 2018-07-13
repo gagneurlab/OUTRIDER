@@ -20,8 +20,8 @@ test_that("Test findEncodingDim", {
 })
 
 test_that('In silico outliers',{
-    
-    ods <- makeExampleOutriderDataSet(30,30)
+    set.seed(41)
+    ods <- makeExampleOutriderDataSet(50,50)
     freq <- 1E-2
     ods <- injectOutliers(ods, freq=freq, zScore=3, inj='both')
     
