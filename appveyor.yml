@@ -41,7 +41,7 @@ test_script:
 #  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
 #  - R -e "BiocCheck::BiocCheck('.')"
   - R -e "devtools::run_examples()"
-  - R -e "date(); devtools::build_vignettes(); date()"
+#  - R -e "date(); devtools::build_vignettes(); date()"
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
