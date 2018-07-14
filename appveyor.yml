@@ -35,8 +35,7 @@ build_script:
   - travis-tool.sh install_bioc_deps
   
 test_script:
-  - date
-  - travis-tool.sh run_tests
+  - Rscript -e 'date(); devtools::check(build_args = "--no-build-vignettes", manual = FALSE, args = "--no-build-vignettes")'
   - Rscript -e 'date(); devtools::test()'
   - Rscript -e 'date(); devtools::run_examples(show=FALSE)'
   - Rscript -e 'date(); BiocCheck::BiocCheck()' 
