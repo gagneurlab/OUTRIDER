@@ -32,15 +32,14 @@ environment:
 build_script:
   - travis-tool.sh install_deps
   - travis-tool.sh install_bioc_deps
-  - travis-tool.sh install_bioc BiocCheck DelayedArray org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
+  - travis-tool.sh install_bioc BiocCheck GenomeInfoDbData DelayedArray org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
   
 test_script:
-  - R -e "date()"
-#  - Rscript -e 'date(); devtools::check(build_args = "--no-build-vignettes", manual = FALSE, args = "--no-build-vignettes")'
-#  - Rscript -e 'date(); devtools::test()'
-#  - Rscript -e 'date(); devtools::run_examples(show=FALSE)'
-#  - Rscript -e 'date(); BiocCheck::BiocCheck()' 
-#  - Rscript -e 'date(); devtools::build_vignettes(); date()'
+  - R -e "date(); devtools::check(build_args='--no-build-vignettes', manual=FALSE, args='--no-build-vignettes')"
+  - R -e "date(); devtools::test()"
+  - R -e "date(); devtools::run_examples(show=FALSE)"
+  - R -e "date(); BiocCheck::BiocCheck()"
+  - R -e "date(); devtools::build_vignettes(); date()"
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
