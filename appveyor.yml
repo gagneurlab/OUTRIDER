@@ -32,15 +32,15 @@ environment:
 build_script:
   - travis-tool.sh install_deps
   - travis-tool.sh install_bioc_deps
-  - travis-tool.sh install_bioc BiocCheck roxygen2 GenomeInfoDbData org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
+  - travis-tool.sh install_bioc BiocCheck DelayedArray roxygen2 GenomeInfoDbData org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
   - R -e "devtools::install(upgrade_dependencies=TRUE, dependencies=TRUE)"
   
 test_script:
   - R CMD build --no-build-vignettes .
   - R CMD check --no-vignettes --no-manual --timings *tar.gz
+  - R -e "devtools::run_examples()"
 #  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
 #  - R -e "BiocCheck::BiocCheck('.')"
-  - R -e "devtools::run_examples()"
 #  - R -e "date(); devtools::build_vignettes(); date()"
 
 on_failure:
