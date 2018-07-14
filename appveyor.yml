@@ -39,7 +39,7 @@ test_script:
   - R CMD build --no-build-vignettes .
   - R CMD check --no-vignettes --no-manual --timings *tar.gz
 #  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
-  - R -e "BiocCheck::BiocCheck('.')"
+#  - R -e "BiocCheck::BiocCheck('.')"
   - R -e "devtools::run_examples()"
   - R -e "date(); devtools::build_vignettes(); date()"
 
