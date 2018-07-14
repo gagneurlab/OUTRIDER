@@ -32,14 +32,14 @@ environment:
 build_script:
   - travis-tool.sh install_deps
   - travis-tool.sh install_bioc_deps
-  - travis-tool.sh install_bioc BiocCheck roxygen2 GenomeInfoDbData
+  - travis-tool.sh install_bioc BiocCheck roxygen2 GenomeInfoDbData TxDb.Hsapiens.UCSC.hg19.knownGene
   - R -e "devtools::install(upgrade_dependencies=TRUE, dependencies=TRUE)"
   
 test_script:
   - R -e "date(); devtools::check(build_args='--no-build-vignettes', manual=FALSE, args='--no-build-vignettes')"
   - R -e "date(); devtools::test()"
   - R -e "date(); devtools::run_examples(show=FALSE)"
-  - R -e "date(); BiocCheck::BiocCheck()"
+  - R -e "date(); BiocCheck::BiocCheck('.', `no-check-vignettes`=TRUE)"
   - R -e "date(); devtools::build_vignettes(); date()"
 
 on_failure:
