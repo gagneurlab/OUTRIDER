@@ -36,10 +36,10 @@ build_script:
   - R -e "devtools::install(upgrade_dependencies=TRUE, dependencies=TRUE)"
   
 test_script:
-  - R -e "date(); devtools::check(build_args='--no-build-vignettes', manual=FALSE, args='--no-build-vignettes')"
-  - R -e "date(); devtools::test()"
-  - R -e "date(); devtools::run_examples(show=FALSE)"
-  - R -e "date(); BiocCheck::BiocCheck('.', `no-check-vignettes`=TRUE)"
+  - R CMD build .
+  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
+  - R CMD check --no-vignettes --timings *tar.gz
+  - R -e "devtools::run_examples()"
   - R -e "date(); devtools::build_vignettes(); date()"
 
 on_failure:
