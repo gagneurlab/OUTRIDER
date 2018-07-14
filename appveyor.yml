@@ -30,12 +30,12 @@ environment:
 #    - R_VERSION: 3.4.0
       
 build_script:
-#  - travis-tool.sh install_bioc BiocCheck DelayedArray org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
   - travis-tool.sh install_deps
   - travis-tool.sh install_bioc_deps
+  - travis-tool.sh install_bioc BiocCheck DelayedArray org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
   
 test_script:
-  - R -e 'date()' 
+  - R -e "date()"
 #  - Rscript -e 'date(); devtools::check(build_args = "--no-build-vignettes", manual = FALSE, args = "--no-build-vignettes")'
 #  - Rscript -e 'date(); devtools::test()'
 #  - Rscript -e 'date(); devtools::run_examples(show=FALSE)'
