@@ -24,10 +24,10 @@ environment:
       GCC_PATH: mingw_64
       R_ARCH: x64
       
-#    - R_VERSION: release
-#    - R_VERSION: 3.4.4
-#    - R_VERSION: 3.4.2
-#    - R_VERSION: 3.4.0
+    - R_VERSION: release
+    - R_VERSION: 3.4.4
+    - R_VERSION: 3.4.2
+    - R_VERSION: 3.4.0
       
 build_script:
   - travis-tool.sh install_deps
