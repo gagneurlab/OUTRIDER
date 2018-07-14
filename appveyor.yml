@@ -24,22 +24,23 @@ environment:
       GCC_PATH: mingw_64
       R_ARCH: x64
       
-    - R_VERSION: release
-    - R_VERSION: 3.4.4
-    - R_VERSION: 3.4.2
-    - R_VERSION: 3.4.0
+#    - R_VERSION: release
+#    - R_VERSION: 3.4.4
+#    - R_VERSION: 3.4.2
+#    - R_VERSION: 3.4.0
       
 build_script:
-  - travis-tool.sh install_bioc BiocCheck DelayedArray org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
+#  - travis-tool.sh install_bioc BiocCheck DelayedArray org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
   - travis-tool.sh install_deps
-  - travis-tool.sh install_bioc_deps
+#  - travis-tool.sh install_bioc_deps
   
 test_script:
-  - Rscript -e 'date(); devtools::check(build_args = "--no-build-vignettes", manual = FALSE, args = "--no-build-vignettes")'
-  - Rscript -e 'date(); devtools::test()'
-  - Rscript -e 'date(); devtools::run_examples(show=FALSE)'
-  - Rscript -e 'date(); BiocCheck::BiocCheck()' 
-  - Rscript -e 'date(); devtools::build_vignettes(); date()'
+  - Rscript -e 'date()' 
+#  - Rscript -e 'date(); devtools::check(build_args = "--no-build-vignettes", manual = FALSE, args = "--no-build-vignettes")'
+#  - Rscript -e 'date(); devtools::test()'
+#  - Rscript -e 'date(); devtools::run_examples(show=FALSE)'
+#  - Rscript -e 'date(); BiocCheck::BiocCheck()' 
+#  - Rscript -e 'date(); devtools::build_vignettes(); date()'
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
