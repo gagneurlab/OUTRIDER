@@ -25,7 +25,7 @@
 #' 
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
-                    implementation=c("R", "python", "PEER", "robustR"), ...){
+                    implementation=c("R", "python", "PEER", "robustR","robustRM1","robustRTheta"), ...){
     
     # error checking
     checkOutriderDataSet(ods)
@@ -62,6 +62,14 @@ autoCorrect <- function(ods, q, theta=25,
         robustR = {
             impl <- "robust R"
             ans <- autoCorrectRCooksIter2(ods, q, theta, ...)
+        },
+        robustRM1 = {
+            impl <- 'robustRM1'
+            ans <- autoCorrectRCooksIter(ods, q, theta, ...)
+        },
+        robustRTheta = {
+            impl <- 'robustRTheta'
+            ans <- autoCorrectRCooksIterTheta(ods, q, theta, ...)
         },
         python = {
             impl <- "TensorFlow"
@@ -369,7 +377,6 @@ lossGrad2 <- function(w, k, x, s, xbar, theta){
     return(c(dw, db))
 }
 
-
 loss3 <- function(w, k, x, s, xbar, theta){
     ## log, size factored, and centered counts 
     #x <-  t(t(log((1+k)/s)) - xbar)
@@ -396,14 +403,20 @@ lossGrad3 <- function(w, k, x, s, xbar, theta){
     W <- W[,1:ncol(W)-1]
     
     # dW:
-    t1 <- t(x) %*% (k %*% W)
-    #t1 <- armaMatMultAtBC(x, k, W)
-    t2 <- t(k) %*% (x %*% W)
-    #t2 <- armaMatMultAtBC(k, x, W)
     y <- t(t(x%*%W %*% t(W)) + xbar + b)
     #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
     y_exp <- s*exp(y)
-    kt <- (k + theta)*(y_exp-1)/(y_exp+theta)
+    
+    k1 <- k*y_exp /pmax(y_exp-1,1E-10)
+    k1[which(y_exp-1<1E-10)] <- 0 
+    t1 <- t(x) %*% (k1 %*% W)
+    #t1 <- armaMatMultAtBC(x, k, W)
+    t2 <- t(k1) %*% (x %*% W)
+    #t2 <- armaMatMultAtBC(k, x, W)
+    
+    #kt <- (k + theta)*(y_exp)/(y_exp - 1 + theta)
+    kt <- (k + theta)*(y_exp)/(pmax(y_exp-1,1E-10) + theta)
+    kt[which(y_exp-1<1E-10)] <- 0 
     t3 <- t(x) %*% (kt %*% W)
     #t3 <- armaMatMultAtBC(x, kt, W)
     t4 <- t(kt) %*% (x %*% W)
@@ -411,14 +424,22 @@ lossGrad3 <- function(w, k, x, s, xbar, theta){
     dw <- (-t1 - t2 + t3 + t4)/prod(dim(k))
     
     #db:
-    db <- colSums(kt-k)/prod(dim(k))
+    db <- colSums(kt-k1)/prod(dim(k))
     
     return(c(dw, db))
 }
 
+predictC3 <- function(w, k, s, xbar){
+    x <-  t(t(log((1+k)/s)) - xbar)
+    b <- getBias(w, ncol(k))
+    W <- getWeights(w, ncol(k))
+    
+    y <- t(t(x%*%W %*% t(W)) +b + xbar)
+    s*exp(y)
+}
 
 
-replaceOutliersCooks <- function(k, mu, theta=FALSE){
+replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE){
     k <- t(k)
     dds <- DESeqDataSetFromMatrix(countData=k, design=~1, 
             colData=DataFrame(seq_len(ncol(k))))
@@ -432,8 +453,14 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE){
             quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
             betaPrior=FALSE, BPPARAM=bpparam())
     dds <- replaceOutliers(dds)
+
     if(theta==FALSE){
         return(t(counts(dds)))
+    }
+    if(isTRUE(thetaOUTRIDER)){
+        dds <- OutriderDataSet(dds)
+        dds <- fit(dds)    
+        return(list(t(counts(dds)), mcols(dds)[['disp']]))
     }else{
         return(list(t(counts(dds)), 1/dispersions(dds)))
     }
@@ -496,7 +523,7 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), ...){
                loss(w_fit,k, x, s,xbar, theta))
     )
     
-    correctionFactors <- t(predictC(w_fit, k, s, xbar))
+    correctionFactors <- t(predictC3(w_fit, k, s, xbar))
     stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
     
     # add it to the object
@@ -576,7 +603,7 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
 }   
 
 
-autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), delta, downweight, ...){
+autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -584,23 +611,15 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), delta, 
     
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
-    
+    theta <- rep(theta, ncol(k))
     
     dispfit <-replaceOutliersCooks(k, theta=TRUE)
     k_no <- dispfit[[1]]
-    theta <- dispfit[[2]]
+    #theta <- dispfit[[2]]
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
     x <- t(t(x0) - xbar)
-    
-    ## intialize theta
-    
-    # theta <- matrix(
-    #     1/(0.1 + 0.1/colMeans(k)),
-    #     ncol = ncol(k),
-    #     nrow = nrow(k),
-    #     byrow = TRUE)
     
     
     # initialize W using PCA and bias as zeros.
@@ -617,15 +636,18 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), delta, 
     t <- Sys.time()
     
     w_fit <- w_guess
-    if(downweight==TRUE){
-        d <- c(rep(colMeans(k_no)<100, q),logical(ncol(k)))
-        w_fit[d] <- w_fit[d]*0.1
-    }
-    for(i in 1:10){
+    for(i in 1:20){
         
-        dispfit <-replaceOutliersCooks(k, theta=TRUE)
+        dispfit <-replaceOutliersCooks(k, predictC(w_fit, k = k, s=s, xbar=xbar), theta=TRUE)
         k_no <- dispfit[[1]]
-        theta <- dispfit[[2]] * delta
+        if(i > 2){
+            theta <- rowMeans(cbind(theta , dispfit[[2]]))
+        }
+        message('min: ',min(theta),
+                ' 25%: ',quantile(theta, p=0.25),
+                ' 50%: ',quantile(theta, p=0.5),
+                ' 75%: ',quantile(theta, p=0.75),
+                ' max: ',max(theta))
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
@@ -656,8 +678,93 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), delta, 
     normalizationFactors(ods, replace=TRUE) <- correctionFactors
     metadata(ods)[['weights']] <- w_fit
     metadata(ods)[['dim']] <- dim(ods)
+    
+    mcols(ods)[['thetaAutoenc']] <- theta
+    
     validObject(ods)
     return(ods)
 }   
 
 
+autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), ...){
+    
+    if(!'factr' %in% names(control)){
+        control$factr <- 1E9
+    }
+    
+    k <- t(counts(ods, normalized=FALSE))
+    s <- sizeFactors(ods)
+    theta <- rep(theta, ncol(k))
+    
+    dispfit <-replaceOutliersCooks(k, theta=TRUE)
+    k_no <- dispfit[[1]]
+    #theta <- dispfit[[2]]
+    # compute log of per gene centered counts 
+    x0 <- log((1+k_no)/s)
+    xbar <- colMeans(x0)
+    x <- t(t(x0) - xbar)
+    
+    
+    # initialize W using PCA and bias as zeros.
+    pca <- pca(x, nPcs = q) 
+    pc  <- loadings(pca)
+    w_guess <- c(as.vector(pc), numeric(ncol(k)))
+    # check initial loss
+    print(
+        paste0('Initial PCA loss: ',
+               loss3(w_guess, k, x, s, xbar, theta))
+    )
+    
+    # optimize log likelihood
+    t <- Sys.time()
+    
+    w_fit <- w_guess
+    for(i in 1:10){
+        
+        dispfit <-replaceOutliersCooks(k, predictC(w_fit, k = k, s=s, xbar=xbar), theta=TRUE)
+        k_no <- dispfit[[1]]
+        if(i > 2){
+            theta <- rowMeans(cbind(theta, dispfit[[2]]))
+        }
+        message('min: ',min(theta),
+                ' 25%: ',quantile(theta, p=0.25),
+                ' 50%: ',quantile(theta, p=0.5),
+                ' 75%: ',quantile(theta, p=0.75),
+                ' max: ',max(theta))
+
+        x0 <- log((1+k_no)/s)
+        x <- t(t(x0) - xbar)
+        
+        control$maxit <- 10    
+        fit <- optim(w_fit, loss3, gr = lossGrad3, k=k_no, x=x, s=s, xbar=xbar, 
+                     theta=theta, method="L-BFGS-B", control=control, ...)
+        
+        w_fit <- fit$par
+        message('Iteration ', i, ' loss: ', loss3(w_fit, k, x, s, xbar, theta))
+        
+        #Check that fit converged
+        if(fit$convergence!=0){
+            warning(paste0("Fit didn't converge with warning: ", fit$message))
+        }
+        
+    }
+    w_fit <- fit$par
+    print(Sys.time() - t)
+    print(
+        paste0('nb-PCA loss: ',
+               loss2(w_fit,k, x, s,xbar, theta))
+    )
+    
+    correctionFactors <- t(predictC3(w_fit, k, s, xbar))
+    stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
+    
+    # add it to the object
+    normalizationFactors(ods, replace=TRUE) <- correctionFactors
+    metadata(ods)[['weights']] <- w_fit
+    metadata(ods)[['dim']] <- dim(ods)
+    
+    mcols(ods)[['thetaAutoenc']] <- theta
+    
+    validObject(ods)
+    return(ods)
+}   
