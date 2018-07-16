@@ -652,7 +652,7 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(),
     
     w_fit <- w_guess
 
-    for(i in 1:20){
+    for(i in 1:15){
         
         dispfit <-replaceOutliersCooks(k, predictC(w_fit, k = k, s=s, xbar=xbar), theta=TRUE, BPPARAM=BPPARAM)
         k_no <- dispfit[[1]]
