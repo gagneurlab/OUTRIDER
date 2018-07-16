@@ -83,14 +83,20 @@ parametricDispersionFit <- function (means, disps){
         })
         oldcoefs <- coefs
         coefs <- coefficients(fit)
-        if (!all(coefs > 0)) 
-            stop(simpleError("parametric dispersion fit failed"))
+        if (!all(coefs > 0)){
+            warning("Parametric dispersion fit failed.", 
+                    " Using last working coefficients:", 
+                    paste0(round(oldcoefs, 3), sep=", "))
+            coefs <- oldcoefs
+            break
+        }
         if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
             break
         iter <- iter + 1
         if (iter > 100) {
             warning("Dispersion fit did not converge after 100 ",
                     "iterations. We stopped here.")
+            break
         }
     }
     names(coefs) <- c("asymptDisp", "extraPois")
