@@ -52,8 +52,8 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
             'Max overfitting loss (c=kcorr)' = overfit,
             'Max underfitting loss (c=colMeans(kcorr)' = underfit)
 
-    eval <- bplapply(X=params, ..., BPPARAM=BPPARAM, 
-            FUN=function(i, ...) evalAutoCorrection(ods, encoding_dim=i, ...))
+    eval <- bplapply(X=params, ..., BPPARAM=BPPARAM, FUN=function(i, ...){
+        evalAutoCorrection(ods, encoding_dim=i, BPPARAM=SerialParam(), ...)})
     
     metadata(ods)[['encDimTable']] <- data.table(
             'encodingDimension' = params,

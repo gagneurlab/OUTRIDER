@@ -10,6 +10,8 @@
 #' @param theta The dispersion parameter
 #' @param implementation "R", the default, will use the R implementation or 
 #'             "python" to use the python/tensorflow experimental implementation
+#' @param BPPARAM A \code{\link[BiocParallel]{BiocParallelParam} instance
+#'             to be used for parallel computing.
 #' @param ... passed on to the autoencoder implementing method. In the case of 
 #'             the R implementation it is passed to the optim function. 
 #' 
@@ -25,7 +27,8 @@
 #' 
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
-                    implementation=c("R", "python", "PEER", "robustR"), ...){
+                    implementation=c("R", "python", "PEER", "robustR"), 
+                    BPPARAM=bpparam(), ...){
     
     # error checking
     checkOutriderDataSet(ods)
@@ -61,7 +64,7 @@ autoCorrect <- function(ods, q, theta=25,
         },
         robustR = {
             impl <- "robust R"
-            ans <- autoCorrectRCooksIter2(ods, q, theta, ...)
+            ans <- autoCorrectRCooksIter2(ods, q, theta, BPPARAM=BPPARAM, ...)
         },
         python = {
             impl <- "TensorFlow"
@@ -372,7 +375,8 @@ lossGrad2 <- function(w, k, x, s, xbar, theta){
 
 
 
-autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), ...){
+autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), 
+                    BPPARAM=BPPARAM, ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -382,7 +386,7 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), ...){
     s <- sizeFactors(ods)
     
     
-    k_no <-replaceOutliersCooks(k)
+    k_no <-replaceOutliersCooks(k, BPPARAM=BPPARAM)
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
@@ -399,7 +403,8 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), ...){
                loss(w_guess, k, x, s, xbar, theta))
     )
     
-    k_no <-replaceOutliersCooks(k, predictC(w_guess, k, s, xbar))
+    k_no <-replaceOutliersCooks(k, predictC(w_guess, k, s, xbar),
+            BPPARAM=BPPARAM)
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
     x <- t(t(x0) - xbar)
@@ -443,7 +448,7 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), ...){
 }
 
 
-replaceOutliersCooks <- function(k, mu){
+replaceOutliersCooks <- function(k, mu, BPPARAM=bpparam()){
     k <- t(k)
     dds <- DESeqDataSetFromMatrix(countData=k, design=~1, 
             colData=DataFrame(seq_len(ncol(k))))
@@ -455,12 +460,13 @@ replaceOutliersCooks <- function(k, mu){
     }
     dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
             quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
-            betaPrior=FALSE, BPPARAM=bpparam())
+            betaPrior=FALSE, BPPARAM=BPPARAM)
     dds <- replaceOutliers(dds)
     return(t(counts(dds)))
 }
 
-autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
+autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), 
+                    BPPARAM=bpparam(), ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -470,7 +476,7 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
     s <- sizeFactors(ods)
     
     
-    k_no <-replaceOutliersCooks(k)
+    k_no <-replaceOutliersCooks(k, BPPARAM=BPPARAM)
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
@@ -493,7 +499,8 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
     w_fit <- w_guess
     for(i in 1:10){
         
-        k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar))
+        k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), 
+                BPPARAM=BPPARAM)
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
@@ -529,7 +536,8 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), ...){
 }   
 
 
-autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), ...){
+autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), 
+                    BPPARAM=BPPARAM, ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -539,7 +547,7 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), ...){
     s <- sizeFactors(ods)
     
     
-    k_no <-replaceOutliersCooks(k)
+    k_no <-replaceOutliersCooks(k, BPPARAM=BPPARAM)
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
@@ -570,7 +578,8 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(), ...){
     w_fit <- w_guess
     for(i in 1:10){
         
-        k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar))
+        k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar,
+                BPPARAM=BPPARAM))
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
