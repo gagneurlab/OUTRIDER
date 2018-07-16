@@ -19,6 +19,9 @@
 #'
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
+#' \dontshow{
+#'     ods <- ods[1:10,1:10]
+#' }
 #' ods <- estimateSizeFactors(ods)
 #' ods <- autoCorrect(ods)
 #' 
@@ -157,6 +160,9 @@ autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
 #'
 #' @examples 
 #' ods <- makeExampleOutriderDataSet()
+#' \dontshow{
+#'     ods <- ods[1:10, 1:10]
+#' }
 #' ods <- estimateSizeFactors(ods)
 #' ods <- autoCorrect(ods)
 #' computeLatentSpace(ods)[,1:6]

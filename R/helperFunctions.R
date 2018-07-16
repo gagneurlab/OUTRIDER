@@ -83,14 +83,20 @@ parametricDispersionFit <- function (means, disps){
         })
         oldcoefs <- coefs
         coefs <- coefficients(fit)
-        if (!all(coefs > 0)) 
-            stop(simpleError("parametric dispersion fit failed"))
+        if (!all(coefs > 0)){
+            warning("Parametric dispersion fit failed.", 
+                    " Using last working coefficients:", 
+                    paste0(round(oldcoefs, 3), sep=", "))
+            coefs <- oldcoefs
+            break
+        }
         if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
             break
         iter <- iter + 1
         if (iter > 100) {
             warning("Dispersion fit did not converge after 100 ",
                     "iterations. We stopped here.")
+            break
         }
     }
     names(coefs) <- c("asymptDisp", "extraPois")
@@ -137,6 +143,7 @@ getBestQ <- function(ods){
 }
 
 checkCountRequirements <- function(ods, test=FALSE){
+    checkOutriderDataSet(ods)
     if(ncol(ods) == 0){
         stop("Please provide at least one sample.")
     }
@@ -165,9 +172,24 @@ checkOutriderDataSet <- function(ods){
 }
 
 checkSizeFactors <- function(ods, funName=sys.calls()[[1]]){
+    checkOutriderDataSet(ods)
     if(is.null(sizeFactors(ods))){
         stop("Please calculate the size factors before calling the '", funName,
                 "' function. Please do: ods <- estimateSizeFactors(ods)")
     }
     return(invisible(TRUE))
 }
+
+checkFullAnalysis <- function(ods, funName=sys.calls()[[1]]){
+    checkSizeFactors(ods)
+    if(!'padjust' %in% assayNames(ods)){
+        stop("Please calculate the P-values before calling the '", funName,
+             "' function. Please do: ods <- computePvalues(ods)")
+    }
+    if(!'zScore' %in% assayNames(ods)){
+        stop("Please calculate the Z-scores before calling the '", funName,
+             "' function. Please do: ods <- computeZscores(ods)")
+    }
+    return(invisible(TRUE))
+}
+

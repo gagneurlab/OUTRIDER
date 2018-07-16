@@ -9,10 +9,8 @@ This is the fpm and fpkm function from DESeq2. For more details see:
 \code{\link[DESeq2]{fpkm}} and \code{\link[DESeq2]{fpm}}
 }
 \examples{
-ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
-annotationFile <- system.file("extdata", 
-    "gencode.v19.genes.small.gtf.gz", package="OUTRIDER")
-ods <- computeGeneLength(ods, annotationFile)
+ods <- makeExampleOutriderDataSet()
+mcols(ods)['basepairs'] <- round(rnorm(nrow(ods), 1000, 500))
 
 mcols(ods)['basepairs']
 fpkm(ods)[1:10,1:10]

@@ -1,7 +1,7 @@
 context("Testing generic functions")
 
 test_that("setter and getter function", {
-    ord <- makeExampleOutriderDataSet()
+    ord <- makeExampleOutriderDataSet(30, 30)
     sf <- runif(dim(ord)[2], 0.8, 1.2)
     sizeFactors(ord) <- sf
     
@@ -18,7 +18,7 @@ test_that("sizefactor estimation", {
 })
 
 test_that("normalization function", {
-    n <- 100
+    n <- 30
     m <- 4
     ord <- makeExampleOutriderDataSet(n=n, m=m)
     
@@ -56,7 +56,7 @@ test_that("normalization function", {
 })
 
 test_that("counts_function", {
-    ord <- makeExampleOutriderDataSet()
+    ord <- makeExampleOutriderDataSet(30, 30)
     cts <- counts(ord)
     counts(ord) <- cts+1L
     

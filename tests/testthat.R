@@ -1,6 +1,6 @@
 library(testthat)
 library(OUTRIDER)
 
-register(MulticoreParam(2))
+register(SerialParam())
 
 test_check("OUTRIDER")

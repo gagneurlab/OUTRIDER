@@ -1,13 +1,14 @@
 context("Testing plot functions: ")
 
 test_that("plotting", {
-    ods <- makeExampleOutriderDataSet(n=1000, m=200)
+    set.seed(42)
+    ods <- makeExampleOutriderDataSet(n=20, m=20)
     ods <- OUTRIDER(ods)
     
+    expect_is(plotCountCorHeatmap(ods, basePlot=FALSE), 'plotly')
     ods <- plotCountCorHeatmap(ods)
     expect_true("clusterNumber" %in% colnames(colData(ods)))
     expect_is(ods, "OutriderDataSet")
-    expect_is(plotCountCorHeatmap(ods, basePlot=FALSE), 'plotly')
     
     expect_null(plotQQ(ods, 1))
     expect_null(plotQQ(ods, global=TRUE))

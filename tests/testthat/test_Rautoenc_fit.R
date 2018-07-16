@@ -3,7 +3,7 @@ context("Autoencoder: ")
 set.seed(42)
 
 ## simulation of data
-n = 100 # samples
+n = 30 # samples
 p = 20 # genes
 q = 6 # latent space dimension
 s=rnorm(n,mean=1, sd = 0.1)

@@ -101,17 +101,6 @@ filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes,
 #' mcols(ods)['basepairs']
 #' fpkm(ods)[1:10,1:10]
 #' 
-#' library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-#' library(org.Hs.eg.db)
-#' ods <- makeExampleOutriderDataSet(dataset="KremerNBaderSmall")
-#' txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
-#' mapping <- select(org.Hs.eg.db, keys=keys(txdb, keytype = "GENEID"), 
-#'         keytype="ENTREZID", columns=c("SYMBOL"))
-#' ods <- computeGeneLength(ods, txdb, mapping=mapping)
-#' 
-#' mcols(ods)['basepairs']
-#' fpkm(ods)[1:10,1:10]
-#' 
 #' @export
 computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
     checkOutriderDataSet(ods)
@@ -174,10 +163,8 @@ computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
 #' @inheritParams DESeq2::fpkm
 #' 
 #' @examples 
-#' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
-#' annotationFile <- system.file("extdata", 
-#'     "gencode.v19.genes.small.gtf.gz", package="OUTRIDER")
-#' ods <- computeGeneLength(ods, annotationFile)
+#' ods <- makeExampleOutriderDataSet()
+#' mcols(ods)['basepairs'] <- round(rnorm(nrow(ods), 1000, 500))
 #' 
 #' mcols(ods)['basepairs']
 #' fpkm(ods)[1:10,1:10]

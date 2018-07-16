@@ -16,17 +16,23 @@
 #' 
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
-#' ods <- OUTRIDER(ods)
+#' runAutoCorrect <- TRUE
+#' \dontshow{
+#'     ods <- ods[1:10,1:10]
+#'     runAutoCorrect <- FALSE
+#' }
+#' ods <- OUTRIDER(ods, autoCorrect=runAutoCorrect)
 #' 
 #' aberrant(ods)[1:10,1:10]
 #' tail(sort(aberrant(ods, by="sample")))
 #' tail(sort(aberrant(ods, by="gene")))
 #' 
 #' @rdname aberrant
-#' 
 #' @export
 aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=0, 
             by=c("none", "sample", "gene")){
+    checkFullAnalysis(ods)
+    
     aberrantEvents <- assays(ods)[['padjust']] < padjCutoff
     if(isScalarNumeric(zScoreCutoff, na.ok=FALSE)){
         aberrantEvents <- aberrantEvents & 
