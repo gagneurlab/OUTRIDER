@@ -18,6 +18,7 @@
 \alias{plotFPKM}
 \alias{plotDispEsts,OutriderDataSet-method}
 \alias{plotPowerAnalysis}
+\alias{plotEncDimSearch}
 \title{Visualization functions for OUTRIDER}
 \usage{
 plotVolcano(ods, sampleID, main, padjCutoff = 0.05, zScoreCutoff = 0,
@@ -49,6 +50,8 @@ plotFPKM(ods)
   main = "Dispersion estimates versus mean expression", ...)
 
 plotPowerAnalysis(ods)
+
+plotEncDimSearch(ods)
 }
 \arguments{
 \item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
@@ -145,6 +148,7 @@ This is the list of all plotting function provided by OUTRIDER:
   \item plotFPKM()
   \item plotDispEsts()
   \item plotPowerAnalysis()
+  \item plotEncDimSearch()
 }
 
 For a detailed description of each plot function please see the details.
@@ -222,5 +226,8 @@ plotFPKM(ods)
 plotDispEsts(ods, compareDisp=FALSE)
 
 plotPowerAnalysis(ods)
+
+ods <- findEncodingDim(ods)
+plotEncDimSearch(ods)
 
 }

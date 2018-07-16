@@ -14,6 +14,7 @@
 #'   \item plotFPKM()
 #'   \item plotDispEsts()
 #'   \item plotPowerAnalysis()
+#'   \item plotEncDimSearch()
 #' }
 #' 
 #' For a detailed description of each plot function please see the details.
@@ -143,6 +144,9 @@
 #' plotDispEsts(ods, compareDisp=FALSE)
 #' 
 #' plotPowerAnalysis(ods)
+#' 
+#' ods <- findEncodingDim(ods)
+#' plotEncDimSearch(ods)
 #' 
 #' @rdname plotFunctions
 #' @aliases plotFunctions plotVolcano plotQQ plotExpressionRank 
@@ -790,3 +794,19 @@ plotPowerAnalysis <- function(ods){
             linetype='Expression type') + ylim(0,15) 
 }
 
+#' @rdname plotFunctions
+#' @export
+plotEncDimSearch <- function(ods){
+    if(!'encDimTable' %in% colnames(metadata(ods)) & 
+            !is(metadata(ods)$encDimTable, 'data.table')){
+        stop('Please run first the findEncodingDim before ', 
+                'plotting the results of it.')
+    }
+    
+    ggplot(metadata(ods)$encDimTable, aes(encodingDimension, evaluationLoss)) +
+        geom_point() + 
+        scale_x_log10() + 
+        geom_smooth(method='loess') +
+        ggtitle('Search for best encoding dimension')
+    
+}
