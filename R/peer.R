@@ -76,8 +76,8 @@ runSva <- function(ods){
     pheno = pData(bladderEset)
     
     contrast.matrix <- cbind("C1"=c(-1,1,0,rep(0,svobj$n.sv)),"C2"=c(0,-1,1,rep(0,svobj$n.sv)),"C3"=c(-1,0,1,rep(0,svobj$n.sv)))
-    > fitContrasts = contrasts.fit(fit,contrast.matrix)
+    fitContrasts = contrasts.fit(fit,contrast.matrix)
     
-    svaseq
+
     return(ods)
 }
