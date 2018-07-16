@@ -807,6 +807,9 @@ plotEncDimSearch <- function(ods){
         geom_point() + 
         scale_x_log10() + 
         geom_smooth(method='loess') +
-        ggtitle('Search for best encoding dimension')
+        ggtitle('Search for best encoding dimension') + 
+        geom_vline(xintercept=getBestQ(ods), show.legend = TRUE) +
+        geom_text(aes(getBestQ(ods)-0.5), label=paste("Best Q:", getBestQ(ods)),
+                y=max(metadata(ods)$encDimTable$evaluationLoss)*0.9, angle=90)
     
 }

@@ -72,7 +72,7 @@ autoCorrect <- function(ods, q, theta=25,
         },
         robustRM1 = {
             impl <- 'robustRM1'
-            ans <- autoCorrectRCooksIter(ods, q, theta, ...)
+            ans <- autoCorrectRCooksIter(ods, q, theta, BPPARAM=BPPARAM, ...)
         },
         robustRTheta = {
             impl <- 'robustRTheta'
