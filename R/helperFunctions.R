@@ -137,6 +137,7 @@ getBestQ <- function(ods){
 }
 
 checkCountRequirements <- function(ods, test=FALSE){
+    checkOutriderDataSet(ods)
     if(ncol(ods) == 0){
         stop("Please provide at least one sample.")
     }
@@ -165,9 +166,24 @@ checkOutriderDataSet <- function(ods){
 }
 
 checkSizeFactors <- function(ods, funName=sys.calls()[[1]]){
+    checkOutriderDataSet(ods)
     if(is.null(sizeFactors(ods))){
         stop("Please calculate the size factors before calling the '", funName,
                 "' function. Please do: ods <- estimateSizeFactors(ods)")
     }
     return(invisible(TRUE))
 }
+
+checkFullAnalysis <- function(ods, funName=sys.calls()[[1]]){
+    checkSizeFactors(ods)
+    if(!'padjust' %in% assayNames(ods)){
+        stop("Please calculate the P-values before calling the '", funName,
+             "' function. Please do: ods <- computePvalues(ods)")
+    }
+    if(!'zScore' %in% assayNames(ods)){
+        stop("Please calculate the Z-scores before calling the '", funName,
+             "' function. Please do: ods <- computeZscores(ods)")
+    }
+    return(invisible(TRUE))
+}
+

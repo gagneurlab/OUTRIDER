@@ -29,6 +29,8 @@
 #' @export
 aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=0, 
             by=c("none", "sample", "gene")){
+    checkFullAnalysis(ods)
+    
     aberrantEvents <- assays(ods)[['padjust']] < padjCutoff
     if(isScalarNumeric(zScoreCutoff, na.ok=FALSE)){
         aberrantEvents <- aberrantEvents & 
