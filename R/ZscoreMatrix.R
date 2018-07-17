@@ -38,11 +38,22 @@ setMethod("computeZscores", "OutriderDataSet", function(ods, ...){
     ZscoreMatrix(ods, ...)
 })
 
-ZscoreMatrix <- function(ods, normalized=TRUE, median=FALSE){
-    log2fc <- log2fc(ods)
-    Zscore <- (log2fc - rowMeans(log2fc)) / rowSds(log2fc)
-    assays(ods)[["l2fc"]] <- log2fc
-    assays(ods)[["zScore"]] <- Zscore
+ZscoreMatrix <- function(ods, normalized=TRUE, median=FALSE, 
+                    peerResidual=FALSE){
+    if(isTRUE(peerResidual)){
+        if(!"PEER_model" %in% names(metadata(ods)) && 
+                    !"residuals" %in% names(metadata(ods)[['PEER_model']])){
+            stop("Please fit the data with 'peer' first.")
+        }
+        residuals <- metadata(ods)[['PEER_model']][['residuals']]
+        assays(ods)[['zScore']] <- (
+            (residuals - rowMeans(residuals))/rowSds(residuals))
+    } else {
+        log2fc <- log2fc(ods)
+        Zscore <- (log2fc - rowMeans(log2fc)) / rowSds(log2fc)
+        assays(ods)[["l2fc"]] <- log2fc
+        assays(ods)[["zScore"]] <- Zscore
+    }
     validObject(ods)
     return(ods)
 }

@@ -1,31 +1,43 @@
 
 
 peer <- function(ods){
-    require(peer)
+    # check for PEER
+    if(!require(peer)){
+        stop("Please install the 'peer' package from GitHub to use this ",
+                "functionality.")
+    }
     
+    # log counts
     logCts <- log2((counts(ods)+1)/sizeFactors(ods))
-    #PEER run.
-    model=PEER()
+    # logCts <- as.matrix(log2(fpkm(ods)+2)) # optional use fpkm
     
-    # If no prior information on the
-    # magnitude of confounding effects is available, we recommend using 25% of the 
-    # number of individuals contained in the study but no more than 100 factors.
+    # default and recommendation by PEER: min(0.25*n, 100)
     n_unobserved_factors <- min(as.integer(0.25* ncol(ods)),100)
     
+    # prepare PEER model
+    model <- PEER()
     PEER_setNk(model, n_unobserved_factors)
     PEER_setPhenoMean(model, logCts)
-    #PEER_setPhenoMean(model, as.matrix(log2(fpkm(ods)+2)))
     PEER_setAdd_mean(model, TRUE)
     
+    # run fullpeer pipeline
     PEER_update(model)
     
+    # extract PEER data
     peerResiduals <- PEER_getResiduals(model)
-    peerMean = sizeFactors(ods) * 2^(logCts - peerResiduals)
+    peerMean <- sizeFactors(ods) * 2^(logCts - peerResiduals)
     
-    normalizationFactors(ods) <- pmax(peerMean, 1E-10)
+    # save model in object
+    normalizationFactors(ods) <- pmax(peerMean, 1E-8)
+    metadata(ods)[["PEER_model"]] <- list(
+            alpha     = PEER_getAlpha(model),
+            residuals = PEER_getResiduals(model),
+            W         = PEER_getW(model))
+            #X         = PEER_getX(model),
+            #Z         = PEER_getZ(model))
+    
     return(ods)
 }
-
 
 runSva <- function(ods){
     ods <- readRDS("./../scared-analysis/Output/data/GTEx_not_sun_exposed_OutriderDONE.RDS")

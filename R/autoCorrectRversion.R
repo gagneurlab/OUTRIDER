@@ -31,7 +31,7 @@
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
                     implementation=c("R", "python", "PEER", "robustR",
-                            "robustRM1","robustRTheta"),
+                            "robustRM1","robustRTheta", "PEER_residual"),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -66,13 +66,17 @@ autoCorrect <- function(ods, q, theta=25,
             impl <- "PEER"
             ans <- peer(ods)
         },
+        PEER_residual = {
+            impl <- "PEER_residual"
+            ans <- peer(ods)
+        },
         robustR = {
             impl <- "robust R"
             ans <- autoCorrectRCooksIter2(ods, q, theta, BPPARAM=BPPARAM, ...)
         },
         robustRM1 = {
             impl <- 'robustRM1'
-            ans <- autoCorrectRCooksIter(ods, q, theta, ...)
+            ans <- autoCorrectRCooksIter(ods, q, theta, BPPARAM=BPPARAM, ...)
         },
         robustRTheta = {
             impl <- 'robustRTheta'
