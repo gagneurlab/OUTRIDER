@@ -702,7 +702,7 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(),
 }   
 
 
-autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), ...){
+autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), BPPARAM=BPPARAM, ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -712,7 +712,7 @@ autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), ...){
     s <- sizeFactors(ods)
     theta <- rep(theta, ncol(k))
     
-    dispfit <-replaceOutliersCooks(k, theta=TRUE)
+    dispfit <-replaceOutliersCooks(k, theta=TRUE, BPPARAM=BPPARAM)
     k_no <- dispfit[[1]]
     #theta <- dispfit[[2]]
     # compute log of per gene centered counts 
@@ -737,7 +737,7 @@ autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), ...){
     w_fit <- w_guess
     for(i in 1:10){
         
-        dispfit <-replaceOutliersCooks(k, predictC(w_fit, k = k, s=s, xbar=xbar), theta=TRUE)
+        dispfit <-replaceOutliersCooks(k, predictC(w_fit, k = k, s=s, xbar=xbar), theta=TRUE, BPPARAM=BPPARAM)
         k_no <- dispfit[[1]]
         if(i > 2){
             theta <- rowMeans(cbind(theta, dispfit[[2]]))
