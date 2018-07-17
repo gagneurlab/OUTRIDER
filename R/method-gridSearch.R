@@ -73,6 +73,48 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
     return(ods)
 }
 
+#'
+#'
+findInjectZscore <- function(ods, freq=1E-2,
+                    zScoreParams=c(seq(0.3,2.7,0.2), 3, 3.5, 4),
+                    encDimParams=seq(5,min(30,ncol(ods), nrow(ods)), 2),
+                    inj='both', ..., BPPARAM=bpparam()){
+    library(ggplot2) 
+    require(PRROC)
+    ods <- makeExampleOutriderDataSet()
+    
+    zScoreParams <- c(seq(0.3,2.7,0.2), 3, 3.5, 4)
+    encDimParams <- seq(3,23,2)
+    BPPARAM <- MulticoreParam(6, length(encDimParams), progressbar = TRUE)
+    inj='both'
+    freq <- 1E-2
+    RNDseed <- .Random.seed
+    
+    FUN <- function(ods, RNDseed=.Random.seed, ...){
+        set.seed(RNDseed)
+        a <- findEncodingDim(ods, evalAucPRLoss=TRUE, ...)
+    }
+    
+    z <- zScoreParams[1]
+    debug(FUN)
+    debug(evalAutoCorrection)
+    
+    odsres <- lapply(zScoreParams, function(z){
+        message(date(), ": Run Z-score: ", z)
+        FUN(ods, zScore=z, freq=freq, params=encDimParams, inj=inj, 
+                BPPARAM=BPPARAM, RNDseed=RNDseed)
+    })
+    
+    res <- rbindlist(lapply(seq_along(odsres), function(i){
+            metadata(odsres[[i]])$encDimTable[,.(
+                    encodingDimension, evaluationLoss, zScore=zScoreParams[i])]
+    }))
+    
+    res[,zScore:=factor(zScore)]
+    ggplot(data=res, aes(encodingDimension, evaluationLoss, color=zScore)) +
+            geom_line()
+}
+
 ## Helper functions called within SearchEncDim ##
 
 
@@ -147,10 +189,25 @@ evalLoss <- function(ods, theta=25){
     return(eval)
 }
 
-evalAutoCorrection <- function(ods, encoding_dim=20, theta=25, ...){
+evalAucPRLoss <- function(ods){
+    scores <- as.vector(assay(ods, 'pValue'))
+    labels <- as.vector(assay(ods, 'trueCorruptions') != 0) + 0
+    
+    pr <- pr.curve(scores, weights.class0=labels)
+    return(pr$auc.integral)
+}
+
+evalAutoCorrection <- function(ods, encoding_dim=20, theta=25, 
+                    evalAucPRLoss=FALSE, BPPARAM=bpparam(), ...){
     
     ods <- autoCorrect(ods, q=encoding_dim, ...)
-    eloss <- evalLoss(ods, theta)
+    if(isTRUE(evalAucPRLoss)){
+        ods <- fit(ods, BPPARAM=BPPARAM)
+        ods <- computePvalues(ods, BPPARAM=BPPARAM)
+        eloss <- evalAucPRLoss(ods)
+    } else {
+        eloss <- evalLoss(ods, theta)
+    }
     
     print(paste0('Evaluation loss: ', eloss))
     return(eloss)
