@@ -495,9 +495,9 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
     if(isTRUE(thetaOUTRIDER)){
         dds <- OutriderDataSet(dds)
         dds <- fit(dds)    
-        return(list(kReplaced), mcols(dds)[['disp']]))
+        return(list(kReplaced), mcols(dds)[['disp']])
     }else{
-        return(list(kReplaced), 1/dispersions(dds)))
+        return(list(kReplaced), 1/dispersions(dds))
     }
     return(kReplaced)
 }
