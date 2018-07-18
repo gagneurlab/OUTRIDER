@@ -483,8 +483,9 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
     dds <- replaceOutliers(dds)
     
     kReplaced <- t(counts(dds))
-    if(any(kReplaced > .Machine$integer.max)){
+    if(any(kReplaced > .Machine$integer.max)| any(is.na(kReplaced))){
         kReplaced[kReplaced > .Machine$integer.max] <- 1E8
+        kReplaced[is.na(kReplaced)] <- 1E8
         warning('Replaced counts larger than kReplaced > .Machine$integer.max
                 were set to 1E8')
     }    
