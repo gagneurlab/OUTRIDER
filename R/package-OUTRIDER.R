@@ -69,6 +69,8 @@
 #' 
 #' @importFrom utils read.table head compareVersion
 #' 
+#' @importFrom PRROC pr.curve
+#' 
 #' @useDynLib OUTRIDER
 #' 
 NULL

@@ -52,6 +52,7 @@ Imports:
     plotly,
     plyr,
     pcaMethods,
+    PRROC,
     RColorBrewer,
     Rcpp,
     reticulate,

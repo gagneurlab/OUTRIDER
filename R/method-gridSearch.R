@@ -76,43 +76,38 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
 #'
 #'
 findInjectZscore <- function(ods, freq=1E-2,
-                    zScoreParams=c(seq(0.3,2.7,0.2), 3, 3.5, 4),
-                    encDimParams=seq(5,min(30,ncol(ods), nrow(ods)), 2),
-                    inj='both', ..., BPPARAM=bpparam()){
-    library(ggplot2) 
-    require(PRROC)
-    ods <- makeExampleOutriderDataSet()
+                    zScoreParams=seq(0.5, 4, 0.5),
+                    encDimParams=c(seq(3, min(30, dim(ods)), 3), 50, 70, 100),
+                    inj='both', ..., implementation="robustR",
+                    BPPARAM=bpparam()){
+    encDimParams <- encDimParams[encDimParams < min(dim(ods), nrow(ods))]
     
-    zScoreParams <- c(seq(0.3,2.7,0.2), 3, 3.5, 4)
-    encDimParams <- seq(3,23,2)
-    BPPARAM <- MulticoreParam(6, length(encDimParams), progressbar = TRUE)
-    inj='both'
-    freq <- 1E-2
-    RNDseed <- .Random.seed
-    
-    FUN <- function(ods, RNDseed=.Random.seed, ...){
+    FUN <- function(idx, grid, ods, RNDseed, ...){
+        z <- grid[idx,"z"]
+        enc <- grid[idx,"enc"]
+        message(date(), ": run Z-score: ", z, " and enc: ", enc)
         set.seed(RNDseed)
-        a <- findEncodingDim(ods, evalAucPRLoss=TRUE, ...)
+        findEncodingDim(ods, zScore=z, params=enc, BPPARAM=SerialParam(), ...)
     }
     
-    z <- zScoreParams[1]
-    debug(FUN)
-    debug(evalAutoCorrection)
-    
-    odsres <- lapply(zScoreParams, function(z){
-        message(date(), ": Run Z-score: ", z)
-        FUN(ods, zScore=z, freq=freq, params=encDimParams, inj=inj, 
-                BPPARAM=BPPARAM, RNDseed=RNDseed)
-    })
+    RNDseed <- .Random.seed
+    parGrid <- expand.grid(z=zScoreParams, enc=encDimParams)
+    odsres <- bplapply(seq_len(nrow(parGrid)), FUN, 
+            ods=ods, freq=freq, inj=inj, evalAucPRLoss=TRUE, RNDseed=RNDseed,
+            implementation=implementation, grid=parGrid, BPPARAM=BPPARAM)
     
     res <- rbindlist(lapply(seq_along(odsres), function(i){
             metadata(odsres[[i]])$encDimTable[,.(
-                    encodingDimension, evaluationLoss, zScore=zScoreParams[i])]
+                    encodingDimension, zScore=parGrid[i,"z"], evaluationLoss)]
     }))
+    metadata(ods)[['optimalZscoreEncDim']] <- res
     
-    res[,zScore:=factor(zScore)]
-    ggplot(data=res, aes(encodingDimension, evaluationLoss, color=zScore)) +
-            geom_line()
+    ggplot(data=res, aes(encodingDimension, evaluationLoss, 
+                    color=factor(zScore))) +
+            geom_line() + 
+            scale_x_log10()
+    
+    return(ods)
 }
 
 ## Helper functions called within SearchEncDim ##
@@ -190,9 +185,13 @@ evalLoss <- function(ods, theta=25){
 }
 
 evalAucPRLoss <- function(ods){
-    scores <- as.vector(assay(ods, 'pValue'))
+    scores <- -as.vector(assay(ods, 'pValue'))
     labels <- as.vector(assay(ods, 'trueCorruptions') != 0) + 0
     
+    if(any(is.na(scores))){
+        warning(sum(is.na(scores)), " P-values where NAs.")
+        scores[is.na(scores)] <- min(scores, na.rm=TRUE)-1
+    }
     pr <- pr.curve(scores, weights.class0=labels)
     return(pr$auc.integral)
 }
@@ -200,7 +199,7 @@ evalAucPRLoss <- function(ods){
 evalAutoCorrection <- function(ods, encoding_dim=20, theta=25, 
                     evalAucPRLoss=FALSE, BPPARAM=bpparam(), ...){
     
-    ods <- autoCorrect(ods, q=encoding_dim, ...)
+    ods <- autoCorrect(ods, q=encoding_dim, BPPARAM=BPPARAM, ...)
     if(isTRUE(evalAucPRLoss)){
         ods <- fit(ods, BPPARAM=BPPARAM)
         ods <- computePvalues(ods, BPPARAM=BPPARAM)
