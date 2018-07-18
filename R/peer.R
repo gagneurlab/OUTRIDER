@@ -1,6 +1,6 @@
 
 
-peer <- function(ods){
+peer <- function(ods, maxItr=6000){
     # check for PEER
     if(!require(peer)){
         stop("Please install the 'peer' package from GitHub to use this ",
@@ -16,6 +16,7 @@ peer <- function(ods){
     
     # prepare PEER model
     model <- PEER()
+    PEER_setNmax_iterations(model, maxItr)
     PEER_setNk(model, n_unobserved_factors)
     PEER_setPhenoMean(model, logCts)
     PEER_setAdd_mean(model, TRUE)
