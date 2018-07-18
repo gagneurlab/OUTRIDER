@@ -126,8 +126,22 @@ autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
     
     # optimize log likelihood
     t <- Sys.time()
-    fit <- optim(w_guess, loss, gr = lossGrad, k=k, x=x, s=s, xbar=xbar, 
-            theta=theta, method="L-BFGS-B", control=control, ...)
+    fit <- NULL
+    tryCatch({
+        fit <- optim(w_guess, loss, gr = lossGrad, k=k, x=x, s=s, xbar=xbar, 
+                theta=theta, method="L-BFGS-B", control=control, ...)
+        },
+        error = function(e) warning("Catched error: ", e$message))
+    
+    if(is.null(fit)){
+        warning('An error occured during the autoencoder fit. ', 
+                'The initial PCA values are used.')
+        fit <- list(
+            convergence = 255,
+            par = w_guess,
+            message = 'Errored during autoCorrect fitting.')
+    }
+    
     #Check that fit converged
     if(fit$convergence!=0){
         warning(paste0("Fit didn't converge with warning: ", fit$message))

@@ -5,7 +5,8 @@
 \title{Autoencoder function to correct for confounders.}
 \usage{
 autoCorrect(ods, q, theta = 25, implementation = c("R", "python", "PEER",
-  "robustR"), ...)
+  "robustR", "robustRM1", "robustRTheta", "PEER_residual"),
+  BPPARAM = bpparam(), ...)
 }
 \arguments{
 \item{ods}{An OutriderDataSet object}
