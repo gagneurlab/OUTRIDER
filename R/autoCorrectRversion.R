@@ -481,18 +481,24 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
             quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
             betaPrior=FALSE, BPPARAM=BPPARAM)
     dds <- replaceOutliers(dds)
-
+    
+    kReplaced <- t(counts(dds))
+    if(any(kReplaced > .Machine$integer.max)){
+        kReplaced[kReplaced > .Machine$integer.max] <- 1E8
+        warning('Replaced counts larger than kReplaced > .Machine$integer.max
+                were set to 1E8')
+    }    
     if(theta==FALSE){
-        return(t(counts(dds)))
+        return(kReplaced)
     }
     if(isTRUE(thetaOUTRIDER)){
         dds <- OutriderDataSet(dds)
         dds <- fit(dds)    
-        return(list(t(counts(dds)), mcols(dds)[['disp']]))
+        return(list(kReplaced), mcols(dds)[['disp']]))
     }else{
-        return(list(t(counts(dds)), 1/dispersions(dds)))
+        return(list(kReplaced), 1/dispersions(dds)))
     }
-    return(t(counts(dds)))
+    return(kReplaced)
 }
 
 autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), 
