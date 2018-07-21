@@ -5,7 +5,7 @@
 \title{Autoencoder function to correct for confounders.}
 \usage{
 autoCorrect(ods, q, theta = 25, implementation = c("R", "python", "PEER",
-  "robustR"), ...)
+  "robustR", "robustRM1", "robustRTheta"), BPPARAM = bpparam(), ...)
 }
 \arguments{
 \item{ods}{An OutriderDataSet object}
@@ -16,6 +16,9 @@ autoCorrect(ods, q, theta = 25, implementation = c("R", "python", "PEER",
 
 \item{implementation}{"R", the default, will use the R implementation or 
 "python" to use the python/tensorflow experimental implementation}
+
+\item{BPPARAM}{A \code{\link[BiocParallel]{BiocParallelParam}} instance
+to be used for parallel computing.}
 
 \item{...}{passed on to the autoencoder implementing method. In the case of 
 the R implementation it is passed to the optim function.}
