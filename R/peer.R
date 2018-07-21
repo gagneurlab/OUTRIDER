@@ -1,6 +1,6 @@
 
 
-peer <- function(ods, maxItr=6000){
+peer <- function(ods, maxItr=1000){
     # check for PEER
     if(!require(peer)){
         stop("Please install the 'peer' package from GitHub to use this ",

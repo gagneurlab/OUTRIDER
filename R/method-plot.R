@@ -483,7 +483,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
 
 #' @rdname plotFunctions
 #' @export
-plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE, 
+plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE, newVersion=FALSE,
                     rowCoFactor=NULL, rowColSet="Set1", 
                     colCoFactor=NULL, colColSet="Set2", nCluster=4, 
                     main="Count correlation heatmap",
@@ -502,7 +502,7 @@ plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
     clustCol <- NULL
     
     # correlation
-    fcMat <- as.matrix(log2(counts(ods, normalized=normalized) + 1))
+    fcMat <- as.matrix(log2(counts(ods, normalized=normalized, newVersion=newVersion) + 1))
     if(isTRUE(rowCentered)){
         fcMat <- fcMat - rowMeans(fcMat)
     }
