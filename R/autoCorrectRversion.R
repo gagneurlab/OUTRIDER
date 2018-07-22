@@ -31,7 +31,7 @@
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
                     implementation=c("R", "python", "PEER", "robustR",
-                            "robustRM1","robustRTheta"),
+                            "robustRM1","robustRTheta","cooksR"),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -81,6 +81,10 @@ autoCorrect <- function(ods, q, theta=25,
         python = {
             impl <- "TensorFlow"
             ans <- autoCorrectPython(ods, ...)
+        },
+        cooks = {
+            impl <- "cooksR"
+            ans <- autoCorrectRCooksIter3(ods, q, theta, ...)
         },
         stop("Requested autoCorrect implementation is unknown.")
     )

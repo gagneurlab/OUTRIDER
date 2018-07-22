@@ -93,3 +93,4 @@ Collate:
     sizeFactor.R
     RcppExports.R
     peer.R
+    cooksDistance.R
