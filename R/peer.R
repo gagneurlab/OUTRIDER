@@ -3,7 +3,7 @@
 peer <- function(ods){
     require(peer)
     
-    logCts <- log2((counts(ods)+1)/sizeFactors(ods))
+    logCts <- log2(t(t(counts(ods)+1)/sizeFactors(ods)))
     #PEER run.
     model=PEER()
     
@@ -20,7 +20,7 @@ peer <- function(ods){
     PEER_update(model)
     
     peerResiduals <- PEER_getResiduals(model)
-    peerMean = sizeFactors(ods) * 2^(logCts - peerResiduals)
+    peerMean = t(sizeFactors(ods) * t(2^(logCts - peerResiduals)))
     
     normalizationFactors(ods) <- pmax(peerMean, 1E-10)
     return(ods)
