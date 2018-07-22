@@ -11,9 +11,17 @@ replaceCounts <- function(k, mu, cooks, q){
     cooksCutoff <- qf(0.99, q, nrow(k) - q)
     
     if(missing(mu)){
-        ncts <- t(k/estimateSizeFactorsForMatrix(t(k)))
+        s <- estimateSizeFactorsForMatrix(t(k))
+        ncts <- t(k/s)
         mu <- t(matrix(trimmedMean(ncts), ncol=ncol(ncts), nrow=nrow(ncts)))
+        muCorrected <- mu * s
+    }else{
+        normFactors <- mu / exp(colMeans(log(mu)))
+        ncts <- t(k/normFactors)
+        mu <- matrix(trimmedMean(ncts), ncol=ncol(ncts), nrow=nrow(ncts))
+        muCorrected <- t(mu) * normFactors
     }
+    
     idx <- which(cooks > cooksCutoff)
     message(length(idx), ' counts replaced by means.')
     k[idx] <- mu[idx]
