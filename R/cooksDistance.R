@@ -1,7 +1,8 @@
 
+
 cooksDistance <- function(k, mu, w, q){
     k <- t(k)
-    w <- w_fit
+    #w <- w_fit
     
     # estimate mu if not present
     if(missing(mu)){
@@ -18,37 +19,38 @@ cooksDistance <- function(k, mu, w, q){
         xtwx <- rowSums(w)
         H <- w * xtwx^-1;
         # W form AutoEncoder/PCA
-    } else {
-        W <- getWeights(w, nrow(k))
-        b <- getBias(w, nrow(k))
-        
-        # y = h*W.t() + b
-        # h = x*W
-        # c = s * exp(y+xbar)
-        X <- t(k) %*% W %*% t(W)
-        X <- t(W)
-        nxbar <- rowMeans(log((k+1)/sf))
-        nx <- log((k+1)/sf) - nxbar
-        y = t(nx) %*% W %*% t(W) + b
-        nc <- sf * exp(y+nxbar)
-        H <- leverageCalc(t(y))
-    }
+    } 
+    # else {
+    #     W <- getWeights(w, nrow(k))
+    #     b <- getBias(w, nrow(k))
+    #     
+    #     # y = h*W.t() + b
+    #     # h = x*W
+    #     # c = s * exp(y+xbar)
+    #     X <- t(k) %*% W %*% t(W)
+    #     X <- t(W)
+    #     nxbar <- rowMeans(log((k+1)/sf))
+    #     nx <- log((k+1)/sf) - nxbar
+    #     y = t(nx) %*% W %*% t(W) + b
+    #     nc <- sf * exp(y+nxbar)
+    #     H <- leverageCalc(t(y))
+    # }
     Vo <- mu + dispersionso * mu^2
     PearsonResSqo <- (k - mu)^2/Vo
     
     cookso <- (PearsonResSqo/(q + 1)) * H/(1 - H)^2
-    cookso
-    
-    # D = e^2 / (s^2*p) * H/(1-H)^2)
-    # s^2 = (n - p)^-1* e^T
-    e <- k - mu
-    
-    firstNom <- e^2
-    firstDenom <- as.numeric(solve(nrow(k) - (q+1))) * t(e)
-    secTerm <- H/(1 - H)^2
-    
-    D = (firstNom / firstDenom) %*% secTerm
-    
+    return(cookso)
+    # 
+    # # D = e^2 / (s^2*p) * H/(1-H)^2)
+    # # s^2 = (n - p)^-1* e^T
+    # e <- k - mu
+    # 
+    # firstNom <- e^2
+    # firstDenom <- as.numeric(solve(nrow(k) - (q+1))) * t(e)
+    # secTerm <- H/(1 - H)^2
+    # 
+    # D = (firstNom / firstDenom) %*% secTerm
+    # 
     # http://de.mathworks.com/help/stats/cooks-distance.html
     # https://en.wikipedia.org/wiki/Cook%27s_distance
 }
