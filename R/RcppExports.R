@@ -9,3 +9,7 @@ gradLogLiklihood <- function(k, x, W, b, s, theta) {
     .Call('_OUTRIDER_gradLogLiklihood', PACKAGE = 'OUTRIDER', k, x, W, b, s, theta)
 }
 
+leverageCalc <- function(X) {
+    .Call('_OUTRIDER_leverageCalc', PACKAGE = 'OUTRIDER', X)
+}
+

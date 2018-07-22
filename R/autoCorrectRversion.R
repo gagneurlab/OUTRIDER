@@ -784,3 +784,4 @@ autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), ...){
     validObject(ods)
     return(ods)
 }   
+
