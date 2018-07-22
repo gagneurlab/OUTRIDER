@@ -38,6 +38,19 @@ cooksDistance <- function(k, mu, w, q){
     
     cookso <- (PearsonResSqo/(q + 1)) * H/(1 - H)^2
     cookso
+    
+    # D = e^2 / (s^2*p) * H/(1-H)^2)
+    # s^2 = (n - p)^-1* e^T
+    e <- k - mu
+    
+    firstNom <- e^2
+    firstDenom <- as.numeric(solve(nrow(k) - (q+1))) * t(e)
+    secTerm <- H/(1 - H)^2
+    
+    D = (firstNom / firstDenom) %*% secTerm
+    
+    # http://de.mathworks.com/help/stats/cooks-distance.html
+    # https://en.wikipedia.org/wiki/Cook%27s_distance
 }
 
 levCalcR <- function(X){
