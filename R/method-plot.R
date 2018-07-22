@@ -195,7 +195,7 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
         pValue    = assays(ods)[['pValue']][,sampleID],
         padjust   = assays(ods)[['padjust']][,sampleID],
         zScore    = assays(ods)[['zScore']][,sampleID],
-        normCts   = as.vector(counts(ods[,sampleID], normalized=TRUE)),
+        normCts   = counts(ods, normalized=TRUE)[,sampleID],
         medianCts = rowMedians(counts(ods, normalized=TRUE)),
         expRank   = apply(
                 counts(ods, normalized=TRUE), 2, rank)[,sampleID],
@@ -483,7 +483,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
 
 #' @rdname plotFunctions
 #' @export
-plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE, 
+plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE, newVersion=FALSE,
                     rowCoFactor=NULL, rowColSet="Set1", 
                     colCoFactor=NULL, colColSet="Set2", nCluster=4, 
                     main="Count correlation heatmap",
@@ -502,7 +502,7 @@ plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
     clustCol <- NULL
     
     # correlation
-    fcMat <- as.matrix(log2(counts(ods, normalized=normalized) + 1))
+    fcMat <- as.matrix(log2(counts(ods, normalized=normalized, newVersion=newVersion) + 1))
     if(isTRUE(rowCentered)){
         fcMat <- fcMat - rowMeans(fcMat)
     }
@@ -807,6 +807,9 @@ plotEncDimSearch <- function(ods){
         geom_point() + 
         scale_x_log10() + 
         geom_smooth(method='loess') +
-        ggtitle('Search for best encoding dimension')
+        ggtitle('Search for best encoding dimension') + 
+        geom_vline(xintercept=getBestQ(ods), show.legend = TRUE) +
+        geom_text(aes(getBestQ(ods)-0.5), label=paste("Best Q:", getBestQ(ods)),
+                y=max(metadata(ods)$encDimTable$evaluationLoss)*0.9, angle=90)
     
 }

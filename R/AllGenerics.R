@@ -1,20 +1,32 @@
 
 counts.replace.OutriderDataSet <- function(object, value){
+    mode(value) <- "integer"
     assays(object)[["counts"]] <- value
+    
     validObject(object)
     object
 }
 
-counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0) {
-    
+counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0, 
+                    minE=0.5, newVersion=TRUE){
     cnts <- assays(object)[["counts"]]
+    
+    # raw counts
     if(!normalized) {
-        return(cnts)
+        return(cnts + offset)
     }
+    
+    # normalized by normalization factors
     if(!is.null(normalizationFactors(object))) {
+        if(isTRUE(newVersion)){
+            E <- t(apply(normalizationFactors(object), 1, pmax, minE))
+            return((cnts + offset)/E * exp(rowMeans(log(E))))
+        }
         return((cnts + offset)/ normalizationFactors(object)*
-                rowMeans(normalizationFactors(object)))
+               rowMeans(normalizationFactors(object)))
     }
+    
+    # normalization by sizeFactors
     if(is.null(sizeFactors(object)) || any(is.na(sizeFactors(object)))) {
         stop(paste("first calculate size factors, add normalizationFactors,",
                 "or set normalized=FALSE"))

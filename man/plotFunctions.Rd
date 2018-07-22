@@ -34,10 +34,10 @@ plotExpressionRank(ods, geneID, main, padjCutoff = 0.05, zScoreCutoff = 0,
   "firebrick"), ...)
 
 plotCountCorHeatmap(ods, normalized = TRUE, rowCentered = TRUE,
-  rowCoFactor = NULL, rowColSet = "Set1", colCoFactor = NULL,
-  colColSet = "Set2", nCluster = 4, main = "Count correlation heatmap",
-  dendrogram = "both", basePlot = TRUE, names = c("both", "row", "col",
-  "none"), ...)
+  newVersion = FALSE, rowCoFactor = NULL, rowColSet = "Set1",
+  colCoFactor = NULL, colColSet = "Set2", nCluster = 4,
+  main = "Count correlation heatmap", dendrogram = "both",
+  basePlot = TRUE, names = c("both", "row", "col", "none"), ...)
 
 plotAberrantPerSample(ods, main, padjCutoff = 0.05, zScoreCutoff = 0,
   outlierRatio = 0.001, col = brewer.pal(3, "Dark2")[c(1, 2)],

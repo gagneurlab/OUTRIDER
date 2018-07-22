@@ -134,9 +134,11 @@ getBestQ <- function(ods){
     if('optimalEncDim' %in% names(metadata(ods))){
         return(metadata(ods)[['optimalEncDim']])
     }
+    testFun <- ifelse(all(metadata(ods)[['encDimTable']][,evalMethod == 'aucPR']),
+            which.max, which.min)
     if('encDimTable' %in% names(metadata(ods))){
         return(metadata(ods)[['encDimTable']][
-            which.min(evaluationLoss),encodingDimension])
+            testFun(evaluationLoss),encodingDimension])
     }
     # warning('Please find the optimal encoding dimension by running. ')
     return(NA_integer_)

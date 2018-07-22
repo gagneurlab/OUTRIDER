@@ -30,8 +30,8 @@
 #' 
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
-                    implementation=c("R", "python", "PEER", "robustR",
-                            "robustRM1","robustRTheta","cooksR"),
+                    implementation=c("R", "python", "PEER", "robustR", "cooksR",
+                            "robustRM1","robustRTheta", "PEER_residual"),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -66,13 +66,17 @@ autoCorrect <- function(ods, q, theta=25,
             impl <- "PEER"
             ans <- peer(ods)
         },
+        PEER_residual = {
+            impl <- "PEER_residual"
+            ans <- peer(ods)
+        },
         robustR = {
             impl <- "robust R"
             ans <- autoCorrectRCooksIter2(ods, q, theta, BPPARAM=BPPARAM, ...)
         },
         robustRM1 = {
             impl <- 'robustRM1'
-            ans <- autoCorrectRCooksIter(ods, q, theta, ...)
+            ans <- autoCorrectRCooksIter(ods, q, theta, BPPARAM=BPPARAM, ...)
         },
         robustRTheta = {
             impl <- 'robustRTheta'
@@ -126,8 +130,22 @@ autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
     
     # optimize log likelihood
     t <- Sys.time()
-    fit <- optim(w_guess, loss, gr = lossGrad, k=k, x=x, s=s, xbar=xbar, 
-            theta=theta, method="L-BFGS-B", control=control, ...)
+    fit <- NULL
+    tryCatch({
+        fit <- optim(w_guess, loss, gr = lossGrad, k=k, x=x, s=s, xbar=xbar, 
+                theta=theta, method="L-BFGS-B", control=control, ...)
+        },
+        error = function(e) warning("Catched error: ", e$message))
+    
+    if(is.null(fit)){
+        warning('An error occured during the autoencoder fit. ', 
+                'The initial PCA values are used.')
+        fit <- list(
+            convergence = 255,
+            par = w_guess,
+            message = 'Errored during autoCorrect fitting.')
+    }
+    
     #Check that fit converged
     if(fit$convergence!=0){
         warning(paste0("Fit didn't converge with warning: ", fit$message))
@@ -467,18 +485,25 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
             quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
             betaPrior=FALSE, BPPARAM=BPPARAM)
     dds <- replaceOutliers(dds)
-
+    
+    kReplaced <- t(counts(dds))
+    if(any(kReplaced > .Machine$integer.max)| any(is.na(kReplaced))){
+        kReplaced[kReplaced > .Machine$integer.max] <- 1E8
+        kReplaced[is.na(kReplaced)] <- 1E8
+        warning('Replaced counts larger than kReplaced > .Machine$integer.max
+                were set to 1E8')
+    }    
     if(theta==FALSE){
-        return(t(counts(dds)))
+        return(kReplaced)
     }
     if(isTRUE(thetaOUTRIDER)){
         dds <- OutriderDataSet(dds)
         dds <- fit(dds)    
-        return(list(t(counts(dds)), mcols(dds)[['disp']]))
+        return(list(kReplaced), mcols(dds)[['disp']])
     }else{
-        return(list(t(counts(dds)), 1/dispersions(dds)))
+        return(list(kReplaced), 1/dispersions(dds))
     }
-    return(t(counts(dds)))
+    return(kReplaced)
 }
 
 
@@ -778,7 +803,7 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(),
 }   
 
 
-autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), ...){
+autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), BPPARAM=BPPARAM, ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -788,7 +813,7 @@ autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), ...){
     s <- sizeFactors(ods)
     theta <- rep(theta, ncol(k))
     
-    dispfit <-replaceOutliersCooks(k, theta=TRUE)
+    dispfit <-replaceOutliersCooks(k, theta=TRUE, BPPARAM=BPPARAM)
     k_no <- dispfit[[1]]
     #theta <- dispfit[[2]]
     # compute log of per gene centered counts 
@@ -813,7 +838,7 @@ autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), ...){
     w_fit <- w_guess
     for(i in 1:10){
         
-        dispfit <-replaceOutliersCooks(k, predictC(w_fit, k = k, s=s, xbar=xbar), theta=TRUE)
+        dispfit <-replaceOutliersCooks(k, predictC(w_fit, k = k, s=s, xbar=xbar), theta=TRUE, BPPARAM=BPPARAM)
         k_no <- dispfit[[1]]
         if(i > 2){
             theta <- rowMeans(cbind(theta, dispfit[[2]]))
