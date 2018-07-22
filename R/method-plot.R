@@ -195,7 +195,7 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
         pValue    = assays(ods)[['pValue']][,sampleID],
         padjust   = assays(ods)[['padjust']][,sampleID],
         zScore    = assays(ods)[['zScore']][,sampleID],
-        normCts   = as.vector(counts(ods[,sampleID], normalized=TRUE)),
+        normCts   = counts(ods, normalized=TRUE)[,sampleID],
         medianCts = rowMedians(counts(ods, normalized=TRUE)),
         expRank   = apply(
                 counts(ods, normalized=TRUE), 2, rank)[,sampleID],
