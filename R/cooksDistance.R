@@ -1,13 +1,35 @@
 
 
+replaceOutliersCooksOutrider <- function(k, mu, q, theta=FALSE, 
+                                 BPPARAM=bpparam()){
+    cooks <- cooksDistance(k, mu, q=q)
+    
+    kReplaced <- replaceCounts(k,mu,cooks, q=q)
+}
+
+replaceCounts <- function(k, mu, cooks, q){
+    cooksCutoff <- qf(0.99, q, nrow(k) - q)
+    
+    if(missing(mu)){
+        ncts <- t(k/estimateSizeFactorsForMatrix(t(k)))
+        mu <- t(matrix(trimmedMean(ncts), ncol=ncol(ncts), nrow=nrow(ncts)))
+    }
+    idx <- which(cooks > cooksCutoff)
+    message(length(idx), ' counts replaced by means.')
+    k[idx] <- mu[idx]
+    return(k)
+}
+
+
 cooksDistance <- function(k, mu, w, q){
     k <- t(k)
     #w <- w_fit
-    
     # estimate mu if not present
     if(missing(mu)){
         ncts <- t(t(k)/estimateSizeFactorsForMatrix(k))
         mu <- matrix(trimmedMean(ncts), ncol=ncol(ncts), nrow=nrow(ncts))
+    }else{
+        mu <- t(mu)
     }
     
     dispersionso <- robustMethodOfMomentsDispOutrider(k, mu)

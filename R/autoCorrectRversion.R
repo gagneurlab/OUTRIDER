@@ -477,6 +477,8 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
     return(t(counts(dds)))
 }
 
+
+
 autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), 
                     BPPARAM=BPPARAM, ...){
     
@@ -588,6 +590,76 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(),
         control$maxit <- 10    
         fit <- optim(w_fit, loss, gr = lossGrad, k=k_no, x=x, s=s, xbar=xbar, 
                  theta=theta, method="L-BFGS-B", control=control, ...)
+        
+        w_fit <- fit$par
+        message('Iteration ', i, ' loss: ', loss(w_fit, k, x, s, xbar, theta))
+        
+        #Check that fit converged
+        if(fit$convergence!=0){
+            warning(paste0("Fit didn't converge with warning: ", fit$message))
+        }
+        
+    }
+    w_fit <- fit$par
+    print(Sys.time() - t)
+    print(
+        paste0('nb-PCA loss: ',
+               loss(w_fit,k, x, s,xbar, theta))
+    )
+    
+    correctionFactors <- t(predictC(w_fit, k, s, xbar))
+    stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
+    
+    # add it to the object
+    normalizationFactors(ods, replace=TRUE) <- correctionFactors
+    metadata(ods)[['weights']] <- w_fit
+    metadata(ods)[['dim']] <- dim(ods)
+    validObject(ods)
+    return(ods)
+}   
+
+autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(), 
+                                   BPPARAM=bpparam(), ...){
+    
+    if(!'factr' %in% names(control)){
+        control$factr <- 1E9
+    }
+    
+    k <- t(counts(ods, normalized=FALSE))
+    s <- sizeFactors(ods)
+    
+    
+    k_no <-replaceOutliersCooksOutrider(k, q=1, BPPARAM=BPPARAM)
+    # compute log of per gene centered counts 
+    x0 <- log((1+k_no)/s)
+    xbar <- colMeans(x0)
+    x <- t(t(x0) - xbar)
+    
+    
+    # initialize W using PCA and bias as zeros.
+    pca <- pca(x, nPcs = q) 
+    pc  <- loadings(pca)
+    w_guess <- c(as.vector(pc), numeric(ncol(k)))
+    # check initial loss
+    print(
+        paste0('Initial PCA loss: ',
+               loss(w_guess, k, x, s, xbar, theta))
+    )
+    
+    # optimize log likelihood
+    t <- Sys.time()
+    
+    w_fit <- w_guess
+    for(i in 1:10){
+        
+        k_no <-replaceOutliersCooksOutrider(k,predictC(w_fit, k, s, xbar), q+1, 
+                                    BPPARAM=BPPARAM)
+        x0 <- log((1+k_no)/s)
+        x <- t(t(x0) - xbar)
+        
+        control$maxit <- 10    
+        fit <- optim(w_fit, loss, gr = lossGrad, k=k_no, x=x, s=s, xbar=xbar, 
+                     theta=theta, method="L-BFGS-B", control=control, ...)
         
         w_fit <- fit$par
         message('Iteration ', i, ' loss: ', loss(w_fit, k, x, s, xbar, theta))
