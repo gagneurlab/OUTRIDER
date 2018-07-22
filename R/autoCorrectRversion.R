@@ -629,7 +629,7 @@ autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(),
     s <- sizeFactors(ods)
     
     
-    k_no <-replaceOutliersCooksOutrider(k, q=1, BPPARAM=BPPARAM)
+    k_no <-replaceOutliersCooksOutrider(k, q=1, BPPARAM=BPPARAM, ...)
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
@@ -653,7 +653,7 @@ autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(),
     for(i in 1:10){
         
         k_no <-replaceOutliersCooksOutrider(k,predictC(w_fit, k, s, xbar), q+1, 
-                                    BPPARAM=BPPARAM)
+                                    BPPARAM=BPPARAM, ...)
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         

@@ -1,30 +1,32 @@
 
 
 replaceOutliersCooksOutrider <- function(k, mu, q, theta=FALSE, 
-                                 BPPARAM=bpparam()){
-    cooks <- cooksDistance(k, mu, q=q)
+                                 BPPARAM=bpparam(), ...){
+    cooks <- t(cooksDistance(k, mu, q=q))
     
-    kReplaced <- replaceCounts(k,mu,cooks, q=q)
+    kReplaced <- replaceCounts(k,mu,cooks, q=q, ...)
 }
 
-replaceCounts <- function(k, mu, cooks, q){
+replaceCounts <- function(k, mu, cooks, q, ...){
     cooksCutoff <- qf(0.99, q, nrow(k) - q)
     
     if(missing(mu)){
         s <- estimateSizeFactorsForMatrix(t(k))
-        ncts <- t(k/s)
-        mu <- t(matrix(trimmedMean(ncts), ncol=ncol(ncts), nrow=nrow(ncts)))
-        muCorrected <- mu * s
+        ncts <- k/s
+        globmean <- apply(ncts, 2, mean, trim=0.2)
+        globmean <- t(matrix(globmean, ncol=ncol(ncts), nrow=nrow(ncts), byrow=TRUE))
+        muCorrected <- globmean * s
     }else{
         normFactors <- mu / exp(colMeans(log(mu)))
-        ncts <- t(k/normFactors)
-        mu <- matrix(trimmedMean(ncts), ncol=ncol(ncts), nrow=nrow(ncts))
-        muCorrected <- t(mu) * normFactors
+        ncts <- k/normFactors
+        globmean <- apply(ncts, 2, mean, trim=0.2)
+        globmean <- matrix(globmean, ncol=ncol(ncts), nrow=nrow(ncts), byrow=TRUE)
+        muCorrected <- globmean * normFactors
     }
     
     idx <- which(cooks > cooksCutoff)
     message(length(idx), ' counts replaced by means.')
-    k[idx] <- mu[idx]
+    k[idx] <- muCorrected[idx]
     return(k)
 }
 
@@ -70,16 +72,18 @@ cooksDistance <- function(k, mu, w, q){
     
     cookso <- (PearsonResSqo/(q + 1)) * H/(1 - H)^2
     return(cookso)
-    # 
+
     # # D = e^2 / (s^2*p) * H/(1-H)^2)
     # # s^2 = (n - p)^-1* e^T
     # e <- k - mu
     # 
     # firstNom <- e^2
-    # firstDenom <- as.numeric(solve(nrow(k) - (q+1))) * t(e)
+    # firstDenom <- as.numeric(solve(ncol(k) - (q+1))) * e^2
     # secTerm <- H/(1 - H)^2
     # 
     # D = (firstNom / firstDenom) %*% secTerm
+    # 
+    # return(D)
     # 
     # http://de.mathworks.com/help/stats/cooks-distance.html
     # https://en.wikipedia.org/wiki/Cook%27s_distance
