@@ -30,7 +30,7 @@
 #' 
 #' @export
 findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
-                    freq=1E-2, zScore=3, logsd=log(3), lnorm=FALSE, inj='both',
+                    freq=1E-2, zScore=3, logsd=log(1.6), lnorm=FALSE, inj='both',
                     evalAucPRLoss=TRUE, ..., BPPARAM=bpparam()){
     
     # compute auto Correction

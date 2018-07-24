@@ -10,7 +10,7 @@
 #' @param theta The dispersion parameter
 #' @param implementation "R", the default, will use the R implementation or 
 #'             "python" to use the python/tensorflow experimental implementation
-#' @param BPPARAM A \code{\link[BiocParallel]{BiocParallelParam} instance
+#' @param BPPARAM A \code{\link[BiocParallel]{BiocParallelParam}} instance
 #'             to be used for parallel computing.
 #' @param ... passed on to the autoencoder implementing method. In the case of 
 #'             the R implementation it is passed to the optim function. 
@@ -30,8 +30,8 @@
 #' 
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
-                    implementation=c("R", "python", "PEER", "robustR",
-                            "robustRM1","robustRTheta", "PEER_residual"),
+                    implementation=c("R", "python", "PEER", "robustR", "cooksR",
+                            "robustRM1","robustRTheta", "PEER_residual", "pca"),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -86,6 +86,14 @@ autoCorrect <- function(ods, q, theta=25,
             impl <- "TensorFlow"
             ans <- autoCorrectPython(ods, ...)
         },
+        cooksR = {
+            impl <- "cooksR"
+            ans <- autoCorrectRCooksIter3(ods, q, theta, ...)
+        },
+        pca = {
+            impl <- "pca"
+            ans <- autoCorrectPCA(ods, q)
+        },
         stop("Requested autoCorrect implementation is unknown.")
     )
     
@@ -126,21 +134,8 @@ autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
     
     # optimize log likelihood
     t <- Sys.time()
-    fit <- NULL
-    tryCatch({
-        fit <- optim(w_guess, loss, gr = lossGrad, k=k, x=x, s=s, xbar=xbar, 
-                theta=theta, method="L-BFGS-B", control=control, ...)
-        },
-        error = function(e) warning("Catched error: ", e$message))
-    
-    if(is.null(fit)){
-        warning('An error occured during the autoencoder fit. ', 
-                'The initial PCA values are used.')
-        fit <- list(
-            convergence = 255,
-            par = w_guess,
-            message = 'Errored during autoCorrect fitting.')
-    }
+    fit <- autoCorrectFit(w_guess, loss, lossGrad, k, x, s, xbar, theta, 
+            control, ...)
     
     #Check that fit converged
     if(fit$convergence!=0){
@@ -165,6 +160,51 @@ autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
     return(ods)
 }
 
+autoCorrectFit <- function(w, loss, lossGrad, k, x, s, xbar, theta, control, ...){
+    fit <- NULL
+    tryCatch({
+        fit <- optim(w, loss, gr=lossGrad, k=k, x=x, s=s, xbar=xbar, 
+                theta=theta, method="L-BFGS-B", control=control, ...)
+        },
+        error = function(e) warning("Catched error: ", e$message))
+    
+    if(is.null(fit)){
+        warning('An error occured during the autoencoder fit. ', 
+                'The initial PCA values are used.')
+        fit <- list(
+            convergence = 255,
+            par = w,
+            message = 'Errored during autoCorrect fitting.')
+    }
+    return(fit)
+}
+
+
+
+autoCorrectPCA <- function(ods, q){
+    
+    k <- t(counts(ods, normalized=FALSE))
+    s <- sizeFactors(ods)
+    # compute log of per gene centered counts 
+    x0 <- log((1+k)/s)
+    xbar <- colMeans(x0)
+    x <- t(t(x0) - xbar)
+    
+    # initialize W using PCA and bias as zeros.
+    pca <- pca(x, nPcs = q) 
+    pc  <- loadings(pca)
+    w <- c(as.vector(pc), numeric(ncol(k)))
+   
+    correctionFactors <- t(predictC(w, k, s, xbar))
+    stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
+    
+    # add it to the object
+    normalizationFactors(ods, replace=TRUE) <- correctionFactors
+    metadata(ods)[['weights']] <- w
+    metadata(ods)[['dim']] <- dim(ods)
+    validObject(ods)
+    return(ods)
+}
 
 #' 
 #' Extracting the latent space
@@ -502,6 +542,8 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
     return(kReplaced)
 }
 
+
+
 autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(), 
                     BPPARAM=BPPARAM, ...){
     
@@ -571,6 +613,7 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(),
     return(ods)
 }
 
+
 autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), 
                     BPPARAM=bpparam(), ...){
     
@@ -610,9 +653,79 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(),
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
-        control$maxit <- 10    
-        fit <- optim(w_fit, loss, gr = lossGrad, k=k_no, x=x, s=s, xbar=xbar, 
-                 theta=theta, method="L-BFGS-B", control=control, ...)
+        control$maxit <- 10
+        fit <- autoCorrectFit(w_fit, loss, lossGrad, k_no, x, s, xbar, theta, 
+                control, ...)
+        
+        w_fit <- fit$par
+        message('Iteration ', i, ' loss: ', loss(w_fit, k, x, s, xbar, theta))
+        
+        #Check that fit converged
+        if(fit$convergence!=0){
+            warning(paste0("Fit didn't converge with warning: ", fit$message))
+        }
+    }
+    w_fit <- fit$par
+    print(Sys.time() - t)
+    print(
+        paste0('nb-PCA loss: ',
+               loss(w_fit,k, x, s,xbar, theta))
+    )
+    
+    correctionFactors <- t(predictC(w_fit, k, s, xbar))
+    stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
+    
+    # add it to the object
+    normalizationFactors(ods, replace=TRUE) <- correctionFactors
+    metadata(ods)[['weights']] <- w_fit
+    metadata(ods)[['dim']] <- dim(ods)
+    validObject(ods)
+    return(ods)
+}   
+
+autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(), 
+                                   BPPARAM=bpparam(), ...){
+    
+    if(!'factr' %in% names(control)){
+        control$factr <- 1E9
+    }
+    
+    k <- t(counts(ods, normalized=FALSE))
+    s <- sizeFactors(ods)
+    
+    
+    k_no <-replaceOutliersCooksOutrider(k, q=0, BPPARAM=BPPARAM, ...)
+    # compute log of per gene centered counts 
+    x0 <- log((1+k_no)/s)
+    xbar <- colMeans(x0)
+    x <- t(t(x0) - xbar)
+    
+    
+    # initialize W using PCA and bias as zeros.
+    pca <- pca(x, nPcs = q) 
+    pc  <- loadings(pca)
+    w_guess <- c(as.vector(pc), numeric(ncol(k)))
+    # check initial loss
+    print(
+        paste0('Initial PCA loss: ',
+               loss(w_guess, k, x, s, xbar, theta))
+    )
+    
+    # optimize log likelihood
+    t <- Sys.time()
+    
+    w_fit <- w_guess
+    for(i in 1:10){
+        
+        k_no <-replaceOutliersCooksOutrider(k,predictC(w_fit, k, s, xbar), q, 
+                                    BPPARAM=BPPARAM, ...)
+        x0 <- log((1+k_no)/s)
+        x <- t(t(x0) - xbar)
+        
+        control$maxit <- 10 
+        
+        fit <- autoCorrectFit(w_fit, loss, lossGrad, k_no, x, s, xbar, theta, 
+                control, ...)
         
         w_fit <- fit$par
         message('Iteration ', i, ' loss: ', loss(w_fit, k, x, s, xbar, theta))
@@ -809,3 +922,4 @@ autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), BPPAR
     validObject(ods)
     return(ods)
 }   
+

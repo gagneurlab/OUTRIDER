@@ -195,7 +195,7 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
         pValue    = assays(ods)[['pValue']][,sampleID],
         padjust   = assays(ods)[['padjust']][,sampleID],
         zScore    = assays(ods)[['zScore']][,sampleID],
-        normCts   = as.vector(counts(ods[,sampleID], normalized=TRUE)),
+        normCts   = counts(ods, normalized=TRUE)[,sampleID],
         medianCts = rowMedians(counts(ods, normalized=TRUE)),
         expRank   = apply(
                 counts(ods, normalized=TRUE), 2, rank)[,sampleID],
@@ -308,12 +308,18 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
     
     # compute expected pValues.
     df <- df[order(subset, -obs)]
+    
+    # Correct p value if needed
+    df[is.na(obs) | is.infinite(obs), obs:=1]
+    minNonZeroP <- min(df[obs!=0, obs]) * 1e-2
+    df[obs==0, obs:=minNonZeroP]
+    
     df[,exp:=-log10(ppoints(.N)), by='subset']
     if(is.null(xlim)){
         xlim=range(df[,exp])
     }
     if(is.null(ylim)){
-        ylim=range(df[,obs])
+        ylim=range(df[,obs], na.rm=TRUE)
     }
     plot(NA, xlim=xlim, ylim=ylim, main=main,
             xlab=expression(

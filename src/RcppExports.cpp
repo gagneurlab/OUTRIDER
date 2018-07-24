@@ -36,10 +36,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// leverageCalc
+SEXP leverageCalc(arma::mat X);
+RcppExport SEXP _OUTRIDER_leverageCalc(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(leverageCalc(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_OUTRIDER_truncLogLiklihood", (DL_FUNC) &_OUTRIDER_truncLogLiklihood, 6},
     {"_OUTRIDER_gradLogLiklihood", (DL_FUNC) &_OUTRIDER_gradLogLiklihood, 6},
+    {"_OUTRIDER_leverageCalc", (DL_FUNC) &_OUTRIDER_leverageCalc, 1},
     {NULL, NULL, 0}
 };
 

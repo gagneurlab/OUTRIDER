@@ -75,3 +75,9 @@ SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b,
     return Rcpp::wrap(grad);
 }
 
+// [[Rcpp::export()]]
+SEXP leverageCalc(arma::mat X){
+    // H = X * inv(X.t * X) * X.t
+    arma::mat H = X * inv(X.t() * X) * X.t();
+    return Rcpp::wrap(H);
+}

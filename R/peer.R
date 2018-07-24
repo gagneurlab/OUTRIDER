@@ -6,10 +6,11 @@ peer <- function(ods, maxItr=1000){
         stop("Please install the 'peer' package from GitHub to use this ",
                 "functionality.")
     }
+    #PEER run.
+    model=PEER()
     
     # log counts
-    logCts <- log2((counts(ods)+1)/sizeFactors(ods))
-    # logCts <- as.matrix(log2(fpkm(ods)+2)) # optional use fpkm
+    logCts <- log2(t(t(counts(ods)+1)/sizeFactors(ods)))
     
     # default and recommendation by PEER: min(0.25*n, 100)
     n_unobserved_factors <- min(as.integer(0.25* ncol(ods)),100)
@@ -26,7 +27,7 @@ peer <- function(ods, maxItr=1000){
     
     # extract PEER data
     peerResiduals <- PEER_getResiduals(model)
-    peerMean <- sizeFactors(ods) * 2^(logCts - peerResiduals)
+    peerMean = t(t(2^(logCts - peerResiduals)) * sizeFactors(ods))
     
     # save model in object
     normalizationFactors(ods) <- pmax(peerMean, 1E-8)
@@ -34,8 +35,6 @@ peer <- function(ods, maxItr=1000){
             alpha     = PEER_getAlpha(model),
             residuals = PEER_getResiduals(model),
             W         = PEER_getW(model))
-            #X         = PEER_getX(model),
-            #Z         = PEER_getZ(model))
     
     return(ods)
 }
