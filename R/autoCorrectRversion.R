@@ -86,7 +86,7 @@ autoCorrect <- function(ods, q, theta=25,
             impl <- "TensorFlow"
             ans <- autoCorrectPython(ods, ...)
         },
-        cooks = {
+        cooksR = {
             impl <- "cooksR"
             ans <- autoCorrectRCooksIter3(ods, q, theta, ...)
         },
@@ -130,21 +130,8 @@ autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
     
     # optimize log likelihood
     t <- Sys.time()
-    fit <- NULL
-    tryCatch({
-        fit <- optim(w_guess, loss, gr = lossGrad, k=k, x=x, s=s, xbar=xbar, 
-                theta=theta, method="L-BFGS-B", control=control, ...)
-        },
-        error = function(e) warning("Catched error: ", e$message))
-    
-    if(is.null(fit)){
-        warning('An error occured during the autoencoder fit. ', 
-                'The initial PCA values are used.')
-        fit <- list(
-            convergence = 255,
-            par = w_guess,
-            message = 'Errored during autoCorrect fitting.')
-    }
+    fit <- autoCorrectFit(w_guess, loss, lossGrad, k, x, s, xbar, theta, 
+            control, ...)
     
     #Check that fit converged
     if(fit$convergence!=0){
@@ -167,6 +154,25 @@ autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
     metadata(ods)[['dim']] <- dim(ods)
     validObject(ods)
     return(ods)
+}
+
+autoCorrectFit <- function(w, loss, lossGrad, k, x, s, xbar, theta, control, ...){
+    fit <- NULL
+    tryCatch({
+        fit <- optim(w, loss, gr=lossGrad, k=k, x=x, s=s, xbar=xbar, 
+                theta=theta, method="L-BFGS-B", control=control, ...)
+        },
+        error = function(e) warning("Catched error: ", e$message))
+    
+    if(is.null(fit)){
+        warning('An error occured during the autoencoder fit. ', 
+                'The initial PCA values are used.')
+        fit <- list(
+            convergence = 255,
+            par = w,
+            message = 'Errored during autoCorrect fitting.')
+    }
+    return(fit)
 }
 
 
@@ -577,6 +583,7 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(),
     return(ods)
 }
 
+
 autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(), 
                     BPPARAM=bpparam(), ...){
     
@@ -616,9 +623,9 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(),
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
-        control$maxit <- 10    
-        fit <- optim(w_fit, loss, gr = lossGrad, k=k_no, x=x, s=s, xbar=xbar, 
-                 theta=theta, method="L-BFGS-B", control=control, ...)
+        control$maxit <- 10
+        fit <- autoCorrectFit(w_fit, loss, lossGrad, k_no, x, s, xbar, theta, 
+                control, ...)
         
         w_fit <- fit$par
         message('Iteration ', i, ' loss: ', loss(w_fit, k, x, s, xbar, theta))
@@ -627,7 +634,6 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(),
         if(fit$convergence!=0){
             warning(paste0("Fit didn't converge with warning: ", fit$message))
         }
-        
     }
     w_fit <- fit$par
     print(Sys.time() - t)
@@ -658,7 +664,7 @@ autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(),
     s <- sizeFactors(ods)
     
     
-    k_no <-replaceOutliersCooksOutrider(k, q=1, BPPARAM=BPPARAM, ...)
+    k_no <-replaceOutliersCooksOutrider(k, q=0, BPPARAM=BPPARAM, ...)
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
@@ -681,14 +687,15 @@ autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(),
     w_fit <- w_guess
     for(i in 1:10){
         
-        k_no <-replaceOutliersCooksOutrider(k,predictC(w_fit, k, s, xbar), q+1, 
+        k_no <-replaceOutliersCooksOutrider(k,predictC(w_fit, k, s, xbar), q, 
                                     BPPARAM=BPPARAM, ...)
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
-        control$maxit <- 10    
-        fit <- optim(w_fit, loss, gr = lossGrad, k=k_no, x=x, s=s, xbar=xbar, 
-                     theta=theta, method="L-BFGS-B", control=control, ...)
+        control$maxit <- 10 
+        
+        fit <- autoCorrectFit(w_fit, loss, lossGrad, k_no, x, s, xbar, theta, 
+                control, ...)
         
         w_fit <- fit$par
         message('Iteration ', i, ' loss: ', loss(w_fit, k, x, s, xbar, theta))

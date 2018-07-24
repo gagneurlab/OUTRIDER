@@ -8,13 +8,13 @@ replaceOutliersCooksOutrider <- function(k, mu, q, theta=FALSE,
 }
 
 replaceCounts <- function(k, mu, cooks, q, ...){
-    cooksCutoff <- qf(0.99, q, nrow(k) - q)
+    cooksCutoff <- qf(0.99, q+1, nrow(k) - (q + 1))
     
     if(missing(mu)){
         s <- estimateSizeFactorsForMatrix(t(k))
         ncts <- k/s
         globmean <- apply(ncts, 2, mean, trim=0.2)
-        globmean <- t(matrix(globmean, ncol=ncol(ncts), nrow=nrow(ncts), byrow=TRUE))
+        globmean <- matrix(globmean, ncol=ncol(ncts), nrow=nrow(ncts), byrow=TRUE)
         muCorrected <- globmean * s
     }else{
         normFactors <- mu / exp(colMeans(log(mu)))
@@ -37,7 +37,7 @@ cooksDistance <- function(k, mu, w, q){
     # estimate mu if not present
     if(missing(mu)){
         ncts <- t(t(k)/estimateSizeFactorsForMatrix(k))
-        mu <- matrix(trimmedMean(ncts), ncol=ncol(ncts), nrow=nrow(ncts))
+        mu <- matrix(apply(ncts, 1, mean, trim=0.2), ncol=ncol(ncts), nrow=nrow(ncts))
     }else{
         mu <- t(mu)
     }
@@ -47,6 +47,7 @@ cooksDistance <- function(k, mu, w, q){
     # calculate H
     # no W from PCA/AutoEncoder 
     if(missing(w)){
+        # H = X ( X^T * X)^-1 * X^T
         w <- (mu^-1 + dispersionso)^-1
         xtwx <- rowSums(w)
         H <- w * xtwx^-1;
@@ -105,11 +106,3 @@ robustMethodOfMomentsDispOutrider <- function(cts, mu, minDisp=0.04){
     return(alpha)
 }
 
-trimmedMean <- function(cts, cut=0.1){
-    ncut <- floor(ncol(cts)*cut/2)
-    vcut <- rep(c(FALSE, TRUE, FALSE), c(ncut, ncol(cts) - ncut*2, ncut))
-    
-    trmean <- apply(cts, 1, vcut=vcut, function(x, vcut){
-        mean(sort(x)[vcut])})
-    return(trmean)
-}
