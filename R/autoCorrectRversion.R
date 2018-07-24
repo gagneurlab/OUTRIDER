@@ -31,7 +31,7 @@
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
                     implementation=c("R", "python", "PEER", "robustR", "cooksR",
-                            "robustRM1","robustRTheta", "PEER_residual"),
+                            "robustRM1","robustRTheta", "PEER_residual", "pca"),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -89,6 +89,10 @@ autoCorrect <- function(ods, q, theta=25,
         cooks = {
             impl <- "cooksR"
             ans <- autoCorrectRCooksIter3(ods, q, theta, ...)
+        },
+        pca = {
+            impl <- "pca"
+            ans <- autoCorrectPCA(ods, q)
         },
         stop("Requested autoCorrect implementation is unknown.")
     )
@@ -169,6 +173,32 @@ autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
     return(ods)
 }
 
+
+
+autoCorrectPCA <- function(ods, q){
+    
+    k <- t(counts(ods, normalized=FALSE))
+    s <- sizeFactors(ods)
+    # compute log of per gene centered counts 
+    x0 <- log((1+k)/s)
+    xbar <- colMeans(x0)
+    x <- t(t(x0) - xbar)
+    
+    # initialize W using PCA and bias as zeros.
+    pca <- pca(x, nPcs = q) 
+    pc  <- loadings(pca)
+    w <- c(as.vector(pc), numeric(ncol(k)))
+   
+    correctionFactors <- t(predictC(w, k, s, xbar))
+    stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
+    
+    # add it to the object
+    normalizationFactors(ods, replace=TRUE) <- correctionFactors
+    metadata(ods)[['weights']] <- w
+    metadata(ods)[['dim']] <- dim(ods)
+    validObject(ods)
+    return(ods)
+}
 
 #' 
 #' Extracting the latent space
