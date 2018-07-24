@@ -27,7 +27,7 @@ peer <- function(ods, maxItr=1000){
     
     # extract PEER data
     peerResiduals <- PEER_getResiduals(model)
-    peerMean = t(sizeFactors(ods) * t(2^(logCts - peerResiduals)))
+    peerMean = t(t(2^(logCts - peerResiduals)) * sizeFactors(ods))
     
     # save model in object
     normalizationFactors(ods) <- pmax(peerMean, 1E-8)
