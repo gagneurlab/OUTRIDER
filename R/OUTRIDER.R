@@ -49,8 +49,12 @@ OUTRIDER <- function(object, q, autoCorrect=TRUE){
     object <- estimateSizeFactors(object)
     
     if(isTRUE(autoCorrect)){
+        autoCorrect="autoCorrect"
+    }
+    
+    if(isScalarCharacter(autoCorrect)){
         message(paste0(date(), ": Running auto correct ..."))
-        object <- autoCorrect(object, q=q)
+        object <- autoCorrect(object, q=q, implementation=autoCorrect)
     }
     
     message(paste0(date(), ": Fitting the data ..."))

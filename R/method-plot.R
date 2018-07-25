@@ -645,7 +645,7 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
                     outlierRatio=0.001,
                     col=brewer.pal(3, 'Dark2')[c(1,2)], yadjust=c(1.2, 1.2), 
                     labLine=c(3.5, 3), ylab="#Aberrantly expressed genes", 
-                    labCex=par()$cex, ...){
+                    labCex=par()$cex, ymax=NULL, ...){
     
     if(missing(main)){
         main <- 'Aberrant Genes per Sample'
@@ -654,6 +654,9 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
     count_vector <- sort(aberrant(ods, by="sample", padjCutoff=padjCutoff, 
             zScoreCutoff=zScoreCutoff, ...))
     ylim = c(0.4, max(1, count_vector)*1.1)
+    if(!is.null(ymax)){
+        ylim[2] <- ymax
+    }
     replace_zero_unknown = 0.5
     ticks= c(replace_zero_unknown, signif(10^seq(
             from=0, to=round(log10(max(1, count_vector))), by=1/3), 1))

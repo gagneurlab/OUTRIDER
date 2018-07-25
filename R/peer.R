@@ -6,8 +6,6 @@ peer <- function(ods, maxItr=1000){
         stop("Please install the 'peer' package from GitHub to use this ",
                 "functionality.")
     }
-    #PEER run.
-    model=PEER()
     
     # log counts
     logCts <- log2(t(t(counts(ods)+1)/sizeFactors(ods)))

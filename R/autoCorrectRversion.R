@@ -31,7 +31,7 @@
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
                     implementation=c("R", "python", "PEER", "robustR", "cooksR",
-                            "robustRM1","robustRTheta", "PEER_residual", "pca"),
+                            "robustRM1","robustRTheta", "PEER_residual", "pca", "debug"),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -94,6 +94,10 @@ autoCorrect <- function(ods, q, theta=25,
             impl <- "pca"
             ans <- autoCorrectPCA(ods, q)
         },
+        debug = {
+            impl <- "autoCorrect debug"
+            ans <- autoCorrectRCooksIter2Debug(ods, q, theta, ...)
+        },
         stop("Requested autoCorrect implementation is unknown.")
     )
     
@@ -109,7 +113,7 @@ autoCorrect <- function(ods, q, theta=25,
 #' @param theta value used in the likelihood (default=25).
 #' 
 #' @noRd
-autoCorrectR <- function(ods, q, theta=25, control=list(), ...){
+autoCorrectR <- function(ods, q, theta=25, control=list(), debug=FALSE, ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
