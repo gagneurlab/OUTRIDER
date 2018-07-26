@@ -486,7 +486,7 @@ predictC3 <- function(w, k, s, xbar){
     s*exp(y)
 }
 
-replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, 
+replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, returnMaskOnly=FALSE,
                     BPPARAM=bpparam()){
     k <- t(k)
     dds <- DESeqDataSetFromMatrix(countData=k, design=~1, 
@@ -501,6 +501,7 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
             quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
             betaPrior=FALSE, BPPARAM=BPPARAM)
     dds <- replaceOutliers(dds)
+
     
     kReplaced <- t(counts(dds))
     if(any(kReplaced > .Machine$integer.max)| any(is.na(kReplaced))){
@@ -508,7 +509,11 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
         kReplaced[is.na(kReplaced)] <- 1E8
         warning('Replaced counts larger than kReplaced > .Machine$integer.max
                 were set to 1E8')
-    }    
+    }
+    if(isTRUE(returnMaskOnly)){
+        mask <- (kReplaced != t(k))
+        return(mask)
+    }
     if(theta==FALSE){
         return(kReplaced)
     }

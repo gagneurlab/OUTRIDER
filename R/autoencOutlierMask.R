@@ -1,4 +1,4 @@
-autoCorrectRCooksMaskDebug <- function(ods, q, initTheta=25, modelTheta=FALSE, robust=FALSE, 
+autoCorrectRCooksMaskDebug <- function(ods, q, initTheta=25, modelTheta=FALSE, robust=FALSE, trim=FALSE,
                                         control=list(), BPPARAM=bpparam(), ...){
     
     if(!'factr' %in% names(control)){
@@ -17,13 +17,18 @@ autoCorrectRCooksMaskDebug <- function(ods, q, initTheta=25, modelTheta=FALSE, r
     
     k_no <- k
     
-    if(isTRUE(robust)){
-        k_no <-replaceOutliersCooks(k_no, BPPARAM=BPPARAM)
-    }
+    # if(isTRUE(robust)){
+    #     k_no <-replaceOutliersCooks(k_no, BPPARAM=BPPARAM)
+    # }
     
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
-    xbar <- colMeans(x0)
+    if(isTRUE(trim)){
+        #   center using 5% trimmed mean.
+        xbar <- apply(x0, 2, mean, 0.05)
+    }else{
+        xbar <- colMeans(x0)
+    }
     x <- t(t(x0) - xbar)
     
     
@@ -43,26 +48,28 @@ autoCorrectRCooksMaskDebug <- function(ods, q, initTheta=25, modelTheta=FALSE, r
     w_fit <- w_guess
     for(i in 1:10){
         
-        k_no <- k
+        #k_no <- k
         
-        if(isTRUE(robust)){
-            k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), 
-                                        BPPARAM=BPPARAM, theta=modelTheta)
-            if(isTRUE(modelTheta)){
-                theta <- k_no[[2]]
-                k_no <- k_no[[1]]
-            }
-        }
+        # if(isTRUE(robust)){
+        #     k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), 
+        #                                 BPPARAM=BPPARAM, theta=modelTheta)
+        #     if(isTRUE(modelTheta)){
+        #         theta <- k_no[[2]]
+        #         k_no <- k_no[[1]]
+        #     }
+        # }
         
-        x0 <- log((1+k_no)/s)
+        x0 <- log((1+k)/s)
         x <- t(t(x0) - xbar)
         
+        outlierMask <- replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), BPPARAM=BPPARAM, 
+                                            theta=modelTheta, returnMaskOnly=TRUE)
         control$maxit <- 10
-        fit <- autoCorrectFit(w_fit, loss=myLoss, lossGrad=myLossGrad, k_no, x, s, xbar, theta, 
+        fit <- autoCorrectFit(w_fit, loss=myLoss, lossGrad=myLossGrad, k_no, x, s, xbar, theta, outlier=outlierMask,
                               control, ...)
         
         w_fit <- fit$par
-        message(date(), ': Iteration ', i, ' loss: ', myLoss(w_fit, k_no, x, s, xbar, theta))
+        message(date(), ': Iteration ', i, ' loss: ', myLoss(w_fit, k_no, x, s, xbar, theta, outlier=outlierMask))
         
         #Check that fit converged
         if(fit$convergence!=0){
@@ -71,8 +78,8 @@ autoCorrectRCooksMaskDebug <- function(ods, q, initTheta=25, modelTheta=FALSE, r
         
         metadata(ods)[[paste0('iter_', i)]] <- list(
             w = w_fit,
-            loss = myLoss(w_fit, k_no, x, s, xbar, theta),
-            lossGrad = myLossGrad(w_fit, k_no, x, s, xbar, theta),
+            loss = myLoss(w_fit, k_no, x, s, xbar, theta, outlier=outlierMask),
+            lossGrad = myLossGrad(w_fit, k_no, x, s, xbar, theta, outlier=outlierMask),
             fit=fit
         )
     }
@@ -80,7 +87,7 @@ autoCorrectRCooksMaskDebug <- function(ods, q, initTheta=25, modelTheta=FALSE, r
     print(Sys.time() - t)
     print(
         paste0('nb-PCA loss: ',
-               myLoss(w_fit,k, x, s,xbar, theta))
+               myLoss(w_fit,k, x, s,xbar, theta, outlier=FALSE))
     )
     
     correctionFactors <- t(predictC(w_fit, k, s, xbar))
