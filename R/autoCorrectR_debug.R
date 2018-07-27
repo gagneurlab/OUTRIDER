@@ -27,8 +27,11 @@ getAEData <- function(ods, w, replace=FALSE, BPPARAM=SerialParam()){
     return(ans)
 }
 
-autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE, robust=FALSE, 
+autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
+                    robust=c('once', 'iterative', 'none'), pcaOnly=FALSE,
+                    internIter=10, noFirst=FALSE,
                     control=list(), BPPARAM=bpparam(), ...){
+    robust <- match.arg(robust)
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -48,8 +51,14 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE, 
     
     k_no <- k
     
-    if(isTRUE(robust)){
+    if(robust != 'none' & isFALSE(noFirst)){
         k_no <-replaceOutliersCooks(k_no, BPPARAM=BPPARAM)
+        if(isTRUE(modelTheta)){
+            theta <- k_no[['theta']]
+            k_no  <- k_no[['cts']]
+        } else {
+            k_no  <- k_no[['cts']]
+        }
     }
     
     # compute log of per gene centered counts 
@@ -73,22 +82,30 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE, 
     
     w_fit <- w_guess
     for(i in 1:10){
+        if(isTRUE(pcaOnly)){
+            fit <- list(par=w_fit)
+            break
+        }
         
-        k_no <- k
-        
-        if(isTRUE(robust)){
+        if(robust == 'iterative' || robust == 'once' & i == 1){
             k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), 
                     BPPARAM=BPPARAM, theta=modelTheta)
             if(isTRUE(modelTheta)){
-                theta <- k_no[[2]]
-                k_no <- k_no[[1]]
+                theta <- k_no[['theta']]
+                k_no <- k_no[['cts']]
+            } else {
+                k_no <- k_no[['cts']]
             }
+        } else if(robust == 'once'){
+            k_no <- k_no
+        } else {
+            k_no <- k
         }
         
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
-        control$maxit <- 10
+        control$maxit <- internIter
         fit <- autoCorrectFit(w_fit, loss=myLoss, lossGrad=myLossGrad, k_no, x, s, xbar, theta, 
                               control, ...)
         

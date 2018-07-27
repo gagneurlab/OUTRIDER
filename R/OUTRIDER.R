@@ -43,18 +43,14 @@
 #' plotVolcano(ods, 1)
 #' 
 #' @export
-OUTRIDER <- function(object, q, autoCorrect=TRUE){
+OUTRIDER <- function(object, q, autoCorrect=TRUE, ...){
     
     message(paste0(date(), ": SizeFactor estimation ..."))
     object <- estimateSizeFactors(object)
     
     if(isTRUE(autoCorrect)){
-        autoCorrect="autoCorrect"
-    }
-    
-    if(isScalarCharacter(autoCorrect)){
         message(paste0(date(), ": Running auto correct ..."))
-        object <- autoCorrect(object, q=q, implementation=autoCorrect)
+        object <- autoCorrect(object, q=q, ...)
     }
     
     message(paste0(date(), ": Fitting the data ..."))

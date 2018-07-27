@@ -31,7 +31,8 @@
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
                     implementation=c("R", "python", "PEER", "robustR", "cooksR",
-                            "robustRM1","robustRTheta", "PEER_residual", "pca", "debug"),
+                            "robustRM1","robustRTheta", "PEER_residual", "pca",
+                            "robustTheta", "debug"),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -98,6 +99,12 @@ autoCorrect <- function(ods, q, theta=25,
             impl <- "autoCorrect debug"
             ans <- autoCorrectRCooksIter2Debug(ods, q, theta, ...)
         },
+        robustTheta = {
+            impl <- 'robustTheta'
+            ans <- autoCorrectRCooksIter2Debug(ods, q, robust='iterative',
+                    noFirst=TRUE, internIter=100, modelTheta=TRUE, 
+                    initTheta=200)
+        }
         stop("Requested autoCorrect implementation is unknown.")
     )
     
@@ -532,18 +539,19 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
         kReplaced[is.na(kReplaced)] <- 1E8
         warning('Replaced counts larger than kReplaced > .Machine$integer.max
                 were set to 1E8')
-    }    
-    if(theta==FALSE){
-        return(kReplaced)
     }
+    
+    ans <- list(cts=kReplaced, idxReplaced=kReplaced==t(k))
     if(isTRUE(thetaOUTRIDER)){
-        dds <- OutriderDataSet(dds)
-        dds <- fit(dds)
-        return(list(cts=kReplaced, theta=mcols(dds)[['disp']]))
-    }else{
-        return(list(cts=kReplaced, theta=1/dispersions(dds)))
+        odsr <- OutriderDataSet(countData=k)
+        normalizationFactors(odsr) <- mu
+        odsr <- fit(odsr)
+        ans[['theta']] <- mcols(odsr)[['disp']]
+    } else {
+        asn[['theta']] <- 1/dispersions(dds)
     }
-    return(kReplaced)
+    
+    return(ans)
 }
 
 
