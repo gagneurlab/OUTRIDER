@@ -192,30 +192,6 @@ autoCorrectFit <- function(w, loss, lossGrad, k, x, s, xbar, theta, control, ...
 
 
 
-autoCorrectPCA <- function(ods, q){
-    
-    k <- t(counts(ods, normalized=FALSE))
-    s <- sizeFactors(ods)
-    # compute log of per gene centered counts 
-    x0 <- log((1+k)/s)
-    xbar <- colMeans(x0)
-    x <- t(t(x0) - xbar)
-    
-    # initialize W using PCA and bias as zeros.
-    pca <- pca(x, nPcs = q) 
-    pc  <- loadings(pca)
-    w <- c(as.vector(pc), numeric(ncol(k)))
-   
-    correctionFactors <- t(predictC(w, k, s, xbar))
-    stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
-    
-    # add it to the object
-    normalizationFactors(ods, replace=TRUE) <- correctionFactors
-    metadata(ods)[['weights']] <- w
-    metadata(ods)[['dim']] <- dim(ods)
-    validObject(ods)
-    return(ods)
-}
 
 #' 
 #' Extracting the latent space
@@ -517,21 +493,24 @@ predictC3 <- function(w, k, s, xbar){
     s*exp(y)
 }
 
-replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, 
+replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, returnMaskOnly=FALSE,
                     BPPARAM=bpparam()){
     k <- t(k)
     dds <- DESeqDataSetFromMatrix(countData=k, design=~1, 
             colData=DataFrame(seq_len(ncol(k))))
     dds <- estimateSizeFactors(dds)
+    
     if(!missing(mu)){
         mu <- t(mu)
         normFactors <- mu/ exp(rowMeans(log(mu)))
         normalizationFactors(dds)  <- normFactors
     }
+    
     dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
             quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
             betaPrior=FALSE, BPPARAM=BPPARAM)
     dds <- replaceOutliers(dds)
+
     
     kReplaced <- t(counts(dds))
     if(any(kReplaced > .Machine$integer.max)| any(is.na(kReplaced))){
@@ -541,14 +520,14 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE,
                 were set to 1E8')
     }
     
-    ans <- list(cts=kReplaced, idxReplaced=kReplaced==t(k))
+    ans <- list(cts=kReplaced, mask=kReplaced==t(k), theta=1/dispersions(dds))
+    
+    # add OUTRIDER theta if requested
     if(isTRUE(thetaOUTRIDER)){
         odsr <- OutriderDataSet(countData=k)
         normalizationFactors(odsr) <- mu
         odsr <- fit(odsr)
         ans[['theta']] <- mcols(odsr)[['disp']]
-    } else {
-        asn[['theta']] <- 1/dispersions(dds)
     }
     
     return(ans)
@@ -567,7 +546,9 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(),
     s <- sizeFactors(ods)
     
     
-    k_no <-replaceOutliersCooks(k, BPPARAM=BPPARAM)
+    rep_k <- replaceOutliersCooks(k, BPPARAM=BPPARAM)
+    k_no <- rep_k$cts
+    
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
@@ -590,7 +571,9 @@ autoCorrectRCooksIter <- function(ods, q, theta=25, control=list(),
     w_fit <- w_guess
     for(i in 1:10){
         
-        k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar))
+        rep_k <- replaceOutliersCooks(k,predictC(w_fit, k, s, xbar))
+        k_no <- rep_k$cts
+        
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
@@ -637,7 +620,9 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(),
     s <- sizeFactors(ods)
     
     
-    k_no <-replaceOutliersCooks(k, BPPARAM=BPPARAM)
+    rep_k <- replaceOutliersCooks(k, BPPARAM=BPPARAM)
+    k_no <- rep_k$cts
+    
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
@@ -660,8 +645,10 @@ autoCorrectRCooksIter2 <- function(ods, q, theta=25, control=list(),
     w_fit <- w_guess
     for(i in 1:10){
         
-        k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), 
+        rep_k <- replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), 
                 BPPARAM=BPPARAM)
+        k_no <- rep_k$cts
+        
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
@@ -706,7 +693,9 @@ autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(),
     s <- sizeFactors(ods)
     
     
-    k_no <-replaceOutliersCooksOutrider(k, q=0, BPPARAM=BPPARAM, ...)
+    rep_k <- replaceOutliersCooksOutrider(k, q=0, BPPARAM=BPPARAM, ...)
+    k_no <- rep_k$cts
+    
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
     xbar <- colMeans(x0)
@@ -729,8 +718,10 @@ autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(),
     w_fit <- w_guess
     for(i in 1:10){
         
-        k_no <-replaceOutliersCooksOutrider(k,predictC(w_fit, k, s, xbar), q, 
-                                    BPPARAM=BPPARAM, ...)
+        rep_k <- replaceOutliersCooksOutrider(k,predictC(w_fit, k, s, xbar), q, 
+                BPPARAM=BPPARAM, ...)
+        k_no <- rep_k$cts
+        
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
@@ -777,9 +768,10 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(),
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
 
-    dispfit <-replaceOutliersCooks(k, theta=TRUE, BPPARAM=BPPARAM)
-    k_no <- dispfit[[1]]
-    theta <- dispfit[[2]]
+    dispfit <- replaceOutliersCooks(k, theta=TRUE, BPPARAM=BPPARAM)
+    
+    k_no <- dispfit$cts
+    theta <- dispfit$theta
 
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
@@ -804,11 +796,13 @@ autoCorrectRCooksIterTheta <- function(ods, q, theta=25, control=list(),
 
     for(i in 1:15){
         
-        dispfit <-replaceOutliersCooks(k, predictC(w_fit, k = k, s=s, xbar=xbar), theta=TRUE, BPPARAM=BPPARAM)
-        k_no <- dispfit[[1]]
+        dispfit <- replaceOutliersCooks(k, predictC(w_fit, k=k, s=s, xbar=xbar),
+                theta=TRUE, BPPARAM=BPPARAM)
+        k_no <- dispfit$cts
         if(i > 2){
-            theta <- rowMeans(cbind(theta , dispfit[[2]]))
+            theta <- rowMeans(cbind(theta , dispfit$theta))
         }
+        
         message('min: ',min(theta),
                 ' 25%: ',quantile(theta, p=0.25),
                 ' 50%: ',quantile(theta, p=0.5),
@@ -863,7 +857,7 @@ autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), BPPAR
     theta <- rep(theta, ncol(k))
     
     dispfit <-replaceOutliersCooks(k, theta=TRUE, BPPARAM=BPPARAM)
-    k_no <- dispfit[[1]]
+    k_no <- dispfit$cts
     #theta <- dispfit[[2]]
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
@@ -887,10 +881,11 @@ autoCorrectRCooksIterThetaM1 <- function(ods, q, theta=25, control=list(), BPPAR
     w_fit <- w_guess
     for(i in 1:10){
         
-        dispfit <-replaceOutliersCooks(k, predictC(w_fit, k = k, s=s, xbar=xbar), theta=TRUE, BPPARAM=BPPARAM)
-        k_no <- dispfit[[1]]
+        dispfit <- replaceOutliersCooks(k, predictC(w_fit, k=k, s=s, xbar=xbar),
+                theta=TRUE, BPPARAM=BPPARAM)
+        k_no <- dispfit$cts
         if(i > 2){
-            theta <- rowMeans(cbind(theta, dispfit[[2]]))
+            theta <- rowMeans(cbind(theta, dispfit$theta))
         }
         message('min: ',min(theta),
                 ' 25%: ',quantile(theta, p=0.25),
