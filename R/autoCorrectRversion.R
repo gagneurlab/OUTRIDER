@@ -32,7 +32,8 @@
 autoCorrect <- function(ods, q, theta=25, 
                     implementation=c("R", "python", "PEER", "robustR", "cooksR",
                             "robustRM1","robustRTheta", "PEER_residual", "pca",
-                            "robustTheta", "debug"),
+                            "robustTheta", "debug", 'mask25', 'RobTheta200',
+                            'RobNoFTheta200'),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -104,7 +105,22 @@ autoCorrect <- function(ods, q, theta=25,
             ans <- autoCorrectRCooksIter2Debug(ods, q, robust='iterative',
                     noFirst=TRUE, internIter=100, modelTheta=TRUE, 
                     initTheta=200)
-        }
+        },
+        mask25 = {
+            impl <- 'maskOutlier25'
+            ans <- autoCorrectRCooksMaskDebug(ods, q=5)
+        },
+        RobTheta200 = {
+            impl <- 'robust theta 200'
+            ans <- autoCorrectRCooksIter2Debug(ods, q=5, robust='iterative', 
+                    modelTheta=TRUE, initTheta=200)
+        },
+        RobNoFTheta200 = {
+            impl <- 'robust theta 200 no first'
+            ans <- autoCorrectRCooksIter2Debug(ods, q=5, robust='iterative', 
+                    noFirst=TRUE, internIter=100, modelTheta=TRUE, 
+                    initTheta=200)
+        },
         stop("Requested autoCorrect implementation is unknown.")
     )
     
@@ -500,9 +516,12 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, returnM
             colData=DataFrame(seq_len(ncol(k))))
     dds <- estimateSizeFactors(dds)
     
-    if(!missing(mu)){
+    if(missing(mu)){
+        mu <- matrix(rowMeans(counts(dds, normalized=TRUE)), 
+                nrow=nrow(dds), ncol=ncol(dds))
+    } else {
         mu <- t(mu)
-        normFactors <- mu/ exp(rowMeans(log(mu)))
+        normFactors <- mu/exp(rowMeans(log(mu)))
         normalizationFactors(dds)  <- normFactors
     }
     
@@ -520,7 +539,8 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, returnM
                 were set to 1E8')
     }
     
-    ans <- list(cts=kReplaced, mask=kReplaced==t(k), theta=1/dispersions(dds))
+    ans <- list(cts=kReplaced, mask=kReplaced!=t(k), theta=1/dispersions(dds))
+    message("Identified ", sum(ans$mask), " outliers with Cooks.")
     
     # add OUTRIDER theta if requested
     if(isTRUE(thetaOUTRIDER)){

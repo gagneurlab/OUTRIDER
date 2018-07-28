@@ -42,7 +42,8 @@ plotCountCorHeatmap(ods, normalized = TRUE, rowCentered = TRUE,
 plotAberrantPerSample(ods, main, padjCutoff = 0.05, zScoreCutoff = 0,
   outlierRatio = 0.001, col = brewer.pal(3, "Dark2")[c(1, 2)],
   yadjust = c(1.2, 1.2), labLine = c(3.5, 3),
-  ylab = "#Aberrantly expressed genes", labCex = par()$cex, ...)
+  ylab = "#Aberrantly expressed genes", labCex = par()$cex, ymax = NULL,
+  ...)
 
 plotFPKM(ods)
 

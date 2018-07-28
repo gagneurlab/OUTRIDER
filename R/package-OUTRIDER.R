@@ -18,6 +18,7 @@
 #'          DESeqDataSetFromMatrix DESeqDataSet
 #'          makeExampleDESeqDataSet show fpkm fpm
 #'          estimateSizeFactorsForMatrix replaceOutliers
+#'          dispersions
 #' 
 #' @importFrom SummarizedExperiment colData colData<- assays assays<-
 #'          assayNames mcols mcols<- assay assay<-

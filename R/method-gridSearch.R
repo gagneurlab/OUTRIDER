@@ -78,7 +78,9 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
 }
 
 #'
-#'
+#' TODO
+#' 
+#' @export
 findInjectZscore <- function(ods, freq=1E-2,
                     zScoreParams=c(seq(1.5, 4, 0.5), 'lnorm'),
                     encDimParams=c(seq(3, 40, 3), seq(45,70, 5), 100, 130, 160),

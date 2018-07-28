@@ -5,7 +5,8 @@
 \title{Autoencoder function to correct for confounders.}
 \usage{
 autoCorrect(ods, q, theta = 25, implementation = c("R", "python", "PEER",
-  "robustR", "cooksR", "robustRM1", "robustRTheta", "PEER_residual"),
+  "robustR", "cooksR", "robustRM1", "robustRTheta", "PEER_residual", "pca",
+  "robustTheta", "debug", "mask25", "RobTheta200", "RobNoFTheta200"),
   BPPARAM = bpparam(), ...)
 }
 \arguments{

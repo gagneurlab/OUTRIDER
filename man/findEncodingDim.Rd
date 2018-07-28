@@ -5,7 +5,7 @@
 \title{Find the optimal encoding dimension}
 \usage{
 findEncodingDim(ods, params = seq(5, min(30, ncol(ods), nrow(ods)), 2),
-  freq = 0.01, zScore = 3, logsd = log(3), lnorm = FALSE,
+  freq = 0.01, zScore = 3, logsd = log(1.6), lnorm = FALSE,
   inj = "both", evalAucPRLoss = TRUE, ..., BPPARAM = bpparam())
 }
 \arguments{

@@ -28,11 +28,11 @@ replaceCounts <- function(k, mu, cooks, q, timMean=0.2, ...){
     return(list(kReplaced=k, index=idx))
 }
 
-#' 
+#'
 #' Cooks distance for OUTRIDER
 #' Some implementation hints: 
 #' \url{http://de.mathworks.com/help/stats/cooks-distance.html}
-#' \url{https://en.wikipedia.org/wiki/Cook%27s_distance}
+#' \url{https://en.wikipedia.org/wiki/Cook\%27s_distance}
 #' 
 #' @noRd
 cooksDistance <- function(k, mu, q, timMean=0.2){
@@ -61,7 +61,8 @@ cooksDistance <- function(k, mu, q, timMean=0.2){
     return(cooksD)
 }
 
-#'
+
+#' 
 #' Method of moments for dispersion calculations
 #' 
 #' Have a look for more details at 
