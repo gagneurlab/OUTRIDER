@@ -108,16 +108,16 @@ autoCorrect <- function(ods, q, theta=25,
         },
         mask25 = {
             impl <- 'maskOutlier25'
-            ans <- autoCorrectRCooksMaskDebug(ods, q=5)
+            ans <- autoCorrectRCooksMaskDebug(ods, q=q)
         },
         RobTheta200 = {
             impl <- 'robust theta 200'
-            ans <- autoCorrectRCooksIter2Debug(ods, q=5, robust='iterative', 
-                    modelTheta=TRUE, initTheta=200)
+            ans <- autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', 
+                    modelTheta=TRUE, initTheta=200, internIter=100)
         },
         RobNoFTheta200 = {
             impl <- 'robust theta 200 no first'
-            ans <- autoCorrectRCooksIter2Debug(ods, q=5, robust='iterative', 
+            ans <- autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', 
                     noFirst=TRUE, internIter=100, modelTheta=TRUE, 
                     initTheta=200)
         },
