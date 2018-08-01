@@ -539,7 +539,8 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, returnM
                 were set to 1E8')
     }
     
-    ans <- list(cts=kReplaced, mask=kReplaced!=t(k), theta=1/dispersions(dds))
+    ans <- list(cts=kReplaced, mask=kReplaced!=t(k), theta=1/dispersions(dds),
+            dds=dds)
     message("Identified ", sum(ans$mask), " outliers with Cooks.")
     
     # add OUTRIDER theta if requested
@@ -548,6 +549,7 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, returnM
         normalizationFactors(odsr) <- mu
         odsr <- fit(odsr)
         ans[['theta']] <- mcols(odsr)[['disp']]
+        ans[['ods']] <- odsr
     }
     
     return(ans)

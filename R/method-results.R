@@ -49,26 +49,26 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
     featureDTs <- append(featureDTs, list(
             rawcounts=countdataDF, normcounts=countNormDF, aberrant=aberrantDF))
     
-    featureMeltDTs <- lapply(names(featureDTs), function(n){
-        featureDTs[[n]] %>% melt(id.vars="geneID", value.name=n,
-                measure.vars=2:(dim(object)[2]+1), variable.name="sampleID")})
+    featureMeltDTs <- bplapply(names(featureDTs), dt=featureDTs, 
+            mv=seq_len(ncol(object)) + 1,
+            FUN=function(n, dt, mv){
+                dt[[n]] %>% melt(id.vars="geneID", value.name=n,
+                        measure.vars=mv, variable.name="sampleID")})
     
     tidyresults <- Reduce(x=featureMeltDTs, f=function(x, y){
         merge(x, y, by=c("geneID", "sampleID")) })
     
+    # merge by geneID
     tidyresults <- merge(tidyresults, DTfitparameters, by=c('geneID'))
-    
     tidyresults <- merge(tidyresults, data.table(geneID=rownames(object), 
             meanCorrected=rowMeans(counts(object, normalized=TRUE))), 
+            AberrantByGene=aberrant(object, by='gene'), 
             by=c('geneID'))
     
+    # merge by sampleID
     tidyresults <- merge(tidyresults, data.table(sampleID=colnames(object), 
             AberrantBySample=aberrant(object, by='sample')), 
             by=c('sampleID'))
-    
-    tidyresults <- merge(tidyresults, data.table(geneID=rownames(object), 
-            AberrantByGene=aberrant(object, by='gene')), 
-            by=c('geneID'))
     
     if(isFALSE(all)){
         tidyresults <- tidyresults[aberrant == TRUE]
