@@ -6,7 +6,7 @@ replaceOutliersCooksOutrider <- function(k, mu, q, theta=FALSE,
     return(list(kReplaced=ans$kReplaced, replacedIndex=ans$index))
 }
 
-replaceCounts <- function(k, mu, cooks, q, timMean=0.2, ...){
+replaceCounts <- function(k, mu, cooks, q, trimMean=0.2, ...){
     
     normFactors <- estimateSizeFactorsForMatrix(t(k))
     if(!missing(mu)){
@@ -15,7 +15,7 @@ replaceCounts <- function(k, mu, cooks, q, timMean=0.2, ...){
     
     # get corrected mean
     ncts <- k/normFactors
-    globmean <- apply(ncts, 2, mean, trim=timMean)
+    globmean <- apply(ncts, 2, mean, trim=trimMean)
     globmean <- matrix(globmean, ncol=ncol(ncts), nrow=nrow(ncts), byrow=TRUE)
     muCorrected <- globmean * normFactors
     
@@ -35,13 +35,13 @@ replaceCounts <- function(k, mu, cooks, q, timMean=0.2, ...){
 #' \url{https://en.wikipedia.org/wiki/Cook\%27s_distance}
 #' 
 #' @noRd
-cooksDistance <- function(k, mu, q, timMean=0.2){
+cooksDistance <- function(k, mu, q, trimMean=0.2){
     k <- t(k)
     
     # estimate mu if not present
     if(missing(mu)){
         ncts <- t(t(k)/estimateSizeFactorsForMatrix(k))
-        timmedMeans <- apply(ncts, 1, mean, trim=trimMean)
+        trimmedMeans <- apply(ncts, 1, mean, trim=trimMean)
         mu <- matrix(trimmedMeans, ncol=ncol(ncts), nrow=nrow(ncts))
     } else {
         mu <- t(mu)
