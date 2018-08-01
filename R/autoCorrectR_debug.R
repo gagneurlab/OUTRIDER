@@ -49,6 +49,7 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
     
+    rep_k <- NULL
     k_no <- k
     
     if(robust != 'none' & isFALSE(noFirst)){
@@ -88,13 +89,13 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
         }
         
         if(robust == 'iterative' || robust == 'once' & i == 1){
-            k_no <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), 
+            rep_k <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), 
                     BPPARAM=BPPARAM, theta=modelTheta)
             if(isTRUE(modelTheta)){
-                theta <- k_no[['theta']]
-                k_no <- k_no[['cts']]
+                theta <- rep_k[['theta']]
+                k_no <- rep_k[['cts']]
             } else {
-                k_no <- k_no[['cts']]
+                k_no <- rep_k[['cts']]
             }
         } else if(robust == 'once'){
             k_no <- k_no
@@ -117,11 +118,21 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
             warning(paste0("Fit didn't converge with warning: ", fit$message))
         }
         
+        repdds <- repods <- NULL 
+        if('dds' %in% names(rep_k)){
+            repdds <- rep_k$dds
+        }
+        if('ods' %in% names(rep_k)){
+            repods <- rep_k$ods
+        }
+        
         metadata(ods)[[paste0('iter_', i)]] <- list(
             w = w_fit,
             loss = myLoss(w_fit, k_no, x, s, xbar, theta),
             lossGrad = myLossGrad(w_fit, k_no, x, s, xbar, theta),
-            fit=fit
+            fit=fit,
+            dds=repdds,
+            ods=repods
         )
     }
     w_fit <- fit$par

@@ -20,6 +20,7 @@ padj <- function(ods){
     assay(ods, 'padjust')
 }
 
+#' @export dispersions
 setMethod("dispersions", signature(object="OutriderDataSet"), function(object, ...){
     mcols(object)[['disp']]
 })
