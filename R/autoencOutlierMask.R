@@ -120,7 +120,7 @@ lossNonOutlier <- function(w, k, x, s, xbar, theta, outlier){
     y_exp <- s*exp(y)
     
     ## log likelihood 
-    ll <- dnbinom(k, mu=y_exp, size=theta, log=TRUE)
+    ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
     - sum( ll[!outlier] )
 }
 
@@ -131,6 +131,7 @@ lossGradNonOutlier <- function(w, k, x, s, xbar, theta, outlier){
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,1:ncol(W)-1]
+    theta <- matrix(theta, ncol=ncol(k), nrow=nrow(k), byrow=TRUE)
     
     # dW:
     y <- t(t(x%*%W %*% t(W)) + xbar + b)

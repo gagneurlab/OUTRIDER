@@ -415,7 +415,7 @@ loss2 <- function(w, k, x, s, xbar, theta, ...){
     y_exp <- s*exp(y)
     
     ## log likelihood 
-    ll <- dnbinom(k, mu= y_exp, size=theta, log=TRUE)
+    ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
     - mean( ll )
 }
 
@@ -424,6 +424,7 @@ lossGrad2 <- function(w, k, x, s, xbar, theta, ...){
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,1:ncol(W)-1]
+    theta <- matrix(theta, ncol=ncol(k), nrow=nrow(k), byrow=TRUE)
     
     # dW:
     t1 <- t(x) %*% (k %*% W)
@@ -446,66 +447,6 @@ lossGrad2 <- function(w, k, x, s, xbar, theta, ...){
     return(c(dw, db))
 }
 
-loss3 <- function(w, k, x, s, xbar, theta){
-    ## log, size factored, and centered counts 
-    #x <-  t(t(log((1+k)/s)) - xbar)
-    ## encoding 
-    W <- matrix(w, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
-    
-    y <- t(t(x%*%W %*% t(W)) + xbar + b)
-    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
-    y_exp <- s*exp(y) -1
-    
-    ## log likelihood 
-    ll <- dnbinom(k, mu= pmax(1E-10,y_exp), size=theta, log=TRUE)
-    - mean( ll )
-}
-
-
-
-
-lossGrad3 <- function(w, k, x, s, xbar, theta){
-    W <- matrix(w, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
-    
-    # dW:
-    y <- t(t(x%*%W %*% t(W)) + xbar + b)
-    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
-    y_exp <- s*exp(y)
-    
-    k1 <- k*y_exp /pmax(y_exp-1,1E-10)
-    k1[which(y_exp-1<1E-10)] <- 0 
-    t1 <- t(x) %*% (k1 %*% W)
-    #t1 <- armaMatMultAtBC(x, k, W)
-    t2 <- t(k1) %*% (x %*% W)
-    #t2 <- armaMatMultAtBC(k, x, W)
-    
-    #kt <- (k + theta)*(y_exp)/(y_exp - 1 + theta)
-    kt <- (k + theta)*(y_exp)/(pmax(y_exp-1,1E-10) + theta)
-    kt[which(y_exp-1<1E-10)] <- 0 
-    t3 <- t(x) %*% (kt %*% W)
-    #t3 <- armaMatMultAtBC(x, kt, W)
-    t4 <- t(kt) %*% (x %*% W)
-    #t4 <- armaMatMultAtBC(kt, x, W)
-    dw <- (-t1 - t2 + t3 + t4)/prod(dim(k))
-    
-    #db:
-    db <- colSums(kt-k1)/prod(dim(k))
-    
-    return(c(dw, db))
-}
-
-predictC3 <- function(w, k, s, xbar){
-    x <-  t(t(log((1+k)/s)) - xbar)
-    b <- getBias(w, ncol(k))
-    W <- getWeights(w, ncol(k))
-    
-    y <- t(t(x%*%W %*% t(W)) +b + xbar)
-    s*exp(y)
-}
 
 replaceOutliersCooks <- function(k, mu, q, thetaOUTRIDER=TRUE, useDESeq=TRUE,
                     BPPARAM=bpparam()){
