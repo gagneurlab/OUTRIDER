@@ -29,42 +29,35 @@ getAEData <- function(ods, w, replace=FALSE, BPPARAM=SerialParam()){
 
 autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
                     robust=c('once', 'iterative', 'none'), pcaOnly=FALSE,
-                    internIter=10, noFirst=FALSE,
-                    control=list(), BPPARAM=bpparam(), ...){
+                    thetaMean=FALSE,
+                    internIter=10, loops=10, debug=TRUE, trim=0, useDESeq=TRUE,
+                    mask=FALSE, control=list(), BPPARAM=bpparam(), ...){
+    # set defaults
     robust <- match.arg(robust)
-    
+    curMask <- FALSE
+    theta <- initTheta
+    myLoss <- loss2
+    myLossGrad <- lossGrad2
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
     }
     
-    myLoss <- loss
-    myLossGrad <- lossGrad
-    theta <- initTheta
-    if(isTRUE(modelTheta)){
-        myLoss <- loss2
-        myLossGrad <- lossGrad2
+    if(isScalarNumeric(theta)){
         theta <- rep(initTheta, nrow(ods))
+    }
+    if(isTRUE(mask)){
+        myLoss <- lossNonOutlier
+        myLossGrad <- lossGradNonOutlier
     }
     
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
-    
-    rep_k <- NULL
     k_no <- k
-    
-    if(robust != 'none' & isFALSE(noFirst)){
-        k_no <-replaceOutliersCooks(k_no, BPPARAM=BPPARAM)
-        if(isTRUE(modelTheta)){
-            theta <- k_no[['theta']]
-            k_no  <- k_no[['cts']]
-        } else {
-            k_no  <- k_no[['cts']]
-        }
-    }
+    rep_k <- NULL
     
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
-    xbar <- colMeans(x0)
+    xbar <- apply(x0, 2, mean, trim=trim)
     x <- t(t(x0) - xbar)
     
     
@@ -72,46 +65,51 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
     pca <- pca(x, nPcs = q) 
     pc  <- loadings(pca)
     w_guess <- c(as.vector(pc), numeric(ncol(k)))
+    
     # check initial loss
-    print(
-        paste0(date(), ': Initial PCA loss: ',
-               myLoss(w_guess, k, x, s, xbar, theta))
+    print(paste0(date(), ': Initial PCA loss: ',
+            myLoss(w_guess, k, x, s, xbar, theta, outlier=curMask))
     )
     
     # optimize log likelihood
     t <- Sys.time()
     
     w_fit <- w_guess
-    for(i in 1:10){
+    for(i in seq_len(loops)){
         if(isTRUE(pcaOnly)){
             fit <- list(par=w_fit)
             break
         }
         
         if(robust == 'iterative' || robust == 'once' & i == 1){
-            rep_k <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), 
-                    BPPARAM=BPPARAM, theta=modelTheta)
+            rep_k <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), q=q,
+                    BPPARAM=BPPARAM, theta=modelTheta, useDESeq=useDESeq)
+            
             if(isTRUE(modelTheta)){
-                theta <- rep_k[['theta']]
-                k_no <- rep_k[['cts']]
+                if(isTRUE(thetaMean)){
+                    theta <- (theta + rep_k[['theta']])/2
+                } else {
+                    theta <- rep_k[['theta']]
+                }
+                k_no  <- rep_k[['cts']]
             } else {
                 k_no <- rep_k[['cts']]
             }
-        } else if(robust == 'once'){
-            k_no <- k_no
-        } else {
-            k_no <- k
+            if(isTRUE(mask)){
+                curMask <- rep_k$mask
+            }
         }
         
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)
         
         control$maxit <- internIter
-        fit <- autoCorrectFit(w_fit, loss=myLoss, lossGrad=myLossGrad, k_no, x, s, xbar, theta, 
-                              control, ...)
+        fit <- autoCorrectFit(w_fit, loss=myLoss, lossGrad=myLossGrad, 
+                k_no, x, s, xbar, theta, outlier=curMask, control, ...)
         
         w_fit <- fit$par
-        message(date(), ': Iteration ', i, ' loss: ', myLoss(w_fit, k_no, x, s, xbar, theta))
+        message(date(), ': Iteration ', i, ' loss: ', 
+                myLoss(w_fit, k_no, x, s, xbar, theta, outlier=curMask))
         
         #Check that fit converged
         if(fit$convergence!=0){
@@ -126,20 +124,24 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
             repods <- rep_k$ods
         }
         
-        metadata(ods)[[paste0('iter_', i)]] <- list(
-            w = w_fit,
-            loss = myLoss(w_fit, k_no, x, s, xbar, theta),
-            lossGrad = myLossGrad(w_fit, k_no, x, s, xbar, theta),
-            fit=fit,
-            dds=repdds,
-            ods=repods
-        )
+        if(isTRUE(debug)){
+            metadata(ods)[[paste0('iter_', i)]] <- list(
+                w = w_fit,
+                loss = myLoss(w_fit, k_no, x, s, xbar, theta, outlier=curMask),
+                lossGrad = myLossGrad(w_fit, k_no, x, s, xbar, theta, outlier=curMask),
+                fit=fit,
+                dds=repdds,
+                ods=repods
+            )
+        }
+        
+        gc()
     }
     w_fit <- fit$par
     print(Sys.time() - t)
     print(
         paste0('nb-PCA loss: ',
-               myLoss(w_fit,k, x, s,xbar, theta))
+               myLoss(w_fit,k, x, s,xbar, theta, outlier=curMask))
     )
     
     correctionFactors <- t(predictC(w_fit, k, s, xbar))

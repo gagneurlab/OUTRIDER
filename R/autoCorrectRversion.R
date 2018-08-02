@@ -98,27 +98,27 @@ autoCorrect <- function(ods, q, theta=25,
         },
         debug = {
             impl <- "autoCorrect debug"
-            ans <- autoCorrectRCooksIter2Debug(ods, q, theta, ...)
+            ans <- autoCorrectRCooksIter2Debug(ods, q, theta, debug=FALSE, ...)
         },
         robustTheta = {
             impl <- 'robustTheta'
             ans <- autoCorrectRCooksIter2Debug(ods, q, robust='iterative',
-                    noFirst=TRUE, internIter=100, modelTheta=TRUE, 
+                    noFirst=TRUE, internIter=100, modelTheta=TRUE, debug=FALSE, 
                     initTheta=200)
         },
         mask25 = {
             impl <- 'maskOutlier25'
-            ans <- autoCorrectRCooksMaskDebug(ods, q=q)
+            ans <- autoCorrectRCooksMaskDebug(ods, q=q, debug=FALSE)
         },
         RobTheta200 = {
             impl <- 'robust theta 200'
             ans <- autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', 
-                    modelTheta=TRUE, initTheta=200, internIter=100)
+                    modelTheta=TRUE, initTheta=200, internIter=100, debug=FALSE)
         },
         RobNoFTheta200 = {
             impl <- 'robust theta 200 no first'
             ans <- autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', 
-                    noFirst=TRUE, internIter=100, modelTheta=TRUE, 
+                    noFirst=TRUE, internIter=100, modelTheta=TRUE, debug=FALSE,
                     initTheta=200)
         },
         stop("Requested autoCorrect implementation is unknown.")
@@ -275,7 +275,7 @@ computeLatentSpace <- function(ods){
 #'
 #' @return Returns the negative log likelihood of the negative binomial 
 #' @noRd
-loss <- function(w, k, x, s, xbar, theta){
+loss <- function(w, k, x, s, xbar, theta, ...){
     b <- getBias(w, ncol(k))
     W <- getWeights(w, ncol(k))
     
@@ -295,7 +295,7 @@ loss <- function(w, k, x, s, xbar, theta){
 #'
 #' @return returns the gradient of the loss function.
 #' @noRd
-lossGrad <- function(w, k, x, s, xbar, theta){
+lossGrad <- function(w, k, x, s, xbar, theta, ...){
     b <- getBias(w, ncol(k))
     W <- getWeights(w, ncol(k))
     
@@ -402,7 +402,7 @@ autoCorrectR2 <- function(ods, q, theta=25, control=list(), ...){
 }
 
 
-loss2 <- function(w, k, x, s, xbar, theta){
+loss2 <- function(w, k, x, s, xbar, theta, ...){
     ## log, size factored, and centered counts 
     #x <-  t(t(log((1+k)/s)) - xbar)
     ## encoding 
@@ -420,9 +420,7 @@ loss2 <- function(w, k, x, s, xbar, theta){
 }
 
 
-
-
-lossGrad2 <- function(w, k, x, s, xbar, theta){
+lossGrad2 <- function(w, k, x, s, xbar, theta, ...){
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,1:ncol(W)-1]
@@ -509,8 +507,11 @@ predictC3 <- function(w, k, s, xbar){
     s*exp(y)
 }
 
-replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, returnMaskOnly=FALSE,
+replaceOutliersCooks <- function(k, mu, q, thetaOUTRIDER=TRUE, useDESeq=TRUE,
                     BPPARAM=bpparam()){
+    if(missing(q) & isFALSE(useDESeq)){
+        stop('This combination is not possible. Please provide a correct q.')
+    }
     k <- t(k)
     dds <- DESeqDataSetFromMatrix(countData=k, design=~1, 
             colData=DataFrame(seq_len(ncol(k))))
@@ -525,14 +526,19 @@ replaceOutliersCooks <- function(k, mu, theta=FALSE, thetaOUTRIDER=TRUE, returnM
         normalizationFactors(dds)  <- normFactors
     }
     
-    dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
-            quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
-            betaPrior=FALSE, BPPARAM=BPPARAM)
-    dds <- replaceOutliers(dds)
+    if(isTRUE(useDESeq)){
+        dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
+                quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
+                betaPrior=FALSE, BPPARAM=BPPARAM)
+        dds <- replaceOutliers(dds)
+        kReplaced <- t(counts(dds))
+    } else {
+        rep_k <- replaceOutliersCooksOutrider(t(k), t(mu), q, 0.2)
+        kReplaced <- rep_k$kReplaced
+    }
 
     
-    kReplaced <- t(counts(dds))
-    if(any(kReplaced > .Machine$integer.max)| any(is.na(kReplaced))){
+    if(any(kReplaced > .Machine$integer.max) | any(is.na(kReplaced))){
         kReplaced[kReplaced > .Machine$integer.max] <- 1E8
         kReplaced[is.na(kReplaced)] <- 1E8
         warning('Replaced counts larger than kReplaced > .Machine$integer.max
@@ -716,7 +722,7 @@ autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(),
     
     
     rep_k <- replaceOutliersCooksOutrider(k, q=0, BPPARAM=BPPARAM, ...)
-    k_no <- rep_k$cts
+    k_no <- rep_k$kReplaced
     
     # compute log of per gene centered counts 
     x0 <- log((1+k_no)/s)
@@ -742,7 +748,7 @@ autoCorrectRCooksIter3 <- function(ods, q, theta=25, control=list(),
         
         rep_k <- replaceOutliersCooksOutrider(k,predictC(w_fit, k, s, xbar), q, 
                 BPPARAM=BPPARAM, ...)
-        k_no <- rep_k$cts
+        k_no <- rep_k$kReplaced
         
         x0 <- log((1+k_no)/s)
         x <- t(t(x0) - xbar)

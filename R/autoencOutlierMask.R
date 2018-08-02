@@ -1,5 +1,5 @@
 autoCorrectRCooksMaskDebug <- function(ods, q, initTheta=25, modelTheta=FALSE, robust=FALSE, trim=FALSE,
-                                        control=list(), BPPARAM=bpparam(), ...){
+                    debug=TRUE, control=list(), BPPARAM=bpparam(), ...){
     
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
@@ -67,8 +67,8 @@ autoCorrectRCooksMaskDebug <- function(ods, q, initTheta=25, modelTheta=FALSE, r
         outlierMask <- rep_k$mask
         
         control$maxit <- 10
-        fit <- autoCorrectFit(w_fit, loss=myLoss, lossGrad=myLossGrad, k_no, x, s, xbar, theta, outlier=outlierMask,
-                              control, ...)
+        fit <- autoCorrectFit(w_fit, loss=myLoss, lossGrad=myLossGrad, 
+                k_no, x, s, xbar, theta, outlier=outlierMask, control, ...)
         
         w_fit <- fit$par
         message(date(), ': Iteration ', i, ' loss: ', myLoss(w_fit, k_no, x, s, xbar, theta, outlier=outlierMask))
@@ -78,12 +78,15 @@ autoCorrectRCooksMaskDebug <- function(ods, q, initTheta=25, modelTheta=FALSE, r
             warning(paste0("Fit didn't converge with warning: ", fit$message))
         }
         
-        metadata(ods)[[paste0('iter_', i)]] <- list(
-            w = w_fit,
-            loss = myLoss(w_fit, k_no, x, s, xbar, theta, outlier=outlierMask),
-            lossGrad = myLossGrad(w_fit, k_no, x, s, xbar, theta, outlier=outlierMask),
-            fit=fit
-        )
+        if(isTRUE(debug)){
+            metadata(ods)[[paste0('iter_', i)]] <- list(
+                w = w_fit,
+                loss = myLoss(w_fit, k_no, x, s, xbar, theta, outlier=outlierMask),
+                lossGrad = myLossGrad(w_fit, k_no, x, s, xbar, theta, outlier=outlierMask),
+                fit=fit
+            )
+        }
+        gc()
     }
     w_fit <- fit$par
     print(Sys.time() - t)
@@ -137,7 +140,7 @@ lossGradNonOutlier <- function(w, k, x, s, xbar, theta, outlier){
     k1 <- k
     k1[outlier] <- 0 
     t1 <- t(x) %*% (k1 %*% W)
-
+    
     t2 <- t(k1) %*% (x %*% W)
     kt <- (k + theta)*(y_exp)/(y_exp + theta)
     #kt <- (k + theta)*(y_exp)/(pmax(y_exp-1,1E-10) + theta)
