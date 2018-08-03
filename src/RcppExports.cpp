@@ -7,7 +7,7 @@
 using namespace Rcpp;
 
 // truncLogLiklihood
-SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta);
+SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta);
 RcppExport SEXP _OUTRIDER_truncLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -16,13 +16,29 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
     rcpp_result_gen = Rcpp::wrap(truncLogLiklihood(k, x, W, b, s, theta));
     return rcpp_result_gen;
 END_RCPP
 }
+// truncLogLiklihoodNonOutlier
+SEXP truncLogLiklihoodNonOutlier(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta, arma::mat outlier);
+RcppExport SEXP _OUTRIDER_truncLogLiklihoodNonOutlier(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP, SEXP outlierSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type outlier(outlierSEXP);
+    rcpp_result_gen = Rcpp::wrap(truncLogLiklihoodNonOutlier(k, x, W, b, s, theta, outlier));
+    return rcpp_result_gen;
+END_RCPP
+}
 // gradLogLiklihood
-SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta);
+SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta);
 RcppExport SEXP _OUTRIDER_gradLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -31,27 +47,33 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
     rcpp_result_gen = Rcpp::wrap(gradLogLiklihood(k, x, W, b, s, theta));
     return rcpp_result_gen;
 END_RCPP
 }
-// leverageCalc
-SEXP leverageCalc(arma::mat X);
-RcppExport SEXP _OUTRIDER_leverageCalc(SEXP XSEXP) {
+// gradLogLiklihoodNonOutlier
+SEXP gradLogLiklihoodNonOutlier(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta, arma::mat outlier);
+RcppExport SEXP _OUTRIDER_gradLogLiklihoodNonOutlier(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP, SEXP outlierSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(leverageCalc(X));
+    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type outlier(outlierSEXP);
+    rcpp_result_gen = Rcpp::wrap(gradLogLiklihoodNonOutlier(k, x, W, b, s, theta, outlier));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_OUTRIDER_truncLogLiklihood", (DL_FUNC) &_OUTRIDER_truncLogLiklihood, 6},
+    {"_OUTRIDER_truncLogLiklihoodNonOutlier", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodNonOutlier, 7},
     {"_OUTRIDER_gradLogLiklihood", (DL_FUNC) &_OUTRIDER_gradLogLiklihood, 6},
-    {"_OUTRIDER_leverageCalc", (DL_FUNC) &_OUTRIDER_leverageCalc, 1},
+    {"_OUTRIDER_gradLogLiklihoodNonOutlier", (DL_FUNC) &_OUTRIDER_gradLogLiklihoodNonOutlier, 7},
     {NULL, NULL, 0}
 };
 

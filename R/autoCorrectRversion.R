@@ -283,6 +283,10 @@ loss <- function(w, k, x, s, xbar, theta, ...){
     b <- getBias(w, ncol(k))
     W <- getWeights(w, ncol(k))
     
+    if(isScalarNumeric(theta)){
+        theta <- rep(theta, ncol(k))
+    }
+    
     b <- b + xbar
     truncLogLiklihood(k, x, W, b, s, theta)
 }
@@ -302,6 +306,10 @@ loss <- function(w, k, x, s, xbar, theta, ...){
 lossGrad <- function(w, k, x, s, xbar, theta, ...){
     b <- getBias(w, ncol(k))
     W <- getWeights(w, ncol(k))
+    
+    if(isScalarNumeric(theta)){
+        theta <- rep(theta, ncol(k))
+    }
     
     b <- b + xbar
     gradLogLiklihood(k, x, W, b, s, theta)

@@ -5,11 +5,15 @@ truncLogLiklihood <- function(k, x, W, b, s, theta) {
     .Call('_OUTRIDER_truncLogLiklihood', PACKAGE = 'OUTRIDER', k, x, W, b, s, theta)
 }
 
+truncLogLiklihoodNonOutlier <- function(k, x, W, b, s, theta, outlier) {
+    .Call('_OUTRIDER_truncLogLiklihoodNonOutlier', PACKAGE = 'OUTRIDER', k, x, W, b, s, theta, outlier)
+}
+
 gradLogLiklihood <- function(k, x, W, b, s, theta) {
     .Call('_OUTRIDER_gradLogLiklihood', PACKAGE = 'OUTRIDER', k, x, W, b, s, theta)
 }
 
-leverageCalc <- function(X) {
-    .Call('_OUTRIDER_leverageCalc', PACKAGE = 'OUTRIDER', X)
+gradLogLiklihoodNonOutlier <- function(k, x, W, b, s, theta, outlier) {
+    .Call('_OUTRIDER_gradLogLiklihoodNonOutlier', PACKAGE = 'OUTRIDER', k, x, W, b, s, theta, outlier)
 }
 

@@ -121,7 +121,7 @@ lossNonOutlier <- function(w, k, x, s, xbar, theta, outlier){
     
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
-    - sum( ll[!outlier] )
+    - sum( ll[!outlier] )/sum(!outlier)
 }
 
 
@@ -150,10 +150,56 @@ lossGradNonOutlier <- function(w, k, x, s, xbar, theta, outlier){
     #t3 <- armaMatMultAtBC(x, kt, W)
     t4 <- t(kt) %*% (x %*% W)
     #t4 <- armaMatMultAtBC(kt, x, W)
-    dw <- (-t1 - t2 + t3 + t4)#/prod(dim(k))
+    dw <- (-t1 - t2 + t3 + t4)/sum(!outlier)
     
     #db:
-    db <- colSums(kt-k1)#/prod(dim(k))
+    db <- colSums(kt-k1)/sum(!outlier)
     
     return(c(dw, db))
+}
+
+
+#' loss function
+#'
+#' @param w weight matrix 
+#' @param k counts
+#' @param x log-centered counts
+#' @param s size factors
+#' @param xbar offset 
+#' @param theta value used in the likelihood (default=25).
+#'
+#' @return Returns the negative log likelihood of the negative binomial 
+#' @noRd
+lossNonOutlierC <- function(w, k, x, s, xbar, theta, outlier){
+    b <- getBias(w, ncol(k))
+    W <- getWeights(w, ncol(k))
+    
+    NonOut <- matrix(numeric(prod(dim(k))), ncol = ncol(k), nrow = nrow(k))
+    NonOut[!outlier] <- 1 
+    
+    b <- b + xbar
+    truncLogLiklihoodNonOutlier(k, x, W, b, s, theta, NonOut)
+}
+
+
+#' gradient of loss function
+#'
+#' @param w weight matrix 
+#' @param k counts
+#' @param x log-centered counts
+#' @param s size factors
+#' @param xbar offset 
+#' @param theta value used in the likelihood (default=25).
+#'
+#' @return returns the gradient of the loss function.
+#' @noRd
+lossGradNonOutlierC <- function(w, k, x, s, xbar, theta, outlier){
+    b <- getBias(w, ncol(k))
+    W <- getWeights(w, ncol(k))
+    
+    NonOut <- matrix(numeric(prod(dim(k))), ncol = ncol(k), nrow = nrow(k))
+    NonOut[!outlier] <- 1                 
+    
+    b <- b + xbar
+    gradLogLiklihoodNonOutlier(k, x, W, b, s, theta, NonOut)
 }

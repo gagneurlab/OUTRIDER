@@ -36,7 +36,8 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
                     robust=c('once', 'iterative', 'none'), pcaOnly=FALSE,
                     modelTheta=c('no', 'fit', 'mean', 'fade', 'fadeM1', 'trimmed'),
                     internIter=10, loops=10, debug=TRUE, trim=0, useDESeq=TRUE,
-                    mask=FALSE, control=list(), BPPARAM=bpparam(), ...){
+                    mask=FALSE, control=list(), cLoss = TRUE, BPPARAM=bpparam(),
+                    ...){
     # set defaults
     robust <- match.arg(robust)
     curMask <- FALSE
@@ -53,6 +54,10 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
     if(isTRUE(mask)){
         myLoss <- lossNonOutlier
         myLossGrad <- lossGradNonOutlier
+        if(isTRUE(cLoss)){
+            myLoss <- lossNonOutlierC
+            myLossGrad <- lossGradNonOutlierC
+        }
     }
     
     k <- t(counts(ods, normalized=FALSE))
@@ -94,6 +99,7 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
             k_no <- rep_k[['cts']]
             if(modelTheta != 'no'){
                 theta <- getModeledTheta(modelTheta, rep_k[['theta']], theta, k=k, mu=mu, i, loops)
+                message(summary(theta))
             }
             if(isTRUE(mask)){
                 curMask <- rep_k$mask
