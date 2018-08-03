@@ -33,7 +33,7 @@ double computeLoss(arma::mat k, arma::mat y, arma::vec s, arma::vec theta){
     y.each_col() += logs;
 
     double m1=-arma::accu(k % y);
-    double m2= arma::accu((k.each_row() + theta) % arma::log(sexpy.each_row() + theta));
+    double m2= arma::accu((k.each_row() + theta.t()) % arma::log(sexpy.each_row() + theta.t()));
     return(m1+m2);
 }
 
@@ -41,7 +41,7 @@ double computeLoss(arma::mat k, arma::mat y, arma::vec s, arma::vec theta){
 arma::mat computeKT(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta){
     arma::mat y = predict(x, W, b);
     arma::mat sexpy = sexpyfun(y, s);
-    arma::mat kt = (k.each_row() + theta)%sexpy/(sexpy.each_row() + theta);
+    arma::mat kt = (k.each_row() + theta.t())%sexpy/(sexpy.each_row() + theta.t());
     return(kt);
 }
 
