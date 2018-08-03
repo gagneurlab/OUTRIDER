@@ -37,7 +37,7 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
                     modelTheta=c('no', 'fit', 'mean', 'fade', 'fadeM1', 'trimmed'),
                     internIter=10, loops=10, debug=TRUE, trim=0, useDESeq=TRUE,
                     mask=FALSE, control=list(), cLoss = TRUE, BPPARAM=bpparam(),
-                    ...){
+                    ThetaCooks=FALSE, ...){
     # set defaults
     robust <- match.arg(robust)
     curMask <- FALSE
@@ -94,7 +94,8 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
         if(robust == 'iterative' || robust == 'once' & i == 1){
             mu <- predictC(w_fit, k, s, xbar)
             rep_k <-replaceOutliersCooks(k, mu, q=q,
-                    BPPARAM=BPPARAM, theta=modelTheta != 'no', useDESeq=useDESeq)
+                    BPPARAM=BPPARAM, theta=modelTheta != 'no', useDESeq=useDESeq,
+                    ThetaCooks=ThetaCooks)
             
             k_no <- rep_k[['cts']]
             if(modelTheta != 'no'){

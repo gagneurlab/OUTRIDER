@@ -461,7 +461,7 @@ lossGrad2 <- function(w, k, x, s, xbar, theta, ...){
 
 
 replaceOutliersCooks <- function(k, mu, q, thetaOUTRIDER=TRUE, useDESeq=TRUE,
-                    BPPARAM=bpparam()){
+                    BPPARAM=bpparam(), ThetaCooks=FALSE){
     if(missing(q) & isFALSE(useDESeq)){
         stop('This combination is not possible. Please provide a correct q.')
     }
@@ -504,7 +504,12 @@ replaceOutliersCooks <- function(k, mu, q, thetaOUTRIDER=TRUE, useDESeq=TRUE,
     
     # add OUTRIDER theta if requested
     if(isTRUE(thetaOUTRIDER)){
-        odsr <- estimateThetaFromCounts(k, mu)
+        if(isTRUE(ThetaCooks)){
+            mask <- ans$mask
+        }else{
+            mask <- NULL
+        }
+        odsr <- estimateThetaFromCounts(k, mu, mask)
         ans[['theta']] <- dispersions(odsr)
         ans[['ods']] <- odsr
     }

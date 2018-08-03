@@ -97,7 +97,7 @@ robustMethodOfMomentsDispersion <- function(k, mu){
 }
 
 
-estimateThetaFromCounts <- function(k, mu){
+estimateThetaFromCounts <- function(k, mu, mask){
     ods <- OutriderDataSet(countData=k)
     ods <- estimateSizeFactors(ods)
     if(missing(mu)){
@@ -105,7 +105,7 @@ estimateThetaFromCounts <- function(k, mu){
                 nrow=nrow(ods), ncol=ncol(ods))
     }
     normalizationFactors(ods) <- mu
-    ods <- fit(ods)
+    ods <- fit(ods, excludeMask=mask)
     return(ods)
 }
 
