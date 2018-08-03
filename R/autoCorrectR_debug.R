@@ -1,4 +1,9 @@
-
+robThetaFade200L20It25 <- function(ods, q, debug=FALSE){
+    autoCorrectRCooksIter2Debug(ods, q=q,
+            robust='iterative', useDESeq=FALSE,
+            modelTheta='fade', initTheta=200, trim=0.05,
+            mask=TRUE, loops=20, internIter=25)
+}
 
 
 getExpectations <- function(w, k, s, xbar){
@@ -27,9 +32,9 @@ getAEData <- function(ods, w, replace=FALSE, BPPARAM=SerialParam()){
     return(ans)
 }
 
-autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
+autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, 
                     robust=c('once', 'iterative', 'none'), pcaOnly=FALSE,
-                    thetaMean=FALSE,
+                    modelTheta=c('no', 'fit', 'mean', 'fade', 'fadeM1', 'trimmed'),
                     internIter=10, loops=10, debug=TRUE, trim=0, useDESeq=TRUE,
                     mask=FALSE, control=list(), BPPARAM=bpparam(), ...){
     # set defaults
@@ -82,18 +87,13 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
         }
         
         if(robust == 'iterative' || robust == 'once' & i == 1){
-            rep_k <-replaceOutliersCooks(k,predictC(w_fit, k, s, xbar), q=q,
-                    BPPARAM=BPPARAM, theta=modelTheta, useDESeq=useDESeq)
+            mu <- predictC(w_fit, k, s, xbar)
+            rep_k <-replaceOutliersCooks(k, mu, q=q,
+                    BPPARAM=BPPARAM, theta=modelTheta != 'no', useDESeq=useDESeq)
             
-            if(isTRUE(modelTheta)){
-                if(isTRUE(thetaMean)){
-                    theta <- (theta + rep_k[['theta']])/2
-                } else {
-                    theta <- rep_k[['theta']]
-                }
-                k_no  <- rep_k[['cts']]
-            } else {
-                k_no <- rep_k[['cts']]
+            k_no <- rep_k[['cts']]
+            if(modelTheta != 'no'){
+                theta <- getModeledTheta(modelTheta, rep_k[['theta']], theta, k=k, mu=mu, i, loops)
             }
             if(isTRUE(mask)){
                 curMask <- rep_k$mask
@@ -154,3 +154,16 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, modelTheta=FALSE,
     validObject(ods)
     return(ods)
 }   
+
+getModeledTheta <- function(modelTheta=c('fit', 'mean', 'fade', 'fadeM1', 'trimmed'), 
+                    fitT, oldT, k, mu, it, loops){
+    ans <- switch(match.arg(modelTheta),
+        fit     = { fitT },
+        mean    = { (fitT + oldT)/2 },
+        fade    = { (mean(oldT)*(loops - it + 1) + fitT*(it))/(loops + 1) },
+        fadeM1  = { pmin(1, (mean(oldT)*(loops - it + 1) + fitT*(it))/(loops + 1)) },
+        trimmed = { pmin(pmax((fitT + oldT) / 2, 10), 1000) },
+        stop('Option not known: ', modelTheta)
+    )
+    return(ans)
+}
