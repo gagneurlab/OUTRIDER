@@ -33,7 +33,7 @@ autoCorrect <- function(ods, q, theta=25,
                     implementation=c("R", "python", "PEER", "robustR", "cooksR",
                             "robustRM1","robustRTheta", "PEER_residual", "pca",
                             "robustTheta", "debug", 'mask25', 'RobTheta200',
-                            'RobNoFTheta200'),
+                            'RobNoFTheta200', 'robThetaFade200L20It25'),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -120,6 +120,10 @@ autoCorrect <- function(ods, q, theta=25,
             ans <- autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', 
                     noFirst=TRUE, internIter=100, modelTheta=TRUE, debug=FALSE,
                     initTheta=200)
+        },
+        robThetaFade200L20It25 = {
+            impl <- 'robThetaFade200L20It25'
+            ans <- robThetaFade200L20It25(ods, q)
         },
         stop("Requested autoCorrect implementation is unknown.")
     )
@@ -492,10 +496,8 @@ replaceOutliersCooks <- function(k, mu, q, thetaOUTRIDER=TRUE, useDESeq=TRUE,
     
     # add OUTRIDER theta if requested
     if(isTRUE(thetaOUTRIDER)){
-        odsr <- OutriderDataSet(countData=k)
-        normalizationFactors(odsr) <- mu
-        odsr <- fit(odsr)
-        ans[['theta']] <- mcols(odsr)[['disp']]
+        odsr <- estimateThetaFromCounts(k, mu)
+        ans[['theta']] <- dispersions(odsr)
         ans[['ods']] <- odsr
     }
     

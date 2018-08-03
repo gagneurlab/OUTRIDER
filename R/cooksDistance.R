@@ -78,3 +78,34 @@ robustMethodOfMomentsDispOutrider <- function(cts, mu, minDisp=0.04){
     return(alpha)
 }
 
+robustMethodOfMomentsDispersion <- function(k, mu){
+    trim <- 1/8
+    scale.c <- 1.51
+    bounds <- c(10,1000)
+    
+    # get variance
+    v <- scale.c * (k - mu)^2
+    theta <- mu^2/(v-mu)
+    
+    # get robust theta
+    ans <- trimTheta <- rowMeans(pmax(pmin(theta, bounds[2]), bounds[1]))
+    # ans <- trimTheta <- apply(pmax(theta, bounds[1]), 1, mean, trim=trim)
+    # ans <- robTheta <- apply(pmax(theta, 0.1), 1, mean, trim=trim)
+    # hist(log10(ans), breaks=100)
+    
+    return(ans)
+}
+
+
+estimateThetaFromCounts <- function(k, mu){
+    ods <- OutriderDataSet(countData=k)
+    ods <- estimateSizeFactors(ods)
+    if(missing(mu)){
+        mu <- matrix(rowMeans(counts(ods, normalized=TRUE)), 
+                nrow=nrow(ods), ncol=ncol(ods))
+    }
+    normalizationFactors(ods) <- mu
+    ods <- fit(ods)
+    return(ods)
+}
+
