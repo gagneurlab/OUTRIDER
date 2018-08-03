@@ -24,7 +24,7 @@ arma::mat sexpyfun(arma::mat y, arma::vec s){
 } 
 
 
-double computeLoss(arma::mat k, arma::mat y, arma::vec s, double theta){
+double computeLoss(arma::mat k, arma::mat y, arma::vec s, arma::vec theta){
     
     arma::mat sexpy = sexpyfun(y, s);
     
@@ -33,22 +33,22 @@ double computeLoss(arma::mat k, arma::mat y, arma::vec s, double theta){
     y.each_col() += logs;
 
     double m1=-arma::accu(k % y);
-    double m2= arma::accu((k + theta) % arma::log(sexpy + theta));
+    double m2= arma::accu((k.each_row() + theta) % arma::log(sexpy.each_row() + theta));
     return(m1+m2);
 }
 
 
-arma::mat computeKT(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, double theta){
+arma::mat computeKT(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta){
     arma::mat y = predict(x, W, b);
     arma::mat sexpy = sexpyfun(y, s);
-    arma::mat kt = (k + theta)%sexpy/(sexpy+theta);
+    arma::mat kt = (k.each_row() + theta)%sexpy/(sexpy.each_row() + theta);
     return(kt);
 }
 
 
 // [[Rcpp::export(rng=false)]]
 SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, 
-                    arma::vec s, double theta){
+                    arma::vec s, arma::vec theta){
     arma::mat y = predict(x, W, b);
     double Loss = computeLoss(k, y, s, theta);
     Loss /= k.n_elem;
@@ -58,7 +58,7 @@ SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b,
 
 // [[Rcpp::export(rng=false)]]
 SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, 
-                    arma::vec s, double theta){
+                    arma::vec s, arma::vec theta){
     
     arma::mat kt = computeKT(k, x, W, b, s, theta);
     
@@ -75,9 +75,4 @@ SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b,
     return Rcpp::wrap(grad);
 }
 
-// [[Rcpp::export()]]
-SEXP leverageCalc(arma::mat X){
-    // H = X * inv(X.t * X) * X.t
-    arma::mat H = X * inv(X.t() * X) * X.t();
-    return Rcpp::wrap(H);
-}
+
