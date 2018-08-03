@@ -28,11 +28,34 @@ setGeneric("fit", function(object, ...) standardGeneric("fit"))
 
 #' @rdname fit
 #' @export
-setMethod("fit", "OutriderDataSet", function(object, BPPARAM=bpparam()){
-    fitNB(object, BPPARAM=BPPARAM)
+setMethod("fit", "OutriderDataSet", function(object, method='OUTRIDER', BPPARAM=bpparam(), excludeMask=NULL){
+    if(method=='OUTRIDER'){
+        ans <- fitNB(object, BPPARAM=BPPARAM, excludeMask=excludeMask)
+    }
+    if(method=='DESeq2'){
+        ans <- fitNBusingDESeq2(object, BPPARAM=BPPARAM)
+    }
+    return(ans)
 })
 
-fitNB <- function(ods, BPPARAM){
+
+fitNBusingDESeq2 <- function(ods, BPPARAM){
+    dds <- DESeqDataSet(ods, design=~1)
+    mu <- normalizationFactors(ods)
+    normFactors <- mu/ exp(rowMeans(log(mu)))
+    normalizationFactors(dds)  <- normFactors
+    dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
+            quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
+            betaPrior=FALSE, BPPARAM=BPPARAM)
+    
+    mcols(ods)['mu'] <- rep(1, nrow(ods))
+    mcols(ods)['disp'] <- 1/dispersions(dds)
+    
+    validObject(ods)
+    return(ods)
+}
+
+fitNB <- function(ods, BPPARAM, excludeMask){
     checkOutriderDataSet(ods)
     checkCountRequirements(ods)
     
@@ -48,7 +71,7 @@ fitNB <- function(ods, BPPARAM){
     }
     
     fitparameters <- bplapply(seq_along(ods), fitNegBinom, normF=normF,
-            ctsData=ctsData, BPPARAM=BPPARAM)
+            ctsData=ctsData, excludeMask=excludeMask, BPPARAM=BPPARAM)
     
     mcols(ods)['mu']   <- vapply(fitparameters, "[[", double(1), "mu")
     mcols(ods)['disp'] <- vapply(fitparameters, "[[", double(1), "size")
@@ -72,12 +95,12 @@ initialSizeMu <- function(data, norm){
     c("size"=c(size), "mu"=c(m))
 }
 
-# log of the probability denity function
-dens <- function(x, size, mu, s) dnbinom(x, size=size, mu=mu*s, log=TRUE)
+# # log of the probability denity function
+# dens <- function(x, size, mu, s) dnbinom(x, size=size, mu=mu*s, log=TRUE)
 
 # log likelihood
 loglikelihood <- function(sizemu, x, SizeF){
-    -sum(dens(x, size=sizemu[1], mu=sizemu[2], s=SizeF))
+    -sum(dnbinom(x, size=sizemu[1], mu=sizemu[2]*SizeF, log=TRUE))
 }
 
 # gradient of log likelihood
@@ -90,14 +113,28 @@ gradloglikelihood <- function(sizemu, x, SizeF){
         -r/m * sum((x-m*s)/(r+m*s)))
 }
 
+# Cox Reid adjusted log likelihood
+cRloglikelihood <- function(sizemu, x, SizeF){
+    size <- sizemu[1]
+    mu <- sizemu[2]*SizeF
+    w <- 1/(1/mu + 1/size)
+    -sum(dnbinom(x, size=size, mu=mu, log=TRUE)) + 
+        0.5 * log(length(x) * w * sum(w*x^2) - sum(w*x)^2)
+}
+
 
 #fit for individual gene
-fitNegBinom <- function(index, ctsData, normF){
+fitNegBinom <- function(index, ctsData, normF, excludeMask){
     data <- ctsData[index,]
     if(is.matrix(normF)){
         normF <- normF[index,]
     }
     stopifnot(!is.null(normF))
+    
+    if(!is.null(excludeMask)){
+        data <- data[!excludeMask[index,]]
+        normF <- normF[!excludeMask[index,]]
+    }
     
     ##correct s factor
     est <- tryCatch(
