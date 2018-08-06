@@ -47,7 +47,7 @@ cooksDistance <- function(k, mu, q, trim=0.2){
         mu <- t(mu)
     }
     
-    disps <- robustMethodOfMomentsDispOutrider(k, mu)
+    disps <- robustMethodOfMomentsOFDispersion(k, mu)
     
     # calculate H (based on DESeq2)
     w <- (mu^-1 + disps)^-1
@@ -69,35 +69,28 @@ cooksDistance <- function(k, mu, q, trim=0.2){
 #' \code{\link[DESeq2]{robustMethodOfMomentsDisp}}
 #' 
 #' @noRd
-robustMethodOfMomentsDispOutrider <- function(cts, mu, minDisp=0.04){
-    # get trimmed variance
-    v <- DESeq2:::trimmedCellVariance(cts, factor(rep(1, ncol(cts))))
-    alpha <- (v - mu)/mu^2
-    alpha <- pmax(alpha, minDisp)
-    
-    return(alpha)
-}
-
-robustMethodOfMomentsDispersion <- function(k, mu){
-    trim <- 1/8
-    scale.c <- 1.51
-    bounds <- c(10,1000)
-    
-    # get variance
-    v <- scale.c * (k - mu)^2
+robustMethodOfMomentsOFDispersion <- function(cts, mu, maxDisp=100){
+    v <- trimmedVariance(cts)
     theta <- mu^2/(v-mu)
-    
-    # get robust theta
-    ans <- trimTheta <- rowMeans(pmax(pmin(theta, bounds[2]), bounds[1]))
-    # ans <- trimTheta <- apply(pmax(theta, bounds[1]), 1, mean, trim=trim)
-    # ans <- robTheta <- apply(pmax(theta, 0.1), 1, mean, trim=trim)
-    # hist(log10(ans), breaks=100)
-    
-    return(ans)
+    theta <- pmin(theta, maxDisp)
+    return(theta)
+}
+
+#'
+#' This function is adapted from the DESeq2:::trimmedCellVariance
+#' to only one factor. This reduces some computation
+#' 
+#' @noRd
+trimmedVariance <- function(cts){
+    mue <- apply(cts, 1, mean, trim=1/8)
+    se <- (cts - mue)^2
+    see <- apply(se, 1, mean, trim=1/8)
+    ve <- 1.51*see
+    return(ve)
 }
 
 
-estimateThetaFromCounts <- function(k, mu, mask){
+estimateThetaFromCounts <- function(k, mu, mask, BPPARAM=bpparam()){
     ods <- OutriderDataSet(countData=k)
     ods <- estimateSizeFactors(ods)
     if(missing(mu)){
@@ -105,7 +98,7 @@ estimateThetaFromCounts <- function(k, mu, mask){
                 nrow=nrow(ods), ncol=ncol(ods))
     }
     normalizationFactors(ods) <- mu
-    ods <- fit(ods, excludeMask=mask)
+    ods <- fit(ods, excludeMask=mask, BPPARAM=BPPARAM)
     return(ods)
 }
 

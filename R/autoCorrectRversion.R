@@ -33,7 +33,8 @@ autoCorrect <- function(ods, q, theta=25,
                     implementation=c("R", "python", "PEER", "robustR", "cooksR",
                             "robustRM1","robustRTheta", "PEER_residual", "pca",
                             "robustTheta", "debug", 'mask25', 'RobTheta200',
-                            'RobNoFTheta200', 'robThetaFade200L20It25'),
+                            'RobNoFTheta200', 'robThetaFade200L20It25', 
+                            'robMix25L5I40'),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -42,8 +43,8 @@ autoCorrect <- function(ods, q, theta=25,
     checkSizeFactors(ods)
     
     if(!missing(q)){
-        if(!is.numeric(q) && q > 0){
-            stop("Please provide an integer greater then 0 for q.")
+        if(!is.numeric(q) && q > 1){
+            stop("Please provide an integer greater then 1 for q.")
         }
         if(q >= nrow(ods)){
             stop("Please use a q smaller than the number of features.")
@@ -123,7 +124,11 @@ autoCorrect <- function(ods, q, theta=25,
         },
         robThetaFade200L20It25 = {
             impl <- 'robThetaFade200L20It25'
-            ans <- robThetaFade200L20It25(ods, q)
+            ans <- robThetaFade200L20It25(ods, q, BPPARAM=BPPARAM)
+        },
+        robMix25L5I40 = {
+            impl <- 'robMix25L5I40'
+            ans <- robMix25L5I40(ods, q, BPPARAM=BPPARAM)
         },
         stop("Requested autoCorrect implementation is unknown.")
     )
@@ -505,11 +510,11 @@ replaceOutliersCooks <- function(k, mu, q, thetaOUTRIDER=TRUE, useDESeq=TRUE,
     # add OUTRIDER theta if requested
     if(isTRUE(thetaOUTRIDER)){
         if(isTRUE(ThetaCooks)){
-            mask <- ans$mask
+            mask <- t(ans$mask)
         }else{
             mask <- NULL
         }
-        odsr <- estimateThetaFromCounts(k, mu, mask)
+        odsr <- estimateThetaFromCounts(k, mu, mask, BPPARAM)
         ans[['theta']] <- dispersions(odsr)
         ans[['ods']] <- odsr
     }
