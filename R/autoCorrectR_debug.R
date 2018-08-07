@@ -37,9 +37,10 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
                     modelTheta=c('no', 'fit', 'mean', 'fade', 'fadeM1', 'trimmed'),
                     internIter=10, loops=10, debug=TRUE, trim=0, useDESeq=TRUE,
                     mask=FALSE, control=list(), cLoss = TRUE, BPPARAM=bpparam(),
-                    ThetaCooks=FALSE, ...){
+                    ThetaCooks=FALSE, pValTest=FALSE, ...){
     # set defaults
     robust <- match.arg(robust)
+    modelTheta <- match.arg(modelTheta)
     curMask <- FALSE
     theta <- initTheta
     myLoss <- loss2
@@ -92,12 +93,18 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
         }
         
         if(robust == 'iterative' || robust == 'once' & i == 1){
-            mu <- predictC(w_fit, k, s, xbar)
-            rep_k <-replaceOutliersCooks(k, mu, q=q,
-                    BPPARAM=BPPARAM, theta=modelTheta != 'no', useDESeq=useDESeq,
-                    ThetaCooks=ThetaCooks)
+            if(isTRUE(pValTest)){
+                mu <- predictC(w_fit, k, s, xbar)
+                rep_k <- findOutlierNBfit(k, mu, pValCutoff=0.01)
+                k_no <- k
+            }else{
+                mu <- predictC(w_fit, k, s, xbar)
+                rep_k <-replaceOutliersCooks(k, mu, q=q,
+                        BPPARAM=BPPARAM, theta=modelTheta != 'no', useDESeq=useDESeq,
+                        ThetaCooks=ThetaCooks)
             
-            k_no <- rep_k[['cts']]
+                k_no <- rep_k[['cts']]
+            }
             if(modelTheta != 'no'){
                 theta <- getModeledTheta(modelTheta, rep_k[['theta']], theta, k=k, mu=mu, i, loops)
                 message(summary(theta))
