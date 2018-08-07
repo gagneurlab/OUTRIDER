@@ -338,7 +338,8 @@ predictC <- function(w, k, s, xbar){
     W <- getWeights(w, ncol(k))
     
     y <- t(t(x%*%W %*% t(W)) +b + xbar)
-    s*exp(y)
+    y_exp <- s*exp(y)
+    y_exp
 }
 
 #'
@@ -419,7 +420,11 @@ autoCorrectR2 <- function(ods, q, theta=25, control=list(), ...){
 }
 
 
-loss2 <- function(w, k, x, s, xbar, theta, ...){
+loss2 <- function(w, k, x, s, xbar, theta, poisson=c('no', 'always', 'theta'), ...){
+    if(isFALSE(poisson)){
+        poisson <- 'no'
+    }
+    
     ## log, size factored, and centered counts 
     #x <-  t(t(log((1+k)/s)) - xbar)
     ## encoding 
@@ -432,12 +437,29 @@ loss2 <- function(w, k, x, s, xbar, theta, ...){
     y_exp <- s*exp(y)
     
     ## log likelihood 
-    ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
+    if(poisson == 'no'){
+        ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
+    } else if(poisson == 'always') {
+        ll <- dpois(t(k), lambda=t(y_exp), log=TRUE)
+    } else {
+        thetaCutoff <- as.numeric(gsub('theta_', '', poisson))
+        stopifnot(is.numeric(thetaCutoff) & !is.na(thetaCutoff)) 
+        ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
+        llp <- dpois(t(k), lambda=t(y_exp), log=TRUE)
+        ll[theta > thetaCutoff, ] <- llp[theta > thetaCutoff, ]
+    }
+    if(!all(is.finite(ll))){
+        browser()
+    }
     - mean( ll )
 }
 
 
-lossGrad2 <- function(w, k, x, s, xbar, theta, ...){
+lossGrad2 <- function(w, k, x, s, xbar, theta, poisson=c('no', 'always', 'theta'), ...){
+    if(isFALSE(poisson)){
+        poisson <- 'no'
+    }
+    
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,1:ncol(W)-1]
@@ -452,15 +474,28 @@ lossGrad2 <- function(w, k, x, s, xbar, theta, ...){
     #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
     y_exp <- s*exp(y)
     kt <- (k + theta)*y_exp/(y_exp+theta)
+    
+    
+    if(poisson == 'no'){
+        kt <- kt
+    } else if(poisson == 'always') {
+        kt <- y_exp
+    } else {
+        thetaCutoff <- as.numeric(gsub('theta_', '', poisson))
+        stopifnot(is.numeric(thetaCutoff) & !is.na(thetaCutoff))
+        kt[,colMeans(theta) > thetaCutoff] <- y_exp[,colMeans(theta) > thetaCutoff]
+    }
     t3 <- t(x) %*% (kt %*% W)
-    #t3 <- armaMatMultAtBC(x, kt, W)
     t4 <- t(kt) %*% (x %*% W)
-    #t4 <- armaMatMultAtBC(kt, x, W)
+    
     dw <- (-t1 - t2 + t3 + t4)/prod(dim(k))
     
     #db:
     db <- colSums(kt-k)/prod(dim(k))
     
+    if(!all(is.finite(dw)) | !all(is.finite(db))){
+        browser()
+    }
     return(c(dw, db))
 }
 
