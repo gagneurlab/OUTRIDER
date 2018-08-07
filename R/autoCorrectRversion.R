@@ -33,7 +33,8 @@ autoCorrect <- function(ods, q, theta=25,
                     implementation=c("R", "python", "PEER", "robustR", "cooksR",
                             "robustRM1","robustRTheta", "PEER_residual", "pca",
                             "robustTheta", "debug", 'mask25', 'RobTheta200',
-                            'RobNoFTheta200', 'robThetaFade200L20It25'),
+                            'RobNoFTheta200', 'robThetaFade200L20It25', 
+                            'robMix25L5I40'),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -42,8 +43,8 @@ autoCorrect <- function(ods, q, theta=25,
     checkSizeFactors(ods)
     
     if(!missing(q)){
-        if(!is.numeric(q) && q > 0){
-            stop("Please provide an integer greater then 0 for q.")
+        if(!is.numeric(q) && q > 1){
+            stop("Please provide an integer greater then 1 for q.")
         }
         if(q >= nrow(ods)){
             stop("Please use a q smaller than the number of features.")
@@ -123,7 +124,11 @@ autoCorrect <- function(ods, q, theta=25,
         },
         robThetaFade200L20It25 = {
             impl <- 'robThetaFade200L20It25'
-            ans <- robThetaFade200L20It25(ods, q)
+            ans <- robThetaFade200L20It25(ods, q, BPPARAM=BPPARAM)
+        },
+        robMix25L5I40 = {
+            impl <- 'robMix25L5I40'
+            ans <- robMix25L5I40(ods, q, BPPARAM=BPPARAM)
         },
         stop("Requested autoCorrect implementation is unknown.")
     )
@@ -333,7 +338,8 @@ predictC <- function(w, k, s, xbar){
     W <- getWeights(w, ncol(k))
     
     y <- t(t(x%*%W %*% t(W)) +b + xbar)
-    s*exp(y)
+    y_exp <- s*exp(y)
+    y_exp
 }
 
 #'
@@ -414,7 +420,11 @@ autoCorrectR2 <- function(ods, q, theta=25, control=list(), ...){
 }
 
 
-loss2 <- function(w, k, x, s, xbar, theta, ...){
+loss2 <- function(w, k, x, s, xbar, theta, poisson=c('no', 'always', 'theta'), ...){
+    if(isFALSE(poisson)){
+        poisson <- 'no'
+    }
+    
     ## log, size factored, and centered counts 
     #x <-  t(t(log((1+k)/s)) - xbar)
     ## encoding 
@@ -427,12 +437,29 @@ loss2 <- function(w, k, x, s, xbar, theta, ...){
     y_exp <- s*exp(y)
     
     ## log likelihood 
-    ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
+    if(poisson == 'no'){
+        ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
+    } else if(poisson == 'always') {
+        ll <- dpois(t(k), lambda=t(y_exp), log=TRUE)
+    } else {
+        thetaCutoff <- as.numeric(gsub('theta_', '', poisson))
+        stopifnot(is.numeric(thetaCutoff) & !is.na(thetaCutoff)) 
+        ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
+        llp <- dpois(t(k), lambda=t(y_exp), log=TRUE)
+        ll[theta > thetaCutoff, ] <- llp[theta > thetaCutoff, ]
+    }
+    if(!all(is.finite(ll))){
+        browser()
+    }
     - mean( ll )
 }
 
 
-lossGrad2 <- function(w, k, x, s, xbar, theta, ...){
+lossGrad2 <- function(w, k, x, s, xbar, theta, poisson=c('no', 'always', 'theta'), ...){
+    if(isFALSE(poisson)){
+        poisson <- 'no'
+    }
+    
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,1:ncol(W)-1]
@@ -447,15 +474,28 @@ lossGrad2 <- function(w, k, x, s, xbar, theta, ...){
     #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
     y_exp <- s*exp(y)
     kt <- (k + theta)*y_exp/(y_exp+theta)
+    
+    
+    if(poisson == 'no'){
+        kt <- kt
+    } else if(poisson == 'always') {
+        kt <- y_exp
+    } else {
+        thetaCutoff <- as.numeric(gsub('theta_', '', poisson))
+        stopifnot(is.numeric(thetaCutoff) & !is.na(thetaCutoff))
+        kt[,colMeans(theta) > thetaCutoff] <- y_exp[,colMeans(theta) > thetaCutoff]
+    }
     t3 <- t(x) %*% (kt %*% W)
-    #t3 <- armaMatMultAtBC(x, kt, W)
     t4 <- t(kt) %*% (x %*% W)
-    #t4 <- armaMatMultAtBC(kt, x, W)
+    
     dw <- (-t1 - t2 + t3 + t4)/prod(dim(k))
     
     #db:
     db <- colSums(kt-k)/prod(dim(k))
     
+    if(!all(is.finite(dw)) | !all(is.finite(db))){
+        browser()
+    }
     return(c(dw, db))
 }
 
@@ -509,7 +549,7 @@ replaceOutliersCooks <- function(k, mu, q, thetaOUTRIDER=TRUE, useDESeq=TRUE,
         }else{
             mask <- NULL
         }
-        odsr <- estimateThetaFromCounts(k, mu, mask)
+        odsr <- estimateThetaFromCounts(k, mu, mask, BPPARAM)
         ans[['theta']] <- dispersions(odsr)
         ans[['ods']] <- odsr
     }

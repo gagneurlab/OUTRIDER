@@ -28,7 +28,7 @@ setGeneric("fit", function(object, ...) standardGeneric("fit"))
 
 #' @rdname fit
 #' @export
-setMethod("fit", "OutriderDataSet", function(object, method='OUTRIDER', BPPARAM=bpparam(), excludeMask=NULL){
+setMethod("fit", "OutriderDataSet", function(object, method='OUTRIDER', BPPARAM=bpparam(), excludeMask){
     if(method=='OUTRIDER'){
         ans <- fitNB(object, BPPARAM=BPPARAM, excludeMask=excludeMask)
     }
@@ -70,11 +70,25 @@ fitNB <- function(ods, BPPARAM, excludeMask){
                 " ods <- estimateSizeFactors(ods).")
     }
     
+    if(!missing(excludeMask)){
+        if(!is.null(excludeMask) & !any(is.na(excludeMask))){
+            assay(ods, 'excludeMask') <- excludeMask
+        }
+    } else {
+        excludeMask <- NULL
+        if('excludeMask' %in% assayNames(ods)){
+            message('Use existing exclusion mask for fit.')
+            excludeMask <- assay(ods, 'excludeMask')
+        }
+    }
+    
     fitparameters <- bplapply(seq_along(ods), fitNegBinom, normF=normF,
             ctsData=ctsData, excludeMask=excludeMask, BPPARAM=BPPARAM)
     
     mcols(ods)['mu']   <- vapply(fitparameters, "[[", double(1), "mu")
     mcols(ods)['disp'] <- vapply(fitparameters, "[[", double(1), "size")
+    
+    assay(ods)
 
     validObject(ods)
     return(ods)
@@ -143,6 +157,7 @@ fitNegBinom <- function(index, ctsData, normF, excludeMask){
             gr = gradloglikelihood, x=data, SizeF=normF, method="L-BFGS-B", 
             lower=c(0.01,0.01)),
             error = function(e){
+                    warning('Fit resulted in error: ', e$message)
                     par <-list("mu"=NA_real_, "size"=NA_real_)
                     list(par=par)})
     c(est$par["mu"], est$par["size"])
