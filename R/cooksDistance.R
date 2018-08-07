@@ -109,3 +109,21 @@ estimateThetaFromCounts <- function(k, mu, mask){
     return(ods)
 }
 
+findOutlierNBfit<- function(k, mu, pValCutoff=0.001){
+    k <- t(k)
+    mu <- t(mu)
+    
+    ods <- OutriderDataSet(countData=k)
+    normalizationFactors(ods) <- mu
+    ods <- fit(ods)
+    ods <- computePvalues(ods)
+    mask <- assay(ods, 'pValue') < pValCutoff
+    message(sum(mask),' outliers excluded from fit.')
+    ods <- fit(ods, excludeMask=mask)
+    theta <- mcols(ods)[['disp']]
+    
+    mask <- t(mask)
+    ans <- list(mask=mask)
+    ans[['theta']]<- theta
+    return(ans)
+}
