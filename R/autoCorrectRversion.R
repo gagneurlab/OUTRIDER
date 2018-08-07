@@ -431,6 +431,7 @@ loss2 <- function(w, k, x, s, xbar, theta, poisson=c('no', 'always', 'theta'), .
     W <- matrix(w, nrow=ncol(k))
     b <- W[,ncol(W)]
     W <- W[,1:ncol(W)-1]
+    #theta <- matrix(theta, ncol=ncol(k), nrow=nrow(k), byrow=TRUE)
     
     y <- t(t(x%*%W %*% t(W)) + xbar + b)
     #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
@@ -441,6 +442,11 @@ loss2 <- function(w, k, x, s, xbar, theta, poisson=c('no', 'always', 'theta'), .
         ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
     } else if(poisson == 'always') {
         ll <- dpois(t(k), lambda=t(y_exp), log=TRUE)
+    } else if(poisson == 'dynamic') {
+        thetaCutoff <- pmax(25, colMeans(k))
+        ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
+        llp <- dpois(t(k), lambda=t(y_exp), log=TRUE)
+        ll[theta > thetaCutoff,] <- llp[theta > thetaCutoff,]
     } else {
         thetaCutoff <- as.numeric(gsub('theta_', '', poisson))
         stopifnot(is.numeric(thetaCutoff) & !is.na(thetaCutoff)) 
@@ -480,6 +486,9 @@ lossGrad2 <- function(w, k, x, s, xbar, theta, poisson=c('no', 'always', 'theta'
         kt <- kt
     } else if(poisson == 'always') {
         kt <- y_exp
+    } else if(poisson == 'dynamic') {
+        thetaCutoff <- pmax(25, colMeans(k))
+        kt[,colMeans(theta) > thetaCutoff] <- y_exp[,colMeans(theta) > thetaCutoff]
     } else {
         thetaCutoff <- as.numeric(gsub('theta_', '', poisson))
         stopifnot(is.numeric(thetaCutoff) & !is.na(thetaCutoff))
