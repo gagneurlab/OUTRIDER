@@ -119,7 +119,8 @@ cRloglikelihood <- function(sizemu, x, SizeF){
     mu <- sizemu[2]*SizeF
     w <- 1/(1/mu + 1/size)
     -sum(dnbinom(x, size=size, mu=mu, log=TRUE)) + 
-        0.5 * log(length(x) * w * sum(w*x^2) - sum(w*x)^2)
+        #0.5 * log(length(x) * w * sum(w*x^2) - sum(w*x)^2)
+        0.5 * log(length(x) * w)
 }
 
 
