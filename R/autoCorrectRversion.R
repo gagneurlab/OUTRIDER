@@ -505,7 +505,7 @@ replaceOutliersCooks <- function(k, mu, q, thetaOUTRIDER=TRUE, useDESeq=TRUE,
     # add OUTRIDER theta if requested
     if(isTRUE(thetaOUTRIDER)){
         if(isTRUE(ThetaCooks)){
-            mask <- ans$mask
+            mask <- t(ans$mask)
         }else{
             mask <- NULL
         }
