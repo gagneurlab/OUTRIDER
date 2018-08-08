@@ -102,7 +102,7 @@ estimateThetaFromCounts <- function(k, mu, mask, BPPARAM=bpparam()){
     return(ods)
 }
 
-findOutlierNBfit<- function(k, mu, pValCutoff=0.001){
+findOutlierNBfit<- function(k, mu, pValCutoff=0.01){
     k <- t(k)
     mu <- t(mu)
     
@@ -110,13 +110,10 @@ findOutlierNBfit<- function(k, mu, pValCutoff=0.001){
     normalizationFactors(ods) <- mu
     ods <- fit(ods)
     ods <- computePvalues(ods)
-    mask <- assay(ods, 'pValue') < pValCutoff
+    mask <- assay(ods, 'pValue') < pValCutoff/ncol(ods)
     message(sum(mask),' outliers excluded from fit.')
-    ods <- fit(ods, excludeMask=mask)
-    theta <- mcols(ods)[['disp']]
+    ods   <- fit(ods, excludeMask=mask)
+    theta <- dispersions(ods)
     
-    mask <- t(mask)
-    ans <- list(mask=mask)
-    ans[['theta']]<- theta
-    return(ans)
+    return(list(mask=t(mask), theta=theta, ods=ods))
 }

@@ -34,7 +34,11 @@ autoCorrect <- function(ods, q, theta=25,
                             "robustRM1","robustRTheta", "PEER_residual", "pca",
                             "robustTheta", "debug", 'mask25', 'RobTheta200',
                             'RobNoFTheta200', 'robThetaFade200L20It25', 
-                            'robMix25L5I40'),
+                            'robMix25L5I40', 'RobPval200L5It40', 
+                            'RobPvalThetaMix100L5It40', 'RobPval25L5It40',
+                            'maskCooksMix100L5It40', 'maskCooks25L5It40',
+                            'Rob1E3PvalThetaMix100L10It10',
+                            'Rob1E3Pval25L10It10'),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -97,6 +101,14 @@ autoCorrect <- function(ods, q, theta=25,
             impl <- "pca"
             ans <- autoCorrectPCA(ods, q)
         },
+        Rob1E3Pval25L10It10 = {
+            impl <- 'Rob1E3Pval25L10It10'
+            ans <- Rob1E3Pval25L10It10(ods, q, debug=FALSE, ...)
+        },
+        Rob1E3PvalThetaMix100L10It10 = {
+            impl <- 'Rob1E3PvalThetaMix100L10It10'
+            ans <- Rob1E3PvalThetaMix100L10It10(ods, q, debug=FALSE, ...)
+        },
         debug = {
             impl <- "autoCorrect debug"
             ans <- autoCorrectRCooksIter2Debug(ods, q, theta, debug=FALSE, ...)
@@ -109,12 +121,20 @@ autoCorrect <- function(ods, q, theta=25,
         },
         mask25 = {
             impl <- 'maskOutlier25'
-            ans <- autoCorrectRCooksMaskDebug(ods, q=q, debug=FALSE)
+            ans <- autoCorrectRCooksMaskDebug(ods, q=q, debug=FALSE, ...)
+        },
+        maskCooksMix100L5It40 = {
+            impl <- 'maskCooksMix100L5It40'
+            ans <- maskCooksMix100L5It40(ods, q=q, debug=FALSE, ...)
+        },
+        maskCooks25L5It40 = {
+            impl <- 'maskCooks25L5It40'
+            ans <- maskCooks25L5It40(ods, q=q, debug=FALSE, ...)
         },
         RobTheta200 = {
             impl <- 'robust theta 200'
             ans <- autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', 
-                    modelTheta=TRUE, initTheta=200, internIter=100, debug=FALSE)
+                    modelTheta=TRUE, initTheta=200, internIter=100, debug=FALSE, ...)
         },
         RobNoFTheta200 = {
             impl <- 'robust theta 200 no first'
@@ -129,6 +149,18 @@ autoCorrect <- function(ods, q, theta=25,
         robMix25L5I40 = {
             impl <- 'robMix25L5I40'
             ans <- robMix25L5I40(ods, q, BPPARAM=BPPARAM)
+        },
+        RobPvalThetaMix100L5It40 = {
+            impl <- 'RobPvalThetaMix100L5It40'
+            ans <- RobPvalThetaMix100L5It40(ods, q, BPPARAM=BPPARAM)
+        },
+        RobPval200L5It40 = {
+            impl <- 'RobPval200L5It40'
+            ans <- RobPval200L5It40(ods, q, BPPARAM=BPPARAM)
+        },
+        RobPval25L5It40 = {
+            impl <- 'RobPval25L5It40'
+            ans <- RobPval25L5It40(ods, q, BPPARAM=BPPARAM)
         },
         stop("Requested autoCorrect implementation is unknown.")
     )

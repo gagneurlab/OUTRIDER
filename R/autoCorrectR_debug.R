@@ -1,3 +1,38 @@
+RobPval200L5It40 <-  function(ods, q, debug=FALSE, ...){ 
+    autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', useDESeq='Pvalue', modelTheta='no',
+            initTheta=200, mask='always', loops=5, internIter=40, ...) 
+}
+
+maskCooks25L5It40 <- function(ods, q, debug=FALSE, ...){
+    autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', useDESeq='Cooks', modelTheta='no',
+            initTheta=25, mask='always', loops=5, internIter=40, ...) 
+}
+
+maskCooksMix100L5It40 <- function(ods, q, debug=FALSE, ...){
+    autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', useDESeq='Cooks', modelTheta='mix',
+            initTheta=100, mask='always', loops=5, internIter=40, ...) 
+}
+
+Rob1E3Pval25L10It10 <- function(ods, q, debug=FALSE, ...){
+    autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', useDESeq='Pvalue', modelTheta='no',
+            pValCutoff=0.001, initTheta=25, mask='always', loops=10, internIter=10, ...) 
+}
+
+Rob1E3PvalThetaMix100L10It10 <- function(ods, q, debug=FALSE, ...){
+    autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', useDESeq='Pvalue', modelTheta='mix',
+            pValCutoff=0.001, initTheta=100, mask='always', loops=10, internIter=10, ...)
+}
+
+RobPval25L5It40 <- function(ods, q, debug=FALSE, ...){
+    autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', useDESeq='Pvalue', modelTheta='no',
+                                initTheta=25, mask='always', loops=5, internIter=40, ...) 
+}
+
+RobPvalThetaMix100L5It40 <- function(ods, q, debug=FALSE, ...){
+    autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', useDESeq='Pvalue', modelTheta='mix',
+            initTheta=100, mask='always', loops=5, internIter=40, ...)
+}
+
 robThetaFade200L20It25 <- function(ods, q, debug=FALSE, ...){
     autoCorrectRCooksIter2Debug(ods, q=q,
             robust='iterative', useDESeq=FALSE,
@@ -37,12 +72,26 @@ getAEData <- function(ods, w, replace=FALSE, BPPARAM=SerialParam()){
     return(ans)
 }
 
-autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, maskOnce=FALSE,
+autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
                     robust=c('once', 'iterative', 'none'), pcaOnly=FALSE,
                     modelTheta=c('no', 'fit', 'mean', 'fade', 'fadeM5', 'trimmed', 't2_25', 't1_10', 't0_5', 'tw0_5', 'mix', 'fix'),
-                    internIter=10, loops=10, debug=TRUE, trim=0, useDESeq=TRUE,
-                    mask=FALSE, control=list(), cLoss = TRUE, BPPARAM=bpparam(),
-                    ThetaCooks=FALSE, pValTest=FALSE, poisson='no', ...){
+                    internIter=10, loops=10, debug=TRUE, trim=0, 
+                    useDESeq=c('no', 'DESeq2', 'Cooks', 'Pvalue'),
+                    mask=c('no', 'always', 'once', 'merge'), control=list(), 
+                    cLoss = TRUE, BPPARAM=bpparam(), pValCutoff=0.01,
+                    ThetaCooks=FALSE, poisson='no', ...){
+    if(isTRUE(mask)){
+        mask <- 'always'
+    }
+    if(isFALSE(mask)){
+        mask <- 'no'
+    }
+    if(isFALSE(useDESeq)){
+        useDESeq <- 'Cooks'
+    }
+    if(isTRUE(useDESeq)){
+        useDESeq <- 'DESeq2'
+    }
     methodStr <- paste(
         'q:', q, 'initTheta:', round(mean(initTheta), 2), 'robust:', robust,
         'pcaOnly:', pcaOnly, 'modelTheta:', modelTheta, 'useDESeq:', useDESeq,
@@ -64,7 +113,7 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, maskOnce=FALSE,
     if(isScalarNumeric(theta)){
         theta <- rep(initTheta, nrow(ods))
     }
-    if(isTRUE(mask)){
+    if(mask != 'no'){
         myLoss <- function(w, k, x, s, xbar, theta, outlier, poisson='no') { lossNonOutlier(w, k, x, s, xbar, theta, outlier) }
         myLossGrad <- function(w, k, x, s, xbar, theta, outlier, poisson='no') { lossGradNonOutlier(w, k, x, s, xbar, theta, outlier) }
         if(isTRUE(cLoss)){
@@ -110,30 +159,36 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, maskOnce=FALSE,
         }
         
         if(robust == 'iterative' || robust == 'once' & i == 1){
-            if(isTRUE(pValTest)){
-                mu <- predictC(w_fit, k, s, xbar)
-                rep_k <- findOutlierNBfit(k, mu, pValCutoff=0.01)
-                k_no <- k
-            }else{
-                mu <- predictC(w_fit, k, s, xbar)
-                rep_k <-replaceOutliersCooks(k, mu, q=q,
-                        BPPARAM=BPPARAM, theta=modelTheta != 'no', useDESeq=useDESeq,
-                        ThetaCooks=ThetaCooks)
+            mu <- predictC(w_fit, k, s, xbar)
             
+            # replace functions
+            if(useDESeq == 'Pvalue'){
+                rep_k <- findOutlierNBfit(k, mu, pValCutoff=pValCutoff)
                 k_no <- rep_k[['cts']]
+            } else if(useDESeq %in% c('DESeq2', 'Cooks')) {
+                rep_k <-replaceOutliersCooks(k, mu, q=q,
+                        BPPARAM=BPPARAM, theta=modelTheta != 'no', useDESeq=useDESeq == 'DESeq2',
+                        ThetaCooks=ThetaCooks)
+                k_no <- rep_k[['cts']]
+            } else {
+                stop('Do not know the option useDESeq with: ', useDESeq)
             }
+            
+            # get theta
             if(modelTheta != 'no'){
                 theta <- getModeledTheta(modelTheta, rep_k[['theta']], theta, k=k, mu=mu, i, loops)
                 message(paste(round(summary(theta), 2), names(summary(theta)), collapse=', '))
             }
-            if(isTRUE(mask)){
-                k_no <- k
-                if(isFALSE(maskOnce) | i == 1){
+            
+            # do we have a mask?
+            if(mask != 'no'){
+                if(mask == 'always' | i == 1){
                     curMask <- rep_k$mask
-                } else {
+                } else if (mask == 'merge'){
                     curMask <- curMask | rep_k$mask
                     message('Merge masked: ', sum(curMask))
                 }
+                k_no <- k
                 assay(ods, 'excludeMask') <- t(curMask)
             }
         }
@@ -157,22 +212,15 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, maskOnce=FALSE,
             warning(paste0("Fit didn't converge with warning: ", fit$message))
         }
         
-        repdds <- repods <- NULL 
-        if('dds' %in% names(rep_k)){
-            repdds <- rep_k$dds
-        }
-        if('ods' %in% names(rep_k)){
-            repods <- rep_k$ods
-        }
-        
         if(isTRUE(debug)){
             metadata(ods)[[paste0('iter_', i)]] <- list(
                 w = w_fit,
                 loss = myLoss(w_fit, k_no, x, s, xbar, theta, poisson=poisson, outlier=curMask),
                 lossGrad = myLossGrad(w_fit, k_no, x, s, xbar, theta, poisson=poisson, outlier=curMask),
                 fit=fit,
-                dds=repdds,
-                ods=repods
+                dds=ifelse(is.null(rep_k$dds), list(NULL), list(rep_k$dds))[[1]],
+                ods=ifelse(is.null(rep_k$ods), list(NULL), list(rep_k$ods))[[1]],
+                mask=curMask
             )
         }
     }
