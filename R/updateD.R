@@ -82,10 +82,12 @@ gradD <- function(d, k, H, sf=1, theta, minMu=0.01){
   y <- c(H %*% d + b)
   yexp <- sf*(minMu + exp(y))
   
-  t1 <- colMeans((k * exp(y) /(yexp)) * H)
+  k1 <- k *sf* exp(y) / yexp 
+  t1 <- colMeans(k1 * H)
   
-  kt <- (k + theta)  * exp(y) / (exp(y) + theta)
-  t2 <- colMeans((kt  * exp(y) / yexp) * H) 
+  kt <- (k + theta) *sf* exp(y) / (yexp + theta)
+  #kt <- (k + theta)  * exp(y) / (exp(y) + theta)
+  t2 <- colMeans(kt * H) 
   
   dd <- t2-t1
   db <- mean(kt - k * exp(y) / yexp)
@@ -137,7 +139,7 @@ debugLossD <- function(){
     }
     
     par <- init
-    par <- rnorm(3)
+    par <- rnorm(11)
     s<- rnorm(samples, 1, 0.02)
     plot(numericLossGrad(lossD, 1E-8, par, k=k, H=H, sf=s, theta=25),
           gradD(par, k, H, sf=s, 25));abline(0,1)
