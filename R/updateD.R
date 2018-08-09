@@ -1,3 +1,4 @@
+debugMyCode <- TRUE
 
 updateD <- function(ods, theta, control, BPPARAM, ...){
     D <- getD(ods)
@@ -5,7 +6,7 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     H <- getx(ods) %*% getE(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
-    sf[1:ncol(ods)] <- 1
+    #sf[1:ncol(ods)] <- 1
     
     fitD <- function(i, D, b, k, H, sf, theta, control){
         par <- c(b[i], D[i,])
@@ -26,6 +27,7 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     print(table(sapply(fitls, '[[', 'message')))
     ods <- setb(ods, parMat[1,])
     ods <- setD(ods, t(parMat)[,-1])
+    metadata(ods)[['fits']] <- fitls
     
     return(ods)
 }
@@ -39,6 +41,9 @@ lossD <- function(d, k, H, sf, theta, minMu=0.01){
     
     ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
     
+    if(!is.finite(ll) & debugMyCode==TRUE){
+        browser()
+    }
     return(-ll)
 }
 
@@ -114,7 +119,9 @@ debugLossD <- function(){
     
     which(sapply(fitls, '[[', 'message') == 'ERROR: ABNORMAL_TERMINATION_IN_LNSRCH')
     i <- 437
+    i <- 5
     control$trace <- 6
+    debugMyCode <- TRUE
     fitD(i=i, D=D, b=b, k=k, sf=sf, H=H, theta=theta, control=control)
     par <- c(0.00940116, 0.0553455, -0.0601702, 0.493793, -0.297911, -0.272072)
     par <- c(mean(log(ki + 1)), D[i,])

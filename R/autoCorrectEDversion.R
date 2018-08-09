@@ -47,7 +47,6 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), .
     
     # optimize log likelihood
     t1 <- Sys.time()
-    i <- 1
     for(i in 1:10){
         t2 <- Sys.time()
         

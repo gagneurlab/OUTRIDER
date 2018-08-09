@@ -47,3 +47,13 @@ getb <- function(ods){
 getw <- function(ods){
     return(c(as.vector(getE(ods)), as.vector(getD(ods)), getb(ods)))
 }
+
+
+replaceCountsByZscore <- function(ods, zScore=15){
+    lk <- log2(counts(ods) + 1)
+    z <- (lk - rowMeans(lk)) / rowSds(lk)
+    k2replace <- abs(z) > zScore
+    
+    print(table(k2replace))
+    counts(ods)[k2replace] <- matrix(rowMeans(counts(ods)), )
+}
