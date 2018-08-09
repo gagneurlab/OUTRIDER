@@ -49,13 +49,14 @@ gradD <- function(d, k, H, sf=1, theta, minMu=0.01){
     
     y <- c(H %*% d + b)
     yexp <- sf * (minMu + exp(y))
-    t1 <- colMeans(c(k * sf * exp(y) / yexp) * H)
     
-    kt <- (k + theta) * sf * exp(y) / (sf * exp(y) + theta)
-    t2 <- colMeans(c(kt * sf * exp(y) / yexp) * H) 
+    t1 <- colMeans((k * exp(y) / (yexp)) * H)
+    
+    kt <- (k + theta)  * exp(y) / (exp(y) + theta)
+    t2 <- colMeans((kt  * exp(y) / yexp) * H) 
     
     dd <- t2-t1
-    db <- mean(kt - k * sf * exp(y) / yexp)
+    db <- mean(kt - k * exp(y) / yexp)
     
     return(c(db, dd))
 }
@@ -88,8 +89,26 @@ debugLossD <- function(){
     fit$par
     
     D_true
-    lossD(init, k, H, 1, 25)
-    lossD(c(3, D_true), k, H, 1, 25)
+    lossD(init, k, H, s=1, 25)
+    lossD(c(3, D_true), k, H, s=1,  25)
+    gradD(c(3, D_true), k, H, s=1,  25)
+    gradD(fit$par, k, H, s=1,  25)
+    
+    numericLossGrad <- function(fn, epsilon, w,...){
+        grad <- numeric(length(w))
+        for(i in seq_along(w)){
+            eps <- integer(length(w))
+            eps[i] <- epsilon
+            grad[i] <- (fn(w + eps, ...) - fn(w -eps, ...))/(2*epsilon)
+        }
+        return(grad)
+    }
+    
+    par <- init
+    par <- rnorm(3)
+    s<- rnorm(samples, 1, 0.02)
+    plot(numericLossGrad(lossD, 1E-8, par, k=k, H=H, sf=s, theta=25),
+         gradD(par, k, H, sf=s, 25));abline(0,1)
     
     
     
