@@ -7,7 +7,7 @@ updateE <- function(ods, theta, control, BPPARAM, ...){
     x <- getx(ods)
     b <- getb(ods)
     
-    fit <- optim(c(e,b), fn=lossE, gr=lossGradE, k=k, x=x, sf=sf, D=D,
+    fit <- optim(e, fn=lossE, gr=lossGradE, k=k, x=x, sf=sf, D=D, b=b,
                  theta=theta, method="L-BFGS-B", control=control, ...)
     
     # Check that fit converged
@@ -22,17 +22,16 @@ updateE <- function(ods, theta, control, BPPARAM, ...){
     return(ods)
 }
 
-lossE <- function(e, D, k, x, sf, theta, minMu=0.01, ...){
+lossE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
     
     ## log, size factored, and centered counts 
     #x <-  t(t(log((1+k)/s)) - xbar)
     
     ## encoding 
-    E <- getWeights(e, nr=ncol(k))
-    b <- getBias(e, nr=ncol(k))
+    E <-matrix(e, nrow=ncol(k))
     
     y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- minMu + sf * exp(y)
+    y_exp <- sf * (minMu + exp(y))
     
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
@@ -40,21 +39,27 @@ lossE <- function(e, D, k, x, sf, theta, minMu=0.01, ...){
 }
 
 
-lossGradE <- function(e, D, k, x, sf, theta, minMu=0.01, ...){
-    E <- getWeights(e, nr=ncol(k))
-    b <- getBias(e, nr=ncol(k))
+lossGradE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
+    E <-matrix(e, nrow=ncol(k))
     theta <- matrix(theta, ncol=ncol(k), nrow=nrow(k), byrow=TRUE)
     
     # dW:
     y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- minMu + sf * exp(y)
+    
+    y_exp <- (minMu + exp(y))
+    k1 <- k * exp(y) / yexp         
+              
     kt <- (k + theta) * y_exp / (y_exp + theta)
-    t1 <- t(x) %*% (k %*% D)
+    t1 <- t(x) %*% (k1 %*% D)
     t3 <- t(x) %*% (kt %*% D)
     
-    # answers (dE and db)
+    # answers dE 
     dE <- (-t1  + t3)/prod(dim(k))
-    db <- colSums(kt-k)/prod(dim(k))
     
-    return(c(dE, db))
+    return(dE)
 }
+
+
+
+
+
