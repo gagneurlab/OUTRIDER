@@ -18,8 +18,8 @@ testing <- function(){
     mcols(ods)[['trueTheta']] <- simData$theta
     ods <- estimateSizeFactors(ods)
     theta <- 25
-    control <- list()
-    BPPARAM=MulticoreParam(10)
+    control <- list(maxit=30)
+    BPPARAM=MulticoreParam(20, progressbar=TRUE)
 } 
 
 autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), ...){
@@ -43,10 +43,11 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), .
     
     # check initial loss
     print(paste0('Initial PCA loss: ',
-            lossED(getw(ods), k, getx(ods), s, getb(ods), theta)))
+            lossED(getw(ods), k, getx(ods), sf, getb(ods), theta)))
     
     # optimize log likelihood
     t1 <- Sys.time()
+    i <- 1
     for(i in 1:10){
         t2 <- Sys.time()
         
@@ -89,7 +90,7 @@ initED <- function(ods, q, theta, usePCA=TRUE){
     
     ods <- setD(ods, pc)
     ods <- setE(ods, pc)
-    ods <- setb(ods, numeric(nrow(ods)))
+    ods <- setb(ods, rowMeans(log(counts(ods) + 1)))
     
     return(ods)
 }
@@ -98,7 +99,7 @@ updateTheta <- function(ods, theta, BPPARAM=bpparam()){
     return(theta)    
 }
 
-lossED <- function(w, k, x, sf, xbar, theta, ...){
+lossED <- function(w, k, x, sf, xbar, theta, minMu=0.01, ...){
     ## log, size factored, and centered counts 
     #x <-  t(t(log((1+k)/s)) - xbar)
     ## encoding 
@@ -151,7 +152,7 @@ lossGradED <- function(w, k, x, s, xbar, theta, ...){
     return(c(dE,dD, db))
 }
 
-predictED <- function(E, D, b, x, s, ods, minMu=0.01){
+predictED <- function(E, D, b, x, sf, ods, minMu=0.01){
     if(!missing(ods)){
         E <- getE(ods)
         D <- getD(ods)
@@ -159,7 +160,8 @@ predictED <- function(E, D, b, x, s, ods, minMu=0.01){
         x <- getx(ods)
         s <- sizeFactors(ods)
     }
+    
     y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- minMu + s * exp(y)
+    y_exp <- sf * (minMu + exp(y))
     y_exp
 }

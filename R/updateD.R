@@ -1,73 +1,41 @@
 
-
 updateD <- function(ods, theta, control, BPPARAM, ...){
-    d <- getD(ods)
-    E <- getE(ods)
+    D <- getD(ods)
+    b <- getb(ods)
+    H <- getx(ods) %*% getE(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
-    x <- getx(ods)
-    b <- getb(ods)
+    sf[1:ncol(ods)] <- 1
     
-    fit <- optim(c(d, b), fn=lossD, gr=lossGradD, k=k, x=x, sf=sf, E=E,
-                 theta=theta, method="L-BFGS-B", control=control, ...)
-    
-    # Check that fit converged
-    if(fit$convergence!=0){
-        warning(paste0("Fit didn't converge with warning: ", fit$message))
+    fitD <- function(i, D, b, k, H, sf, theta, control){
+        par <- c(b[i], D[i,])
+        ki <- k[,i]
+        thetai <- theta[i]
+        fit <- optim(c(par), fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
+                method='L-BFGS', control=control)
+        fit
     }
     
-    # update ods
-    ods <- setD(ods, fit$par[1:length(d)])
-    ods <- setb(ods, fit$par[1:length(b) + length(d)])
+    # TODO check errors: ERROR: ABNORMAL_TERMINATION_IN_LNSRCH
+    # This comes from genes where extrem values are present (Z score > 15)
+    fitls <- bplapply(1:nrow(ods), fitD, D=D, b=b, k=k, sf=sf, H=H, theta=theta, 
+            control=control, BPPARAM=BPPARAM)
+    
+    # update D and bias terms
+    parMat <- sapply(fitls, '[[', 'par')
+    print(table(sapply(fitls, '[[', 'message')))
+    ods <- setb(ods, parMat[1,])
+    ods <- setD(ods, t(parMat)[,-1])
     
     return(ods)
 }
-
-
-
-lossDOld <- function(d, E, k, x, sf, theta, minMu=0.01, ...){
-    ## log, size factored, and centered counts 
-    #x <-  t(t(log((1+k)/s)) - xbar)
-    
-    ## encoding 
-    D <- getWeights(d, nr=ncol(k))
-    b <- getBias(d, nr=ncol(k))
-    
-    y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- minMu + sf * exp(y)
-    
-    ## log likelihood 
-    ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
-    - mean( ll )
-}
-
-
-lossGradDOld <- function(d, E, k, x, sf, theta, minMu=0.01, ...){
-    D <- getWeights(d, nr=ncol(k))
-    b <- getBias(d, nr=ncol(k))
-    theta <- matrix(theta, ncol=ncol(k), nrow=nrow(k), byrow=TRUE)
-    
-    # dW:
-    y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- minMu + sf * exp(y)
-    kt <- (k + theta) * y_exp / (y_exp + theta)
-    t2 <- t(k) %*% (x %*% E)
-    t4 <- t(kt) %*% (x %*% E)
-    
-    # answers (dD and db)
-    dD <- (-t2 + t4)/prod(dim(k))
-    db <- colSums(kt-k)/prod(dim(k))
-    
-    return(c(dD, db))
-}
-
 
 lossD <- function(d, k, H, sf, theta, minMu=0.01){
     b <- d[1]
     d <- d[-1]
     
     y <- H %*% d + b
-    yexp <- minMu + sf * exp(y)
+    yexp <- sf * (minMu + exp(y))
     
     ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
     
@@ -80,14 +48,14 @@ gradD <- function(d, k, H, sf=1, theta, minMu=0.01){
     d <- d[-1]
     
     y <- c(H %*% d + b)
-    yexp <- minMu + sf * exp(y)
+    yexp <- sf * (minMu + exp(y))
     t1 <- colMeans(c(k * sf * exp(y) / yexp) * H)
     
     kt <- (k + theta) * sf * exp(y) / (sf * exp(y) + theta)
-    t2 <- colMeans(c(kt * sf * exp(y) / mu) * H) 
+    t2 <- colMeans(c(kt * sf * exp(y) / yexp) * H) 
     
     dd <- t2-t1
-    db <- mean(kt - k * sf * exp(y) / mu)
+    db <- mean(kt - k * sf * exp(y) / yexp)
     
     return(c(db, dd))
 }
@@ -120,7 +88,34 @@ debugLossD <- function(){
     fit$par
     
     D_true
-    lossD(k, init, H, 25)
-    lossD(k,c(3, D_true), H,  25)
+    lossD(init, k, H, 1, 25)
+    lossD(c(3, D_true), k, H, 1, 25)
+    
+    
+    
+    which(sapply(fitls, '[[', 'message') == 'ERROR: ABNORMAL_TERMINATION_IN_LNSRCH')
+    i <- 437
+    control$trace <- 6
+    fitD(i=i, D=D, b=b, k=k, sf=sf, H=H, theta=theta, control=control)
+    par <- c(0.00940116, 0.0553455, -0.0601702, 0.493793, -0.297911, -0.272072)
+    par <- c(mean(log(ki + 1)), D[i,])
+    par <- c(b[i], D[i,])
+    ki <- k[,i]
+    mu <- predictED(getE(ods), getD(ods), getb(ods), getx(ods), sizeFactors(ods))
+    cD <- cooksDistance(k, mu, q=5, trim=0.1)
+    table(cD > 1)
+    sort(round(cD[i,], 2))
+    thetai <- theta[i]
+    lossD(par, ki, H, sf, theta=thetai)
+    gradD(par, ki, H, sf, theta=thetai)
+    hist(log10(ki))
+    
+    sum(ki > 200000)
+    sort(ki)
+    fit <- optim(c(par), fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
+                 method='L-BFGS', control=control)
+    fitD(i=48, D=D, b=b, k=k, sf=sf, H=H, theta=theta, control=control)
+    
+    lk <- log2(counts(ods) + 1)
 }
 
