@@ -45,20 +45,38 @@ lossGradE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
     
     # dW:
     y <- t(t(x %*% E %*% t(D)) + b)
-    
-    y_exp <- (minMu + exp(y))
-    k1 <- k * exp(y) / yexp         
+
+    yexp <- sf*(minMu + exp(y))
+    k1 <- k *sf* exp(y) / yexp         
               
-    kt <- (k + theta) * y_exp / (y_exp + theta)
+    #kt <- (k1 + theta) * exp(y) / (exp(y) + theta)
+    kt <- (k + theta) *sf* exp(y) / (yexp + theta)
     t1 <- t(x) %*% (k1 %*% D)
     t3 <- t(x) %*% (kt %*% D)
     
     # answers dE 
-    dE <- (-t1  + t3)/prod(dim(k))
+    dE <- (-t1 + t3)/prod(dim(k))
     
     return(dE)
 }
 
+
+
+
+##### Debug code
+if(FALSE){
+    numericLossGrad <- function(fn, epsilon, w,...){
+        grad <- numeric(length(w))
+        for(i in seq_along(w)){
+            eps <- integer(length(w))
+            eps[i] <- epsilon
+            grad[i] <- (fn(w + eps, ...) - fn(w -eps, ...))/(2*epsilon)
+        }
+        return(grad)
+    }
+    plot(numericLossGrad(lossE, 1E-8, w=e, D=D, k=k, b=b, x=x, sf=sf, theta=theta, minMu=0.01),
+         lossGradE(e, D, k, b, x, sf, theta, minMu=0.01));abline(0,1)
+}
 
 
 
