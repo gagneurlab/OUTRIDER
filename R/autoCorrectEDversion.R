@@ -1,3 +1,22 @@
+#' Coding conventions:
+#' 
+#' metadata(ods)[['E']]
+#' metadata(ods)[['D']]
+#' metadata(ods)[['b']]
+#' 
+
+getx <- function(ods){
+    k <- t(counts(ods, normalized=FALSE))
+    s <- sizeFactors(ods)
+    
+    # compute log of per gene centered counts 
+    x0 <- log((1+k)/s)
+    b <- colMeans(x0)
+    x <- t(t(x0) - b)
+    
+    return(x)
+}
+
 autoCorrectED <- function(ods, q, theta=25, control=list(), debug=FALSE, ...){
     
     if(!'factr' %in% names(control)){
@@ -6,24 +25,27 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), debug=FALSE, ...){
     
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
-    # compute log of per gene centered counts 
-    x0 <- log((1+k)/s)
-    xbar <- colMeans(x0)
-    x <- t(t(x0) - xbar)
+    
+    x <- getx(ods)
     
     # initialize W using PCA and bias as zeros.
-    pca <- pca(x, nPcs = q) 
-    pc  <- loadings(pca)
-    w_guess <- c(as.vector(pc),as.vector(pc), numeric(ncol(k)))
+    w_init <- initED(x, q, k)
+    
     # check initial loss
     print(
         paste0('Initial PCA loss: ',
-               lossED(w_guess, k, x, s, xbar, theta))
+               lossED(w_init, k, x, s, xbar, theta))
     )
     
     # optimize log likelihood
+    for(i in 1:10){
+        updateTheta()
+        updateD()
+        updateE()
+    }
+    
     t <- Sys.time()
-    fit <- autoCorrectFit(w_guess, lossED, lossGradED, k, x, s, xbar, theta, 
+    fit <- autoCorrectFit(w_init, lossED, lossGradED, k, x, s, xbar, theta, 
                           control, ...)
     
     #Check that fit converged
@@ -47,6 +69,13 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), debug=FALSE, ...){
     metadata(ods)[['dim']] <- dim(ods)
     validObject(ods)
     return(ods)
+}
+
+initED <- function(x, q, k){
+    pca <- pca(x, nPcs=q) 
+    pc  <- loadings(pca)
+    w_guess <- c(as.vector(pc), as.vector(pc), numeric(ncol(k)))
+    return(w_guess)
 }
 
 
