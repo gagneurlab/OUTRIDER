@@ -3,58 +3,63 @@
 #' metadata(ods)[['E']]
 #' metadata(ods)[['D']]
 #' metadata(ods)[['b']]
-#' 
+#'
+testing <- function(){
+    devtools::load_all("~/projects/OUTRIDER")
+    source("./../scared-analysis/src/r/helperFunction/simulateCountData.R")
+    library(BBmisc)
+    library(pcaMethods)
+    set.seed(123)
+    q <- 5
+    simData <- createSimulationData(encDim=q, theta=c(mu=30, size=2), lognorm=FALSE)
+    ods <- OutriderDataSet(countData=simData$k)
+    assay(ods, 'inj_mask') <- simData$index
+    assay(ods, 'trueCounts') <- round(simData$mu)
+    mcols(ods)[['trueTheta']] <- simData$theta
+    ods <- estimateSizeFactors(ods)
+    theta <- 25
+    control <- list()
+    BPPARAM=MulticoreParam(10)
+} 
 
-getx <- function(ods){
-    k <- t(counts(ods, normalized=FALSE))
-    s <- sizeFactors(ods)
+autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), ...){
     
-    # compute log of per gene centered counts 
-    x0 <- log((1+k)/s)
-    b <- colMeans(x0)
-    x <- t(t(x0) - b)
-    
-    return(x)
-}
-
-autoCorrectED <- function(ods, q, theta=25, control=list(), debug=FALSE, ...){
-    
+    # Check input
     if(!'factr' %in% names(control)){
         control$factr <- 1E9
     }
+    if(!'maxit' %in% names(control)){
+        control$maxit <- 10
+    }
+    if(isScalarValue(theta)){
+        theta <- rep(theta, nrow(ods))
+    }
     
     k <- t(counts(ods, normalized=FALSE))
-    s <- sizeFactors(ods)
-    
-    x <- getx(ods)
+    sf <- sizeFactors(ods)
     
     # initialize W using PCA and bias as zeros.
-    w_init <- initED(x, q, k)
+    ods <- initED(ods, q=q, theta=theta)
     
     # check initial loss
-    print(
-        paste0('Initial PCA loss: ',
-               lossED(w_init, k, x, s, xbar, theta))
-    )
+    print(paste0('Initial PCA loss: ',
+            lossED(getw(ods), k, getx(ods), s, getb(ods), theta)))
     
     # optimize log likelihood
+    t1 <- Sys.time()
     for(i in 1:10){
-        updateTheta()
-        updateD()
-        updateE()
+        t2 <- Sys.time()
+        
+        theta <- updateTheta(ods, theta, BPPARAM)
+        ods <- updateD(ods, theta, control, BPPARAM)
+        ods <- updateE(ods, theta, control, BPPARAM)
+        
+        print(paste0('nb-PCA loss: ',
+                lossED(getw(ods), k, getx(ods), s, getb(ods), theta)))
+        print(Sys.time() - t2)
     }
     
-    t <- Sys.time()
-    fit <- autoCorrectFit(w_init, lossED, lossGradED, k, x, s, xbar, theta, 
-                          control, ...)
-    
-    #Check that fit converged
-    if(fit$convergence!=0){
-        warning(paste0("Fit didn't converge with warning: ", fit$message))
-    }
-    
-    w_fit <- fit$par
-    print(Sys.time() - t)
+    print(Sys.time() - t1)
     print(
         paste0('nb-PCA loss: ',
                lossED(w_fit,k, x, s,xbar, theta))
@@ -71,16 +76,29 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), debug=FALSE, ...){
     return(ods)
 }
 
-initED <- function(x, q, k){
-    pca <- pca(x, nPcs=q) 
-    pc  <- loadings(pca)
-    w_guess <- c(as.vector(pc), as.vector(pc), numeric(ncol(k)))
-    return(w_guess)
+initED <- function(ods, q, theta, usePCA=TRUE){
+    pc <- NULL
+    if(isTRUE(usePCA)){
+        pca <- pca(getx(ods), nPcs=q)
+        pc  <- loadings(pca)
+    } else {
+        fit <- autoCorrectFit(getw(ods), loss2, lossGrad2, k, getx(ods), s,
+                xbar, theta, control=list(factr <- 1E9, maxit=20))
+        pc <- fit$par[1:prod(dim(ods))]
+    }
+    
+    ods <- setD(ods, pc)
+    ods <- setE(ods, pc)
+    ods <- setb(ods, numeric(nrow(ods)))
+    
+    return(ods)
 }
 
+updateTheta <- function(ods, theta, BPPARAM=bpparam()){
+    return(theta)    
+}
 
-
-lossED <- function(w, k, x, s, xbar, theta, ...){
+lossED <- function(w, k, x, sf, xbar, theta, ...){
     ## log, size factored, and centered counts 
     #x <-  t(t(log((1+k)/s)) - xbar)
     ## encoding 
@@ -93,7 +111,7 @@ lossED <- function(w, k, x, s, xbar, theta, ...){
     
     y <- t(t(x%*%E %*% t(D)) + xbar + b)
     #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
-    y_exp <- s*exp(y)
+    y_exp <- minMu + sf*exp(y)
     
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
@@ -133,16 +151,15 @@ lossGradED <- function(w, k, x, s, xbar, theta, ...){
     return(c(dE,dD, db))
 }
 
-
-predictED <- function(w, k, s, xbar){
-    x <-  t(t(log((1+k)/s)) - xbar)
-    W <- matrix(w, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
-    E <- W[,1:(ncol(W)/2)]
-    D <- W[,(ncol(W)/2+1):ncol(W)]
-    
-    y <- t(t(x%*%E %*% t(D)) +b + xbar)
-    y_exp <- s*exp(y)
+predictED <- function(E, D, b, x, s, ods, minMu=0.01){
+    if(!missing(ods)){
+        E <- getE(ods)
+        D <- getD(ods)
+        b <- getb(ods)
+        x <- getx(ods)
+        s <- sizeFactors(ods)
+    }
+    y <- t(t(x %*% E %*% t(D)) + b)
+    y_exp <- minMu + s * exp(y)
     y_exp
 }
