@@ -12,7 +12,7 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
         ki <- k[,i]
         thetai <- theta[i]
         
-        fit <- optim(pari, fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
+        fit <- optim(pari, fn=lossDtrunc, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
                 method='L-BFGS', control=control) 
                 # lower=rep(-5, ncol(D)+1), upper=rep(5, ncol(D) + 1))
         fit
@@ -92,6 +92,48 @@ lossD <- function(par, k, H, sf, theta, minMu=0.01){
     return(-ll)
 }
 
+lossDtrunc <- function(par, k, H, sf, theta, minMu=0.01){
+    b <- par[1]
+    d <- par[-1]
+    
+    y <- H %*% d + b
+    #yexp <- sf * (minMu + exp(y))
+  
+    #ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
+    # LL = k * log(mu) - (k + theta)*log(mu + theta)  
+    t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
+    t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
+    ll <- mean(t1 - t2)
+    # if(!is.finite(ll) & debugMyCode){
+    #   browser()
+    # }
+  
+    return(-ll)
+}
+
+lossDtruncDebug <- function(par, k, H, sf, theta, minMu=0.01){
+    b <- par[1]
+    d <- par[-1]
+  
+    y <- H %*% d + b
+    yexp <- sf * (minMu + exp(y))
+  
+    #ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
+    
+    ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta)  )
+    mean(k*log(yexp))
+    mean(k * (log(sf) + y + log(1 + minMu/exp(y))))
+    
+    # t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
+    # t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
+    # ll <- mean(t1 - t2)
+    
+    # if(!is.finite(ll) & debugMyCode){
+    #   browser()
+    # }
+  
+  return(-ll)
+}
 
 gradD <- function(par, k, H, sf=1, theta, minMu=0.01){
     b <- par[1]
