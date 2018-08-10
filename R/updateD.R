@@ -1,4 +1,4 @@
-debugMyCode <- TRUE
+debugMyCode <- FALSE
 
 updateD <- function(ods, theta, control, BPPARAM, ...){
     D <- getD(ods)
@@ -6,14 +6,15 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     H <- getx(ods) %*% getE(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
-    #sf[1:ncol(ods)] <- 1
     
     fitD <- function(i, D, b, k, H, sf, theta, control){
-        par <- c(b[i], D[i,])
+        pari <- c(b[i], D[i,])
         ki <- k[,i]
         thetai <- theta[i]
-        fit <- optim(c(par), fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
-                method='L-BFGS', control=control)
+        
+        fit <- optim(pari, fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
+                method='L-BFGS', control=control) 
+                # lower=rep(-5, ncol(D)+1), upper=rep(5, ncol(D) + 1))
         fit
     }
     
@@ -32,38 +33,87 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     return(ods)
 }
 
-lossD <- function(d, k, H, sf, theta, minMu=0.01){
-    b <- d[1]
-    d <- d[-1]
+parametricDFit <- function(){
+    ok <- k
+    ob <- b
+    oD <- D
+    oTheta <- theta
+    
+    i <- 5
+    pari <- c(b[i], D[i,])
+    ki <- k[,i]
+    thetai <- theta[i]
+    
+    fit <- optim(pari, fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
+                 method='L-BFGS', control=control) 
+    # lower=rep(-5, ncol(D)+1), upper=rep(5, ncol(D) + 1))
+    fit
+    
+    coefs <- c(0.1, 1)
+    iter <- 0
+    while (TRUE) {
+        residuals <- disps/(coefs[1] + coefs[2]/means)
+        good <- which((residuals > 1e-04) & (residuals < 15))
+        suppressWarnings({
+            fit <- glm(disps[good] ~ I(1/means[good]), family = Gamma(link = "identity"), 
+                       start = coefs)
+        })
+        oldcoefs <- coefs
+        coefs <- coefficients(fit)
+        if (!all(coefs > 0)) 
+            stop(simpleError("parametric dispersion fit failed"))
+        if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
+            break
+        iter <- iter + 1
+        if (iter > 10) 
+            stop(simpleError("dispersion fit did not converge"))
+    }
+    names(coefs) <- c("asymptDisp", "extraPois")
+    ans <- function(q) coefs[1] + coefs[2]/q
+    attr(ans, "coefficients") <- coefs
+    ans
+    
+}
+
+lossD <- function(par, k, H, sf, theta, minMu=0.01){
+    b <- par[1]
+    d <- par[-1]
     
     y <- H %*% d + b
     yexp <- sf * (minMu + exp(y))
+    #yexp <- pmin(1e8, yexp)
     
     ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
     
-    if(!is.finite(ll) & debugMyCode==TRUE){
+    if(!is.finite(ll) & debugMyCode){
         browser()
     }
+    
     return(-ll)
 }
 
 
-gradD <- function(d, k, H, sf=1, theta, minMu=0.01){
-    b <- d[1]
-    d <- d[-1]
+gradD <- function(par, k, H, sf=1, theta, minMu=0.01){
+    b <- par[1]
+    d <- par[-1]
     
     y <- c(H %*% d + b)
-    yexp <- sf*(minMu + exp(y))
+    yexp <- sf * (minMu + exp(y))
+    #yexp <- pmin(1e8, yexp)
     
-    k1 <- k *sf* exp(y) / yexp 
+    k1 <- k * sf * exp(y) / yexp 
     t1 <- colMeans(k1 * H)
     
-    kt <- (k + theta) *sf* exp(y) / (yexp + theta)
-    #kt <- (k + theta)  * exp(y) / (exp(y) + theta)
+    kt <- (k + theta) * sf * exp(y) / (yexp + theta)
     t2 <- colMeans(kt * H) 
     
-    dd <- t2-t1
-    db <- mean(kt - k * exp(y) / yexp)
+    dd <- t2 - t1
+    db <- mean(kt - k1)
+    
+    
+    if(any(!c(is.finite(db), is.finite(dd))) & debugMyCode){
+        browser()
+    }
     
     return(c(db, dd))
 }
@@ -113,10 +163,29 @@ debugLossD <- function(){
     
     par <- init
     par <- rnorm(11)
-    s<- rnorm(samples, 1, 0.02)
-    plot(numericLossGrad(lossD, 1E-8, par, k=k, H=H, sf=s, theta=25),
-         gradD(par, k, H, sf=s, 25));abline(0,1)
+    sf<- rnorm(samples, 1, 0.02)
     
+    plotNumGrodDiff <- function(){
+        numgradloss <- numericLossGrad(lossD, 1E-8, par, k=k, H=H, sf=sf, theta=25)
+        gradloss <- gradD(par, k, H, sf=sf, 25)
+        
+        plot(as.integer((numgradloss - gradloss)*1e7) * (numgradloss - gradloss < 0))
+        abline(h=0, col='red')
+    }
+    plotNumGrodDiff()
+    
+    sf <- 1
+    sf <- sizeFactors(ods)
+    par <- pari
+    b <- pari[1]
+    d <- pari[-1]
+    k <- ki
+    H <- H
+    sf <- sf
+    theta <- 0.25
+    plot(numericLossGrad(lossD, 1E-8, pari, k=ki, H=H, sf=sf, theta=25),
+         gradD(pari, ki, H, sf=sf, 25))
+    abline(0,1)
     
     
     which(sapply(fitls, '[[', 'message') == 'ERROR: ABNORMAL_TERMINATION_IN_LNSRCH')
@@ -144,6 +213,10 @@ debugLossD <- function(){
                  method='L-BFGS', control=control)
     fitD(i=48, D=D, b=b, k=k, sf=sf, H=H, theta=theta, control=control)
     
+    lk <- log2(k +1)
+    sort((lk - mean(lk))/sd(lk))
+    
     lk <- log2(counts(ods) + 1)
+
 }
 

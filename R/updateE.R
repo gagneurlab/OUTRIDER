@@ -12,12 +12,12 @@ updateE <- function(ods, theta, control, BPPARAM, ...){
     
     # Check that fit converged
     if(fit$convergence!=0){
+        print(paste('updateE did not converge: ', fit$message))
         warning(paste0("Fit didn't converge with warning: ", fit$message))
     }
     
     # update ods
-    ods <- setE(ods, fit$par[1:length(e)])
-    ods <- setb(ods, fit$par[1:length(b) + length(e)])
+    ods <- setE(ods, fit$par)
     
     return(ods)
 }

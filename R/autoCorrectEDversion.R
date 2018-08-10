@@ -5,6 +5,10 @@
 #' metadata(ods)[['b']]
 #'
 testing <- function(){
+    odsg <- readRDS("../scared-analysis/Output/data/GTEx_not_sun_exposed_OutriderDONE.RDS")
+    ods <- odsg[1:5000, 1:100]
+    q <- 10
+    q <- 49
     devtools::load_all("~/projects/OUTRIDER")
     source("./../scared-analysis/src/r/helperFunction/simulateCountData.R")
     library(BBmisc)
@@ -18,8 +22,9 @@ testing <- function(){
     mcols(ods)[['trueTheta']] <- simData$theta
     ods <- estimateSizeFactors(ods)
     theta <- 25
-    control <- list(maxit=30)
-    BPPARAM=MulticoreParam(20, progressbar=TRUE)
+    control <- list(maxit=40)
+    BPPARAM=SerialParam()
+    BPPARAM=MulticoreParam(10, progressbar=TRUE, stop.on.error = FALSE)
 } 
 
 autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), ...){
@@ -39,79 +44,89 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), .
     sf <- sizeFactors(ods)
     
     # initialize W using PCA and bias as zeros.
-    ods <- initED(ods, q=q, theta=theta)
+    ods <- initED(ods, q=q, theta=theta, usePCA=FALSE)
+    theta <- updateTheta(ods, theta, BPPARAM)
     
     # check initial loss
-    print(paste0('Initial PCA loss: ',
-            lossED(getw(ods), k, getx(ods), sf, getb(ods), theta)))
+    print(paste0('Initial PCA loss: ', lossED(ods, theta)))
     
     # optimize log likelihood
+    if(!bpisup(BPPARAM)){
+        bpstart(BPPARAM)
+    }
     t1 <- Sys.time()
     for(i in 1:10){
         t2 <- Sys.time()
+        # check initial loss
+        print(paste0(i, 'Initial PCA loss: ', lossED(ods, theta)))
         
-        theta <- updateTheta(ods, theta, BPPARAM)
         ods <- updateD(ods, theta, control, BPPARAM)
+        
+        # check initial loss
+        print(paste0(i, 'updateD PCA loss: ', lossED(ods, theta)))
+        theta <- updateTheta(ods, theta, BPPARAM)
+        
+        # check initial loss
+        print(paste0(i, 'Theta PCA loss: ', lossED(ods, theta)))
         ods <- updateE(ods, theta, control, BPPARAM)
         
-        print(paste0('nb-PCA loss: ',
-                lossED(getw(ods), k, getx(ods), s, getb(ods), theta)))
+        print(paste0(i, 'updateE loss: ', lossED(ods, theta)))
         print(Sys.time() - t2)
     }
     
     print(Sys.time() - t1)
-    print(
-        paste0('nb-PCA loss: ',
-               lossED(w_fit,k, x, s,xbar, theta))
-    )
+    print(paste0(i, 'Final nb-PCA loss: ',
+            lossED(getw(ods), k, getx(ods), sf, getb(ods), theta)))
     
-    correctionFactors <- t(predictED(w_fit, k, s, xbar))
+    bpstop(BPPARAM)
+    
+    correctionFactors <- t(predictED(ods=ods))
     stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
     
     # add it to the object
     normalizationFactors(ods, replace=TRUE) <- correctionFactors
-    metadata(ods)[['weights']] <- w_fit
+    metadata(ods)[['weights']] <- getw(ods)
     metadata(ods)[['dim']] <- dim(ods)
     validObject(ods)
+    
     return(ods)
 }
 
 initED <- function(ods, q, theta, usePCA=TRUE){
-    pc <- NULL
-    if(isTRUE(usePCA)){
-        pca <- pca(getx(ods), nPcs=q)
-        pc  <- loadings(pca)
-    } else {
-        fit <- autoCorrectFit(getw(ods), loss2, lossGrad2, k, getx(ods), s,
-                xbar, theta, control=list(factr <- 1E9, maxit=20))
-        pc <- fit$par[1:prod(dim(ods))]
+    pca <- pca(getx(ods), nPcs=q)
+    pc  <- loadings(pca)
+    
+    if(isFALSE(usePCA)){
+        pc[1:length(pc)] <- rnorm(length(pc), sd=sd(pc)/10)
     }
     
     ods <- setD(ods, pc)
     ods <- setE(ods, pc)
     ods <- setb(ods, rowMeans(log(counts(ods) + 1)))
     
+    if(isFALSE(usePCA)){
+        ods <- updateE(ods, theta, control, BPPARAM)
+        ods <- setD(ods, getE(ods))
+    }
+    
     return(ods)
 }
 
 updateTheta <- function(ods, theta, BPPARAM=bpparam()){
+    theta <- dispersions(fit(ods, BPPARAM=BPPARAM))
     return(theta)    
 }
 
-lossED <- function(w, k, x, sf, xbar, theta, minMu=0.01, ...){
-    ## log, size factored, and centered counts 
-    #x <-  t(t(log((1+k)/s)) - xbar)
-    ## encoding 
-    W <- matrix(w, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
-    E <- W[,1:(ncol(W)/2)]
-    D <- W[,(ncol(W)/2+1):ncol(W)]
-    #theta <- matrix(theta, ncol=ncol(k), nrow=nrow(k), byrow=TRUE)
+lossED <- function(ods, theta, minMu=0.01, ...){
     
-    y <- t(t(x%*%E %*% t(D)) + xbar + b)
-    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
-    y_exp <- minMu + sf*exp(y)
+    ## encoding 
+    b <- getb(ods)
+    E <- getE(ods)
+    D <- getD(ods)
+    x <- getx(ods)
+    
+    y <- t(t(x %*% E %*% t(D)) + b)
+    y_exp <- pmin(1e7, sf * (minMu + exp(y)))
     
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
@@ -157,7 +172,7 @@ predictED <- function(E, D, b, x, sf, ods, minMu=0.01){
         D <- getD(ods)
         b <- getb(ods)
         x <- getx(ods)
-        s <- sizeFactors(ods)
+        sf <- sizeFactors(ods)
     }
     
     y <- t(t(x %*% E %*% t(D)) + b)
