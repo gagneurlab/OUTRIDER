@@ -101,11 +101,15 @@ gradloglikelihood <- function(sizemu, x, SizeF){
     r <- sizemu[1]
     m <- sizemu[2]
     s <- SizeF
-    c(- sum(log(r/(m*s+r))) - sum((m*s-x)/(r+m*s)) 
-        - sum(digamma(x+r)) + length(x) * digamma(r),
+    c(gradTheta(r, x, m*s),
         -r/m * sum((x-m*s)/(r+m*s)))
 }
 
+gradTheta <- function(theta, k, mu){
+    ll <- log(mu+theta)-log(theta)-1 + (k+theta)/(theta+mu) - 
+        digamma(k+theta) + digamma(theta)
+    sum(ll)
+}
 
 #fit for individual gene
 fitNegBinom <- function(index, ctsData, normF, excludeMask){
@@ -135,18 +139,18 @@ fitNegBinom <- function(index, ctsData, normF, excludeMask){
 estTheta <- function(index, cts, mu, exclusionMask){
     ctsi <- cts[index,]
     if(is.matrix(mu)){
-       mui <- mu[index,]
+       mu <- mu[index,]
     }
-    stopifnot(!is.null(mui))
+    stopifnot(!is.null(mu))
   
-    if(!is.null(excludeMask)){
+    if(!is.null(exclusionMask)){
         ctsi <- ctsi[!exclusionMask[index,]]
-        mui <- mui[!exclusionMask[index,]]
+        mu <- mu[!exclusionMask[index,]]
     }
   
     ##correct s factor
     est <- tryCatch(
-        est <- uniroot(gradTheta, interval = c(0.01, 200), k=ctsi, mu=mui, extendInt = 'upX'),
+        est <- uniroot(gradTheta, interval = c(0.01, 200), k=ctsi, mu=mu, extendInt = 'upX'),
         error = function(e){
         warning('Fit resulted in error: ', e$message)
         par <-list("theta"=NA_real_)
@@ -154,18 +158,13 @@ estTheta <- function(index, cts, mu, exclusionMask){
     c(est$root)
 } 
 
-gradTheta <- function(theta, k, mu){
-    ll <- log(mu+theta)-log(theta)-1 + (k+theta)/(theta+mu) - 
-        digamma(k+theta) + digamma(theta)
-    sum(ll)
-}
 
 #k <- rnbinom(100, mu=100, size=200)
 #uniroot(gradTheta, interval = c(0.01, 500), k=k, mu=100, extendInt = 'upX')
 
 
 
-fitThetaRoot <- function(ods, BPPARAM, excludeMask){
+fitThetaRoot <- function(ods, BPPARAM=bpparam(), excludeMask=NULL){
     checkOutriderDataSet(ods)
     checkCountRequirements(ods)
   
@@ -189,8 +188,8 @@ fitThetaRoot <- function(ods, BPPARAM, excludeMask){
         if('excludeMask' %in% assayNames(ods)){
             message('Use existing exclusion mask for fit.')
             excludeMask <- assay(ods, 'excludeMask')
-      }
-  }
+        }
+    }
   
     fitparameters <- bplapply(seq_along(ods), estTheta, mu=normF,
             cts=ctsData, exclusionMask=excludeMask, BPPARAM=BPPARAM)
@@ -202,4 +201,13 @@ fitThetaRoot <- function(ods, BPPARAM, excludeMask){
   
     validObject(ods)
     return(ods)
+}
+
+
+if(FALSE){
+    k <- rnbinom(100, mu=100, size=10)
+    
+    gradTheta(10, k, 100)
+    gradloglikelihood(c(10, 100), x = k, SizeF = 1)
+    numericLossGrad(loglikelihood, 1E-8,c(10,100), x=k, SizeF=1)
 }
