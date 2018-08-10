@@ -7,10 +7,7 @@
 \alias{normalizationFactors<-,OutriderDataSet,matrix-method}
 \alias{normalizationFactors<-,OutriderDataSet,DataFrame-method}
 \alias{normalizationFactors<-,OutriderDataSet,NULL-method}
-\alias{normalizationFactors<-,OutriderDataSet,matrix-method}
-\alias{normalizationFactors<-,OutriderDataSet,DataFrame-method}
 \alias{normalizationFactors<-,OutriderDataSet,data.frame-method}
-\alias{normalizationFactors<-,OutriderDataSet,NULL-method}
 \title{Accessor functions for the normalization factors in an OutriderDataSet
 object.}
 \usage{

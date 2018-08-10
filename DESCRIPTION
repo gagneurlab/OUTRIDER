@@ -29,7 +29,7 @@ biocViews: RNASeq, Transcriptomics, Alignment, Sequencing, GeneExpression,
 License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Depends:
     R (>= 3.5), 
     BiocParallel,
@@ -95,3 +95,6 @@ Collate:
     RcppExports.R
     peer.R
     cooksDistance.R
+    autoCorrectEDversion.R
+    updateE.R
+    updateD.R

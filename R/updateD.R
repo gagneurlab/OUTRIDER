@@ -6,7 +6,7 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     H <- getx(ods) %*% getE(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
-    control$trace=3
+    #control$trace=3
     
     fitD <- function(i, D, b, k, H, sf, theta, control){
         pari <- c(b[i], D[i,])

@@ -8,7 +8,7 @@ updateE <- function(ods, theta, control, BPPARAM, ...){
     b <- getb(ods)
     control$trace<-3
     
-    fit <- optim(e, fn=lossE, gr=lossGradE, k=k, x=x, sf=sf, D=D, b=b,
+    fit <- optim(e, fn=lossEtrunc, gr=lossGradE, k=k, x=x, sf=sf, D=D, b=b,
                  theta=theta, method="L-BFGS-B", control=control, ...)
     
     # Check that fit converged
@@ -39,6 +39,25 @@ lossE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
     - mean( ll )
 }
 
+lossEtrunc <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
+    E <-matrix(e, nrow=ncol(k))
+    
+    y <- t(t(x %*% E %*% t(D)) + b)
+    
+    #ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
+    #ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta))
+    
+    t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
+    t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
+    ll <- mean(t1 - t2)
+    
+    # if(!is.finite(ll) & debugMyCode){
+    #   browser()
+    # }
+    
+    return(-ll)
+}
+
 
 lossGradE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
     E <-matrix(e, nrow=ncol(k))
@@ -48,10 +67,10 @@ lossGradE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
     y <- t(t(x %*% E %*% t(D)) + b)
 
     yexp <- sf*(minMu + exp(y))
-    k1 <- k *sf* exp(y) / yexp         
-              
-    #kt <- (k1 + theta) * exp(y) / (exp(y) + theta)
-    kt <- (k + theta) *sf* exp(y) / (yexp + theta)
+    #k1 <- k *sf* exp(y) / yexp         
+    k1 <- k / (1 + minMu/exp(y) )          
+    #kt <- (k + theta) *sf* exp(y) / (yexp + theta)
+    kt <- (k + theta) / ( 1 + (minMu + theta/sf)/exp(y) )
     t1 <- t(x) %*% (k1 %*% D)
     t3 <- t(x) %*% (kt %*% D)
     

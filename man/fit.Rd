@@ -4,12 +4,12 @@
 \name{fit}
 \alias{fit}
 \alias{fit,OutriderDataSet-method}
-\alias{fit,OutriderDataSet-method}
 \title{Fit the negative binomial distribution}
 \usage{
 fit(object, ...)
 
-\S4method{fit}{OutriderDataSet}(object, BPPARAM = bpparam())
+\S4method{fit}{OutriderDataSet}(object, method = "OUTRIDER",
+  BPPARAM = bpparam(), excludeMask)
 }
 \arguments{
 \item{object}{An OutriderDataSet}
