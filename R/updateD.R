@@ -153,10 +153,16 @@ debugLossD <- function(){
     fit <- optim(init, fn=lossD, gr=gradD, k=k, H=H, s=1, theta=25, method='L-BFGS')
     fit$par
     
+    sf <- rnorm(samples, 1, 0.2)
     D_true
-    lossD(init, k, H, s=1, 25)
-    lossD(c(3, D_true), k, H, s=1,  25)
-    gradD(c(3, D_true), k, H, s=1,  25)
+    par <- init
+    theta <- 25
+    lossD(init, k, H, s=sf, 25)
+    lossD(c(3, D_true), k, H, s=sf,  25)
+    lossDtrunc(init, k=k, H=H, sf=sf, theta=25)
+    truncLogLiklihoodD(init, k=k, H=H, sf=sf, theta=25)
+    gradD(c(3, D_true), k, H, s=sf,  25)
+    gradientD(c(3, D_true), k=k, H=H, sf=sf, theta=25)
     gradD(fit$par, k, H, s=1,  25)
     
     numericLossGrad <- function(fn, epsilon, w,...){
