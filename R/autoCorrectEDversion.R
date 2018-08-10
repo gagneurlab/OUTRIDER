@@ -6,6 +6,7 @@
 #'
 testing <- function(){
     odsg <- readRDS("../scared-analysis/Output/data/GTEx_not_sun_exposed_OutriderDONE.RDS")
+    odsg <- readRDS('/s/project/scared/paper/revision/run2107/data/Skin_Not_Sun_Exposed_Suprapubic_Outrider.RDS')
     ods <- odsg[1:5000, 1:100]
     q <- 10
     q <- 49
@@ -24,17 +25,20 @@ testing <- function(){
     theta <- 25
     control <- list(maxit=40)
     BPPARAM=SerialParam()
-    BPPARAM=MulticoreParam(10, progressbar=TRUE, stop.on.error = FALSE)
+    BPPARAM=MulticoreParam(4, progressbar=TRUE, stop.on.error = FALSE)
 } 
 
-autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), ...){
-    
+autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), 
+        minMu=0.01, ...){
+    lossList <- list()
+    lossList2 <- list()
+    printTheta <- 10
     # Check input
     if(!'factr' %in% names(control)){
-        control$factr <- 1E9
+        control$factr <- 1E7
     }
     if(!'maxit' %in% names(control)){
-        control$maxit <- 10
+        control$maxit <- 100
     }
     if(isScalarValue(theta)){
         theta <- rep(theta, nrow(ods))
@@ -44,12 +48,12 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), .
     sf <- sizeFactors(ods)
     
     # initialize W using PCA and bias as zeros.
-    ods <- initED(ods, q=q, theta=theta, usePCA=FALSE)
-    theta <- updateTheta(ods, theta, BPPARAM)
+    ods <- initED(ods, q=q, theta=theta, usePCA=TRUE)
+    #theta <- updateTheta(ods, theta, BPPARAM)
     
     # check initial loss
     print(paste0('Initial PCA loss: ', lossED(ods, theta)))
-    
+    lossList[1] <- lossED(ods, theta)
     # optimize log likelihood
     if(!bpisup(BPPARAM)){
         bpstart(BPPARAM)
@@ -58,25 +62,38 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), .
     for(i in 1:10){
         t2 <- Sys.time()
         # check initial loss
-        print(paste0(i, 'Initial PCA loss: ', lossED(ods, theta)))
-        
+        # print(paste0(i, 'Initial PCA loss: ', lossED(ods, theta)))
+        #if(i==1){
+        for(a in 1:5){
+                ods <- updateD(ods, theta, control, BPPARAM)
+                theta <- updateTheta(ods, theta, BPPARAM)
+                print(paste0(i, 'initGLM loss: ', lossED(ods, theta)))
+            #}
+        }
         ods <- updateD(ods, theta, control, BPPARAM)
         
         # check initial loss
-        print(paste0(i, 'updateD PCA loss: ', lossED(ods, theta)))
+        print(paste0(i, 'update D loss: ', lossED(ods, theta)))
+        lossList[1+i*3-2] <- lossED(ods, theta)
+        
         theta <- updateTheta(ods, theta, BPPARAM)
         
         # check initial loss
-        print(paste0(i, 'Theta PCA loss: ', lossED(ods, theta)))
+        print(paste0(i, 'Theta loss: ', lossED(ods, theta)))
+        lossList[1+i*3-1] <- lossED(ods, theta)
+        
+        
         ods <- updateE(ods, theta, control, BPPARAM)
         
-        print(paste0(i, 'updateE loss: ', lossED(ods, theta)))
+        print(paste0(i, 'update E loss: ', lossED(ods, theta)))
+        lossList[1+i*3] <- lossED(ods, theta)
+        lossList2[i] <- lossED(ods, theta=10)
         print(Sys.time() - t2)
     }
     
     print(Sys.time() - t1)
     print(paste0(i, 'Final nb-PCA loss: ',
-            lossED(getw(ods), k, getx(ods), sf, getb(ods), theta)))
+            lossED(ods, theta)))
     
     bpstop(BPPARAM)
     
@@ -87,6 +104,9 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), .
     normalizationFactors(ods, replace=TRUE) <- correctionFactors
     metadata(ods)[['weights']] <- getw(ods)
     metadata(ods)[['dim']] <- dim(ods)
+    metadata(ods)[['loss']] <- lossList
+    metadata(ods)[['lossT10']] <- lossList2
+    mcols(ods)[['disp']] <- theta
     validObject(ods)
     
     return(ods)
@@ -104,15 +124,16 @@ initED <- function(ods, q, theta, usePCA=TRUE){
     ods <- setE(ods, pc)
     ods <- setb(ods, rowMeans(log(counts(ods) + 1)))
     
-    if(isFALSE(usePCA)){
-        ods <- updateE(ods, theta, control, BPPARAM)
-        ods <- setD(ods, getE(ods))
-    }
+    # if(isFALSE(usePCA)){
+    #     ods <- updateE(ods, theta, control, BPPARAM)
+    #     ods <- setD(ods, getE(ods))
+    # }
     
     return(ods)
 }
 
 updateTheta <- function(ods, theta, BPPARAM=bpparam()){
+    normalizationFactors(ods, replace=TRUE) <- t(predictED(ods=ods))
     theta <- dispersions(fit(ods, BPPARAM=BPPARAM))
     return(theta)    
 }
@@ -124,6 +145,8 @@ lossED <- function(ods, theta, minMu=0.01, ...){
     E <- getE(ods)
     D <- getD(ods)
     x <- getx(ods)
+    k <- counts(ods)
+    sf <- sizeFactors(ods)
     
     y <- t(t(x %*% E %*% t(D)) + b)
     y_exp <- pmin(1e7, sf * (minMu + exp(y)))

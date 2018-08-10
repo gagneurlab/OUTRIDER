@@ -6,6 +6,7 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     H <- getx(ods) %*% getE(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
+    control$trace=3
     
     fitD <- function(i, D, b, k, H, sf, theta, control){
         pari <- c(b[i], D[i,])
@@ -33,47 +34,7 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     return(ods)
 }
 
-parametricDFit <- function(){
-    ok <- k
-    ob <- b
-    oD <- D
-    oTheta <- theta
-    
-    i <- 5
-    pari <- c(b[i], D[i,])
-    ki <- k[,i]
-    thetai <- theta[i]
-    
-    fit <- optim(pari, fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
-                 method='L-BFGS', control=control) 
-    # lower=rep(-5, ncol(D)+1), upper=rep(5, ncol(D) + 1))
-    fit
-    
-    coefs <- c(0.1, 1)
-    iter <- 0
-    while (TRUE) {
-        residuals <- disps/(coefs[1] + coefs[2]/means)
-        good <- which((residuals > 1e-04) & (residuals < 15))
-        suppressWarnings({
-            fit <- glm(disps[good] ~ I(1/means[good]), family = Gamma(link = "identity"), 
-                       start = coefs)
-        })
-        oldcoefs <- coefs
-        coefs <- coefficients(fit)
-        if (!all(coefs > 0)) 
-            stop(simpleError("parametric dispersion fit failed"))
-        if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
-            break
-        iter <- iter + 1
-        if (iter > 10) 
-            stop(simpleError("dispersion fit did not converge"))
-    }
-    names(coefs) <- c("asymptDisp", "extraPois")
-    ans <- function(q) coefs[1] + coefs[2]/q
-    attr(ans, "coefficients") <- coefs
-    ans
-    
-}
+
 
 lossD <- function(par, k, H, sf, theta, minMu=0.01){
     b <- par[1]
@@ -97,13 +58,15 @@ lossDtrunc <- function(par, k, H, sf, theta, minMu=0.01){
     d <- par[-1]
     
     y <- H %*% d + b
-    #yexp <- sf * (minMu + exp(y))
+    yexp <- sf * (minMu + exp(y))
   
     #ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
-    # LL = k * log(mu) - (k + theta)*log(mu + theta)  
+    #ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta))
+
     t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
     t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
     ll <- mean(t1 - t2)
+
     # if(!is.finite(ll) & debugMyCode){
     #   browser()
     # }
@@ -132,7 +95,7 @@ lossDtruncDebug <- function(par, k, H, sf, theta, minMu=0.01){
     #   browser()
     # }
   
-  return(-ll)
+    return(-ll)
 }
 
 gradD <- function(par, k, H, sf=1, theta, minMu=0.01){
@@ -143,10 +106,13 @@ gradD <- function(par, k, H, sf=1, theta, minMu=0.01){
     yexp <- sf * (minMu + exp(y))
     #yexp <- pmin(1e8, yexp)
     
-    k1 <- k * sf * exp(y) / yexp 
+    #k1 <- k * sf * exp(y) / yexp 
+    k1 <- k / (1 + minMu/exp(y) )
     t1 <- colMeans(k1 * H)
     
-    kt <- (k + theta) * sf * exp(y) / (yexp + theta)
+    #kt <- (k + theta) * sf * exp(y) / (yexp + theta)
+    kt <- (k + theta) / ( 1 + (minMu + theta/sf)/exp(y) )
+    
     t2 <- colMeans(kt * H) 
     
     dd <- t2 - t1
@@ -262,3 +228,45 @@ debugLossD <- function(){
 
 }
 
+
+# parametricDFit <- function(){
+#     ok <- k
+#     ob <- b
+#     oD <- D
+#     oTheta <- theta
+#     
+#     i <- 5
+#     pari <- c(b[i], D[i,])
+#     ki <- k[,i]
+#     thetai <- theta[i]
+#     
+#     fit <- optim(pari, fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
+#                  method='L-BFGS', control=control) 
+#     # lower=rep(-5, ncol(D)+1), upper=rep(5, ncol(D) + 1))
+#     fit
+#     
+#     coefs <- c(0.1, 1)
+#     iter <- 0
+#     while (TRUE) {
+#         residuals <- disps/(coefs[1] + coefs[2]/means)
+#         good <- which((residuals > 1e-04) & (residuals < 15))
+#         suppressWarnings({
+#             fit <- glm(disps[good] ~ I(1/means[good]), family = Gamma(link = "identity"), 
+#                        start = coefs)
+#         })
+#         oldcoefs <- coefs
+#         coefs <- coefficients(fit)
+#         if (!all(coefs > 0)) 
+#             stop(simpleError("parametric dispersion fit failed"))
+#         if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
+#             break
+#         iter <- iter + 1
+#         if (iter > 10) 
+#             stop(simpleError("dispersion fit did not converge"))
+#     }
+#     names(coefs) <- c("asymptDisp", "extraPois")
+#     ans <- function(q) coefs[1] + coefs[2]/q
+#     attr(ans, "coefficients") <- coefs
+#     ans
+#     
+# }

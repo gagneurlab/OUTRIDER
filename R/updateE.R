@@ -6,6 +6,7 @@ updateE <- function(ods, theta, control, BPPARAM, ...){
     sf <- sizeFactors(ods)
     x <- getx(ods)
     b <- getb(ods)
+    control$trace<-3
     
     fit <- optim(e, fn=lossE, gr=lossGradE, k=k, x=x, sf=sf, D=D, b=b,
                  theta=theta, method="L-BFGS-B", control=control, ...)
