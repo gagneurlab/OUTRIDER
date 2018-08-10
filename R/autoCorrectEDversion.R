@@ -64,12 +64,12 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(),
         # check initial loss
         # print(paste0(i, 'Initial PCA loss: ', lossED(ods, theta)))
         #if(i==1){
-        for(a in 1:5){
-                ods <- updateD(ods, theta, control, BPPARAM)
-                theta <- updateTheta(ods, theta, BPPARAM)
-                print(paste0(i, 'initGLM loss: ', lossED(ods, theta)))
-            #}
-        }
+        # for(a in 1:5){
+        #         ods <- updateD(ods, theta, control, BPPARAM)
+        #         theta <- updateTheta(ods, theta, BPPARAM)
+        #         print(paste0(i, 'initGLM loss: ', lossED(ods, theta)))
+        #     #}
+        # }
         ods <- updateD(ods, theta, control, BPPARAM)
         
         # check initial loss
@@ -117,7 +117,7 @@ initED <- function(ods, q, theta, usePCA=TRUE){
     pc  <- loadings(pca)
     
     if(isFALSE(usePCA)){
-        pc[1:length(pc)] <- rnorm(length(pc), sd=sd(pc)/10)
+        pc[1:length(pc)] <- rnorm(length(pc), sd=sd(pc))
     }
     
     ods <- setD(ods, pc)
@@ -145,12 +145,12 @@ lossED <- function(ods, theta, minMu=0.01, ...){
     E <- getE(ods)
     D <- getD(ods)
     x <- getx(ods)
-    k <- counts(ods)
+    k <- t(counts(ods))
     sf <- sizeFactors(ods)
     
     y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- pmin(1e7, sf * (minMu + exp(y)))
-    
+    #y_exp <- pmin(1e7, sf * (minMu + exp(y)))
+    y_exp <- sf * (minMu + exp(y))
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
     - mean( ll )

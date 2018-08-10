@@ -5,8 +5,9 @@
 \title{TODO}
 \usage{
 findInjectZscore(ods, freq = 0.01, zScoreParams = c(seq(1.5, 4, 0.5),
-  "lnorm"), encDimParams = c(seq(3, 40, 3), seq(45, 70, 5), 100, 130, 160),
-  inj = "both", ..., implementation = "robustR", BPPARAM = bpparam())
+  "lnorm"), encDimParams = c(seq(3, 40, 3), seq(45, 70, 5), 100, 130,
+  160), inj = "both", ..., implementation = "robustR",
+  BPPARAM = bpparam())
 }
 \description{
 TODO

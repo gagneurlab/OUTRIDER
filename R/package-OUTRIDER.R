@@ -24,6 +24,7 @@
 #'          assayNames mcols mcols<- assay assay<-
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
+#'          isScalarValue
 #' 
 #' @importFrom BiocParallel bplapply bpparam
 #' 

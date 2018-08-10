@@ -425,7 +425,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
     # get data frame
     dt <- data.table(
         sampleID = colnames(ods),
-        normcounts = as.integer(counts(ods, normalized=normalized)[geneID,]))
+        normcounts = as.integer(counts(ods[geneID,], normalized=normalized)))
     dt[,normcounts:=normcounts + ifelse(isTRUE(log), 1, 0)]
     
     dt[, medianCts:= median(normcounts)]

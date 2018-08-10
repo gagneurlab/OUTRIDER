@@ -4,10 +4,10 @@
 \alias{makeExampleOutriderDataSet}
 \title{Create example data sets for OUTRIDER}
 \usage{
-makeExampleOutriderDataSet(n = 200, m = 80, freq = 0.01, zScore = 6,
-  inj = c("both", "low", "high"), sizeFactors = rep(1, m), betaSD = 4,
-  dispMeanRel = function(x) 4/x + 0.1, dataset = c("none", "GTExSkinSmall",
-  "KremerNBaderSmall"))
+makeExampleOutriderDataSet(n = 200, m = 80, freq = 0.01,
+  zScore = 6, inj = c("both", "low", "high"), sizeFactors = rep(1,
+  m), betaSD = 4, dispMeanRel = function(x) 4/x + 0.1,
+  dataset = c("none", "GTExSkinSmall", "KremerNBaderSmall"))
 }
 \arguments{
 \item{n}{Number of simulated genes}

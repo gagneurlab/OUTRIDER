@@ -8,9 +8,6 @@
 \alias{sizeFactors<-,OutriderDataSet,numeric-method}
 \alias{estimateSizeFactors}
 \alias{estimateSizeFactors,OutriderDataSet-method}
-\alias{sizeFactors,OutriderDataSet-method}
-\alias{sizeFactors<-,OutriderDataSet,numeric-method}
-\alias{estimateSizeFactors,OutriderDataSet-method}
 \title{SizeFactors accessor and estimation function}
 \usage{
 \S4method{sizeFactors}{OutriderDataSet}(object)

@@ -5,11 +5,10 @@
 \alias{counts}
 \alias{counts,OutriderDataSet-method}
 \alias{counts<-,OutriderDataSet,matrix-method}
-\alias{counts<-,OutriderDataSet,matrix-method}
 \title{Accessors for the 'counts' slot of an OutriderDataSet object.}
 \usage{
-\S4method{counts}{OutriderDataSet}(object, normalized = FALSE, offset = 0,
-  minE = 0.5, newVersion = TRUE)
+\S4method{counts}{OutriderDataSet}(object, normalized = FALSE,
+  offset = 0, minE = 0.5, newVersion = TRUE)
 
 \S4method{counts}{OutriderDataSet,matrix}(object) <- value
 }
