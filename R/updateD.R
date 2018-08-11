@@ -8,10 +8,14 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     sf <- sizeFactors(ods)
     #control$trace=3
     
-    fitD <- function(i, D, b, k, H, sf, theta, control){
+    fitD <- function(i, D, b, k, H, sf, theta, control, exclusionMask=NULL){
         pari <- c(b[i], D[i,])
         ki <- k[,i]
         thetai <- theta[i]
+        if(!is.null(exclusionMask)){
+          ki <- ki[!exclusionMask[i,]]
+          sf <- sf[!exclusionMask[i,]]
+        }
         
         fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, k=ki, H=H, 
                 sf=sf, theta=thetai, method='L-BFGS', control=control)
@@ -59,37 +63,12 @@ lossDtrunc <- function(par, k, H, sf, theta, minMu=0.01){
     y <- H %*% d + b
     yexp <- sf * (minMu + exp(y))
   
-    #ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
     #ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta))
 
     t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
     t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
     ll <- mean(t1 - t2)
 
-    # if(!is.finite(ll) & debugMyCode){
-    #   browser()
-    # }
-  
-    return(-ll)
-}
-
-lossDtruncDebug <- function(par, k, H, sf, theta, minMu=0.01){
-    b <- par[1]
-    d <- par[-1]
-  
-    y <- H %*% d + b
-    yexp <- sf * (minMu + exp(y))
-  
-    #ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
-    
-    ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta)  )
-    mean(k*log(yexp))
-    mean(k * (log(sf) + y + log(1 + minMu/exp(y))))
-    
-    # t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
-    # t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
-    # ll <- mean(t1 - t2)
-    
     # if(!is.finite(ll) & debugMyCode){
     #   browser()
     # }

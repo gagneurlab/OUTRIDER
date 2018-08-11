@@ -59,7 +59,25 @@ lossEtrunc <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
 }
 
 
-lossGradE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
+lossEtruncNonOutlier <- function(e, D, k, b, x, sf, theta, minMu=0.01, exlusionMask, ...){
+    E <-matrix(e, nrow=ncol(k))
+  
+    y <- t(t(x %*% E %*% t(D)) + b)
+  
+    t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
+    t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
+    ll <- (t1 - t2)
+    ll <- mean(ll[exclusionMask])
+    
+    # if(!is.finite(ll) & debugMyCode){
+    #   browser()
+    # }
+  
+    return(-ll)
+}
+
+
+lossGradENonOutlier <- function(e, D, k, b, x, sf, theta, minMu=0.01, exclusionMask, ...){
     E <-matrix(e, nrow=ncol(k))
     theta <- matrix(theta, ncol=ncol(k), nrow=nrow(k), byrow=TRUE)
     
@@ -68,14 +86,16 @@ lossGradE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
 
     yexp <- sf * (minMu + exp(y))
     #k1 <- k *sf* exp(y) / yexp         
-    k1 <- k / (1 + minMu/exp(y) )          
-    #kt <- (k + theta) * sf * exp(y) / (yexp + theta)
+    k1 <- k / (1 + minMu/exp(y) ) 
+    k1[exclusionMask] <- 0
+    #kt <- (k + theta) *sf* exp(y) / (yexp + theta)
     kt <- (k + theta) / ( 1 + (minMu + theta/sf)/exp(y) )
+    kt[exclusionMask] <- 0
     t1 <- t(x) %*% (k1 %*% D)
     t3 <- t(x) %*% (kt %*% D)
     
     # answers dE 
-    dE <- (-t1 + t3)/prod(dim(k))
+    dE <- (-t1 + t3)/sum(exclusionMask==FALSE)
     
     return(dE)
 }

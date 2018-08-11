@@ -29,33 +29,12 @@ setGeneric("fit", function(object, ...) standardGeneric("fit"))
 #' @rdname fit
 #' @export
 setMethod("fit", "OutriderDataSet", function(object, method='OUTRIDER', BPPARAM=bpparam(), excludeMask){
-    if(method=='OUTRIDER'){
-        ans <- fitNB(object, BPPARAM=BPPARAM, excludeMask=excludeMask)
-    }
-    if(method=='DESeq2'){
-        ans <- fitNBusingDESeq2(object, BPPARAM=BPPARAM)
-    }
+    ans <- fitTheta(object, BPPARAM=BPPARAM, excludeMask=excludeMask)
     return(ans)
 })
 
 
-fitNBusingDESeq2 <- function(ods, BPPARAM){
-    dds <- DESeqDataSet(ods, design=~1)
-    mu <- normalizationFactors(ods)
-    normFactors <- mu/ exp(rowMeans(log(mu)))
-    normalizationFactors(dds)  <- normFactors
-    dds <- DESeq2:::DESeqParallel(dds, test="Wald", fitType="mean",
-            quiet=FALSE, modelMatrix = NULL, useT=FALSE, minmu=0.1, 
-            betaPrior=FALSE, BPPARAM=BPPARAM)
-    
-    mcols(ods)['mu'] <- rep(1, nrow(ods))
-    mcols(ods)['disp'] <- 1/dispersions(dds)
-    
-    validObject(ods)
-    return(ods)
-}
-
-fitNB <- function(ods, BPPARAM, excludeMask){
+fitTheta <- function(ods, BPPARAM, excludeMask){
     checkOutriderDataSet(ods)
     checkCountRequirements(ods)
     
@@ -122,21 +101,15 @@ gradloglikelihood <- function(sizemu, x, SizeF){
     r <- sizemu[1]
     m <- sizemu[2]
     s <- SizeF
-    c(- sum(log(r/(m*s+r))) - sum((m*s-x)/(r+m*s)) 
-        - sum(digamma(x+r)) + length(x) * digamma(r),
+    c(gradTheta(r, x, m*s),
         -r/m * sum((x-m*s)/(r+m*s)))
 }
 
-# Cox Reid adjusted log likelihood
-cRloglikelihood <- function(sizemu, x, SizeF){
-    size <- sizemu[1]
-    mu <- sizemu[2]*SizeF
-    w <- 1/(1/mu + 1/size)
-    -sum(dnbinom(x, size=size, mu=mu, log=TRUE)) + 
-        #0.5 * log(length(x) * w * sum(w*x^2) - sum(w*x)^2)
-        0.5 * log(length(x) * w)
+gradTheta <- function(theta, k, mu){
+    ll <- log(mu+theta)-log(theta)-1 + (k+theta)/(theta+mu) - 
+        digamma(k+theta) + digamma(theta)
+    sum(ll)
 }
-
 
 #fit for individual gene
 fitNegBinom <- function(index, ctsData, normF, excludeMask){
@@ -163,4 +136,78 @@ fitNegBinom <- function(index, ctsData, normF, excludeMask){
     c(est$par["mu"], est$par["size"])
 } 
 
+estTheta <- function(index, cts, mu, exclusionMask){
+    ctsi <- cts[index,]
+    if(is.matrix(mu)){
+       mu <- mu[index,]
+    }
+    stopifnot(!is.null(mu))
+  
+    if(!is.null(exclusionMask)){
+        ctsi <- ctsi[!exclusionMask[index,]]
+        mu <- mu[!exclusionMask[index,]]
+    }
+  
+    ##correct s factor
+    est <- tryCatch(
+        est <- uniroot(gradTheta, interval = c(0.01, 200), k=ctsi, mu=mu, extendInt = 'upX'),
+        error = function(e){
+        warning('Fit resulted in error: ', e$message)
+        par <-list("theta"=NA_real_)
+        list(root=par)})
+    c(est$root)
+} 
 
+
+#k <- rnbinom(100, mu=100, size=200)
+#uniroot(gradTheta, interval = c(0.01, 500), k=k, mu=100, extendInt = 'upX')
+
+
+
+fitThetaRoot <- function(ods, BPPARAM=bpparam(), excludeMask=NULL){
+    checkOutriderDataSet(ods)
+    checkCountRequirements(ods)
+  
+    ctsData <- counts(ods)
+    normF <- normalizationFactors(ods)
+    if(is.null(normF)){
+        normF <- sizeFactors(ods)
+    }
+    if(is.null(normF)){
+      stop("Please provide sizeFactors or normalizationFactors for better ",
+          "estimates!\n  To compute the sizeFactors please run at least:",
+         " ods <- estimateSizeFactors(ods).")
+    }
+  
+    if(!missing(excludeMask)){
+        if(!is.null(excludeMask) & !any(is.na(excludeMask))){
+        assay(ods, 'excludeMask') <- excludeMask
+        }
+    } else {
+        excludeMask <- NULL
+        if('excludeMask' %in% assayNames(ods)){
+            message('Use existing exclusion mask for fit.')
+            excludeMask <- assay(ods, 'excludeMask')
+        }
+    }
+  
+    fitparameters <- bplapply(seq_along(ods), estTheta, mu=normF,
+            cts=ctsData, exclusionMask=excludeMask, BPPARAM=BPPARAM)
+  
+  
+    mcols(ods)['disp'] <- vapply(fitparameters, "[[", double(1), "theta")
+  
+    assay(ods)
+  
+    validObject(ods)
+    return(ods)
+}
+
+
+if(FALSE){
+    k <- rnbinom(100, mu=100, size=10)
+    
+    gradTheta(10, k, 100)
+    gradloglikelihood(c(10, 100), x = k, SizeF = 1)
+    numericLossGrad(loglikelihood, 1E-8,c(10,100), x=k, SizeF=1)
+}
