@@ -7,7 +7,7 @@
 using namespace Rcpp;
 
 // truncLogLiklihoodD
-SEXP truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, double theta, double minMu);
+double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, double theta, double minMu);
 RcppExport SEXP _OUTRIDER_truncLogLiklihoodD(SEXP parSEXP, SEXP HSEXP, SEXP kSEXP, SEXP sfSEXP, SEXP thetaSEXP, SEXP minMuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -23,7 +23,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // gradientD
-SEXP gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, double theta, double minMu);
+arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, double theta, double minMu);
 RcppExport SEXP _OUTRIDER_gradientD(SEXP parSEXP, SEXP HSEXP, SEXP kSEXP, SEXP sfSEXP, SEXP thetaSEXP, SEXP minMuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -39,7 +39,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // truncLogLiklihoodE
-SEXP truncLogLiklihoodE(arma::vec e, arma::mat D, arma::mat k, arma::vec b, arma::mat x, arma::vec sf, arma::vec theta, double minMu);
+double truncLogLiklihoodE(arma::vec e, arma::mat D, arma::mat k, arma::vec b, arma::mat x, arma::vec sf, arma::vec theta, double minMu);
 RcppExport SEXP _OUTRIDER_truncLogLiklihoodE(SEXP eSEXP, SEXP DSEXP, SEXP kSEXP, SEXP bSEXP, SEXP xSEXP, SEXP sfSEXP, SEXP thetaSEXP, SEXP minMuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -57,7 +57,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // gradientE
-SEXP gradientE(arma::vec e, arma::mat D, arma::mat k, arma::vec b, arma::mat x, arma::vec sf, arma::vec theta, double minMu);
+arma::mat gradientE(arma::vec e, arma::mat D, arma::mat k, arma::vec b, arma::mat x, arma::vec sf, arma::vec theta, double minMu);
 RcppExport SEXP _OUTRIDER_gradientE(SEXP eSEXP, SEXP DSEXP, SEXP kSEXP, SEXP bSEXP, SEXP xSEXP, SEXP sfSEXP, SEXP thetaSEXP, SEXP minMuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -75,7 +75,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // predictY
-SEXP predictY(arma::mat x, arma::mat E, arma::mat D, arma::vec b, arma::vec sf, double minMu);
+arma::mat predictY(arma::mat x, arma::mat E, arma::mat D, arma::vec b, arma::vec sf, double minMu);
 RcppExport SEXP _OUTRIDER_predictY(SEXP xSEXP, SEXP ESEXP, SEXP DSEXP, SEXP bSEXP, SEXP sfSEXP, SEXP minMuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

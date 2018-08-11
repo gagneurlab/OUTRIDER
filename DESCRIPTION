@@ -54,7 +54,7 @@ Imports:
     pcaMethods,
     PRROC,
     RColorBrewer,
-    Rcpp,
+    Rcpp (>= 0.12.18),
     reticulate,
     S4Vectors,
     scales,

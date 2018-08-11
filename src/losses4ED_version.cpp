@@ -18,7 +18,7 @@ arma::vec colMeans(arma::mat X){
 }
 
 // [[Rcpp::export()]]
-SEXP truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
+double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
                     double theta, double minMu=0.01){
     double b, ll, c;
     arma::vec d, y, ls_y_lmexpy, t1, t2;
@@ -34,11 +34,11 @@ SEXP truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
     
     ll = arma::accu(t1 - t2)/k.n_elem;
     
-    return Rcpp::wrap(-ll);
+    return arma::as_scalar(-ll);
 }
 
 // [[Rcpp::export()]]
-SEXP gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
+arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
                         double theta, double minMu=0.01){
     double b, c;
     arma::vec d, y, yexp, k1, kt, t1, t2, dd, db;
@@ -60,12 +60,12 @@ SEXP gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
     dd = t2 - t1;
     
     arma::mat ans = arma::join_cols(db, dd);
-    return Rcpp::wrap(ans.col(0));
+    return ans.col(0);
 }
 
 
 // [[Rcpp::export()]]
-SEXP truncLogLiklihoodE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
+double truncLogLiklihoodE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
                         arma::mat x, arma::vec sf, arma::vec theta, 
                         double minMu=0.01){
     arma::mat E, xED, y, ls_y_lmexpy, t1_2, t2_1, t2_2, t1, t2, ll;
@@ -85,12 +85,12 @@ SEXP truncLogLiklihoodE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
     t2 = t2_1 % t2_2;
     
     ll = arma::accu(t1 - t2)/k.n_elem;
-    return Rcpp::wrap(arma::as_scalar(-ll));
+    return arma::as_scalar(-ll);
 }
 
 
 // [[Rcpp::export()]]
-SEXP gradientE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
+arma::mat gradientE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
                         arma::mat x, arma::vec sf, arma::vec theta, 
                         double minMu=0.01){
     arma::mat E, xED, y, k1, t1, kt_1, kt_2, kt, t3, dE;
@@ -112,12 +112,12 @@ SEXP gradientE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
     t3 = x.t() * (kt * D);
     
     dE = (-t1 + t3)/k.n_elem;
-    return Rcpp::wrap(dE);
+    return dE;
 }
 
 
 // [[Rcpp::export()]]
-SEXP predictY(arma::mat x, arma::mat E, arma::mat D, arma::vec b,
+arma::mat predictY(arma::mat x, arma::mat E, arma::mat D, arma::vec b,
                arma::vec sf, double minMu=0.01){
     
     arma::mat y = x * E * D.t();
@@ -125,5 +125,5 @@ SEXP predictY(arma::mat x, arma::mat E, arma::mat D, arma::vec b,
     y = minMu + arma::exp(y);
     y.each_col() %= sf;
     
-    return Rcpp::wrap(y);
+    return y;
 }
