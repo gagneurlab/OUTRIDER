@@ -74,6 +74,44 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// truncLogLiklihoodENonOutlier
+SEXP truncLogLiklihoodENonOutlier(arma::vec e, arma::mat D, arma::mat k, arma::vec b, arma::mat x, arma::vec sf, arma::vec theta, arma::mat exclusionMask, double minMu);
+RcppExport SEXP _OUTRIDER_truncLogLiklihoodENonOutlier(SEXP eSEXP, SEXP DSEXP, SEXP kSEXP, SEXP bSEXP, SEXP xSEXP, SEXP sfSEXP, SEXP thetaSEXP, SEXP exclusionMaskSEXP, SEXP minMuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type D(DSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sf(sfSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type exclusionMask(exclusionMaskSEXP);
+    Rcpp::traits::input_parameter< double >::type minMu(minMuSEXP);
+    rcpp_result_gen = Rcpp::wrap(truncLogLiklihoodENonOutlier(e, D, k, b, x, sf, theta, exclusionMask, minMu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gradientENonOutlier
+SEXP gradientENonOutlier(arma::vec e, arma::mat D, arma::mat k, arma::vec b, arma::mat x, arma::vec sf, arma::vec theta, arma::mat exclusionMask, double minMu);
+RcppExport SEXP _OUTRIDER_gradientENonOutlier(SEXP eSEXP, SEXP DSEXP, SEXP kSEXP, SEXP bSEXP, SEXP xSEXP, SEXP sfSEXP, SEXP thetaSEXP, SEXP exclusionMaskSEXP, SEXP minMuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type D(DSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sf(sfSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type exclusionMask(exclusionMaskSEXP);
+    Rcpp::traits::input_parameter< double >::type minMu(minMuSEXP);
+    rcpp_result_gen = Rcpp::wrap(gradientENonOutlier(e, D, k, b, x, sf, theta, exclusionMask, minMu));
+    return rcpp_result_gen;
+END_RCPP
+}
 // predictY
 arma::mat predictY(arma::mat x, arma::mat E, arma::mat D, arma::vec b, arma::vec sf, double minMu);
 RcppExport SEXP _OUTRIDER_predictY(SEXP xSEXP, SEXP ESEXP, SEXP DSEXP, SEXP bSEXP, SEXP sfSEXP, SEXP minMuSEXP) {
@@ -158,6 +196,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_OUTRIDER_gradientD", (DL_FUNC) &_OUTRIDER_gradientD, 6},
     {"_OUTRIDER_truncLogLiklihoodE", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodE, 8},
     {"_OUTRIDER_gradientE", (DL_FUNC) &_OUTRIDER_gradientE, 8},
+    {"_OUTRIDER_truncLogLiklihoodENonOutlier", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodENonOutlier, 9},
+    {"_OUTRIDER_gradientENonOutlier", (DL_FUNC) &_OUTRIDER_gradientENonOutlier, 9},
     {"_OUTRIDER_predictY", (DL_FUNC) &_OUTRIDER_predictY, 6},
     {"_OUTRIDER_truncLogLiklihood", (DL_FUNC) &_OUTRIDER_truncLogLiklihood, 6},
     {"_OUTRIDER_truncLogLiklihoodNonOutlier", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodNonOutlier, 7},

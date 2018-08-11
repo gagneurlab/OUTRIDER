@@ -49,17 +49,20 @@ fitTheta <- function(ods, BPPARAM, excludeMask){
                 " ods <- estimateSizeFactors(ods).")
     }
     
-    if(!missing(excludeMask)){
-        if(!is.null(excludeMask) & !any(is.na(excludeMask))){
-            assay(ods, 'excludeMask') <- excludeMask
-        }
-    } else {
-        excludeMask <- NULL
-        if('excludeMask' %in% assayNames(ods)){
-            message('Use existing exclusion mask for fit.')
-            excludeMask <- assay(ods, 'excludeMask')
-        }
-    }
+    # if(!missing(excludeMask)){
+    #     if(!is.null(excludeMask) & !any(is.na(excludeMask))){
+    #         assay(ods, 'excludeMask') <- excludeMask
+    #     }
+    # } else {
+    #     excludeMask <- NULL
+    #     if('excludeMask' %in% assayNames(ods)){
+    #         message('Use existing exclusion mask for fit.')
+    #         excludeMask <- assay(ods, 'excludeMask')
+    #     }
+    # }
+    
+    excludeMask <- NULL
+    
     
     fitparameters <- bplapply(seq_along(ods), fitNegBinom, normF=normF,
             ctsData=ctsData, excludeMask=excludeMask, BPPARAM=BPPARAM)

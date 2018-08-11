@@ -237,23 +237,30 @@ autoCorrectR <- function(ods, q, theta=25, control=list(), debug=FALSE, ...){
     return(ods)
 }
 
-autoCorrectFit <- function(w, loss, lossGrad, k, x, s, xbar, theta, control, ...){
-    fit <- NULL
-    tryCatch({
+autoCorrectFit <- function(w, loss, lossGrad, k, x, s, xbar, theta, control, 
+                           PCAonError=FALSE, ...){
+    if(isTRUE(PCAonError)){
+        fit <- NULL
+        tryCatch({
+            fit <- optim(w, loss, gr=lossGrad, k=k, x=x, s=s, xbar=xbar, 
+                    theta=theta, method="L-BFGS-B", control=control, ...)
+            },
+            error = function(e) warning("Catched error: ", e$message))
+        
+        if(is.null(fit)){
+            warning('An error occured during the autoencoder fit. ', 
+                    'The initial PCA values are used.')
+            fit <- list(
+                convergence = 255,
+                par = w,
+                message = 'Errored during autoCorrect fitting.')
+        }
+        return(fit)
+    }else{
         fit <- optim(w, loss, gr=lossGrad, k=k, x=x, s=s, xbar=xbar, 
-                theta=theta, method="L-BFGS-B", control=control, ...)
-        },
-        error = function(e) warning("Catched error: ", e$message))
-    
-    if(is.null(fit)){
-        warning('An error occured during the autoencoder fit. ', 
-                'The initial PCA values are used.')
-        fit <- list(
-            convergence = 255,
-            par = w,
-            message = 'Errored during autoCorrect fitting.')
+                     theta=theta, method="L-BFGS-B", control=control, ...)
+        return(fit)
     }
-    return(fit)
 }
 
 

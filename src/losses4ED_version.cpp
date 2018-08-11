@@ -115,6 +115,60 @@ arma::mat gradientE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
     return dE;
 }
 
+// [[Rcpp::export()]]
+SEXP truncLogLiklihoodENonOutlier(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
+                        arma::mat x, arma::vec sf, arma::vec theta, 
+                        arma::mat exclusionMask, double minMu=0.01){
+    arma::mat E, xED, y, ls_y_lmexpy, t1_2, t2_1, t2_2, t1, t2, ll, llMat;
+    
+    E = arma::reshape(e, D.n_rows, D.n_cols);
+    xED = x * E * D.t();
+    y = xED.each_row() + b.t();
+    
+    t1_2 = y + arma::log(1 + minMu / arma::exp(y));
+    t1_2.each_col() += arma::log(sf);
+    t1 = k % t1_2;
+    
+    t2_1 = k.each_row() + theta.t();
+    t2_2 = minMu + arma::exp(y);
+    t2_2.each_col() %= sf;
+    t2_2 = t1_2 + arma::log(1 + theta.t()/t2_2.each_row());
+    t2 = t2_1 % t2_2;
+    
+    llMat = (t1 - t2) % exclusionMask;
+    ll = arma::accu(llMat)/arma::accu(exclusionMask);
+    return Rcpp::wrap(arma::as_scalar(-ll));
+}
+
+
+// [[Rcpp::export()]]
+SEXP gradientENonOutlier(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
+               arma::mat x, arma::vec sf, arma::vec theta, 
+               arma::mat exclusionMask, double minMu=0.01){
+    arma::mat E, xED, y, k1, t1, kt_1, kt_2, kt, t3, dE;
+    
+    E = arma::reshape(e, D.n_rows, D.n_cols);
+    xED = x * E * D.t();
+    y = xED.each_row() + b.t();
+    
+    k1 = k / (1 + minMu / arma::exp(y));
+    k1 %= exclusionMask;
+    t1 = x.t() * (k1 * D);
+    
+    kt_2 = arma::exp(y);
+    kt_2.each_col() %= sf;
+    kt_2 = theta.t() / kt_2.each_row();
+    kt_2 += 1 + minMu/arma::exp(y);
+    kt_1 = k.each_row() + theta.t();
+    kt = kt_1 / kt_2;
+    kt %= exclusionMask;
+    
+    t3 = x.t() * (kt * D);
+    
+    dE = (-t1 + t3)/arma::accu(exclusionMask);
+    return Rcpp::wrap(dE);
+}
+
 
 // [[Rcpp::export()]]
 arma::mat predictY(arma::mat x, arma::mat E, arma::mat D, arma::vec b,

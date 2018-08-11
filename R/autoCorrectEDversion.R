@@ -32,9 +32,8 @@ edPca <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=TRUE, ...) }
 edRand <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=FALSE, ...)}
 
 autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE, 
-                    BPPARAM=bpparam(), loops=10, minMu=0.01, ...){
+                    BPPARAM=bpparam(), loops=10, minMu=0.01, robust=FALSE, ...){
     lossList <- list()
-    lossList2 <- list()
     printTheta <- 10
     # Check input
     if(!'factr' %in% names(control)){
@@ -65,31 +64,33 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE,
     for(i in 1:loops){
         t2 <- Sys.time()
         # replace outliers
-        # ods <- replaceOutliersED(ods, theta, BPPARAM)
+        if(i>1){
+            ods <- maskOutliersED(ods)  
+        }
         
-        ods <- updateD(ods, theta, control, BPPARAM)
+        
+        ods <- updateD(ods, theta, control, BPPARAM, robust)
         
         # check initial loss
-        print(paste0(i, 'update D loss: ', lossED(ods, theta)))
+        print(paste0(i, ' update D loss: ', lossED(ods, theta)))
         lossList[1+i*3-2] <- lossED(ods, theta)
         
-        theta <- updateTheta(ods, theta, BPPARAM)
-        
+        ods <- updateTheta(ods, theta, BPPARAM)
+        theta <- dispersions(ods)
         # check initial loss
-        print(paste0(i, 'Theta loss: ', lossED(ods, theta)))
+        print(paste0(i, ' Theta loss: ', lossED(ods, theta)))
         lossList[1+i*3-1] <- lossED(ods, theta)
         
         
-        ods <- updateE(ods, theta, control, BPPARAM)
+        ods <- updateE(ods, theta, control, BPPARAM, robust)
         
-        print(paste0(i, 'update E loss: ', lossED(ods, theta)))
+        print(paste0(i, ' update E loss: ', lossED(ods, theta)))
         lossList[1+i*3] <- lossED(ods, theta)
-        lossList2[i] <- lossED(ods, theta=10)
         print(Sys.time() - t2)
     }
     
     print(Sys.time() - t1)
-    print(paste0(i, 'Final nb-PCA loss: ',
+    print(paste0(i, ' Final nb-PCA loss: ',
             lossED(ods, theta)))
     
     bpstop(BPPARAM)
@@ -102,7 +103,6 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE,
     metadata(ods)[['weights']] <- getw(ods)
     metadata(ods)[['dim']] <- dim(ods)
     metadata(ods)[['loss']] <- lossList
-    metadata(ods)[['lossT10']] <- lossList2
     mcols(ods)[['disp']] <- theta
     validObject(ods)
     
@@ -131,8 +131,17 @@ initED <- function(ods, q, theta, usePCA=TRUE){
 
 updateTheta <- function(ods, theta, BPPARAM=bpparam()){
     normalizationFactors(ods, replace=TRUE) <- t(predictED(ods=ods))
-    theta <- dispersions(fit(ods, BPPARAM=BPPARAM))
-    return(theta)    
+    ods <- fit(ods, BPPARAM=BPPARAM)
+    return(ods)    
+}
+
+
+maskOutliersED <- function(ods, pValCutoff=0.01){
+    ods <- computePvalues(ods)
+    mask <- matrix(1, nrow=nrow(ods), ncol=ncol(ods))
+    mask[assay(ods, 'pValue')<pValCutoff/ncol(ods)] <- 0
+    print(paste(sum(mask==0), 'outliers identified in this iteration.'))
+    ods <- setExclusionMask(ods, mask)
 }
 
 replaceOutliersED <- function(ods, theta, pValCutoff=0.01, BPPARAM=bpparam()){

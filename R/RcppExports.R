@@ -17,6 +17,14 @@ gradientE <- function(e, D, k, b, x, sf, theta, minMu = 0.01) {
     .Call('_OUTRIDER_gradientE', PACKAGE = 'OUTRIDER', e, D, k, b, x, sf, theta, minMu)
 }
 
+truncLogLiklihoodENonOutlier <- function(e, D, k, b, x, sf, theta, exclusionMask, minMu = 0.01) {
+    .Call('_OUTRIDER_truncLogLiklihoodENonOutlier', PACKAGE = 'OUTRIDER', e, D, k, b, x, sf, theta, exclusionMask, minMu)
+}
+
+gradientENonOutlier <- function(e, D, k, b, x, sf, theta, exclusionMask, minMu = 0.01) {
+    .Call('_OUTRIDER_gradientENonOutlier', PACKAGE = 'OUTRIDER', e, D, k, b, x, sf, theta, exclusionMask, minMu)
+}
+
 predictY <- function(x, E, D, b, sf, minMu = 0.01) {
     .Call('_OUTRIDER_predictY', PACKAGE = 'OUTRIDER', x, E, D, b, sf, minMu)
 }

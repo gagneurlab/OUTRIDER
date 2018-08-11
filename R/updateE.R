@@ -1,5 +1,5 @@
 
-updateE <- function(ods, theta, control, BPPARAM, ...){
+updateE <- function(ods, theta, control, BPPARAM, robust=FALSE, ...){
     e <- as.vector(getE(ods))
     D <- getD(ods)
     k <- t(counts(ods))
@@ -8,8 +8,15 @@ updateE <- function(ods, theta, control, BPPARAM, ...){
     b <- getb(ods)
     control$trace<-3
     
-    fit <- optim(e, fn=truncLogLiklihoodE, gr=gradientE, k=k, x=x, sf=sf, D=D, 
-            b=b, theta=theta, method="L-BFGS-B", control=control, ...)
+    if(robust==TRUE){
+        exclusionMask <- t(getExclusionMask(ods))
+        fit <- optim(e, fn=truncLogLiklihoodENonOutlier, gr=gradientENonOutlier,
+                     k=k, x=x, sf=sf, D=D, b=b, theta=theta, method="L-BFGS-B",
+                     control=control, exclusionMask=exclusionMask, ...)
+    } else{
+        fit <- optim(e, fn=truncLogLiklihoodE, gr=gradientE, k=k, x=x, sf=sf, D=D, 
+                     b=b, theta=theta, method="L-BFGS-B", control=control, ...)
+    }
     
     # Check that fit converged
     if(fit$convergence!=0){
