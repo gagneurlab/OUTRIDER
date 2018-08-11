@@ -13,8 +13,8 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
         ki <- k[,i]
         thetai <- theta[i]
         if(!is.null(exclusionMask)){
-          ki <- ki[!exclusionMask[i,]]
-          sf <- sf[!exclusionMask[i,]]
+            ki <- ki[1==exclusionMask[i,]]
+            sf <- sf[1==exclusionMask[i,]]
         }
         
         fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, k=ki, H=H, 

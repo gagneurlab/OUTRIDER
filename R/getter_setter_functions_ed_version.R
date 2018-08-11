@@ -60,6 +60,18 @@ setTrueCounts <- function(ods, cts){
     return(ods)
 }
 
+getExclusionMask <- function(ods){
+    if('exclusionMask' %in% assayNames(ods)){
+        return(assay(ods, 'exclusionMask'))
+    }
+    return(matrix(1, ncol=ncol(ods), nrow=nrow(ods)))
+}
+
+setExclusionMask <- function(ods, mask){
+    assay(ods, 'exclusionMask') <- mask
+    return(ods)
+}
+
 getMask <- function(ods){
     if('excludeMask' %in% assayNames(ods)){
         return(assay(ods, 'excludeMask'))
