@@ -38,7 +38,8 @@ autoCorrect <- function(ods, q, theta=25,
                             'RobPvalThetaMix100L5It40', 'RobPval25L5It40',
                             'maskCooksMix100L5It40', 'maskCooks25L5It40',
                             'Rob1E3PvalThetaMix100L10It10',
-                            'Rob1E3Pval25L10It10'),
+                            'Rob1E3Pval25L10It10',
+                            'edPca', 'edRand'),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -100,6 +101,14 @@ autoCorrect <- function(ods, q, theta=25,
         pca = {
             impl <- "pca"
             ans <- autoCorrectPCA(ods, q)
+        },
+        edPca = {
+            impl <- 'edPca'
+            ans <- edPca(ods, q, BPPARAM=BPPARAM)
+        },
+        edRand = {
+            impl <- 'edRand'
+            ans <- edRand(ods, q, BPPARAM=BPPARAM)
         },
         Rob1E3Pval25L10It10 = {
             impl <- 'Rob1E3Pval25L10It10'

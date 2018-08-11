@@ -28,8 +28,11 @@ testing <- function(){
     BPPARAM=MulticoreParam(4, progressbar=TRUE, stop.on.error = FALSE)
 } 
 
-autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(), 
-        minMu=0.01, ...){
+edPca <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=TRUE, ...) }
+edRand <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=FALSE, ...)}
+
+autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE, 
+                    BPPARAM=bpparam(), loops=10, minMu=0.01, ...){
     lossList <- list()
     lossList2 <- list()
     printTheta <- 10
@@ -48,28 +51,22 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), BPPARAM=bpparam(),
     sf <- sizeFactors(ods)
     
     # initialize W using PCA and bias as zeros.
-    ods <- initED(ods, q=q, theta=theta, usePCA=TRUE)
-    #theta <- updateTheta(ods, theta, BPPARAM)
+    ods <- initED(ods, q=q, theta=theta, usePCA=usePCA)
     
     # check initial loss
     print(paste0('Initial PCA loss: ', lossED(ods, theta)))
     lossList[1] <- lossED(ods, theta)
+    
     # optimize log likelihood
     if(!bpisup(BPPARAM)){
         bpstart(BPPARAM)
     }
     t1 <- Sys.time()
-    for(i in 1:10){
+    for(i in 1:loops){
         t2 <- Sys.time()
-        # check initial loss
-        # print(paste0(i, 'Initial PCA loss: ', lossED(ods, theta)))
-        #if(i==1){
-        # for(a in 1:5){
-        #         ods <- updateD(ods, theta, control, BPPARAM)
-        #         theta <- updateTheta(ods, theta, BPPARAM)
-        #         print(paste0(i, 'initGLM loss: ', lossED(ods, theta)))
-        #     #}
-        # }
+        # replace outliers
+        # ods <- replaceOutliersED(ods, theta, BPPARAM)
+        
         ods <- updateD(ods, theta, control, BPPARAM)
         
         # check initial loss
@@ -136,6 +133,56 @@ updateTheta <- function(ods, theta, BPPARAM=bpparam()){
     normalizationFactors(ods, replace=TRUE) <- t(predictED(ods=ods))
     theta <- dispersions(fit(ods, BPPARAM=BPPARAM))
     return(theta)    
+}
+
+replaceOutliersED <- function(ods, theta, pValCutoff=0.01, BPPARAM=bpparam()){
+    mu <- predictY(getx(ods), getE(ods), getD(ods), getb(ods))
+    if('trueCounts' %in% assayNames(ods)){
+        k <- t(assay(ods, 'trueCounts'))
+    } else {
+        k <- t(counts(ods))
+        assay(ods, 'trueCounts') <- counts(ods)
+    }
+    
+    # get replace mask
+    replacedList <- findOutlierNBfit(k, mu, pValCutoff=pValCutoff)
+    
+    # 
+    counts(ods) <- replacedList[['cts']]
+    
+    if(robust == 'iterative' || robust == 'once' & i == 1){
+        
+        
+        # replace functions
+        if(useDESeq == 'Pvalue'){
+        } else if(useDESeq %in% c('DESeq2', 'Cooks')) {
+            rep_k <-replaceOutliersCooks(k, mu, q=q,
+                                         BPPARAM=BPPARAM, theta=modelTheta != 'no', useDESeq=useDESeq == 'DESeq2',
+                                         ThetaCooks=ThetaCooks)
+            k_no <- rep_k[['cts']]
+        } else {
+            stop('Do not know the option useDESeq with: ', useDESeq)
+        }
+        
+        # get theta
+        if(modelTheta != 'no'){
+            theta <- getModeledTheta(modelTheta, rep_k[['theta']], theta, k=k, mu=mu, i, loops)
+            message(paste(round(summary(theta), 2), names(summary(theta)), collapse=', '))
+        }
+        
+        # do we have a mask?
+        if(mask != 'no'){
+            if(mask == 'always' | i == 1){
+                curMask <- rep_k$mask
+            } else if (mask == 'merge'){
+                curMask <- curMask | rep_k$mask
+                message('Merge masked: ', sum(curMask))
+            }
+            k_no <- k
+            assay(ods, 'excludeMask') <- t(curMask)
+        }
+    }
+    
 }
 
 lossED <- function(ods, theta, minMu=0.01, ...){

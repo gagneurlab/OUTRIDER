@@ -8,14 +8,17 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     sf <- sizeFactors(ods)
     #control$trace=3
     
-    fitD <- function(i, D, b, k, H, sf, theta, control){
+    fitD <- function(i, D, b, k, H, sf, theta, control, exclusionMask=NULL){
         pari <- c(b[i], D[i,])
         ki <- k[,i]
         thetai <- theta[i]
+        if(!is.null(exclusionMask)){
+          ki <- ki[!exclusionMask[i,]]
+          sf <- sf[!exclusionMask[i,]]
+        }
         
-        fit <- optim(pari, fn=lossDtrunc, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
-                method='L-BFGS', control=control) 
-                # lower=rep(-5, ncol(D)+1), upper=rep(5, ncol(D) + 1))
+        fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, k=ki, H=H, 
+                sf=sf, theta=thetai, method='L-BFGS', control=control)
         fit
     }
     
@@ -60,37 +63,12 @@ lossDtrunc <- function(par, k, H, sf, theta, minMu=0.01){
     y <- H %*% d + b
     yexp <- sf * (minMu + exp(y))
   
-    #ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
     #ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta))
 
     t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
     t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
     ll <- mean(t1 - t2)
 
-    # if(!is.finite(ll) & debugMyCode){
-    #   browser()
-    # }
-  
-    return(-ll)
-}
-
-lossDtruncDebug <- function(par, k, H, sf, theta, minMu=0.01){
-    b <- par[1]
-    d <- par[-1]
-  
-    y <- H %*% d + b
-    yexp <- sf * (minMu + exp(y))
-  
-    #ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
-    
-    ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta)  )
-    mean(k*log(yexp))
-    mean(k * (log(sf) + y + log(1 + minMu/exp(y))))
-    
-    # t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
-    # t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
-    # ll <- mean(t1 - t2)
-    
     # if(!is.finite(ll) & debugMyCode){
     #   browser()
     # }
@@ -153,11 +131,33 @@ debugLossD <- function(){
     fit <- optim(init, fn=lossD, gr=gradD, k=k, H=H, s=1, theta=25, method='L-BFGS')
     fit$par
     
+    sf <- rnorm(samples, 1, 0.2)
     D_true
-    lossD(init, k, H, s=1, 25)
-    lossD(c(3, D_true), k, H, s=1,  25)
-    gradD(c(3, D_true), k, H, s=1,  25)
+    par <- init
+    theta <- 25
+    lossD(init, k, H, s=sf, 25)
+    lossD(c(3, D_true), k, H, s=sf,  25)
+    lossDtrunc(init, k=k, H=H, sf=sf, theta=25)
+    truncLogLiklihoodD(init, k=k, H=H, sf=sf, theta=25)
+    gradD(c(3, D_true), k, H, s=sf,  25)
+    gradientD(c(3, D_true), k=k, H=H, sf=sf, theta=25)
     gradD(fit$par, k, H, s=1,  25)
+    
+    e <- rnorm(5*2, 0.2)
+    D <- matrix(rnorm(5*2, 0.2), nrow=5)
+    k <- t(matrix(rnbinom(samples*5, size = 10, mu=100), nrow=5))
+    b <- rowMeans(log((1+t(k))/sf))
+    x <- t(t(log((1+k)/sf)) - b)
+    theta <- rep(10, 5)
+    lossEtrunc(        e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
+    truncLogLiklihoodE(e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
+    
+    lossGradE(         e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
+    gradiendE(e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
+    
+    lossD(c(3, D_true), k, H, s=sf,  25)
+    lossDtrunc(init, k=k, H=H, sf=sf, theta=25)
+    truncLogLiklihoodD(init, k=k, H=H, sf=sf, theta=25)
     
     numericLossGrad <- function(fn, epsilon, w,...){
         grad <- numeric(length(w))

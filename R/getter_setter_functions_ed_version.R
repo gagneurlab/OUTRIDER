@@ -48,12 +48,26 @@ getw <- function(ods){
     return(c(as.vector(getE(ods)), as.vector(getD(ods)), getb(ods)))
 }
 
+getTrueCounts <- function(ods){
+    if('trueCounts' %in% assayNames(ods)){
+        return(assay(ods, 'trueCounts'))
+    }
+    return(counts(ods))
+}
 
-replaceCountsByZscore <- function(ods, zScore=15){
-    lk <- log2(counts(ods) + 1)
-    z <- (lk - rowMeans(lk)) / rowSds(lk)
-    k2replace <- abs(z) > zScore
-    
-    print(table(k2replace))
-    counts(ods)[k2replace] <- matrix(rowMeans(counts(ods)), )
+setTrueCounts <- function(ods, cts){
+    assay(ods, 'trueCounts') <- cts
+    return(ods)
+}
+
+getMask <- function(ods){
+    if('excludeMask' %in% assayNames(ods)){
+        return(assay(ods, 'excludeMask'))
+    }
+    return(matrix(0, ncol=ncol(ods), nrow=nrow(ods)))
+}
+
+setMask <- function(ods, mask){
+    assay(ods, 'exludeMask') <- mask
+    return(ods)
 }
