@@ -8,8 +8,8 @@ updateE <- function(ods, theta, control, BPPARAM, ...){
     b <- getb(ods)
     control$trace<-3
     
-    fit <- optim(e, fn=lossEtrunc, gr=lossGradE, k=k, x=x, sf=sf, D=D, b=b,
-                 theta=theta, method="L-BFGS-B", control=control, ...)
+    fit <- optim(e, fn=truncLogLiklihoodE, gr=gradientE, k=k, x=x, sf=sf, D=D, 
+            b=b, theta=theta, method="L-BFGS-B", control=control, ...)
     
     # Check that fit converged
     if(fit$convergence!=0){
@@ -66,10 +66,10 @@ lossGradE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
     # dW:
     y <- t(t(x %*% E %*% t(D)) + b)
 
-    yexp <- sf*(minMu + exp(y))
+    yexp <- sf * (minMu + exp(y))
     #k1 <- k *sf* exp(y) / yexp         
     k1 <- k / (1 + minMu/exp(y) )          
-    #kt <- (k + theta) *sf* exp(y) / (yexp + theta)
+    #kt <- (k + theta) * sf * exp(y) / (yexp + theta)
     kt <- (k + theta) / ( 1 + (minMu + theta/sf)/exp(y) )
     t1 <- t(x) %*% (k1 %*% D)
     t3 <- t(x) %*% (kt %*% D)

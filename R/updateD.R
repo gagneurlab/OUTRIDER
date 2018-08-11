@@ -13,9 +13,8 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
         ki <- k[,i]
         thetai <- theta[i]
         
-        fit <- optim(pari, fn=lossDtrunc, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
-                method='L-BFGS', control=control) 
-                # lower=rep(-5, ncol(D)+1), upper=rep(5, ncol(D) + 1))
+        fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, k=ki, H=H, 
+                sf=sf, theta=thetai, method='L-BFGS', control=control)
         fit
     }
     
@@ -164,6 +163,22 @@ debugLossD <- function(){
     gradD(c(3, D_true), k, H, s=sf,  25)
     gradientD(c(3, D_true), k=k, H=H, sf=sf, theta=25)
     gradD(fit$par, k, H, s=1,  25)
+    
+    e <- rnorm(5*2, 0.2)
+    D <- matrix(rnorm(5*2, 0.2), nrow=5)
+    k <- t(matrix(rnbinom(samples*5, size = 10, mu=100), nrow=5))
+    b <- rowMeans(log((1+t(k))/sf))
+    x <- t(t(log((1+k)/sf)) - b)
+    theta <- rep(10, 5)
+    lossEtrunc(        e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
+    truncLogLiklihoodE(e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
+    
+    lossGradE(         e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
+    gradiendE(e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
+    
+    lossD(c(3, D_true), k, H, s=sf,  25)
+    lossDtrunc(init, k=k, H=H, sf=sf, theta=25)
+    truncLogLiklihoodD(init, k=k, H=H, sf=sf, theta=25)
     
     numericLossGrad <- function(fn, epsilon, w,...){
         grad <- numeric(length(w))
