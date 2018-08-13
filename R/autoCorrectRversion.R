@@ -30,16 +30,7 @@
 #' 
 #' @export
 autoCorrect <- function(ods, q, theta=25, 
-                    implementation=c("R", "python", "PEER", "robustR", "cooksR",
-                            "robustRM1","robustRTheta", "PEER_residual", "pca",
-                            "robustTheta", "debug", 'mask25', 'RobTheta200',
-                            'RobNoFTheta200', 'robThetaFade200L20It25', 
-                            'robMix25L5I40', 'RobPval200L5It40', 
-                            'RobPvalThetaMix100L5It40', 'RobPval25L5It40',
-                            'maskCooksMix100L5It40', 'maskCooks25L5It40',
-                            'Rob1E3PvalThetaMix100L10It10',
-                            'Rob1E3Pval25L10It10',
-                            'edPca', 'edRand'),
+                    implementation=names(autoEncoderImplList),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -65,116 +56,15 @@ autoCorrect <- function(ods, q, theta=25,
     }
     
     # pass on to the correct implementation
-    switch(match.arg(implementation),
-        R = {
-            impl <- "standard R"
-            ans <- autoCorrectR(ods, q, theta, ...)
-        },
-        PEER = {
-            impl <- "PEER"
-            ans <- peer(ods)
-        },
-        PEER_residual = {
-            impl <- "PEER_residual"
-            ans <- peer(ods)
-        },
-        robustR = {
-            impl <- "robust R"
-            ans <- autoCorrectRCooksIter2(ods, q, theta, BPPARAM=BPPARAM, ...)
-        },
-        robustRM1 = {
-            impl <- 'robustRM1'
-            ans <- autoCorrectRCooksIter(ods, q, theta, BPPARAM=BPPARAM, ...)
-        },
-        robustRTheta = {
-            impl <- 'robustRTheta'
-            ans <- autoCorrectRCooksIterTheta(ods, q, theta, ...)
-        },
-        python = {
-            impl <- "TensorFlow"
-            ans <- autoCorrectPython(ods, ...)
-        },
-        cooksR = {
-            impl <- "cooksR"
-            ans <- autoCorrectRCooksIter3(ods, q, theta, ...)
-        },
-        pca = {
-            impl <- "pca"
-            ans <- autoCorrectPCA(ods, q)
-        },
-        edPca = {
-            impl <- 'edPca'
-            ans <- edPca(ods, q, BPPARAM=BPPARAM)
-        },
-        edRand = {
-            impl <- 'edRand'
-            ans <- edRand(ods, q, BPPARAM=BPPARAM)
-        },
-        Rob1E3Pval25L10It10 = {
-            impl <- 'Rob1E3Pval25L10It10'
-            ans <- Rob1E3Pval25L10It10(ods, q, debug=FALSE, ...)
-        },
-        Rob1E3PvalThetaMix100L10It10 = {
-            impl <- 'Rob1E3PvalThetaMix100L10It10'
-            ans <- Rob1E3PvalThetaMix100L10It10(ods, q, debug=FALSE, ...)
-        },
-        debug = {
-            impl <- "autoCorrect debug"
-            ans <- autoCorrectRCooksIter2Debug(ods, q, theta, debug=FALSE, ...)
-        },
-        robustTheta = {
-            impl <- 'robustTheta'
-            ans <- autoCorrectRCooksIter2Debug(ods, q, robust='iterative',
-                    noFirst=TRUE, internIter=100, modelTheta=TRUE, debug=FALSE, 
-                    initTheta=200)
-        },
-        mask25 = {
-            impl <- 'maskOutlier25'
-            ans <- autoCorrectRCooksMaskDebug(ods, q=q, debug=FALSE, ...)
-        },
-        maskCooksMix100L5It40 = {
-            impl <- 'maskCooksMix100L5It40'
-            ans <- maskCooksMix100L5It40(ods, q=q, debug=FALSE, ...)
-        },
-        maskCooks25L5It40 = {
-            impl <- 'maskCooks25L5It40'
-            ans <- maskCooks25L5It40(ods, q=q, debug=FALSE, ...)
-        },
-        RobTheta200 = {
-            impl <- 'robust theta 200'
-            ans <- autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', 
-                    modelTheta=TRUE, initTheta=200, internIter=100, debug=FALSE, ...)
-        },
-        RobNoFTheta200 = {
-            impl <- 'robust theta 200 no first'
-            ans <- autoCorrectRCooksIter2Debug(ods, q=q, robust='iterative', 
-                    noFirst=TRUE, internIter=100, modelTheta=TRUE, debug=FALSE,
-                    initTheta=200)
-        },
-        robThetaFade200L20It25 = {
-            impl <- 'robThetaFade200L20It25'
-            ans <- robThetaFade200L20It25(ods, q, BPPARAM=BPPARAM)
-        },
-        robMix25L5I40 = {
-            impl <- 'robMix25L5I40'
-            ans <- robMix25L5I40(ods, q, BPPARAM=BPPARAM)
-        },
-        RobPvalThetaMix100L5It40 = {
-            impl <- 'RobPvalThetaMix100L5It40'
-            ans <- RobPvalThetaMix100L5It40(ods, q, BPPARAM=BPPARAM)
-        },
-        RobPval200L5It40 = {
-            impl <- 'RobPval200L5It40'
-            ans <- RobPval200L5It40(ods, q, BPPARAM=BPPARAM)
-        },
-        RobPval25L5It40 = {
-            impl <- 'RobPval25L5It40'
-            ans <- RobPval25L5It40(ods, q, BPPARAM=BPPARAM)
-        },
+    impl <- match.arg(implementation)
+    if(is.null(impl) || is.na(impl)){
         stop("Requested autoCorrect implementation is unknown.")
-    )
-    
+    }
+    message(date(), ": Using the ", impl, " implementation for autoCorrect.")
+    aeFun <- autoEncoderImplList[[impl]]
+    ans <- aeFun(ods=ods, q=q, theta=theta, BPPARAM=BPPARAM, ...)
     message(date(), ": Used the ", impl, " implementation for autoCorrect.")
+    
     return(ans)
 }
 

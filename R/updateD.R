@@ -1,4 +1,5 @@
 debugMyCode <- FALSE
+AE_LBFGS_LIMIT <- 100
 
 updateD <- function(ods, theta, control, BPPARAM, ...){
     D <- getD(ods)
@@ -6,30 +7,37 @@ updateD <- function(ods, theta, control, BPPARAM, ...){
     H <- getx(ods) %*% getE(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
+    exclusionMask <- getExclusionMask(ods)
+    
     #control$trace=3
     
-    fitD <- function(i, D, b, k, H, sf, theta, control, exclusionMask=NULL){
+    fitD <- function(i, D, b, k, theta, exclusionMask, ...){
         pari <- c(b[i], D[i,])
         ki <- k[,i]
         thetai <- theta[i]
-        if(!is.null(exclusionMask)){
-            ki <- ki[1==exclusionMask[i,]]
-            sf <- sf[1==exclusionMask[i,]]
-        }
+        maski <- exclusionMask[i,]
         
-        fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, k=ki, H=H, 
-                sf=sf, theta=thetai, method='L-BFGS', control=control)
+        fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, 
+                k=ki, theta=thetai, exclusionMask=maski, ...,
+                lower=-AE_LBFGS_LIMIT, upper=AE_LBFGS_LIMIT, method='L-BFGS')
         fit
     }
     
     # TODO check errors: ERROR: ABNORMAL_TERMINATION_IN_LNSRCH
     # This comes from genes where extrem values are present (Z score > 15)
-    fitls <- bplapply(1:nrow(ods), fitD, D=D, b=b, k=k, sf=sf, H=H, theta=theta, 
+    fitls <- bplapply(1:nrow(ods), fitD, D=D, b=b, k=k, sf=sf, H=H, theta=theta,
+            exclusionMask=exclusionMask, 
             control=control, BPPARAM=BPPARAM)
     
     # update D and bias terms
     parMat <- sapply(fitls, '[[', 'par')
     print(table(sapply(fitls, '[[', 'message')))
+    if(! 'NumConvergedD' %in% names(mcols(ods))){
+        mcols(ods)['NumConvergedD'] <- 0
+    }
+    mcols(ods)['NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
+        "CONVERGENCE: REL_REDUCTION_OF_F .. FACTR.EPSMCH", 
+        sapply(fitls, '[[', 'message'))
     ods <- setb(ods, parMat[1,])
     ods <- setD(ods, t(parMat)[,-1])
     metadata(ods)[['fits']] <- fitls

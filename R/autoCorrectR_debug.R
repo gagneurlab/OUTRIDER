@@ -72,7 +72,7 @@ getAEData <- function(ods, w, replace=FALSE, BPPARAM=SerialParam()){
     return(ans)
 }
 
-autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
+autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25, initPCA=TRUE, 
                     robust=c('once', 'iterative', 'none'), pcaOnly=FALSE,
                     modelTheta=c('no', 'fit', 'mean', 'fade', 'fadeM5', 'trimmed', 't2_25', 't1_10', 't0_5', 'tw0_5', 'mix', 'fix'),
                     internIter=10, loops=10, debug=TRUE, trim=0, 
@@ -152,6 +152,10 @@ autoCorrectRCooksIter2Debug <- function(ods, q, initTheta=25,
     t <- Sys.time()
     
     w_fit <- w_guess
+    
+    if(isFALSE(initPCA)){
+        w_fit <- c(rnorm(length(pc), mean = 0, sd=sd(pc)), numeric(ncol(k)))
+    }
     for(i in seq_len(loops)){
         if(isTRUE(pcaOnly)){
             fit <- list(par=w_fit)

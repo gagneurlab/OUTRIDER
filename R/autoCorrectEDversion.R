@@ -32,7 +32,9 @@ edPca <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=TRUE, ...) }
 edRand <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=FALSE, ...)}
 
 autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE, 
-                    BPPARAM=bpparam(), loops=10, minMu=0.01, robust=FALSE, ...){
+                    robust=FALSE, noFirstRob=FALSE, maxTheta=Inf, 
+                    replaceCounts=FALSE, pValCutoff=0.01,
+                    BPPARAM=bpparam(), loops=10, minMu=0.01, ...){
     lossList <- list()
     printTheta <- 10
     # Check input
@@ -63,29 +65,32 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE,
     t1 <- Sys.time()
     for(i in 1:loops){
         t2 <- Sys.time()
+        
+        # update theta step
+        ods <- updateTheta(ods, theta, BPPARAM)
+        theta <- pmin(maxTheta, dispersions(ods))
+        print(paste0(i, ' Theta loss: ', lossED(ods, theta)))
+        lossList[i*3-1] <- lossED(ods, theta)
+        
         # replace outliers
-        if(i>1){
-            ods <- maskOutliersED(ods)  
+        if(isTRUE(robust) & isFALSE(noFirstRob) | (isTRUE(robust) & isTRUE(noFirstRob) & i != 1)){
+            ods <- maskOutliersED(ods, replaceCounts=replaceCounts, 
+                    pValCutoff=pValCutoff, BPPARAM=BPPARAM)
+        } else {
+            ods <- setExclusionMask(ods, matrix(1, ncol=ncol(ods), nrow=nrow(ods)))
+            ods <- setTrueCounts(ods, getTrueCounts(ods))
         }
         
-        
-        ods <- updateD(ods, theta, control, BPPARAM, robust)
-        
-        # check initial loss
+        # update D step
+        ods <- updateD(ods, theta, control, BPPARAM=BPPARAM)
         print(paste0(i, ' update D loss: ', lossED(ods, theta)))
-        lossList[1+i*3-2] <- lossED(ods, theta)
+        lossList[i*3+0] <- lossED(ods, theta)
         
-        ods <- updateTheta(ods, theta, BPPARAM)
-        theta <- dispersions(ods)
-        # check initial loss
-        print(paste0(i, ' Theta loss: ', lossED(ods, theta)))
-        lossList[1+i*3-1] <- lossED(ods, theta)
-        
-        
-        ods <- updateE(ods, theta, control, BPPARAM, robust)
-        
+        # update E step
+        ods <- updateE(ods, theta, control, BPPARAM=BPPARAM)
         print(paste0(i, ' update E loss: ', lossED(ods, theta)))
-        lossList[1+i*3] <- lossED(ods, theta)
+        lossList[i*3+1] <- lossED(ods, theta)
+        
         print(Sys.time() - t2)
     }
     
@@ -94,6 +99,8 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE,
             lossED(ods, theta)))
     
     bpstop(BPPARAM)
+    
+    counts(ods) <- getTrueCounts(ods)
     
     correctionFactors <- t(predictED(ods=ods))
     stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
@@ -136,62 +143,30 @@ updateTheta <- function(ods, theta, BPPARAM=bpparam()){
 }
 
 
-maskOutliersED <- function(ods, pValCutoff=0.01){
-    ods <- computePvalues(ods)
+maskOutliersED <- function(ods, pValCutoff=0.01, replaceCounts=FALSE, BPPARAM){
+    ods <- computePvalues(ods, BPPARAM=BPPARAM)
     mask <- matrix(1, nrow=nrow(ods), ncol=ncol(ods))
-    mask[assay(ods, 'pValue')<pValCutoff/ncol(ods)] <- 0
+    mask[assay(ods, 'pValue') < pValCutoff/ncol(ods)] <- 0
     print(paste(sum(mask==0), 'outliers identified in this iteration.'))
     ods <- setExclusionMask(ods, mask)
+    if(isTRUE(replaceCounts)){
+        ods <- replaceOutliersED(ods, mask)
+    }
+    return(ods)
 }
 
-replaceOutliersED <- function(ods, theta, pValCutoff=0.01, BPPARAM=bpparam()){
-    mu <- predictY(getx(ods), getE(ods), getD(ods), getb(ods))
-    if('trueCounts' %in% assayNames(ods)){
-        k <- t(assay(ods, 'trueCounts'))
-    } else {
-        k <- t(counts(ods))
-        assay(ods, 'trueCounts') <- counts(ods)
-    }
+replaceOutliersED <- function(ods, mask, trim=0.1){
+    mu <- predictY(getx(ods), getE(ods), getD(ods), getb(ods), sizeFactors(ods))
+    geneMu <- apply(mu, 2, mean, trim=trim)
     
-    # get replace mask
-    replacedList <- findOutlierNBfit(k, mu, pValCutoff=pValCutoff)
+    # save old counts
+    ods <- setTrueCounts(ods)
     
-    # 
-    counts(ods) <- replacedList[['cts']]
+    # replace counts
+    cts2replace <- which(mask == 0, arr.ind = TRUE)
+    counts(ods)[cts2replace] <- geneMu[cts2replace[,2]]
     
-    if(robust == 'iterative' || robust == 'once' & i == 1){
-        
-        
-        # replace functions
-        if(useDESeq == 'Pvalue'){
-        } else if(useDESeq %in% c('DESeq2', 'Cooks')) {
-            rep_k <-replaceOutliersCooks(k, mu, q=q,
-                                         BPPARAM=BPPARAM, theta=modelTheta != 'no', useDESeq=useDESeq == 'DESeq2',
-                                         ThetaCooks=ThetaCooks)
-            k_no <- rep_k[['cts']]
-        } else {
-            stop('Do not know the option useDESeq with: ', useDESeq)
-        }
-        
-        # get theta
-        if(modelTheta != 'no'){
-            theta <- getModeledTheta(modelTheta, rep_k[['theta']], theta, k=k, mu=mu, i, loops)
-            message(paste(round(summary(theta), 2), names(summary(theta)), collapse=', '))
-        }
-        
-        # do we have a mask?
-        if(mask != 'no'){
-            if(mask == 'always' | i == 1){
-                curMask <- rep_k$mask
-            } else if (mask == 'merge'){
-                curMask <- curMask | rep_k$mask
-                message('Merge masked: ', sum(curMask))
-            }
-            k_no <- k
-            assay(ods, 'excludeMask') <- t(curMask)
-        }
-    }
-    
+    return(ods)
 }
 
 lossED <- function(ods, theta, minMu=0.01, ...){

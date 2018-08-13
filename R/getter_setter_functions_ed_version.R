@@ -49,14 +49,16 @@ getw <- function(ods){
 }
 
 getTrueCounts <- function(ods){
-    if('trueCounts' %in% assayNames(ods)){
-        return(assay(ods, 'trueCounts'))
+    if('replacedTrueCounts' %in% assayNames(ods)){
+        return(assay(ods, 'replacedTrueCounts'))
     }
     return(counts(ods))
 }
 
 setTrueCounts <- function(ods, cts){
-    assay(ods, 'trueCounts') <- cts
+    if(!'replacedTrueCounts' %in% assayNames(ods)){
+        assay(ods, 'replacedTrueCounts') <- cts
+    }
     return(ods)
 }
 
@@ -69,17 +71,5 @@ getExclusionMask <- function(ods){
 
 setExclusionMask <- function(ods, mask){
     assay(ods, 'exclusionMask') <- mask
-    return(ods)
-}
-
-getMask <- function(ods){
-    if('excludeMask' %in% assayNames(ods)){
-        return(assay(ods, 'excludeMask'))
-    }
-    return(matrix(0, ncol=ncol(ods), nrow=nrow(ods)))
-}
-
-setMask <- function(ods, mask){
-    assay(ods, 'exludeMask') <- mask
     return(ods)
 }
