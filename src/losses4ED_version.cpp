@@ -4,7 +4,7 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 
-const double MIN_EXP_VALUE = -500;
+const double MIN_EXP_VALUE = -700;
     
 void printd(SEXP x){
     Rf_PrintValue(x);
