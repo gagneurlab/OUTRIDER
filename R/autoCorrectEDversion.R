@@ -33,9 +33,10 @@ edRand <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=FALSE, ...)}
 
 autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE, 
                     robust=FALSE, noFirstRob=FALSE, maxTheta=Inf, 
-                    replaceCounts=FALSE, pValCutoff=0.01,
-                    BPPARAM=bpparam(), loops=10, minMu=0.01, ...){
-    lossList <- list()
+                    dontInit=FALSE, replaceCounts=FALSE, pValCutoff=0.01,
+                    BPPARAM=bpparam(), loops=10, minMu=0.01,
+                    firstTheta=FALSE, convergence=1e-5, ...){
+    lossList <- c()
     printTheta <- 10
     # Check input
     if(!'factr' %in% names(control)){
@@ -52,10 +53,17 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE,
     sf <- sizeFactors(ods)
     
     # initialize W using PCA and bias as zeros.
-    ods <- initED(ods, q=q, theta=theta, usePCA=usePCA)
+    if(isFALSE(dontInit) | is.null(getE(ods)) | is.null(getD(ods))){
+        ods <- initED(ods, q=q, theta=theta, usePCA=usePCA)
+    }
+    
+    # initialize theta 
+    ods <- updateTheta(ods, theta, BPPARAM)
+    theta <- pmin(maxTheta, dispersions(ods))
     
     # check initial loss
-    print(paste0('Initial PCA loss: ', lossED(ods, theta)))
+    print(paste0('Initial ', ifelse(isTRUE(usePCA), 'PCA', 'random'),  
+            ' loss: ', lossED(ods, theta)))
     lossList[1] <- lossED(ods, theta)
     
     # optimize log likelihood
@@ -63,14 +71,23 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE,
         bpstart(BPPARAM)
     }
     t1 <- Sys.time()
+    currentLoss <- lossED(ods, theta)
     for(i in 1:loops){
         t2 <- Sys.time()
+        
+        if(isFALSE(firstTheta)){
+            # update D step
+            ods <- updateD(ods, theta, control, BPPARAM=BPPARAM)
+            print(paste0(i, ' update D loss: ', lossED(ods, theta)))
+            lossList[i*3-1] <- lossED(ods, theta)
+        }
         
         # update theta step
         ods <- updateTheta(ods, theta, BPPARAM)
         theta <- pmin(maxTheta, dispersions(ods))
+        print(summary(theta))
         print(paste0(i, ' Theta loss: ', lossED(ods, theta)))
-        lossList[i*3-1] <- lossED(ods, theta)
+        lossList[i*3+ 0 - firstTheta] <- lossED(ods, theta)
         
         # replace outliers
         if(isTRUE(robust) & isFALSE(noFirstRob) | (isTRUE(robust) & isTRUE(noFirstRob) & i != 1)){
@@ -81,10 +98,12 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE,
             ods <- setTrueCounts(ods, getTrueCounts(ods))
         }
         
-        # update D step
-        ods <- updateD(ods, theta, control, BPPARAM=BPPARAM)
-        print(paste0(i, ' update D loss: ', lossED(ods, theta)))
-        lossList[i*3+0] <- lossED(ods, theta)
+        if(isTRUE(firstTheta)){
+            # update D step
+            ods <- updateD(ods, theta, control, BPPARAM=BPPARAM)
+            print(paste0(i, ' update D loss: ', lossED(ods, theta)))
+            lossList[i*3+0] <- lossED(ods, theta)
+        }
         
         # update E step
         ods <- updateE(ods, theta, control, BPPARAM=BPPARAM)
@@ -92,10 +111,17 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE,
         lossList[i*3+1] <- lossED(ods, theta)
         
         print(Sys.time() - t2)
+        
+        if(all(abs(currentLoss - lossList[i*3+c(-1,0,1)]) < convergence)){
+            message(date(), ': the AE correction converged with:',
+                    lossList[i*3+1])
+            break
+        }
+        currentLoss <- lossList[i*3+1]
     }
     
     print(Sys.time() - t1)
-    print(paste0(i, ' Final nb-PCA loss: ',
+    print(paste0(i, ' Final nb-AE loss: ',
             lossED(ods, theta)))
     
     bpstop(BPPARAM)

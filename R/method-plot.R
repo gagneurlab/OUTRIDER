@@ -425,7 +425,8 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
     # get data frame
     dt <- data.table(
         sampleID = colnames(ods),
-        normcounts = as.integer(counts(ods[geneID,], normalized=normalized)))
+        normcounts = counts(ods, normalized=normalized)[geneID,],
+        rawcounts = as.vector(counts(ods[geneID,])))
     dt[,normcounts:=normcounts + ifelse(isTRUE(log), 1, 0)]
     
     dt[, medianCts:= median(normcounts)]
@@ -468,7 +469,10 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
             "Gene ID: ", geneID,
             "<br>Sample ID: ", sampleID,
             "<br>Median normcount: ", round(medianCts, digits = 1),
-            "<br>normcount: ", round(normcounts, digits = 1),
+            "<br>rawcount: ", rawcounts,
+            if(isTRUE(normalized)){
+                paste0("<br>normcount: ", round(normcounts, digits = 1))
+            },
             "<br>expression rank: ", round(norm_rank, digits = 1),
             if(any(names(assays(ods))== 'padjust')){
                 paste0("<br>adj. P-value: ", sprintf("%1.1E", padjust))
