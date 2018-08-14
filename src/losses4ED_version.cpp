@@ -31,6 +31,7 @@ arma::mat minValForExp(arma::mat y){
     return y;
 }
 
+//we can change this to arma::sum() which sums by col or row.
 arma::vec colMeans(arma::mat X){
     arma::vec out = arma::vec(X.n_cols);
     for(int j=0; j < X.n_cols; j++ ) {
