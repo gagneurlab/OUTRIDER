@@ -34,7 +34,7 @@ edRand <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=FALSE, ...)}
 autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE, 
                     robust=FALSE, noFirstRob=FALSE, maxTheta=Inf, 
                     dontInit=FALSE, replaceCounts=FALSE, pValCutoff=0.01,
-                    BPPARAM=bpparam(), loops=10, minMu=0.01,
+                    BPPARAM=bpparam(), loops=15, minMu=0.01,
                     firstTheta=FALSE, convergence=1e-5, ...){
     lossList <- c()
     printTheta <- 10
