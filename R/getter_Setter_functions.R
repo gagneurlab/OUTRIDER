@@ -22,5 +22,14 @@ padj <- function(ods){
 
 #' @export dispersions
 setMethod("dispersions", signature(object="OutriderDataSet"), function(object, ...){
-    mcols(object)[['disp']]
+    1/theta(object)
 })
+
+theta <- function(ods){
+    mcols(ods)[['theta']]
+}
+
+`theta<-` <- function(ods, value){
+    mcols(ods)[['theta']] <- value
+    return(ods)
+}

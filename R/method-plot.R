@@ -422,21 +422,26 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
         return(ans)
     }
     
+    stopifnot(isScalarValue(geneID))
+    
+    # subset ods
+    ods <- ods[geneID,]
+    
     # get data frame
     dt <- data.table(
         sampleID = colnames(ods),
-        normcounts = counts(ods, normalized=normalized)[geneID,],
-        rawcounts = as.vector(counts(ods[geneID,])))
+        normcounts = as.vector(counts(ods, normalized=normalized)),
+        rawcounts = as.vector(counts(ods)))
     dt[,normcounts:=normcounts + ifelse(isTRUE(log), 1, 0)]
     
     dt[, medianCts:= median(normcounts)]
     dt[, norm_rank:= rank(normcounts, ties.method = 'first')]
     dt[, color:=col[1]]
     if('padjust' %in% assayNames(ods) & 'zScore' %in% assayNames(ods)){
-        dt[, padjust  := assays(ods)[['padjust']][geneID,]]
-        dt[, zScore   := assays(ods)[['zScore']][geneID,]]
+        dt[, padjust  := assays(ods)[['padjust']][1,]]
+        dt[, zScore   := assays(ods)[['zScore']][1,]]
         dt[, aberrant := aberrant(ods, padjCutoff=padjCutoff,
-                zScoreCutoff=zScoreCutoff)[geneID,]]
+                zScoreCutoff=zScoreCutoff)[1,]]
         dt[aberrant == TRUE, color:=col[2]]
     } else {
         dt[,aberrant:=FALSE]
@@ -474,7 +479,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
                 paste0("<br>normcount: ", round(normcounts, digits = 1))
             },
             "<br>expression rank: ", round(norm_rank, digits = 1),
-            if(any(names(assays(ods))== 'padjust')){
+            if(any(assayNames(ods) == 'padjust')){
                 paste0("<br>adj. P-value: ", sprintf("%1.1E", padjust))
             },
             if(any(names(assays(ods))== 'zScore')){

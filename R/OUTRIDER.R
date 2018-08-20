@@ -43,24 +43,26 @@
 #' plotVolcano(ods, 1)
 #' 
 #' @export
-OUTRIDER <- function(object, q, autoCorrect=TRUE, ...){
+OUTRIDER <- function(object, q, autoCorrect=TRUE, implementation='R', ...){
     
     message(paste0(date(), ": SizeFactor estimation ..."))
     object <- estimateSizeFactors(object)
     
     if(isTRUE(autoCorrect)){
-        message(paste0(date(), ": Running auto correct ..."))
+        message(paste0(date(), ": Running autoencoder ..."))
         object <- autoCorrect(object, q=q, ...)
     }
     
-    message(paste0(date(), ": Fitting the data ..."))
-    object <- fit(object)
+    if(isFALSE(autoCorrect) | !startsWith(implementation, 'ed')){
+        message(paste0(date(), ": Fitting the data ..."))
+        object <- fit(object)
+    }
     
     message(paste0(date(), ": P-value calculation ..."))
     object <- computePvalues(object)
     
     message(paste0(date(), ": Zscore calculation ..."))
-    object <- computeZscores(object)
+    object <- computeZscores(object, peerResidual=grep('PEER', implementation))
     
     validObject(object)
     return(object)

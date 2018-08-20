@@ -20,7 +20,7 @@ fit(object, ...)
 }
 \value{
 An OutriderDataSet object with the fitted model. Accessible through:
-            \code{mcols(ods)[,c('mu', 'disp')]}.
+            \code{mcols(ods)[,c('mu', 'theta')]}.
 }
 \description{
 Fit a negative binomial (NB) distribution to the counts per gene
@@ -32,6 +32,6 @@ ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
 
-mcols(ods)[1:10,c('mu', 'disp')]
+mcols(ods)[1:10,c('mu', 'theta')]
 
 }

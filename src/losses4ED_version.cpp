@@ -4,7 +4,7 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 
-const double MIN_EXP_VALUE = -500;
+const double MIN_EXP_VALUE = -700;
     
 void printd(SEXP x){
     Rf_PrintValue(x);
@@ -20,6 +20,11 @@ void printmat(arma::mat x){
     return;
 }
 
+void printrv(arma::rowvec v){
+    printd(Rcpp::wrap(v.n_elem));
+    printd(Rcpp::wrap(v.head(5)));
+}
+
 void pintd(double x){
     printd(Rcpp::wrap(x));
 }
@@ -27,23 +32,16 @@ void pintd(double x){
 arma::mat minValForExp(arma::mat y){
     arma::uvec idx = find(y < MIN_EXP_VALUE);
     y.elem(idx).fill(MIN_EXP_VALUE);
-    // y.elem(idx) = arma::vec(idx.n_elem).fill(MIN_EXP_VALUE);
     return y;
 }
 
-//we can change this to arma::sum() which sums by col or row.
 arma::vec colMeans(arma::mat X){
-    arma::vec out = arma::vec(X.n_cols);
-    for(int j=0; j < X.n_cols; j++ ) {
-        out[j] = arma::accu(X.col(j))/X.n_rows;
-    }
-    return out;
+    return arma::vectorise(arma::sum(X,0))/X.n_rows;
 }
 
 // [[Rcpp::export()]]
 double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
-                    arma::vec exclusionMask, double theta, double minMu=0.01,
-                    bool verbose=false){
+                    arma::vec exclusionMask, double theta, double minMu=0.01){
     double b, ll, c;
     arma::vec d, y, ls_y_lmexpy, t1, t2;
     
@@ -69,8 +67,7 @@ double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
 
 // [[Rcpp::export()]]
 arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
-                    arma::vec exclusionMask, double theta, double minMu=0.01,
-                    bool verbose=false){
+                    arma::vec exclusionMask, double theta, double minMu=0.01){
     double b, c;
     arma::vec d, y, yexp, k1, kt, t1, t2, dd, db;
     
@@ -82,25 +79,15 @@ arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
     b = par.at(0);
     d = par.subvec(1, par.n_elem-1);
     
-    if(verbose == true){
-        printmat(H);
-    }
-    
     y = H * d + b;
     y = minValForExp(y);
     yexp = arma::exp(y);
     
-    if(verbose == true){
-        printmat(y);
-    }
-    
     k1 = k / (1 + minMu / yexp);
     t1 = colMeans(k1 % H.each_col());
-    //printd(Rcpp::wrap(t1));
     
     kt = (k + theta) / (1 + (minMu + theta / sf) / yexp);
     t2 = colMeans(kt % H.each_col());
-    //printd(Rcpp::wrap(t2));
     
     db = arma::vec(1);
     db[0] = arma::accu(kt - k1)/k.n_elem;

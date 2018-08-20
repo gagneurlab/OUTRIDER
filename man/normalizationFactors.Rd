@@ -13,14 +13,13 @@ object.}
 \usage{
 \S4method{normalizationFactors}{OutriderDataSet}(object)
 
-\S4method{normalizationFactors}{OutriderDataSet,matrix}(object,
-  replace = TRUE) <- value
+\S4method{normalizationFactors}{OutriderDataSet,matrix}(object) <- value
 
-\S4method{normalizationFactors}{OutriderDataSet,DataFrame}(object,
-  replace = TRUE) <- value
 
-\S4method{normalizationFactors}{OutriderDataSet,data.frame}(object,
-  replace = TRUE) <- value
+  \S4method{normalizationFactors}{OutriderDataSet,DataFrame}(object) <- value
+
+
+  \S4method{normalizationFactors}{OutriderDataSet,data.frame}(object) <- value
 
 \S4method{normalizationFactors}{OutriderDataSet,`NULL`}(object) <- value
 }

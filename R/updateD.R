@@ -1,51 +1,46 @@
-debugMyCode <- FALSE
-AE_LBFGS_LIMIT <- 100
-
-updateD <- function(ods, theta, control, BPPARAM, ...){
-    D <- getD(ods)
-    b <- getb(ods)
-    H <- getx(ods) %*% getE(ods)
+#'
+#' Update D function
+#' 
+#' @noRd
+updateD <- function(ods, minMu, control, BPPARAM){
+    D <- D(ods)
+    b <- b(ods)
+    H <- x(ods) %*% E(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
-    exclusionMask <- getExclusionMask(ods)
+    mask <- exclusionMask(ods)
+    theta <- theta(ods)
     
-    #control$trace=3
-    
-    fitD <- function(i, D, b, k, theta, exclusionMask, ...){
-        pari <- c(b[i], D[i,])
-        ki <- k[,i]
-        thetai <- theta[i]
-        maski <- exclusionMask[i,]
-        
-        fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, 
-                k=ki, theta=thetai, exclusionMask=maski, ...,
-                lower=-AE_LBFGS_LIMIT, upper=AE_LBFGS_LIMIT, method='L-BFGS')
-        fit
-    }
-    
-    # TODO check errors: ERROR: ABNORMAL_TERMINATION_IN_LNSRCH
-    # This comes from genes where extrem values are present (Z score > 15)
-    fitls <- bplapply(1:nrow(ods), fitD, D=D, b=b, k=k, sf=sf, H=H, theta=theta,
-            exclusionMask=exclusionMask, 
-            control=control, BPPARAM=BPPARAM)
+    fitls <- bplapply(1:nrow(ods), singleDFit, D=D, b=b, k=k, sf=sf, H=H, 
+            theta=theta, mask=mask, minMu=minMu, control=control, 
+            BPPARAM=BPPARAM)
     
     # update D and bias terms
     parMat <- sapply(fitls, '[[', 'par')
     print(table(sapply(fitls, '[[', 'message')))
-    if(! 'NumConvergedD' %in% names(mcols(ods))){
-        mcols(ods)['NumConvergedD'] <- 0
-    }
     mcols(ods)['NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
         "CONVERGENCE: REL_REDUCTION_OF_F .. FACTR.EPSMCH", 
         sapply(fitls, '[[', 'message'))
-    ods <- setb(ods, parMat[1,])
-    ods <- setD(ods, t(parMat)[,-1])
-    metadata(ods)[['fits']] <- fitls
+    b(ods) <- parMat[1,]
+    D(ods) <- t(parMat)[,-1]
+    
+    metadata(ods)[['Dfits']] <- fitls
     
     return(ods)
 }
 
 
+singleDFit <- function(i, D, b, k, theta, mask, ...){
+    pari <- c(b[i], D[i,])
+    ki <- k[,i]
+    thetai <- theta[i]
+    maski <- mask[i,]
+    
+    fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, 
+            k=ki, theta=thetai, exclusionMask=maski, ...,
+            lower=-100, upper=100, method='L-BFGS')
+    return(fit)
+}
 
 lossD <- function(par, k, H, sf, theta, minMu=0.01){
     b <- par[1]
@@ -69,7 +64,7 @@ lossDtrunc <- function(par, k, H, sf, theta, minMu=0.01){
     d <- par[-1]
     
     y <- H %*% d + b
-    yexp <- sf * (minMu + exp(y))
+    yexp <- sf * exp(y)
   
     #ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta))
 
@@ -111,170 +106,3 @@ gradD <- function(par, k, H, sf=1, theta, minMu=0.01){
     
     return(c(db, dd))
 }
-
-
-debugLossD <- function(){
-    samples <- 80
-    q<- 2
-    
-    #Hidden Space is a sample time q matrix. 
-    H <- matrix(c(rep(c(-1,1), each=samples/2), 
-                  rep(c(-2,2), samples/2)), ncol=2)
-    
-    H
-    D_true <- rnorm(q)
-    y_true <- H %*% D_true + 3
-    mu_true <- 0.01 + exp(y_true)
-    
-    k <- rnbinom(length(mu_true), mu = mu_true, size=25)
-    
-    #library(MASS)
-    #glm.nb(k~H)
-    
-    init<-c(mean(log(k+1)),0,0)
-    #b <- 3
-    #d <- D_true
-    
-    
-    fit <- optim(init, fn=lossD, gr=gradD, k=k, H=H, s=1, theta=25, method='L-BFGS')
-    fit$par
-    
-    sf <- rnorm(samples, 1, 0.2)
-    D_true
-    par <- init
-    theta <- 25
-    lossD(init, k, H, s=sf, 25)
-    lossD(c(3, D_true), k, H, s=sf,  25)
-    lossDtrunc(init, k=k, H=H, sf=sf, theta=25)
-    truncLogLiklihoodD(init, k=k, H=H, sf=sf, theta=25)
-    gradD(c(3, D_true), k, H, s=sf,  25)
-    gradientD(c(3, D_true), k=k, H=H, sf=sf, theta=25)
-    gradD(fit$par, k, H, s=1,  25)
-    
-    e <- rnorm(5*2, 0.2)
-    D <- matrix(rnorm(5*2, 0.2), nrow=5)
-    k <- t(matrix(rnbinom(samples*5, size = 10, mu=100), nrow=5))
-    b <- rowMeans(log((1+t(k))/sf))
-    x <- t(t(log((1+k)/sf)) - b)
-    theta <- rep(10, 5)
-    lossEtrunc(        e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
-    truncLogLiklihoodE(e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
-    
-    lossGradE(         e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
-    gradiendE(e, D=D, k=k, b=b, x=x, sf=sf, theta = theta)
-    
-    lossD(c(3, D_true), k, H, s=sf,  25)
-    lossDtrunc(init, k=k, H=H, sf=sf, theta=25)
-    truncLogLiklihoodD(init, k=k, H=H, sf=sf, theta=25)
-    
-    numericLossGrad <- function(fn, epsilon, w,...){
-        grad <- numeric(length(w))
-        for(i in seq_along(w)){
-            eps <- integer(length(w))
-            eps[i] <- epsilon
-            grad[i] <- (fn(w + eps, ...) - fn(w -eps, ...))/(2*epsilon)
-        }
-        return(grad)
-    }
-    
-    par <- init
-    par <- rnorm(11)
-    sf<- rnorm(samples, 1, 0.02)
-    
-    plotNumGrodDiff <- function(){
-        numgradloss <- numericLossGrad(lossD, 1E-8, par, k=k, H=H, sf=sf, theta=25)
-        gradloss <- gradD(par, k, H, sf=sf, 25)
-        
-        plot(as.integer((numgradloss - gradloss)*1e7) * (numgradloss - gradloss < 0))
-        abline(h=0, col='red')
-    }
-    plotNumGrodDiff()
-    
-    sf <- 1
-    sf <- sizeFactors(ods)
-    par <- pari
-    b <- pari[1]
-    d <- pari[-1]
-    k <- ki
-    H <- H
-    sf <- sf
-    theta <- 0.25
-    plot(numericLossGrad(lossD, 1E-8, pari, k=ki, H=H, sf=sf, theta=25),
-         gradD(pari, ki, H, sf=sf, 25))
-    abline(0,1)
-    
-    
-    which(sapply(fitls, '[[', 'message') == 'ERROR: ABNORMAL_TERMINATION_IN_LNSRCH')
-    i <- 437
-    i <- 5
-    control$trace <- 6
-    debugMyCode <- TRUE
-    fitD(i=i, D=D, b=b, k=k, sf=sf, H=H, theta=theta, control=control)
-    par <- c(0.00940116, 0.0553455, -0.0601702, 0.493793, -0.297911, -0.272072)
-    par <- c(mean(log(ki + 1)), D[i,])
-    par <- c(b[i], D[i,])
-    ki <- k[,i]
-    mu <- predictED(getE(ods), getD(ods), getb(ods), getx(ods), sizeFactors(ods))
-    cD <- cooksDistance(k, mu, q=5, trim=0.1)
-    table(cD > 1)
-    sort(round(cD[i,], 2))
-    thetai <- theta[i]
-    lossD(par, ki, H, sf, theta=thetai)
-    gradD(par, ki, H, sf, theta=thetai)
-    hist(log10(ki))
-    
-    sum(ki > 200000)
-    sort(ki)
-    fit <- optim(c(par), fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
-                 method='L-BFGS', control=control)
-    fitD(i=48, D=D, b=b, k=k, sf=sf, H=H, theta=theta, control=control)
-    
-    lk <- log2(k +1)
-    sort((lk - mean(lk))/sd(lk))
-    
-    lk <- log2(counts(ods) + 1)
-
-}
-
-
-# parametricDFit <- function(){
-#     ok <- k
-#     ob <- b
-#     oD <- D
-#     oTheta <- theta
-#     
-#     i <- 5
-#     pari <- c(b[i], D[i,])
-#     ki <- k[,i]
-#     thetai <- theta[i]
-#     
-#     fit <- optim(pari, fn=lossD, gr=gradD, k=ki, H=H, sf=sf, theta=thetai,
-#                  method='L-BFGS', control=control) 
-#     # lower=rep(-5, ncol(D)+1), upper=rep(5, ncol(D) + 1))
-#     fit
-#     
-#     coefs <- c(0.1, 1)
-#     iter <- 0
-#     while (TRUE) {
-#         residuals <- disps/(coefs[1] + coefs[2]/means)
-#         good <- which((residuals > 1e-04) & (residuals < 15))
-#         suppressWarnings({
-#             fit <- glm(disps[good] ~ I(1/means[good]), family = Gamma(link = "identity"), 
-#                        start = coefs)
-#         })
-#         oldcoefs <- coefs
-#         coefs <- coefficients(fit)
-#         if (!all(coefs > 0)) 
-#             stop(simpleError("parametric dispersion fit failed"))
-#         if ((sum(log(coefs/oldcoefs)^2) < 1e-06) & fit$converged) 
-#             break
-#         iter <- iter + 1
-#         if (iter > 10) 
-#             stop(simpleError("dispersion fit did not converge"))
-#     }
-#     names(coefs) <- c("asymptDisp", "extraPois")
-#     ans <- function(q) coefs[1] + coefs[2]/q
-#     attr(ans, "coefficients") <- coefs
-#     ans
-#     
-# }

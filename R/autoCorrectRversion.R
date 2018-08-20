@@ -51,7 +51,8 @@ autoCorrect <- function(ods, q, theta=25,
     } else {
         q <- getBestQ(ods)
         if(is.na(q)){
-            q <- 5
+            q <- max(2, min(500, 3.7 + 0.16*ncol(ods)))
+            message('Using the default for q with: ', q)
         }
     }
     

@@ -51,19 +51,19 @@ setMethod("computePvalues", "OutriderDataSet", function(object,
 })
 
 pValMatrix <- function(ods, alternative, BPPARAM){ 
-    if(!all(c("disp", "mu") %in% colnames(mcols(ods)))){
-        stop(paste("Please fit the models first to estimate disp and",
+    if(!all(c("theta", "mu") %in% colnames(mcols(ods)))){
+        stop(paste("Please fit the models first to estimate theta and",
                 "mu by running:\n\tods <- fit(ods)"))
     }
     ctsData <- counts(ods)
-    disp    <- mcols(ods)[,"disp"]
+    theta   <- theta(ods)
     mu      <- mcols(ods)[,"mu"]
     normF   <- normalizationFactors(ods)
     if(is.null(normF)){
         normF <- sizeFactors(ods)
     }
     
-    pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, disp=disp,
+    pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, theta=theta,
             mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
     
     pValMat <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
@@ -89,15 +89,15 @@ pValMatrix <- function(ods, alternative, BPPARAM){
 #' }
 #' 
 #' @param x count 
-#' @param size fitted dispersion (size) for the neg. binomial dist
+#' @param size fitted theta (size) for the neg. binomial dist
 #' @param mu fitted mean for the neg. binomial dist
 #' @param s sizeFactor or normalizationFactor
 #'
 #' @return p Value
 #' @noRd
-pVal <- function(index, ctsData, disp, mu, normFact, alternative){
+pVal <- function(index, ctsData, theta, mu, normFact, alternative){
     x    <- ctsData[index,]
-    size <- disp[index]
+    size <- theta[index]
     mu   <- mu[index]
     
     # check if you did not get only sizeFactors

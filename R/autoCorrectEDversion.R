@@ -1,117 +1,63 @@
-#' Coding conventions:
-#' 
-#' metadata(ods)[['E']]
-#' metadata(ods)[['D']]
-#' metadata(ods)[['b']]
 #'
-testing <- function(){
-    odsg <- readRDS("../scared-analysis/Output/data/GTEx_not_sun_exposed_OutriderDONE.RDS")
-    odsg <- readRDS('/s/project/scared/paper/revision/run2107/data/Skin_Not_Sun_Exposed_Suprapubic_Outrider.RDS')
-    ods <- odsg[1:5000, 1:100]
-    q <- 10
-    q <- 49
-    devtools::load_all("~/projects/OUTRIDER")
-    source("./../scared-analysis/src/r/helperFunction/simulateCountData.R")
-    library(BBmisc)
-    library(pcaMethods)
-    set.seed(123)
-    q <- 5
-    simData <- createSimulationData(encDim=q, theta=c(mu=30, size=2), lognorm=FALSE)
-    ods <- OutriderDataSet(countData=simData$k)
-    assay(ods, 'inj_mask') <- simData$index
-    assay(ods, 'trueCounts') <- round(simData$mu)
-    mcols(ods)[['trueTheta']] <- simData$theta
-    ods <- estimateSizeFactors(ods)
-    theta <- 25
-    control <- list(maxit=40)
-    BPPARAM=SerialParam()
-    BPPARAM=MulticoreParam(4, progressbar=TRUE, stop.on.error = FALSE)
-} 
-
-edPca <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=TRUE, ...) }
-edRand <- function(ods, q, ...){ autoCorrectED(ods, q=q, usePCA=FALSE, ...)}
-
-autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE, 
-                    robust=FALSE, noFirstRob=FALSE, maxTheta=Inf, 
-                    dontInit=FALSE, replaceCounts=FALSE, pValCutoff=0.01,
-                    BPPARAM=bpparam(), loops=10, minMu=0.01,
-                    firstTheta=FALSE, convergence=1e-5, ...){
-    lossList <- c()
-    printTheta <- 10
+#' Main autoencoder fit function
+#'
+fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
+                    convergence=1e-5, loops=15, pValCutoff=0.01, minMu=0.01,
+                    initialize=TRUE, noRobustLast=TRUE, 
+                    control=list(), BPPARAM=bpparam(), ...){
+    
     # Check input
-    if(!'factr' %in% names(control)){
-        control$factr <- 1E7
+    checkOutriderDataSet(ods)
+    checkSizeFactors(ods)
+    if(!bpisup(BPPARAM)){
+        bpstart(BPPARAM)
     }
-    if(!'maxit' %in% names(control)){
-        control$maxit <- 100
-    }
-    if(isScalarValue(theta)){
-        theta <- rep(theta, nrow(ods))
-    }
+    # reset counters 
+    mcols(ods)['NumConvergedD'] <- 0
     
     k <- t(counts(ods, normalized=FALSE))
     sf <- sizeFactors(ods)
     
     # initialize W using PCA and bias as zeros.
-    if(isFALSE(dontInit) | is.null(getE(ods)) | is.null(getD(ods))){
-        ods <- initED(ods, q=q, theta=theta, usePCA=usePCA)
+    if(isTRUE(initialize) | is.null(E(ods)) | is.null(D(ods))){
+        ods <- initAutoencoder(ods, q, thetaRange)
     }
-    
-    # initialize theta 
-    ods <- updateTheta(ods, theta, BPPARAM)
-    theta <- pmin(maxTheta, dispersions(ods))
-    
-    # check initial loss
-    print(paste0('Initial ', ifelse(isTRUE(usePCA), 'PCA', 'random'),  
-            ' loss: ', lossED(ods, theta)))
-    lossList[1] <- lossED(ods, theta)
+     
+    # initial loss
+    print(paste0('Initial PCA loss: ', lossED(ods, minMu=minMu)))
+    lossList <- lossED(ods, minMu=minMu)
     
     # optimize log likelihood
-    if(!bpisup(BPPARAM)){
-        bpstart(BPPARAM)
-    }
     t1 <- Sys.time()
-    currentLoss <- lossED(ods, theta)
-    for(i in 1:loops){
+    currentLoss <- lossED(ods, minMu=minMu)
+    for(i in seq_len(loops)){
         t2 <- Sys.time()
         
-        if(isFALSE(firstTheta)){
-            # update D step
-            ods <- updateD(ods, theta, control, BPPARAM=BPPARAM)
-            print(paste0(i, ' update D loss: ', lossED(ods, theta)))
-            lossList[i*3-1] <- lossED(ods, theta)
-        }
+        # update D step
+        ods <- updateD(ods, minMu=minMu, control=control, BPPARAM=BPPARAM)
+        print(paste0('Iteration: ', i, '; update D loss: ', lossED(ods, minMu=minMu)))
+        lossList[i*3-1] <- lossED(ods, minMu=minMu)
         
         # update theta step
-        ods <- updateTheta(ods, theta, BPPARAM)
-        theta <- pmin(maxTheta, dispersions(ods))
-        print(summary(theta))
-        print(paste0(i, ' Theta loss: ', lossED(ods, theta)))
-        lossList[i*3+ 0 - firstTheta] <- lossED(ods, theta)
+        ods <- updateTheta(ods, thetaRange, BPPARAM)
+        print(paste0('Iteration: ', i, ' theta loss: ', lossED(ods, minMu=minMu)))
+        lossList[i*3+0] <- lossED(ods, minMu=minMu)
         
-        # replace outliers
-        if(isTRUE(robust) & isFALSE(noFirstRob) | (isTRUE(robust) & isTRUE(noFirstRob) & i != 1)){
-            ods <- maskOutliersED(ods, replaceCounts=replaceCounts, 
-                    pValCutoff=pValCutoff, BPPARAM=BPPARAM)
+        # mask outlier
+        if(i != 1 & isTRUE(robust)){
+            ods <- maskOutliers(ods, pValCutoff=pValCutoff, BPPARAM=BPPARAM)
         } else {
-            ods <- setExclusionMask(ods, matrix(1, ncol=ncol(ods), nrow=nrow(ods)))
-            ods <- setTrueCounts(ods, getTrueCounts(ods))
-        }
-        
-        if(isTRUE(firstTheta)){
-            # update D step
-            ods <- updateD(ods, theta, control, BPPARAM=BPPARAM)
-            print(paste0(i, ' update D loss: ', lossED(ods, theta)))
-            lossList[i*3+0] <- lossED(ods, theta)
+            exclusionMask(ods) <- 1
         }
         
         # update E step
-        ods <- updateE(ods, theta, control, BPPARAM=BPPARAM)
-        print(paste0(i, ' update E loss: ', lossED(ods, theta)))
-        lossList[i*3+1] <- lossED(ods, theta)
+        ods <- updateE(ods, minMu=minMu, control=control, BPPARAM=BPPARAM)
+        print(paste0('Iteration: ', i, ' update E loss: ', lossED(ods, minMu=minMu)))
+        lossList[i*3+1] <- lossED(ods, minMu=minMu)
         
-        print(Sys.time() - t2)
+        print(paste('Time for one autoencoder loop:', Sys.time() - t2))
         
+        # check 
         if(all(abs(currentLoss - lossList[i*3+c(-1,0,1)]) < convergence)){
             message(date(), ': the AE correction converged with:',
                     lossList[i*3+1])
@@ -120,141 +66,99 @@ autoCorrectED <- function(ods, q, theta=25, control=list(), usePCA=TRUE,
         currentLoss <- lossList[i*3+1]
     }
     
+    # Final model fit
+    if(isTRUE(noRobustLast)){
+        exclusionMask(ods) <- 1
+    }
+    ods <- updateD(ods, minMu=minMu, control, BPPARAM)
+    ods <- updateTheta(ods, c(0, Inf), BPPARAM)
+    
     print(Sys.time() - t1)
-    print(paste0(i, ' Final nb-AE loss: ',
-            lossED(ods, theta)))
+    print(paste0(i, ' Final nb-AE loss: ', lossED(ods, minMu=minMu)))
     
     bpstop(BPPARAM)
     
-    counts(ods) <- getTrueCounts(ods)
-    
+    # add correction factors
     correctionFactors <- t(predictED(ods=ods))
     stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
+    normalizationFactors(ods) <- correctionFactors
     
-    # add it to the object
-    normalizationFactors(ods, replace=TRUE) <- correctionFactors
-    metadata(ods)[['weights']] <- getw(ods)
+    # add additional values for the user to the object
     metadata(ods)[['dim']] <- dim(ods)
     metadata(ods)[['loss']] <- lossList
-    mcols(ods)[['disp']] <- theta
-    validObject(ods)
     
+    validObject(ods)
     return(ods)
 }
 
-initED <- function(ods, q, theta, usePCA=TRUE){
-    pca <- pca(getx(ods), nPcs=q)
+initAutoencoder <- function(ods, q, thetaRange, BPPARAM){
+    pca <- pca(x(ods), nPcs=q)
     pc  <- loadings(pca)
     
-    if(isFALSE(usePCA)){
-        pc[1:length(pc)] <- rnorm(length(pc), sd=sd(pc))
-    }
+    # Set initial values from PCA
+    D(ods) <- pc
+    E(ods) <- pc
+    b(ods) <- rowMeans(log(counts(ods) + 1))
     
-    ods <- setD(ods, pc)
-    ods <- setE(ods, pc)
-    ods <- setb(ods, rowMeans(log(counts(ods) + 1)))
-    
-    # if(isFALSE(usePCA)){
-    #     ods <- updateE(ods, theta, control, BPPARAM)
-    #     ods <- setD(ods, getE(ods))
-    # }
+    # initialize theta
+    theta(ods) <- robustMethodOfMomentsOfTheta(counts(ods), counts(ods), 
+            minTheta=thetaRange[1], maxTheta=thetaRange[2])
     
     return(ods)
 }
 
-updateTheta <- function(ods, theta, BPPARAM=bpparam()){
-    normalizationFactors(ods, replace=TRUE) <- t(predictED(ods=ods))
+updateTheta <- function(ods, thetaRange, BPPARAM){
+    normalizationFactors(ods) <- t(predictED(ods=ods))
     ods <- fit(ods, BPPARAM=BPPARAM)
-    return(ods)    
+    
+    # bound theta range
+    theta(ods) <- pmin(thetaRange[2], pmax(thetaRange[1], theta(ods)))
+    
+    print(summary(theta(ods)))
+    
+    return(ods)
 }
 
-
-maskOutliersED <- function(ods, pValCutoff=0.01, replaceCounts=FALSE, BPPARAM){
+maskOutliers <- function(ods, pValCutoff=0.01, BPPARAM){
     ods <- computePvalues(ods, BPPARAM=BPPARAM)
     mask <- matrix(1, nrow=nrow(ods), ncol=ncol(ods))
-    mask[assay(ods, 'pValue') < pValCutoff/ncol(ods)] <- 0
+    mask[pValue(ods) < pValCutoff/ncol(ods)] <- 0
+    
     print(paste(sum(mask==0), 'outliers identified in this iteration.'))
-    ods <- setExclusionMask(ods, mask)
-    if(isTRUE(replaceCounts)){
-        ods <- replaceOutliersED(ods, mask)
-    }
+    print(paste('Top 5 masked genes: ', paste(collapse=", ",
+            tail(sort(rowSums(mask == 0))))))
+    
+    exclusionMask(ods) <- mask
     return(ods)
 }
 
-replaceOutliersED <- function(ods, mask, trim=0.1){
-    mu <- predictY(getx(ods), getE(ods), getD(ods), getb(ods), sizeFactors(ods))
-    geneMu <- apply(mu, 2, mean, trim=trim)
-    
-    # save old counts
-    ods <- setTrueCounts(ods)
-    
-    # replace counts
-    cts2replace <- which(mask == 0, arr.ind = TRUE)
-    counts(ods)[cts2replace] <- geneMu[cts2replace[,2]]
-    
-    return(ods)
-}
-
-lossED <- function(ods, theta, minMu=0.01, ...){
+lossED <- function(ods, minMu=0.01){
     
     ## encoding 
-    b <- getb(ods)
-    E <- getE(ods)
-    D <- getD(ods)
-    x <- getx(ods)
+    b <- b(ods)
+    E <- E(ods)
+    D <- D(ods)
+    x <- x(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
+    theta <- theta(ods)
     
     y <- t(t(x %*% E %*% t(D)) + b)
-    #y_exp <- pmin(1e7, sf * (minMu + exp(y)))
     y_exp <- sf * (minMu + exp(y))
+    
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
     - mean( ll )
 }
 
 
-lossGradED <- function(w, k, x, s, xbar, theta, ...){
-    W <- matrix(w, nrow=ncol(k))
-    b <- W[,ncol(W)]
-    W <- W[,1:ncol(W)-1]
-    E <- W[,1:(ncol(W)/2)]
-    D <- W[,(ncol(W)/2+1):ncol(W)]
-    theta <- matrix(theta, ncol=ncol(k), nrow=nrow(k), byrow=TRUE)
-    
-    # dW:
-    t1 <- t(x) %*% (k %*% D)
-    #t1 <- armaMatMultAtBC(x, k, W)
-    t2 <- t(k) %*% (x %*% E)
-    #t2 <- armaMatMultAtBC(k, x, W)
-    y <- t(t(x%*%E %*% t(D)) + xbar + b)
-    #y <- t(t(armaMatMultABBt(x, W)) + xbar + b)
-    y_exp <- s*exp(y)
-    kt <- (k + theta)*y_exp/(y_exp+theta)
-    
-    t3 <- t(x) %*% (kt %*% D)
-    t4 <- t(kt) %*% (x %*% E)
-    
-    dE <- (-t1  + t3)/prod(dim(k))
-    dD <- (- t2 + t4)/prod(dim(k))
-    #db:
-    db <- colSums(kt-k)/prod(dim(k))
-    
-    if(!all(is.finite(dE)) | !all(is.finite(dD))){
-        browser()
-    }
-    return(c(dE,dD, db))
-}
+predictED <- function(ods, minMu=0.01){
+    E <- E(ods)
+    D <- D(ods)
+    b <- b(ods)
+    x <- x(ods)
+    sf <- sizeFactors(ods)
 
-predictED <- function(E, D, b, x, sf, ods, minMu=0.01){
-    if(!missing(ods)){
-        E <- getE(ods)
-        D <- getD(ods)
-        b <- getb(ods)
-        x <- getx(ods)
-        sf <- sizeFactors(ods)
-    }
-    
     y <- t(t(x %*% E %*% t(D)) + b)
     y_exp <- sf * (minMu + exp(y))
     y_exp

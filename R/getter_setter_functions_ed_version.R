@@ -1,5 +1,4 @@
-
-getx <- function(ods){
+x <- function(ods){
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
     
@@ -11,36 +10,36 @@ getx <- function(ods){
     return(x)
 }
 
-setD <- function(ods, D){
-    if(!is.matrix(D)){
-        D <- matrix(D, nrow=nrow(ods))
+`D<-` <- function(ods, value){
+    if(!is.matrix(value)){
+        value <- matrix(value, nrow=nrow(ods))
     }
-    metadata(ods)[['D']] <- D
+    metadata(ods)[['D']] <- value
     return(ods)
 }
 
-getD <- function(ods){
+D <- function(ods){
     return(metadata(ods)[['D']])
 }
 
-setE <- function(ods, E){
-    if(!is.matrix(E)){
-        E <- matrix(E, nrow=nrow(ods))
+`E<-` <- function(ods, value){
+    if(!is.matrix(value)){
+        value <- matrix(value, nrow=nrow(ods))
     }
-    metadata(ods)[['E']] <- E
+    metadata(ods)[['E']] <- value
     return(ods)
 }
 
-getE <- function(ods){
+E <- function(ods){
     return(metadata(ods)[['E']])
 }
 
-setb <- function(ods, b){
-    mcols(ods)[['b']] <- b
+`b<-` <- function(ods, value){
+    mcols(ods)[['b']] <- value
     return(ods)
 }
 
-getb <- function(ods){
+b <- function(ods){
     return(mcols(ods)[['b']])
 }
 
@@ -48,28 +47,31 @@ getw <- function(ods){
     return(c(as.vector(getE(ods)), as.vector(getD(ods)), getb(ods)))
 }
 
-getTrueCounts <- function(ods){
+trueCounts <- function(ods){
     if('replacedTrueCounts' %in% assayNames(ods)){
         return(assay(ods, 'replacedTrueCounts'))
     }
     return(counts(ods))
 }
 
-setTrueCounts <- function(ods, cts){
+`trueCounts<-` <- function(ods, value){
     if(!'replacedTrueCounts' %in% assayNames(ods)){
-        assay(ods, 'replacedTrueCounts') <- cts
+        assay(ods, 'replacedTrueCounts') <- value
     }
     return(ods)
 }
 
-getExclusionMask <- function(ods){
+exclusionMask <- function(ods){
     if('exclusionMask' %in% assayNames(ods)){
         return(assay(ods, 'exclusionMask'))
     }
     return(matrix(1, ncol=ncol(ods), nrow=nrow(ods)))
 }
 
-setExclusionMask <- function(ods, mask){
-    assay(ods, 'exclusionMask') <- mask
+`exclusionMask<-` <- function(ods, value){
+    if(isScalarNumeric(value)){
+        value <- matrix(value, ncol=ncol(ods), nrow=nrow(ods))
+    }
+    assay(ods, 'exclusionMask') <- value
     return(ods)
 }

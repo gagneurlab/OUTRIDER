@@ -9,7 +9,7 @@
 #' @param BPPARAM by default bpparam()
 #' @param ... additional arguments, currently not used.
 #' @return An OutriderDataSet object with the fitted model. Accessible through:
-#'             \code{mcols(ods)[,c('mu', 'disp')]}.
+#'             \code{mcols(ods)[,c('mu', 'theta')]}.
 #' 
 #' @docType methods
 #' @name fit
@@ -21,7 +21,7 @@
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
 #' 
-#' mcols(ods)[1:10,c('mu', 'disp')]
+#' mcols(ods)[1:10,c('mu', 'theta')]
 #' 
 #' @exportMethod fit 
 setGeneric("fit", function(object, ...) standardGeneric("fit"))
@@ -67,8 +67,8 @@ fitTheta <- function(ods, BPPARAM, excludeMask){
     fitparameters <- bplapply(seq_along(ods), fitNegBinom, normF=normF,
             ctsData=ctsData, excludeMask=excludeMask, BPPARAM=BPPARAM)
     
-    mcols(ods)['mu']   <- vapply(fitparameters, "[[", double(1), "mu")
-    mcols(ods)['disp'] <- vapply(fitparameters, "[[", double(1), "size")
+    mcols(ods)['mu'] <- vapply(fitparameters, "[[", double(1), "mu")
+    theta(ods) <- vapply(fitparameters, "[[", double(1), "size")
     
     assay(ods)
 
@@ -236,7 +236,7 @@ fitThetaRoot <- function(ods, BPPARAM=bpparam(), excludeMask=NULL){
             cts=ctsData, exclusionMask=excludeMask, BPPARAM=BPPARAM)
   
   
-    mcols(ods)['disp'] <- vapply(fitparameters, "[[", double(1), "theta")
+    theta(ods) <- vapply(fitparameters, "[[", double(1), "theta")
   
     assay(ods)
   

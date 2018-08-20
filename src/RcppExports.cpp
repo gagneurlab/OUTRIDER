@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // truncLogLiklihoodD
-double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, arma::vec exclusionMask, double theta, double minMu, bool verbose);
-RcppExport SEXP _OUTRIDER_truncLogLiklihoodD(SEXP parSEXP, SEXP HSEXP, SEXP kSEXP, SEXP sfSEXP, SEXP exclusionMaskSEXP, SEXP thetaSEXP, SEXP minMuSEXP, SEXP verboseSEXP) {
+double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, arma::vec exclusionMask, double theta, double minMu);
+RcppExport SEXP _OUTRIDER_truncLogLiklihoodD(SEXP parSEXP, SEXP HSEXP, SEXP kSEXP, SEXP sfSEXP, SEXP exclusionMaskSEXP, SEXP thetaSEXP, SEXP minMuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,14 +19,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type exclusionMask(exclusionMaskSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< double >::type minMu(minMuSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(truncLogLiklihoodD(par, H, k, sf, exclusionMask, theta, minMu, verbose));
+    rcpp_result_gen = Rcpp::wrap(truncLogLiklihoodD(par, H, k, sf, exclusionMask, theta, minMu));
     return rcpp_result_gen;
 END_RCPP
 }
 // gradientD
-arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, arma::vec exclusionMask, double theta, double minMu, bool verbose);
-RcppExport SEXP _OUTRIDER_gradientD(SEXP parSEXP, SEXP HSEXP, SEXP kSEXP, SEXP sfSEXP, SEXP exclusionMaskSEXP, SEXP thetaSEXP, SEXP minMuSEXP, SEXP verboseSEXP) {
+arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, arma::vec exclusionMask, double theta, double minMu);
+RcppExport SEXP _OUTRIDER_gradientD(SEXP parSEXP, SEXP HSEXP, SEXP kSEXP, SEXP sfSEXP, SEXP exclusionMaskSEXP, SEXP thetaSEXP, SEXP minMuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -37,8 +36,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type exclusionMask(exclusionMaskSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< double >::type minMu(minMuSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(gradientD(par, H, k, sf, exclusionMask, theta, minMu, verbose));
+    rcpp_result_gen = Rcpp::wrap(gradientD(par, H, k, sf, exclusionMask, theta, minMu));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -160,8 +158,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_OUTRIDER_truncLogLiklihoodD", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodD, 8},
-    {"_OUTRIDER_gradientD", (DL_FUNC) &_OUTRIDER_gradientD, 8},
+    {"_OUTRIDER_truncLogLiklihoodD", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodD, 7},
+    {"_OUTRIDER_gradientD", (DL_FUNC) &_OUTRIDER_gradientD, 7},
     {"_OUTRIDER_truncLogLiklihoodE", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodE, 9},
     {"_OUTRIDER_gradientE", (DL_FUNC) &_OUTRIDER_gradientE, 9},
     {"_OUTRIDER_predictY", (DL_FUNC) &_OUTRIDER_predictY, 6},

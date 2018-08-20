@@ -7,23 +7,18 @@ counts.replace.OutriderDataSet <- function(object, value){
     object
 }
 
-counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0, 
-                    minE=0.5, newVersion=TRUE){
-    cnts <- assays(object)[["counts"]]
+counts.OutriderDataSet <- function(object, normalized=FALSE, minE=0.5){
+    cnts <- assay(object, "counts")
     
     # raw counts
     if(!normalized) {
-        return(cnts + offset)
+        return(cnts)
     }
     
     # normalized by normalization factors
     if(!is.null(normalizationFactors(object))) {
-        if(isTRUE(newVersion)){
-            E <- t(apply(normalizationFactors(object), 1, pmax, minE))
-            return((cnts + offset)/E * exp(rowMeans(log(E))))
-        }
-        return((cnts + offset)/ normalizationFactors(object)*
-               rowMeans(normalizationFactors(object)))
+        E <- t(apply(normalizationFactors(object), 1, pmax, minE))
+        return(cnts/E * exp(rowMeans(log(E))))
     }
     
     # normalization by sizeFactors
@@ -31,8 +26,7 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0,
         stop(paste("first calculate size factors, add normalizationFactors,",
                 "or set normalized=FALSE"))
     }
-    return(t(
-            t(cnts + offset) / sizeFactors(object) * mean(sizeFactors(object))))
+    return(t(t(cnts) / sizeFactors(object) * mean(sizeFactors(object))))
 }
 
 #' 
@@ -88,7 +82,7 @@ normalizationFactors.OutriderDataSet <- function(object) {
     assays(object)[["normalizationFactors"]]
 }
 
-normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
+normFactors.replace.OutriderDataSet <- function(object, value) {
     # enforce same dimnames and matrix type
     if(!is.matrix(value)){
         value <- as.matrix(value)
@@ -99,18 +93,6 @@ normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
     stopifnot(!any(is.na(value)))
     stopifnot(all(is.finite(value)))
     stopifnot(all(value > 0))
-    
-    
-    # multiply the new values with existing ones if not otherwise requested
-    normF <- normalizationFactors(object)
-    sizeF <- sizeFactors(object)
-    if(replace == FALSE & !(is.null(normF) & is.null(sizeF))){
-        if(!is.null(normF)){
-            value <- value * normF
-        } else {
-            value <- t(t(value) * sizeF)
-        }
-    }
     
     # set the values and check the object
     assays(object)[["normalizationFactors"]] <- value
