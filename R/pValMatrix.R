@@ -47,17 +47,23 @@ setMethod("computePvalues", "OutriderDataSet", function(object,
             BPPARAM=bpparam()){
     alternative <- match.arg(alternative)
     object <- pValMatrix(object, alternative, BPPARAM=BPPARAM)
-    padjMatrix(object, method)
+    if(!method=='None'){
+        object <- padjMatrix(object, method)
+    }
+    object
 })
 
 pValMatrix <- function(ods, alternative, BPPARAM){ 
-    if(!all(c("theta", "mu") %in% colnames(mcols(ods)))){
+    if(!all(c("theta") %in% colnames(mcols(ods)))){
         stop(paste("Please fit the models first to estimate theta and",
                 "mu by running:\n\tods <- fit(ods)"))
     }
     ctsData <- counts(ods)
     theta   <- theta(ods)
-    mu      <- mcols(ods)[,"mu"]
+    mu <- 1
+    if('mu' %in% names(mcols(ods))){
+        mu      <- mcols(ods)[,"mu"]
+    }
     normF   <- normalizationFactors(ods)
     if(is.null(normF)){
         normF <- sizeFactors(ods)

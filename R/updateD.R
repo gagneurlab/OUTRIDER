@@ -18,7 +18,7 @@ updateD <- function(ods, minMu, control, BPPARAM){
     # update D and bias terms
     parMat <- sapply(fitls, '[[', 'par')
     print(table(sapply(fitls, '[[', 'message')))
-    mcols(ods)['NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
+    mcols(ods)[,'NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
         "CONVERGENCE: REL_REDUCTION_OF_F .. FACTR.EPSMCH", 
         sapply(fitls, '[[', 'message'))
     b(ods) <- parMat[1,]

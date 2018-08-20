@@ -8,6 +8,7 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     
     # Check input
     checkOutriderDataSet(ods)
+    checkCountRequirements(ods)
     checkSizeFactors(ods)
     if(!bpisup(BPPARAM)){
         bpstart(BPPARAM)
@@ -71,7 +72,8 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
         exclusionMask(ods) <- 1
     }
     ods <- updateD(ods, minMu=minMu, control, BPPARAM)
-    ods <- updateTheta(ods, c(0, Inf), BPPARAM)
+    # no Inf with optimize.
+    ods <- updateTheta(ods, c(0, 500), BPPARAM)
     
     print(Sys.time() - t1)
     print(paste0(i, ' Final nb-AE loss: ', lossED(ods, minMu=minMu)))
@@ -101,26 +103,15 @@ initAutoencoder <- function(ods, q, thetaRange, BPPARAM){
     b(ods) <- rowMeans(log(counts(ods) + 1))
     
     # initialize theta
-    theta(ods) <- robustMethodOfMomentsOfTheta(counts(ods), counts(ods), 
+    theta(ods) <- robustMethodOfMomentsOfTheta(counts(ods), 
             minTheta=thetaRange[1], maxTheta=thetaRange[2])
     
     return(ods)
 }
 
-updateTheta <- function(ods, thetaRange, BPPARAM){
-    normalizationFactors(ods) <- t(predictED(ods=ods))
-    ods <- fit(ods, BPPARAM=BPPARAM)
-    
-    # bound theta range
-    theta(ods) <- pmin(thetaRange[2], pmax(thetaRange[1], theta(ods)))
-    
-    print(summary(theta(ods)))
-    
-    return(ods)
-}
 
 maskOutliers <- function(ods, pValCutoff=0.01, BPPARAM){
-    ods <- computePvalues(ods, BPPARAM=BPPARAM)
+    ods <- computePvalues(ods, BPPARAM=BPPARAM, method='None')
     mask <- matrix(1, nrow=nrow(ods), ncol=ncol(ods))
     mask[pValue(ods) < pValCutoff/ncol(ods)] <- 0
     
