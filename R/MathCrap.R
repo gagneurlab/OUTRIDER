@@ -23,12 +23,13 @@ adjoint <- function(A) {
     )))
 }
 
+if(FALSE){
 # Check the result: these should be equal
 det(A) * diag(nrow(A))
 A %*% adjoint1(A)
-A %*% adjoint2(A)
+A %*% adjoint(A)
 
-if(FALSE){
+
 microbenchmark::microbenchmark(A %*% adjoint1(A),
                                A %*% adjoint2(A))
 
