@@ -35,29 +35,30 @@ getXColors <- function(x, set="Set2"){
 }
 
 
+#' 
 #' This function is used by the plotDispEsts function.
 #' 
 #' TODO
 #' 
 #' @noRd
 getDispEstsData <- function(ods, mu=NULL){
-    if(!'disp' %in% colnames(mcols(ods))){
+    if(is.null(theta(ods))){
         stop('Please fit the ods first. ods <- fit(ods)')
     }
     odsMu <- rowMeans(counts(ods, normalized=TRUE))
     if(is.null(mu)){
         mu <- odsMu
     }
-    disp <- mcols(ods)$disp
+    theta <- theta(ods)
     xidx <- 10^(seq.int(max(-5,log10(min(mu))-1), log10(max(mu))+0.1, 
             length.out = 500))
     
     # fit DESeq2 parametric Disp Fit
-    fit <- parametricDispersionFit(mu, 1/disp)
+    fit <- parametricDispersionFit(mu, 1/theta)
     pred <- fit(xidx)
     return(list(
         mu=mu,
-        disp=disp,
+        disp=theta,
         xpred=xidx,
         ypred=pred,
         fit=fit
@@ -130,6 +131,12 @@ getGeneIndex <- function(geneIdx, ods){
     return(geneIdx)
 }
 
+#'
+#' Best Q
+#' 
+#' A getter function for the best dimension.
+#' 
+#' @export
 getBestQ <- function(ods){
     if('optimalEncDim' %in% names(metadata(ods))){
         return(metadata(ods)[['optimalEncDim']])
