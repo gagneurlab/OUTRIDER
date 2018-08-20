@@ -79,7 +79,6 @@ Collate:
     package-OUTRIDER.R
     class-OutriderDataSet.R
     AllGenerics.R
-    autoCorrectPython.R
     autoCorrectRversion.R
     method-gridSearch.R
     fitNB.R
@@ -94,7 +93,11 @@ Collate:
     sizeFactor.R
     RcppExports.R
     peer.R
-    cooksDistance.R
     autoCorrectEDversion.R
     updateE.R
     updateD.R
+    PCAcorrections.R
+    autoCorrectImplementationList.R
+    getter_Setter_functions.R
+    getter_setter_functions_ed_version.R
+    thetaMethodOfMoments.R

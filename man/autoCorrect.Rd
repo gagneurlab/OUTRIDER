@@ -4,14 +4,9 @@
 \alias{autoCorrect}
 \title{Autoencoder function to correct for confounders.}
 \usage{
-autoCorrect(ods, q, theta = 25, implementation = c("R", "python",
-  "PEER", "robustR", "cooksR", "robustRM1", "robustRTheta",
-  "PEER_residual", "pca", "robustTheta", "debug", "mask25", "RobTheta200",
-  "RobNoFTheta200", "robThetaFade200L20It25", "robMix25L5I40",
-  "RobPval200L5It40", "RobPvalThetaMix100L5It40", "RobPval25L5It40",
-  "maskCooksMix100L5It40", "maskCooks25L5It40",
-  "Rob1E3PvalThetaMix100L10It10", "Rob1E3Pval25L10It10"),
-  BPPARAM = bpparam(), ...)
+autoCorrect(ods, q, theta = 25,
+  implementation = names(autoEncoderImplList), BPPARAM = bpparam(),
+  ...)
 }
 \arguments{
 \item{ods}{An OutriderDataSet object}

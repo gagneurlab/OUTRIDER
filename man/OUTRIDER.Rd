@@ -4,7 +4,7 @@
 \alias{OUTRIDER}
 \title{OUTRIDER - Finding aberrant expression events}
 \usage{
-OUTRIDER(object, q, autoCorrect = TRUE, ...)
+OUTRIDER(object, q, autoCorrect = TRUE, implementation = "R", ...)
 }
 \arguments{
 \item{object}{An OutriderDataSet object containing the counts}
@@ -13,6 +13,9 @@ OUTRIDER(object, q, autoCorrect = TRUE, ...)
 
 \item{autoCorrect}{If TRUE, the default, the raw read counts are controled 
 for confounders by the autoencoder}
+
+\item{implementation}{"R", the default, will use the R implementation or 
+"python" to use the python/tensorflow experimental implementation}
 
 \item{...}{passed on to the autoencoder implementing method. In the case of 
 the R implementation it is passed to the optim function.}
