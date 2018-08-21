@@ -2,7 +2,7 @@
 #' Update D function
 #' 
 #' @noRd
-updateD <- function(ods, minMu, control, BPPARAM){
+updateD <- function(ods, control, BPPARAM){
     D <- D(ods)
     b <- b(ods)
     H <- H(ods)
@@ -12,7 +12,7 @@ updateD <- function(ods, minMu, control, BPPARAM){
     theta <- theta(ods)
     
     fitls <- bplapply(1:nrow(ods), singleDFit, D=D, b=b, k=k, sf=sf, H=H, 
-            theta=theta, mask=mask, minMu=minMu, control=control, 
+            theta=theta, mask=mask, control=control, 
             BPPARAM=BPPARAM)
     
     # update D and bias terms
@@ -42,12 +42,12 @@ singleDFit <- function(i, D, b, k, theta, mask, ...){
     return(fit)
 }
 
-lossD <- function(par, k, H, sf, theta, minMu=0.01){
+lossD <- function(par, k, H, sf, theta){
     b <- par[1]
     d <- par[-1]
     
     y <- H %*% d + b
-    yexp <- sf * (minMu + exp(y))
+    yexp <- sf * exp(y)
     #yexp <- pmin(1e8, yexp)
     
     ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
@@ -59,7 +59,7 @@ lossD <- function(par, k, H, sf, theta, minMu=0.01){
     return(-ll)
 }
 
-lossDtrunc <- function(par, k, H, sf, theta, minMu=0.01){
+lossDtrunc <- function(par, k, H, sf, theta, minMu=0){
     b <- par[1]
     d <- par[-1]
     
@@ -79,7 +79,7 @@ lossDtrunc <- function(par, k, H, sf, theta, minMu=0.01){
     return(-ll)
 }
 
-gradD <- function(par, k, H, sf=1, theta, minMu=0.01){
+gradD <- function(par, k, H, sf=1, theta, minMu=0){
     b <- par[1]
     d <- par[-1]
     

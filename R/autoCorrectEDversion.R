@@ -2,7 +2,7 @@
 #' Main autoencoder fit function
 #'
 fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
-                    convergence=1e-5, loops=15, pValCutoff=0.0, minMu=0.00,
+                    convergence=1e-5, loops=15, pValCutoff=0.0,
                     initialize=TRUE, noRobustLast=TRUE, coxReid=FALSE, 
                     control=list(), BPPARAM=bpparam(), ...){
     
@@ -36,7 +36,7 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
         t2 <- Sys.time()
         
         # update D step
-        ods <- updateD(ods, minMu=minMu, control=control, BPPARAM=BPPARAM)
+        ods <- updateD(ods, control=control, BPPARAM=BPPARAM)
         lossList[i*3-1] <- lossED(ods)
         print(paste0('Iteration: ', i, '; update D loss: ', lossList[i*3-1]))
         
@@ -55,7 +55,7 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
         }
         
         # update E step
-        ods <- updateE(ods, minMu=minMu, control=control, BPPARAM=BPPARAM)
+        ods <- updateE(ods, control=control, BPPARAM=BPPARAM)
         lossList[i*3+1] <- lossED(ods)
         print(paste0('Iteration: ', i, ' update E loss: ', lossList[i*3+1]))
         
@@ -75,7 +75,7 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     if(isTRUE(noRobustLast)){
         exclusionMask(ods) <- 1
     }
-    ods <- updateD(ods, minMu=minMu, control, BPPARAM)
+    ods <- updateD(ods, control, BPPARAM)
     # no Inf with optimize.
     ods <- updateTheta(ods, c(0, 500), BPPARAM)
     

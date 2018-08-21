@@ -2,7 +2,7 @@
 #' Update E step for the autoencoder fit
 #' 
 #' @noRd
-updateE <- function(ods, minMu, control, BPPARAM){
+updateE <- function(ods, control, BPPARAM){
     e <- as.vector(E(ods))
     D <- D(ods)
     k <- t(counts(ods))
@@ -15,7 +15,6 @@ updateE <- function(ods, minMu, control, BPPARAM){
     control$trace <- 3
     fit <- optim(e, fn=truncLogLiklihoodE, gr=gradientE,
             k=k, x=x, sf=sf, D=D, b=b, theta=theta, exclusionMask=mask, 
-            minMu=minMu,
             method="L-BFGS-B", lower=-100, upper=100, control=control)
     
     # Check that fit converged
@@ -29,7 +28,7 @@ updateE <- function(ods, minMu, control, BPPARAM){
     return(ods)
 }
 
-lossE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
+lossE <- function(e, D, k, b, x, sf, theta, ...){
     
     ## log, size factored, and centered counts 
     #x <-  t(t(log((1+k)/s)) - xbar)
@@ -38,14 +37,14 @@ lossE <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
     E <-matrix(e, nrow=ncol(k))
     
     y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- sf * (minMu + exp(y))
+    y_exp <- sf * exp(y)
     
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
     - mean( ll )
 }
 
-lossEtrunc <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
+lossEtrunc <- function(e, D, k, b, x, sf, theta, minMu=0, ...){
     E <-matrix(e, nrow=ncol(k))
     
     y <- t(t(x %*% E %*% t(D)) + b)
@@ -65,7 +64,7 @@ lossEtrunc <- function(e, D, k, b, x, sf, theta, minMu=0.01, ...){
 }
 
 
-lossEtruncNonOutlier <- function(e, D, k, b, x, sf, theta, minMu=0.01, exlusionMask, ...){
+lossEtruncNonOutlier <- function(e, D, k, b, x, sf, theta, minMu=0, exlusionMask, ...){
     E <-matrix(e, nrow=ncol(k))
   
     y <- t(t(x %*% E %*% t(D)) + b)
@@ -83,7 +82,7 @@ lossEtruncNonOutlier <- function(e, D, k, b, x, sf, theta, minMu=0.01, exlusionM
 }
 
 
-lossGradENonOutlier <- function(e, D, k, b, x, sf, theta, minMu=0.01, exclusionMask, ...){
+lossGradENonOutlier <- function(e, D, k, b, x, sf, theta, minMu=0.00, exclusionMask, ...){
     E <-matrix(e, nrow=ncol(k))
     theta <- matrix(theta, ncol=ncol(k), nrow=nrow(k), byrow=TRUE)
     
