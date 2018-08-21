@@ -4,6 +4,7 @@
 fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
                     convergence=1e-5, loops=15, pValCutoff=0.0,
                     initialize=TRUE, noRobustLast=TRUE, coxReid=FALSE, 
+                    thetaCorrection=FALSE,
                     control=list(), BPPARAM=bpparam(), ...){
     
     # Check input
@@ -40,9 +41,10 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
         lossList[i*3-1] <- lossED(ods)
         print(paste0('Iteration: ', i, '; update D loss: ', lossList[i*3-1]))
         
+        # update Theta correction
         
         # update theta step
-        ods <- updateTheta(ods, thetaRange, coxReid=coxReid, BPPARAM)
+        ods <- updateTheta(ods, thetaRange, CoxR=coxReid, BPPARAM)
         lossList[i*3+0] <- lossED(ods)
         print(paste0('Iteration: ', i, ' theta loss: ', lossList[i*3+0]))
         

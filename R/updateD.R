@@ -2,7 +2,7 @@
 #' Update D function
 #' 
 #' @noRd
-updateD <- function(ods, control, BPPARAM){
+updateD <- function(ods, control, BPPARAM,thetaCorrection=FALSE){
     D <- D(ods)
     b <- b(ods)
     H <- H(ods)
@@ -11,8 +11,14 @@ updateD <- function(ods, control, BPPARAM){
     mask <- exclusionMask(ods)
     theta <- theta(ods)
     
+    if(isTRUE(thetaCorrection)){
+        thetaC <- colData(ods)[['thetaCorrection']]
+    } else {
+        thetaC <- rep(1,ncol(ods))
+    }
+    
     fitls <- bplapply(1:nrow(ods), singleDFit, D=D, b=b, k=k, sf=sf, H=H, 
-            theta=theta, mask=mask, control=control, 
+            theta=theta, mask=mask, control=control, thetaC=thetaC,
             BPPARAM=BPPARAM)
     
     # update D and bias terms
@@ -48,7 +54,6 @@ lossD <- function(par, k, H, sf, theta){
     
     y <- H %*% d + b
     yexp <- sf * exp(y)
-    #yexp <- pmin(1e8, yexp)
     
     ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
     
@@ -59,17 +64,18 @@ lossD <- function(par, k, H, sf, theta){
     return(-ll)
 }
 
-lossDtrunc <- function(par, k, H, sf, theta, minMu=0){
+lossDtrunc <- function(par, k, H, sf, theta, thetaC){
     b <- par[1]
     d <- par[-1]
+    theta <- thetaC * theta
     
     y <- H %*% d + b
     yexp <- sf * exp(y)
   
     #ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta))
 
-    t1 <- k * (log(sf) + y + log(1 + minMu/exp(y)))
-    t2 <- (k + theta) * (log(sf) + y + log(1 + minMu/exp(y))  + log(1+theta/(sf * (minMu + exp(y))))  )
+    t1 <- k * (log(sf) + y) 
+    t2 <- (k + theta) * (log(sf) + y + log(1+theta/(sf * exp(y)))  )
     ll <- mean(t1 - t2)
 
     # if(!is.finite(ll) & debugMyCode){
@@ -79,25 +85,24 @@ lossDtrunc <- function(par, k, H, sf, theta, minMu=0){
     return(-ll)
 }
 
-gradD <- function(par, k, H, sf=1, theta, minMu=0){
+gradD <- function(par, k, H, sf=1, theta, thetaC){
     b <- par[1]
     d <- par[-1]
     
+    theta <- thetaC * theta
+    
     y <- c(H %*% d + b)
-    yexp <- sf * (minMu + exp(y))
+    yexp <- sf * exp(y)
     #yexp <- pmin(1e8, yexp)
     
-    #k1 <- k * sf * exp(y) / yexp 
-    k1 <- k / (1 + minMu/exp(y) )
-    t1 <- colMeans(k1 * H)
+    t1 <- colMeans(k * H)
     
-    #kt <- (k + theta) * sf * exp(y) / (yexp + theta)
-    kt <- (k + theta) / ( 1 + (minMu + theta/sf)/exp(y) )
+    kt <- (k + theta) / ( 1 + theta/(sf*exp(y)) )
     
     t2 <- colMeans(kt * H) 
     
     dd <- t2 - t1
-    db <- mean(kt - k1)
+    db <- mean(kt - k)
     
     
     if(any(!c(is.finite(db), is.finite(dd))) & debugMyCode){
