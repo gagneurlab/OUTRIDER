@@ -6,6 +6,35 @@
 
 using namespace Rcpp;
 
+// predictMatY
+arma::mat predictMatY(arma::mat x, arma::mat E, arma::mat D, arma::vec b);
+RcppExport SEXP _OUTRIDER_predictMatY(SEXP xSEXP, SEXP ESEXP, SEXP DSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type E(ESEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type D(DSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(predictMatY(x, E, D, b));
+    return rcpp_result_gen;
+END_RCPP
+}
+// predictMatC
+arma::mat predictMatC(arma::mat x, arma::mat E, arma::mat D, arma::vec b, arma::vec sf);
+RcppExport SEXP _OUTRIDER_predictMatC(SEXP xSEXP, SEXP ESEXP, SEXP DSEXP, SEXP bSEXP, SEXP sfSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type E(ESEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type D(DSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sf(sfSEXP);
+    rcpp_result_gen = Rcpp::wrap(predictMatC(x, E, D, b, sf));
+    return rcpp_result_gen;
+END_RCPP
+}
 // truncLogLiklihoodD
 double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, arma::vec exclusionMask, double theta, double minMu);
 RcppExport SEXP _OUTRIDER_truncLogLiklihoodD(SEXP parSEXP, SEXP HSEXP, SEXP kSEXP, SEXP sfSEXP, SEXP exclusionMaskSEXP, SEXP thetaSEXP, SEXP minMuSEXP) {
@@ -78,22 +107,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// predictY
-arma::mat predictY(arma::mat x, arma::mat E, arma::mat D, arma::vec b, arma::vec sf, double minMu);
-RcppExport SEXP _OUTRIDER_predictY(SEXP xSEXP, SEXP ESEXP, SEXP DSEXP, SEXP bSEXP, SEXP sfSEXP, SEXP minMuSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type E(ESEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type D(DSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type sf(sfSEXP);
-    Rcpp::traits::input_parameter< double >::type minMu(minMuSEXP);
-    rcpp_result_gen = Rcpp::wrap(predictY(x, E, D, b, sf, minMu));
-    return rcpp_result_gen;
-END_RCPP
-}
 // truncLogLiklihood
 SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta);
 RcppExport SEXP _OUTRIDER_truncLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
@@ -158,11 +171,12 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_OUTRIDER_predictMatY", (DL_FUNC) &_OUTRIDER_predictMatY, 4},
+    {"_OUTRIDER_predictMatC", (DL_FUNC) &_OUTRIDER_predictMatC, 5},
     {"_OUTRIDER_truncLogLiklihoodD", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodD, 7},
     {"_OUTRIDER_gradientD", (DL_FUNC) &_OUTRIDER_gradientD, 7},
     {"_OUTRIDER_truncLogLiklihoodE", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodE, 9},
     {"_OUTRIDER_gradientE", (DL_FUNC) &_OUTRIDER_gradientE, 9},
-    {"_OUTRIDER_predictY", (DL_FUNC) &_OUTRIDER_predictY, 6},
     {"_OUTRIDER_truncLogLiklihood", (DL_FUNC) &_OUTRIDER_truncLogLiklihood, 6},
     {"_OUTRIDER_truncLogLiklihoodNonOutlier", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodNonOutlier, 7},
     {"_OUTRIDER_gradLogLiklihood", (DL_FUNC) &_OUTRIDER_gradLogLiklihood, 6},

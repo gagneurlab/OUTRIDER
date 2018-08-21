@@ -203,3 +203,10 @@ checkFullAnalysis <- function(ods, funName=sys.calls()[[1]]){
     return(invisible(TRUE))
 }
 
+#'
+#' Guess the best q for the given data set
+#' 
+#' @export
+estimateBestQ <- function(ods){
+    round(max(2, min(500, 3.7 + 0.16*ncol(ods))))
+}

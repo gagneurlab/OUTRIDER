@@ -5,7 +5,7 @@
 updateD <- function(ods, minMu, control, BPPARAM){
     D <- D(ods)
     b <- b(ods)
-    H <- x(ods) %*% E(ods)
+    H <- H(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
     mask <- exclusionMask(ods)
