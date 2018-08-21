@@ -10,6 +10,10 @@ x <- function(ods){
     return(x)
 }
 
+H <- function(ods){
+    x(ods) %*% E(ods)
+}
+
 `D<-` <- function(ods, value){
     if(!is.matrix(value)){
         value <- matrix(value, nrow=nrow(ods))
@@ -41,6 +45,14 @@ E <- function(ods){
 
 b <- function(ods){
     return(mcols(ods)[['b']])
+}
+
+predictC <- function(ods){
+    predictMatC(x(ods), E(ods), D(ods), b(ods), sizeFactors(ods))
+}
+
+predictY <- function(ods){
+    predictMatY(x(ods), E(ods), D(ods), b(ods))
 }
 
 getw <- function(ods){

@@ -2,8 +2,8 @@
 #' Main autoencoder fit function
 #'
 fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
-                    convergence=1e-5, loops=15, pValCutoff=0.01, minMu=0.01,
-                    initialize=TRUE, noRobustLast=TRUE, 
+                    convergence=1e-5, loops=15, pValCutoff=0.0, minMu=0.00,
+                    initialize=TRUE, noRobustLast=TRUE, coxReid=FALSE, 
                     control=list(), BPPARAM=bpparam(), ...){
     
     # Check input
@@ -25,24 +25,27 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     }
      
     # initial loss
-    print(paste0('Initial PCA loss: ', lossED(ods, minMu=minMu)))
-    lossList <- lossED(ods, minMu=minMu)
+    lossList <- lossED(ods)
+    print(paste0('Initial PCA loss: ', lossList[1]))
+    
     
     # optimize log likelihood
     t1 <- Sys.time()
-    currentLoss <- lossED(ods, minMu=minMu)
+    currentLoss <- lossED(ods)
     for(i in seq_len(loops)){
         t2 <- Sys.time()
         
         # update D step
         ods <- updateD(ods, minMu=minMu, control=control, BPPARAM=BPPARAM)
-        print(paste0('Iteration: ', i, '; update D loss: ', lossED(ods, minMu=minMu)))
-        lossList[i*3-1] <- lossED(ods, minMu=minMu)
+        lossList[i*3-1] <- lossED(ods)
+        print(paste0('Iteration: ', i, '; update D loss: ', lossList[i*3-1]))
+        
         
         # update theta step
-        ods <- updateTheta(ods, thetaRange, BPPARAM)
-        print(paste0('Iteration: ', i, ' theta loss: ', lossED(ods, minMu=minMu)))
-        lossList[i*3+0] <- lossED(ods, minMu=minMu)
+        ods <- updateTheta(ods, thetaRange, coxReid=coxReid, BPPARAM)
+        lossList[i*3+0] <- lossED(ods)
+        print(paste0('Iteration: ', i, ' theta loss: ', lossList[i*3+0]))
+        
         
         # mask outlier
         if(i != 1 & isTRUE(robust)){
@@ -53,8 +56,9 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
         
         # update E step
         ods <- updateE(ods, minMu=minMu, control=control, BPPARAM=BPPARAM)
-        print(paste0('Iteration: ', i, ' update E loss: ', lossED(ods, minMu=minMu)))
-        lossList[i*3+1] <- lossED(ods, minMu=minMu)
+        lossList[i*3+1] <- lossED(ods)
+        print(paste0('Iteration: ', i, ' update E loss: ', lossList[i*3+1]))
+        
         
         print(paste('Time for one autoencoder loop:', Sys.time() - t2))
         
@@ -76,7 +80,7 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     ods <- updateTheta(ods, c(0, 500), BPPARAM)
     
     print(Sys.time() - t1)
-    print(paste0(i, ' Final nb-AE loss: ', lossED(ods, minMu=minMu)))
+    print(paste0(i, ' Final nb-AE loss: ', lossED(ods)))
     
     bpstop(BPPARAM)
     
@@ -123,7 +127,7 @@ maskOutliers <- function(ods, pValCutoff=0.01, BPPARAM){
     return(ods)
 }
 
-lossED <- function(ods, minMu=0.01){
+lossED <- function(ods){
     
     ## encoding 
     b <- b(ods)
@@ -135,15 +139,14 @@ lossED <- function(ods, minMu=0.01){
     theta <- theta(ods)
     
     y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- sf * (minMu + exp(y))
+    y_exp <- sf * exp(y)
     
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
     - mean( ll )
 }
 
-
-predictED <- function(ods, minMu=0.01){
+predictED <- function(ods){
     E <- E(ods)
     D <- D(ods)
     b <- b(ods)
@@ -151,6 +154,6 @@ predictED <- function(ods, minMu=0.01){
     sf <- sizeFactors(ods)
 
     y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- sf * (minMu + exp(y))
+    y_exp <- sf * exp(y)
     y_exp
 }

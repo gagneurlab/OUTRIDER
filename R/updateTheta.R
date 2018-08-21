@@ -1,10 +1,15 @@
-updateTheta <- function(ods, thetaRange, BPPARAM){
+#' 
+#' Update theta step for autoencoder
+#' 
+#' @noRd
+updateTheta <- function(ods, thetaRange, coxReid=TRUE, BPPARAM){
     normalizationFactors(ods) <- t(predictED(ods=ods))
     mu <- normalizationFactors(ods)
     cts <- counts(ods)
     H <- x(ods) %*% E(ods)
+    
     fitparameters <- bplapply(seq_along(ods), estTheta, mu=mu, H=H,
-            cts=cts, exclusionMask=NULL, thetaRange=thetaRange,
+            cts=cts, exclusionMask=NULL, thetaRange=thetaRange, coxReid=coxReid,
             BPPARAM=BPPARAM)
     
     theta(ods) <- vapply(fitparameters, "[[", double(1), "minimum")
@@ -16,7 +21,7 @@ updateTheta <- function(ods, thetaRange, BPPARAM){
 }
 
 
-estTheta <- function(index, cts, mu, H, thetaRange, exclusionMask){
+estTheta <- function(index, cts, mu, H, thetaRange, exclusionMask, coxReid){
     ctsi <- cts[index,]
     if(is.matrix(mu)){
         mu <- mu[index,]
@@ -28,12 +33,18 @@ estTheta <- function(index, cts, mu, H, thetaRange, exclusionMask){
         ctsi <- ctsi[!exclusionMask[index,]]
         mu <- mu[!exclusionMask[index,]]
     }
-    est <- optimize(f= negCRlogLikelihood, interval = thetaRange, k=ctsi, mu=mu,
-                    H=H)
+    fun <- negLogLikelihoodTheta
+    if(isTRUE(coxReid)){
+        fun <- negCRLogLikelihoodTheta
+    }
+    est <- optimize(f=fun, interval=thetaRange, k=ctsi, mu=mu, H=H)
 } 
 
+negLogLikelihoodTheta <- function(theta, k, mu, H){
+    -sum(dnbinom(x=k, size=theta, mu=mu, log=TRUE))
+}
 
-negCRlogLikelihood <- function(theta, k, mu, H){
+negCRLogLikelihoodTheta <- function(theta, k, mu, H){
     H <- cbind(1,H)
     # construct a diagonal matrix.
     w <- matrix(0, ncol=nrow(H), nrow=nrow(H))

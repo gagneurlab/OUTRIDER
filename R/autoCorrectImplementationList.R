@@ -122,5 +122,9 @@ autoEncoderImplList <- list(
     edPcaRobNfTMax250FT = function(ods, q, theta, ...){
         autoCorrectED(ods, q, theta, usePCA=TRUE, robust=TRUE, noFirstRob=TRUE, 
                       maxTheta=250, firstTheta=TRUE, ...)
+    },
+    newED = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(1, 250), 
+                convergence=1e-5, minMu=0.00, noRobustLast=TRUE,  ...)
     }
 )

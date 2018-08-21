@@ -1,9 +1,3 @@
-n <- 5
-A <- matrix(rnorm(n*n), n, n)
-
-# Minor and cofactor
-minor <- function(A, i, j) det( A[-i,-j] )
-cofactor <- function(A, i, j) (-1)^(i+j) * minor(A,i,j)
 
 # With a loop
 adjoint1 <- function(A) {
@@ -24,6 +18,13 @@ adjoint <- function(A) {
 }
 
 if(FALSE){
+n <- 5
+A <- matrix(rnorm(n*n), n, n)
+
+# Minor and cofactor
+minor <- function(A, i, j) det( A[-i,-j] )
+cofactor <- function(A, i, j) (-1)^(i+j) * minor(A,i,j)
+
 # Check the result: these should be equal
 det(A) * diag(nrow(A))
 A %*% adjoint1(A)
