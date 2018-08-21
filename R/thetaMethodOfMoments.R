@@ -9,9 +9,10 @@
 #' to only one factor. This reduces some computation
 #'   
 #' @noRd
-robustMethodOfMomentsOfTheta <- function(cts, maxTheta=250, minTheta=0.1){
+robustMethodOfMomentsOfTheta <- function(cts, maxTheta=250, minTheta=0.1, minMu=0.01){
     
     mue <- apply(cts, 1, mean, trim=1/8)
+    mue <- pmax(mue, minMu)
     se <- (cts - mue)^2
     see <- apply(se, 1, mean, trim=1/8)
     ve <- 1.51*see

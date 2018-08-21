@@ -1,16 +1,27 @@
+
 #' 
 #' Update theta step for autoencoder
 #' 
 #' @noRd
-updateTheta <- function(ods, thetaRange, coxReid=TRUE, BPPARAM){
+updateTheta <- function(ods, thetaRange, BPPARAM, CoxR=FALSE){
     normalizationFactors(ods) <- t(predictED(ods=ods))
     mu <- normalizationFactors(ods)
     cts <- counts(ods)
     H <- x(ods) %*% E(ods)
+    if('thetaCorrection' %in% names(colData(ods))){
+        thetaC <- colData(ods)[['thetaCorrection']]
+    } else {
+        thetaC <- 1
+    }
+    if(isTRUE(CoxR)){
+        nll <- negCRLogLikelihoodTheta
+    }else{
+        nll <- negLogLikelihoodTheta
+    }
     
     fitparameters <- bplapply(seq_along(ods), estTheta, mu=mu, H=H,
-            cts=cts, exclusionMask=NULL, thetaRange=thetaRange, coxReid=coxReid,
-            BPPARAM=BPPARAM)
+            cts=cts, exclusionMask=NULL, thetaRange=thetaRange,
+            BPPARAM=BPPARAM, nll=nll, thetaC=thetaC)
     
     theta(ods) <- vapply(fitparameters, "[[", double(1), "minimum")
     
@@ -20,8 +31,23 @@ updateTheta <- function(ods, thetaRange, coxReid=TRUE, BPPARAM){
     return(ods)
 }
 
+thetaCorrection <- function(ods){
+    mu <- normalizationFactors(ods)
+    k <- counts(ods)
+    
+    pointVar <- (k - mu)^2
+    thetaMat <- mu^2/(pointVar - mu)
+    medianTheta <- rowMedians(thetaMat)
+    
+    thetaRatios <- thetaMat/medianTheta
+    colData(ods)[['thetaCorrection']] <- colMedians(thetaRatios)
+    validateOutriderDataSet(ods)
+    return(ods)
+}
 
-estTheta <- function(index, cts, mu, H, thetaRange, exclusionMask, coxReid){
+
+
+estTheta <- function(index, cts, mu, H, thetaC, thetaRange, exclusionMask, nll){
     ctsi <- cts[index,]
     if(is.matrix(mu)){
         mu <- mu[index,]
@@ -33,18 +59,19 @@ estTheta <- function(index, cts, mu, H, thetaRange, exclusionMask, coxReid){
         ctsi <- ctsi[!exclusionMask[index,]]
         mu <- mu[!exclusionMask[index,]]
     }
-    fun <- negLogLikelihoodTheta
-    if(isTRUE(coxReid)){
-        fun <- negCRLogLikelihoodTheta
-    }
-    est <- optimize(f=fun, interval=thetaRange, k=ctsi, mu=mu, H=H)
+
+    est <- optimize(f= nll, interval = thetaRange, k=ctsi, mu=mu,
+                    H=H, thetaC=thetaC)
 } 
 
-negLogLikelihoodTheta <- function(theta, k, mu, H){
+negLogLikelihoodTheta <- function(theta, k, mu, H, thetaC){
+    theta <- theta * thetaC
     -sum(dnbinom(x=k, size=theta, mu=mu, log=TRUE))
 }
 
-negCRLogLikelihoodTheta <- function(theta, k, mu, H){
+negCRLogLikelihoodTheta <- function(theta, k, mu, H, thetaC){
+    theta <- theta * thetaC
+    
     H <- cbind(1,H)
     # construct a diagonal matrix.
     w <- matrix(0, ncol=nrow(H), nrow=nrow(H))
@@ -54,7 +81,8 @@ negCRLogLikelihoodTheta <- function(theta, k, mu, H){
 }
 
 ## grad theta is still in the fitNB file.
-gradnegCRlogLikelihood <- function(theta, k, mu, H){
+gradnegCRlogLikelihood <- function(theta, k, mu, H, thetaC){
+    theta <- theta * thetaC
     H <- cbind(1,H)
     
     # construct a diagonal matrix.

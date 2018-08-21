@@ -68,6 +68,9 @@ pValMatrix <- function(ods, alternative, BPPARAM){
     if(is.null(normF)){
         normF <- sizeFactors(ods)
     }
+    if('thetaCorrection' %in% names(colData(ods))){
+        theta <- outer(theta, colData(ods)[['thetaCorrection']])
+    }
     
     pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, theta=theta,
             mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
@@ -103,13 +106,18 @@ pValMatrix <- function(ods, alternative, BPPARAM){
 #' @noRd
 pVal <- function(index, ctsData, theta, mu, normFact, alternative){
     x    <- ctsData[index,]
-    size <- theta[index]
     mu   <- mu[index]
     
     # check if you did not get only sizeFactors
     if(is.matrix(normFact)){
         normFact <- normFact[index,]
     }
+    if(is.matrix(theta)){
+        size <- theta[index,]
+    }else{
+        size <- theta[index]
+    }
+    
     
     pless <- pnbinom(x, size=size, mu=normFact*mu)
     if(alternative == "less"){
