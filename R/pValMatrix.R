@@ -47,7 +47,7 @@ setMethod("computePvalues", "OutriderDataSet", function(object,
             BPPARAM=bpparam()){
     alternative <- match.arg(alternative)
     object <- pValMatrix(object, alternative, BPPARAM=BPPARAM)
-    if(!method=='None'){
+    if(method != 'None'){
         object <- padjMatrix(object, method)
     }
     object
@@ -59,20 +59,17 @@ pValMatrix <- function(ods, alternative, BPPARAM){
                 "mu by running:\n\tods <- fit(ods)"))
     }
     ctsData <- counts(ods)
-    theta   <- theta(ods)
-    mu <- 1
+    mu <- rep(1, nrow(ods))
     if('mu' %in% names(mcols(ods))){
-        mu      <- mcols(ods)[,"mu"]
+        mu <- mcols(ods)[,"mu"]
     }
     normF   <- normalizationFactors(ods)
     if(is.null(normF)){
         normF <- sizeFactors(ods)
     }
-    if('thetaCorrection' %in% names(colData(ods))){
-        theta <- outer(theta, colData(ods)[['thetaCorrection']])
-    }
+    thetaMat <- outer(theta(ods), thetaCorrection(ods))
     
-    pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, theta=theta,
+    pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, theta=thetaMat,
             mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
     
     pValMat <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
@@ -112,12 +109,7 @@ pVal <- function(index, ctsData, theta, mu, normFact, alternative){
     if(is.matrix(normFact)){
         normFact <- normFact[index,]
     }
-    if(is.matrix(theta)){
-        size <- theta[index,]
-    }else{
-        size <- theta[index]
-    }
-    
+    size <- theta[index,]
     
     pless <- pnbinom(x, size=size, mu=normFact*mu)
     if(alternative == "less"){

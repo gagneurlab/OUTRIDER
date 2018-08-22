@@ -1,13 +1,10 @@
 autoEncoderImplList <- list(
-    R = function(ods, q, theta, BPPARAM=bpparam(), ...){
-		autoCorrectR(ods, q, theta, BPPARAM=BPPARAM, ...)
-	},
-    PEER = function(ods, q, theta, BPPARAM=bpparam(), ...){
+    peer = function(ods, q, theta, BPPARAM=bpparam(), ...){
 		peer(ods)
 	},
-    PEER_residual = function(ods, q, theta, BPPARAM=bpparam(), ...){
-		peer(ods)
-	},
+    pca = function(ods, q, theta, BPPARAM=bpparam(), ...){
+        autoCorrectPCA(ods, q)
+    },
     robustR = function(ods, q, theta, BPPARAM=bpparam(), ...){
 		autoCorrectRCooksIter2(ods, q, theta, BPPARAM=BPPARAM, ...)
 	},
@@ -22,9 +19,6 @@ autoEncoderImplList <- list(
 	},
     cooksR = function(ods, q, theta, BPPARAM=bpparam(), ...){
 		autoCorrectRCooksIter3(ods, q, theta, BPPARAM=BPPARAM, ...)
-	},
-    pca = function(ods, q, theta, BPPARAM=bpparam(), ...){
-		autoCorrectPCA(ods, q)
 	},
     Rob1E3Pval25L10It10 = function(ods, q, theta, BPPARAM=bpparam(), ...){
 		Rob1E3Pval25L10It10(ods, q, debug=FALSE, BPPARAM=BPPARAM, ...)
@@ -124,7 +118,26 @@ autoEncoderImplList <- list(
                       maxTheta=250, firstTheta=TRUE, ...)
     },
     newED = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                convergence=1e-5, noRobustLast=TRUE, pValCutoff = 0.1, 
+                CoxR=FALSE, correctTheta=TRUE)
+    },
+    ed_NoT_TMin1 = function(ods, q, theta, ...){
         fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(1, 250), 
-                convergence=1e-5, minMu=0.00, noRobustLast=TRUE,  ...)
+                convergence=1e-5, noRobustLast=TRUE,  ...)
+    },
+    ed_NoT = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
+                convergence=1e-5, noRobustLast=TRUE,  ...)
+    },
+    ed_TC_TMin1 = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(1, 250), 
+                convergence=1e-5, noRobustLast=TRUE, correctTheta=TRUE, ...)
+    },
+    ed_TC = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
+                convergence=1e-5, noRobustLast=TRUE, correctTheta=TRUE, ...)
     }
 )
+
+names(autoEncoderImplList) <- tolower(names(autoEncoderImplList))

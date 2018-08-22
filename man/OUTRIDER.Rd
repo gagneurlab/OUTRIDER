@@ -4,7 +4,7 @@
 \alias{OUTRIDER}
 \title{OUTRIDER - Finding aberrant expression events}
 \usage{
-OUTRIDER(object, q, autoCorrect = TRUE, implementation = "R", ...)
+OUTRIDER(object, q, autoCorrect = TRUE, implementation = "edNew", ...)
 }
 \arguments{
 \item{object}{An OutriderDataSet object containing the counts}

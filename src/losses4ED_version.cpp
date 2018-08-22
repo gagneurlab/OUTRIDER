@@ -123,20 +123,18 @@ arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
 double truncLogLiklihoodE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
                         arma::mat x, arma::vec sf, arma::vec theta, 
                         arma::mat exclusionMask, arma::vec thetaC){
-    arma::mat E, y, t1_1,  t2_1, t2_2, t1, t2, ll;
+    arma::mat E, y, thetaMat, y_plus_log_sf,  t2_1, t2_2, t1, t2, ll;
     
     E = arma::reshape(e, D.n_rows, D.n_cols);
-    arma::mat thetaMat = thetaC * theta.t();
+    thetaMat = thetaC * theta.t();
     y = predictMatY(x, E, D, b);
+        
+    y_plus_log_sf = y.each_col() + arma::log(sf);
+    t1 = k % y_plus_log_sf;
     
-    
-    t1_1 = y.each_col() + arma::log(sf);
-    t1 = k % t1_1;
-    
-    t2_1 = k + thetaMat;
     t2_2 = arma::exp(y);
     t2_2.each_col() %= sf;
-    t2 = t1_1 + arma::log(1 + thetaMat/t2_2);
+    t2 = (k + thetaMat) % (y_plus_log_sf + arma::log(1 + thetaMat/t2_2));
     
     ll = arma::accu((t1 - t2) % exclusionMask)/arma::accu(exclusionMask);
     return arma::as_scalar(-ll);
@@ -147,22 +145,18 @@ double truncLogLiklihoodE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
 arma::mat gradientE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
                     arma::mat x, arma::vec sf, arma::vec theta, 
                     arma::mat exclusionMask, arma::vec thetaC){
-    arma::mat E, y, t1, kt_2, kt, t3, dE;
+    arma::mat E, y, thetaMat, t1, kt_2, kt, t3, dE;
     
     E = arma::reshape(e, D.n_rows, D.n_cols);
-    arma::mat thetaMat = thetaC * theta.t();
+    thetaMat = thetaC * theta.t();
     y = predictMatY(x, E, D, b);
-    
-    
-    t1 = x.t() * ((k % exclusionMask) * D);
     
     kt_2 = arma::exp(y);
     kt_2.each_col() %= sf;
-    kt_2 = 1 + thetaMat / kt_2;
-    kt = (k + thetaMat) / kt_2;
-    kt %= exclusionMask;
+    kt = (k + thetaMat) / (1 + thetaMat/kt_2);
     
-    t3 = x.t() * (kt * D);
+    t1 = x.t() * ((k  % exclusionMask) * D);
+    t3 = x.t() * ((kt % exclusionMask) * D);
     
     dE = (-t1 + t3)/arma::accu(exclusionMask);
     return dE;

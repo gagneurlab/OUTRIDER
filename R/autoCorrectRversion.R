@@ -57,6 +57,7 @@ autoCorrect <- function(ods, q, theta=25,
     }
     
     # pass on to the correct implementation
+    implementation <- tolower(implementation)
     impl <- match.arg(implementation)
     if(is.null(impl) || is.na(impl)){
         stop("Requested autoCorrect implementation is unknown.")

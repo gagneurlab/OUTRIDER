@@ -2,7 +2,7 @@
 #' Update D function
 #' 
 #' @noRd
-updateD <- function(ods, control, BPPARAM,thetaCorrection=FALSE){
+updateD <- function(ods, control, BPPARAM){
     D <- D(ods)
     b <- b(ods)
     H <- H(ods)
@@ -10,12 +10,7 @@ updateD <- function(ods, control, BPPARAM,thetaCorrection=FALSE){
     sf <- sizeFactors(ods)
     mask <- exclusionMask(ods)
     theta <- theta(ods)
-    
-    if(isTRUE(thetaCorrection)){
-        thetaC <- colData(ods)[['thetaCorrection']]
-    } else {
-        thetaC <- rep(1,ncol(ods))
-    }
+    thetaC <- thetaCorrection(ods)
     
     fitls <- bplapply(1:nrow(ods), singleDFit, D=D, b=b, k=k, sf=sf, H=H, 
             theta=theta, mask=mask, control=control, thetaC=thetaC,
@@ -75,13 +70,9 @@ lossDtrunc <- function(par, k, H, sf, theta, thetaC){
     #ll = mean(k * log(yexp) - (k + theta)*log(yexp + theta))
 
     t1 <- k * (log(sf) + y) 
-    t2 <- (k + theta) * (log(sf) + y + log(1+theta/(sf * exp(y)))  )
+    t2 <- (k + theta) * (log(sf) + y + log(1+theta/(sf * exp(y))))
     ll <- mean(t1 - t2)
 
-    # if(!is.finite(ll) & debugMyCode){
-    #   browser()
-    # }
-  
     return(-ll)
 }
 
@@ -93,21 +84,13 @@ gradD <- function(par, k, H, sf=1, theta, thetaC){
     
     y <- c(H %*% d + b)
     yexp <- sf * exp(y)
-    #yexp <- pmin(1e8, yexp)
     
     t1 <- colMeans(k * H)
-    
-    kt <- (k + theta) / ( 1 + theta/(sf*exp(y)) )
-    
+    kt <- (k + theta) / (1 + theta/(sf*exp(y)))
     t2 <- colMeans(kt * H) 
     
     dd <- t2 - t1
     db <- mean(kt - k)
-    
-    
-    if(any(!c(is.finite(db), is.finite(dd))) & debugMyCode){
-        browser()
-    }
     
     return(c(db, dd))
 }

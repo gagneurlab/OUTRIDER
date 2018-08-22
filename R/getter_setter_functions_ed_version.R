@@ -73,6 +73,22 @@ trueCounts <- function(ods){
     return(ods)
 }
 
+thetaCorrection <- function(ods){
+    if(!"thetaCorrection" %in% colnames(colData(ods))){
+        stop('Please run the autoencoder before you can retrieve the ', 
+                'theta correction values.')
+    }
+    return(colData(ods)[,'thetaCorrection'])
+}
+
+`thetaCorrection<-` <- function(ods, value){
+    if(isScalarNumeric(value)){
+        value <- rep(value, ncol(ods))
+    }
+    colData(ods)[,'thetaCorrection'] <- value
+    return(ods)
+}
+
 exclusionMask <- function(ods){
     if('exclusionMask' %in% assayNames(ods)){
         return(assay(ods, 'exclusionMask'))

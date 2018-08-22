@@ -21,9 +21,9 @@ autoCorrectPCA <- function(ods, q, trim=0){
     b(ods) <- numeric(ncol(k))
     
     # add correction factor to object
-    correctionFactors <- t(predictED(ods=ods))
+    correctionFactors <- t(predictC(ods))
     stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
-    normalizationFactors(ods, replace=TRUE) <- correctionFactors
+    normalizationFactors(ods) <- correctionFactors
     
     # add it to the object
     metadata(ods)[['dim']] <- dim(ods)

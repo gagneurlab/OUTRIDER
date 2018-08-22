@@ -5,9 +5,9 @@
 \title{Main autoencoder fit function}
 \usage{
 fitAutoencoder(ods, q, robust = TRUE, thetaRange = c(0.1, 250),
-  convergence = 1e-05, loops = 15, pValCutoff = 0.01, minMu = 0.01,
-  initialize = TRUE, noRobustLast = TRUE, control = list(),
-  BPPARAM = bpparam(), ...)
+  convergence = 1e-05, loops = 15, pValCutoff = 0.1,
+  initialize = TRUE, noRobustLast = TRUE, CoxR = FALSE,
+  correctTheta = FALSE, control = list(), BPPARAM = bpparam(), ...)
 }
 \description{
 Main autoencoder fit function

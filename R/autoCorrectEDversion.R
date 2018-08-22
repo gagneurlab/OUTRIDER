@@ -2,9 +2,9 @@
 #' Main autoencoder fit function
 #'
 fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
-                    convergence=1e-5, loops=15, pValCutoff=0.0,
-                    initialize=TRUE, noRobustLast=TRUE, coxReid=FALSE, 
-                    thetaCorrection=FALSE,
+                    convergence=1e-5, loops=15, pValCutoff=0.1,
+                    initialize=TRUE, noRobustLast=TRUE, CoxR=FALSE, 
+                    correctTheta=FALSE,
                     control=list(), BPPARAM=bpparam(), ...){
     
     # Check input
@@ -14,11 +14,6 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     if(!bpisup(BPPARAM)){
         bpstart(BPPARAM)
     }
-    # reset counters 
-    mcols(ods)['NumConvergedD'] <- 0
-    
-    k <- t(counts(ods, normalized=FALSE))
-    sf <- sizeFactors(ods)
     
     # initialize W using PCA and bias as zeros.
     if(isTRUE(initialize) | is.null(E(ods)) | is.null(D(ods))){
@@ -41,10 +36,9 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
         lossList[i*3-1] <- lossED(ods)
         print(paste0('Iteration: ', i, '; update D loss: ', lossList[i*3-1]))
         
-        # update Theta correction
-        
         # update theta step
-        ods <- updateTheta(ods, thetaRange, CoxR=coxReid, BPPARAM)
+        ods <- updateTheta(ods, thetaRange, CoxR=CoxR, 
+                correctTheta=correctTheta, BPPARAM)
         lossList[i*3+0] <- lossED(ods)
         print(paste0('Iteration: ', i, ' theta loss: ', lossList[i*3+0]))
         
@@ -78,8 +72,8 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
         exclusionMask(ods) <- 1
     }
     ods <- updateD(ods, control, BPPARAM)
-    # no Inf with optimize.
-    ods <- updateTheta(ods, c(0, 500), BPPARAM)
+    ods <- updateTheta(ods, c(0, .Machine$integer.max), 
+            correctTheta=correctTheta, CoxR=CoxR, BPPARAM)
     
     print(Sys.time() - t1)
     print(paste0(i, ' Final nb-AE loss: ', lossED(ods)))
@@ -87,7 +81,7 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     bpstop(BPPARAM)
     
     # add correction factors
-    correctionFactors <- t(predictED(ods=ods))
+    correctionFactors <- t(predictC(ods))
     stopifnot(identical(dim(counts(ods)), dim(correctionFactors)))
     normalizationFactors(ods) <- correctionFactors
     
@@ -111,10 +105,13 @@ initAutoencoder <- function(ods, q, thetaRange, BPPARAM){
     # initialize theta
     theta(ods) <- robustMethodOfMomentsOfTheta(counts(ods), 
             minTheta=thetaRange[1], maxTheta=thetaRange[2])
+    thetaCorrection(ods) <- 1
+    
+    # reset counters 
+    mcols(ods)['NumConvergedD'] <- 0
     
     return(ods)
 }
-
 
 maskOutliers <- function(ods, pValCutoff=0.01, BPPARAM){
     ods <- computePvalues(ods, BPPARAM=BPPARAM, method='None')
@@ -131,31 +128,19 @@ maskOutliers <- function(ods, pValCutoff=0.01, BPPARAM){
 
 lossED <- function(ods){
     
-    ## encoding 
+    # get values
     b <- b(ods)
     E <- E(ods)
     D <- D(ods)
     x <- x(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
-    theta <- theta(ods)
+    theta <- outer(thetaCorrection(ods), theta(ods))
     
     y <- t(t(x %*% E %*% t(D)) + b)
     y_exp <- sf * exp(y)
     
     ## log likelihood 
-    ll <- dnbinom(t(k), mu=t(y_exp), size=theta, log=TRUE)
+    ll <- dnbinom(t(k), mu=t(y_exp), size=t(theta), log=TRUE)
     - mean( ll )
-}
-
-predictED <- function(ods){
-    E <- E(ods)
-    D <- D(ods)
-    b <- b(ods)
-    x <- x(ods)
-    sf <- sizeFactors(ods)
-
-    y <- t(t(x %*% E %*% t(D)) + b)
-    y_exp <- sf * exp(y)
-    y_exp
 }

@@ -3,16 +3,17 @@
 #' Update theta step for autoencoder
 #' 
 #' @noRd
-updateTheta <- function(ods, thetaRange, BPPARAM, CoxR=FALSE){
-    normalizationFactors(ods) <- t(predictED(ods=ods))
+updateTheta <- function(ods, thetaRange, BPPARAM, CoxR, correctTheta){
+    normalizationFactors(ods) <- t(predictC(ods))
     mu <- normalizationFactors(ods)
     cts <- counts(ods)
-    H <- x(ods) %*% E(ods)
-    if('thetaCorrection' %in% names(colData(ods))){
-        thetaC <- colData(ods)[['thetaCorrection']]
-    } else {
-        thetaC <- 1
+    H <- H(ods)
+    
+    if(isTRUE(correctTheta)){
+        ods <- estimateThetaCorrection(ods)
     }
+    thetaC <- thetaCorrection(ods)
+    
     if(isTRUE(CoxR)){
         nll <- negCRLogLikelihoodTheta
     }else{
@@ -24,14 +25,13 @@ updateTheta <- function(ods, thetaRange, BPPARAM, CoxR=FALSE){
             BPPARAM=BPPARAM, nll=nll, thetaC=thetaC)
     
     theta(ods) <- vapply(fitparameters, "[[", double(1), "minimum")
+    print(summary(theta(ods)))
     
     validObject(ods)
-    
-    print(summary(theta(ods)))
     return(ods)
 }
 
-thetaCorrection <- function(ods){
+estimateThetaCorrection <- function(ods){
     mu <- normalizationFactors(ods)
     k <- counts(ods)
     
@@ -40,8 +40,9 @@ thetaCorrection <- function(ods){
     medianTheta <- rowMedians(thetaMat)
     
     thetaRatios <- thetaMat/medianTheta
-    colData(ods)[['thetaCorrection']] <- colMedians(thetaRatios)
-    validateOutriderDataSet(ods)
+    thetaCorrection(ods) <- colMedians(thetaRatios)
+    
+    validObject(ods)
     return(ods)
 }
 
