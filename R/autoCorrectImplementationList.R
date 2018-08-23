@@ -5,8 +5,8 @@ autoEncoderImplList <- list(
     pca = function(ods, q, theta, BPPARAM=bpparam(), ...){
         autoCorrectPCA(ods, q)
     },
-    robustR = function(ods, q, theta, BPPARAM=bpparam(), ...){
-		autoCorrectRCooksIter2(ods, q, theta, BPPARAM=BPPARAM, ...)
+    ae = function(ods, q, theta, BPPARAM=bpparam(), ...){
+        autoCorrectR(ods, q=q, BPPARAM=BPPARAM, ...)
 	},
     robustRM1 = function(ods, q, theta, BPPARAM=bpparam(), ...){
 		autoCorrectRCooksIter(ods, q, theta, BPPARAM=BPPARAM, ...)
@@ -119,24 +119,73 @@ autoEncoderImplList <- list(
     },
     newED = function(ods, q, theta, ...){
         fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
-                convergence=1e-5, noRobustLast=TRUE, pValCutoff = 0.1, 
-                CoxR=FALSE, correctTheta=TRUE)
+                convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
+                CoxR=FALSE, correctTheta=TRUE, ...)
     },
-    ed_NoT_TMin1 = function(ods, q, theta, ...){
-        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(1, 250), 
-                convergence=1e-5, noRobustLast=TRUE,  ...)
+    ed_YCR_YTC_NRL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
+                       CoxR=TRUE, correctTheta=TRUE, ...)
     },
-    ed_NoT = function(ods, q, theta, ...){
-        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
-                convergence=1e-5, noRobustLast=TRUE,  ...)
+    ed_YCR_NTC_NRL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
+                       CoxR=TRUE, correctTheta=FALSE, ...)
     },
-    ed_TC_TMin1 = function(ods, q, theta, ...){
-        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(1, 250), 
-                convergence=1e-5, noRobustLast=TRUE, correctTheta=TRUE, ...)
+    ed_NCR_YTC_NRL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
+                       CoxR=FALSE, correctTheta=TRUE, ...)
     },
-    ed_TC = function(ods, q, theta, ...){
-        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
-                convergence=1e-5, noRobustLast=TRUE, correctTheta=TRUE, ...)
+    ed_NCR_NTC_YRL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.1, 
+                       CoxR=FALSE, correctTheta=FALSE, ...)
+    },
+    ed_YCR_YTC_YRL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.1, 
+                       CoxR=TRUE, correctTheta=TRUE, ...)
+    },
+    ed_NCR_YTC_YRL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.1, 
+                       CoxR=FALSE, correctTheta=TRUE, ...)
+    },
+    ed_YCR_NTC_YRL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.1, 
+                       CoxR=TRUE, correctTheta=FALSE, ...)
+    },
+    ed_NCR_NTC_NRL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
+                       CoxR=FALSE, correctTheta=FALSE, ...)
+    },
+    ed_NCR_NTC_NRL_NR = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=FALSE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
+                       CoxR=FALSE, correctTheta=FALSE, ...)
+    },
+    ed_YCR_YTC_NRL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=FALSE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
+                       CoxR=TRUE, correctTheta=TRUE, ...)
+    },
+    ed_NRob_NCR_YTC = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=FALSE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.1, 
+                       CoxR=FALSE, correctTheta=TRUE, ...)
+    },
+    ed_NRob_YCR_YTC = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=FALSE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.1, 
+                       CoxR=TRUE, correctTheta=TRUE, ...)
+    },
+    ed_NRob_NCR_NTC = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=FALSE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.1, 
+                       CoxR=FALSE, correctTheta=FALSE, ...)
     }
 )
 

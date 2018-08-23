@@ -31,7 +31,7 @@ updateTheta <- function(ods, thetaRange, BPPARAM, CoxR, correctTheta){
     return(ods)
 }
 
-estimateThetaCorrection <- function(ods){
+estimateThetaCorrection <- function(ods, thetaCBounds=c(0.5, 2)){
     mu <- normalizationFactors(ods)
     k <- counts(ods)
     
@@ -40,7 +40,8 @@ estimateThetaCorrection <- function(ods){
     medianTheta <- rowMedians(thetaMat)
     
     thetaRatios <- thetaMat/medianTheta
-    thetaCorrection(ods) <- colMedians(thetaRatios)
+    thetaCorrection(ods) <- pmin(thetaCBounds[2], 
+            pmax(thetaCBounds[1], colMedians(thetaRatios)))
     
     validObject(ods)
     return(ods)
