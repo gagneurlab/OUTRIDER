@@ -176,9 +176,7 @@ arma::vec gradientDLasso(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
     
     db = arma::vec(1);
     db[0] = arma::accu(kt - k)/k.n_elem;
-    dd = t2 - t1;
-    //I am not 100% about the correctness of the sign here:
-    dd += tLasso;
+    dd = t2 - t1 + tLasso;
     
     arma::mat ans = arma::join_cols(db, dd);
     return ans.col(0);

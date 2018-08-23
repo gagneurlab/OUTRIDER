@@ -31,15 +31,21 @@ updateD <- function(ods, control, BPPARAM){
 }
 
 
-singleDFit <- function(i, D, b, k, theta, mask, ...){
+singleDFit <- function(i, D, b, k, theta, mask, Lasso, lambda, ...){
     pari <- c(b[i], D[i,])
     ki <- k[,i]
     thetai <- theta[i]
     maski <- mask[i,]
     
-    fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, 
-            k=ki, theta=thetai, exclusionMask=maski, ...,
-            lower=-100, upper=100, method='L-BFGS')
+    if(isTRUE(Lasso)){
+        fit <- optim(pari, fn=truncLogLiklihoodDLasso, gr=gradientDLasso, 
+                     k=ki, theta=thetai, exclusionMask=maski, lambda=lambda, ...,
+                     lower=-100, upper=100, method='L-BFGS')
+    }else{
+        fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, 
+                     k=ki, theta=thetai, exclusionMask=maski, ...,
+                     lower=-100, upper=100, method='L-BFGS')   
+    }
     return(fit)
 }
 
