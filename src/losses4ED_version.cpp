@@ -118,6 +118,72 @@ arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
     return ans.col(0);
 }
 
+// [[Rcpp::export()]]
+double truncLogLiklihoodDLasso(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
+                          arma::vec exclusionMask, double theta, arma::vec thetaC, double lambda){
+    double b, ll, c;
+    arma::vec d, y, t1, t2;
+    
+    arma::uvec idx = find(exclusionMask == 1);
+    k = k.elem(idx);
+    sf = sf.elem(idx);
+    H = H.rows(idx);
+    thetaC = thetaC.elem(idx);
+    
+    b = par.at(0);
+    d = par.subvec(1, par.n_elem-1);
+    arma::vec thetaVec = theta * thetaC;
+    
+    y = H * d + b;
+    y = minValForExp(y);
+    
+    t1 = k % (arma::log(sf) + y);
+    t2 = (k + thetaVec) % (arma::log(sf) + y + arma::log(1 + thetaVec / (sf % arma::exp(y))));
+    
+    double tLasso = lambda * arma::accu(arma::abs(d));
+    
+    ll = arma::accu(t1 - t2)/k.n_elem;
+    
+    return arma::as_scalar(-ll + tLasso);
+}
+
+// [[Rcpp::export()]]
+arma::vec gradientDLasso(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
+                    arma::vec exclusionMask, double theta, arma::vec thetaC, double lambda){
+    double b, c;
+    arma::vec d, y, yexp, k1, kt, t1, t2, dd, db;
+    
+    arma::uvec idx = find(exclusionMask == 1);
+    k = k.elem(idx);
+    sf = sf.elem(idx);
+    H = H.rows(idx);
+    thetaC = thetaC.elem(idx);
+    
+    b = par.at(0);
+    d = par.subvec(1, par.n_elem-1);
+    arma::vec thetaVec = theta * thetaC;
+    
+    y = H * d + b;
+    y = minValForExp(y);
+    yexp = arma::exp(y);
+    
+    t1 = colMeans(k % H.each_col());
+    
+    kt = (k + thetaVec) / (1 + thetaVec / (sf % yexp));
+    t2 = colMeans(kt % H.each_col());
+    
+    arma::vec tLasso = lambda * arma::sign(d);
+    
+    db = arma::vec(1);
+    db[0] = arma::accu(kt - k)/k.n_elem;
+    dd = t2 - t1;
+    //I am not 100% about the correctness of the sign here:
+    dd += tLasso;
+    
+    arma::mat ans = arma::join_cols(db, dd);
+    return ans.col(0);
+}
+
 
 // [[Rcpp::export()]]
 double truncLogLiklihoodE(arma::vec e, arma::mat D, arma::mat k, arma::vec b,
