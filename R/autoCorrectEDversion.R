@@ -4,7 +4,7 @@
 fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
                     convergence=1e-5, loops=15, pValCutoff=0.1,
                     initialize=TRUE, noRobustLast=TRUE, CoxR=FALSE, 
-                    correctTheta=FALSE,
+                    correctTheta=FALSE, usePCA=TRUE,
                     control=list(), BPPARAM=bpparam(), ...){
     
     # Check input
@@ -17,7 +17,7 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     
     # initialize W using PCA and bias as zeros.
     if(isTRUE(initialize) | is.null(E(ods)) | is.null(D(ods))){
-        ods <- initAutoencoder(ods, q, thetaRange)
+        ods <- initAutoencoder(ods, q, thetaRange, usePCA=usePCA)
     }
      
     # initial loss
@@ -38,10 +38,9 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
         
         # update theta step
         ods <- updateTheta(ods, thetaRange, CoxR=CoxR, 
-                correctTheta=correctTheta, BPPARAM)
+                correctTheta=correctTheta, BPPARAM=BPPARAM)
         lossList[i*3+0] <- lossED(ods)
         print(paste0('Iteration: ', i, ' theta loss: ', lossList[i*3+0]))
-        
         
         # mask outlier
         if(i != 1 & isTRUE(robust)){
@@ -71,9 +70,9 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     if(isTRUE(noRobustLast)){
         exclusionMask(ods) <- 1
     }
-    ods <- updateD(ods, control, BPPARAM)
-    ods <- updateTheta(ods, c(0, .Machine$integer.max), 
-            correctTheta=correctTheta, CoxR=CoxR, BPPARAM)
+    ods <- updateD(ods, control=control, BPPARAM=BPPARAM)
+    ods <- updateTheta(ods, thetaRange=c(1e-3, 1e4), 
+            correctTheta=correctTheta, CoxR=CoxR, BPPARAM=BPPARAM)
     
     print(Sys.time() - t1)
     print(paste0(i, ' Final nb-AE loss: ', lossED(ods)))
@@ -93,9 +92,14 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     return(ods)
 }
 
-initAutoencoder <- function(ods, q, thetaRange, BPPARAM){
+initAutoencoder <- function(ods, q, thetaRange, usePCA){
+    
     pca <- pca(x(ods), nPcs=q)
     pc  <- loadings(pca)
+    
+    if(isFALSE(usePCA)){
+        rnorm(length(pc), sd=sd(pc))
+    }
     
     # Set initial values from PCA
     D(ods) <- pc

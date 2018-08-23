@@ -75,8 +75,10 @@ trueCounts <- function(ods){
 
 thetaCorrection <- function(ods){
     if(!"thetaCorrection" %in% colnames(colData(ods))){
-        stop('Please run the autoencoder before you can retrieve the ', 
-                'theta correction values.')
+        warning('thetaFactors are not computed. If this intended you can ', 
+                'ignore this message by setting them to 1. Otherwise please ',
+                'fit the autoencoder first.')
+        return(rep(1, ncol(ods)))
     }
     return(colData(ods)[,'thetaCorrection'])
 }
