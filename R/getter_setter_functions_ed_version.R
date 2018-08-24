@@ -93,9 +93,7 @@ thetaCorrection <- function(ods){
 
 lambda <- function(ods){
     if(!"lambda" %in% colnames(mcols(ods))){
-        warning('thetaFactors are not computed. If this intended you can ', 
-                'ignore this message by setting them to 1. Otherwise please ',
-                'fit the autoencoder first.')
+        warning('TODO Replace by apropriate warning.')
         return(rep(0, nrow(ods)))
     }
     return(mcols(ods)[,'lambda'])
