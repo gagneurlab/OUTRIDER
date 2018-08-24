@@ -140,7 +140,7 @@ double truncLogLiklihoodDLasso(arma::vec par, arma::mat H, arma::vec k, arma::ve
     t1 = k % (arma::log(sf) + y);
     t2 = (k + thetaVec) % (arma::log(sf) + y + arma::log(1 + thetaVec / (sf % arma::exp(y))));
     
-    double tLasso = lambda * H.n_rows * arma::accu(arma::abs(d));
+    double tLasso = lambda * arma::accu(arma::abs(d));
     
     ll = arma::accu(t1 - t2)/k.n_elem;
     
@@ -172,7 +172,7 @@ arma::vec gradientDLasso(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
     kt = (k + thetaVec) / (1 + thetaVec / (sf % yexp));
     t2 = colMeans(kt % H.each_col());
     
-    arma::vec tLasso = lambda * H.n_rows * arma::sign(d);
+    arma::vec tLasso = lambda * arma::sign(d);
     
     db = arma::vec(1);
     db[0] = arma::accu(kt - k)/k.n_elem;
