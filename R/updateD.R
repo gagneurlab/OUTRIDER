@@ -2,7 +2,7 @@
 #' Update D function
 #' 
 #' @noRd
-updateD <- function(ods, control, BPPARAM){
+updateD <- function(ods, lasso, control, BPPARAM){
     D <- D(ods)
     b <- b(ods)
     H <- H(ods)
@@ -11,17 +11,19 @@ updateD <- function(ods, control, BPPARAM){
     mask <- exclusionMask(ods)
     theta <- theta(ods)
     thetaC <- thetaCorrection(ods)
+    lambda <- lambda(ods)
     
     fitls <- bplapply(1:nrow(ods), singleDFit, D=D, b=b, k=k, sf=sf, H=H, 
-            theta=theta, mask=mask, control=control, thetaC=thetaC,
-            BPPARAM=BPPARAM)
+            theta=theta, mask=mask, control=control, thetaC=thetaC, 
+            lasso=lasso, lambda=lambda, BPPARAM=BPPARAM)
     
     # update D and bias terms
     parMat <- sapply(fitls, '[[', 'par')
-    print(table(sapply(fitls, '[[', 'message')))
+    mcols(ods)['FitDMessage'] <- sapply(fitls, '[[', 'message')
+    print(table(mcols(ods)[,'FitDMessage']))
     mcols(ods)[,'NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
         "CONVERGENCE: REL_REDUCTION_OF_F .. FACTR.EPSMCH", 
-        sapply(fitls, '[[', 'message'))
+        mcols(ods)[,'FitDMessage'])
     b(ods) <- parMat[1,]
     D(ods) <- t(parMat)[,-1]
     
@@ -31,16 +33,17 @@ updateD <- function(ods, control, BPPARAM){
 }
 
 
-singleDFit <- function(i, D, b, k, theta, mask, Lasso, lambda, ...){
+singleDFit <- function(i, D, b, k, theta, mask, lasso, lambda, ...){
     pari <- c(b[i], D[i,])
     ki <- k[,i]
     thetai <- theta[i]
     maski <- mask[i,]
+    lambdai <- lambda[i]
     
-    if(isTRUE(Lasso)){
+    if(isTRUE(lasso)){
         fit <- optim(pari, fn=truncLogLiklihoodDLasso, gr=gradientDLasso, 
-                     k=ki, theta=thetai, exclusionMask=maski, lambda=lambda, ...,
-                     lower=-100, upper=100, method='L-BFGS')
+                     k=ki, theta=thetai, exclusionMask=maski, lambda=lambdai,
+                     ..., lower=-100, upper=100, method='L-BFGS')
     }else{
         fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, 
                      k=ki, theta=thetai, exclusionMask=maski, ...,

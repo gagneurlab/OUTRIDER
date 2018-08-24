@@ -4,7 +4,7 @@
 fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
                     convergence=1e-5, loops=15, pValCutoff=0.1,
                     initialize=TRUE, noRobustLast=TRUE, CoxR=FALSE, 
-                    correctTheta=FALSE, usePCA=TRUE,
+                    correctTheta=FALSE, usePCA=TRUE, lasso=FALSE, 
                     control=list(), BPPARAM=bpparam(), ...){
     
     # Check input
@@ -31,8 +31,13 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     for(i in seq_len(loops)){
         t2 <- Sys.time()
         
+        # update lasso
+        if(isTRUE(lasso) & i == 2){
+            ods <- fitLassoQ(ods, BPPARAM)
+        }
+        
         # update D step
-        ods <- updateD(ods, control=control, BPPARAM=BPPARAM)
+        ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM)
         lossList[i*3-1] <- lossED(ods)
         print(paste0('Iteration: ', i, '; update D loss: ', lossList[i*3-1]))
         
@@ -70,7 +75,7 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
     if(isTRUE(noRobustLast)){
         exclusionMask(ods) <- 1
     }
-    ods <- updateD(ods, control=control, BPPARAM=BPPARAM)
+    ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM)
     ods <- updateTheta(ods, thetaRange=c(1e-3, 1e4), 
             correctTheta=correctTheta, CoxR=CoxR, BPPARAM=BPPARAM)
     

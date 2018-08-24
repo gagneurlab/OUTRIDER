@@ -45,6 +45,7 @@ Imports:
     DESeq2 (>= 1.16.1),
     GenomicRanges,
     ggplot2,
+    glmnet,
     gplots,
     graphics,
     IRanges,

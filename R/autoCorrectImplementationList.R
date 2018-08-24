@@ -186,6 +186,11 @@ autoEncoderImplList <- list(
         fitAutoencoder(ods, q, robust=FALSE, thetaRange=c(0.1,250),
                        convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.1, 
                        CoxR=FALSE, correctTheta=FALSE, ...)
+    },
+    ed_NCR_NTC_YRL_YLAS = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.1, 
+                       CoxR=FALSE, lasso=TRUE, correctTheta=FALSE, ...)
     }
 )
 

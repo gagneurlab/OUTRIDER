@@ -17,6 +17,14 @@ gradientD <- function(par, H, k, sf, exclusionMask, theta, thetaC) {
     .Call('_OUTRIDER_gradientD', PACKAGE = 'OUTRIDER', par, H, k, sf, exclusionMask, theta, thetaC)
 }
 
+truncLogLiklihoodDLasso <- function(par, H, k, sf, exclusionMask, theta, thetaC, lambda) {
+    .Call('_OUTRIDER_truncLogLiklihoodDLasso', PACKAGE = 'OUTRIDER', par, H, k, sf, exclusionMask, theta, thetaC, lambda)
+}
+
+gradientDLasso <- function(par, H, k, sf, exclusionMask, theta, thetaC, lambda) {
+    .Call('_OUTRIDER_gradientDLasso', PACKAGE = 'OUTRIDER', par, H, k, sf, exclusionMask, theta, thetaC, lambda)
+}
+
 truncLogLiklihoodE <- function(e, D, k, b, x, sf, theta, exclusionMask, thetaC) {
     .Call('_OUTRIDER_truncLogLiklihoodE', PACKAGE = 'OUTRIDER', e, D, k, b, x, sf, theta, exclusionMask, thetaC)
 }
