@@ -6,7 +6,7 @@
 
 
 
-updateLambda <- function(ods, control, BPPARAM){
+updateLambda <- function(ods, control, BPPARAM, optim=TRUE){
     D <- D(ods)
     b <- b(ods)
     H <- H(ods)
@@ -20,7 +20,7 @@ updateLambda <- function(ods, control, BPPARAM){
     
     fitls <- bplapply(1:nrow(ods), geneCV, D=D, b=b, k=k, sf=sf, H=H, 
                       theta=theta, mask=mask, control=control, thetaC=thetaC, 
-                      lambda=lambda, BPPARAM=BPPARAM)
+                      lambda=lambda, optim=optim, BPPARAM=BPPARAM)
     
     # update D and bias terms
     # parMat <- sapply(fitls, '[[', 'par')
@@ -38,7 +38,7 @@ updateLambda <- function(ods, control, BPPARAM){
 }
 
 
-geneCV <- function(i, D, b, k, theta, mask, lambda, H , sf, ...){
+geneCV <- function(i, D, b, k, theta, mask, lambda, H , sf, optim, ...){
     pari <- c(b[i], D[i,])
     ki <- k[,i]
     thetai <- theta[i]
@@ -50,7 +50,7 @@ geneCV <- function(i, D, b, k, theta, mask, lambda, H , sf, ...){
     res <- matrix(0, length(fold), length(lambda))
     for(l in seq(lambda)){
         for(f in fold){
-            res[f,l] <- CVrun(lambda[l],f, folds=folds, ki=ki, H=H, theta=thetai, pari=pari, sf=sf)
+            res[f,l] <- CVrun(lambda[l],f, folds=folds, ki=ki, H=H, theta=thetai, pari=pari, sf=sf, optim=optim)
         }
     }
     cmean = colMeans(res)
@@ -60,12 +60,17 @@ geneCV <- function(i, D, b, k, theta, mask, lambda, H , sf, ...){
 }
 
 
-CVrun <- function(lambda, fold, folds, ki, H, theta, pari, sf){
+CVrun <- function(lambda, fold, folds, ki, H, theta, pari, sf, optim){
     
-    
-    fitpar <- optim(pari, fn=truncLogLiklihoodDLasso, gr=gradientDLasso, 
-                 k=ki[fold!=folds], H=H[fold!=folds,], theta=theta, exclusionMask=1, lambda=lambda,
-                 sf=sf[fold!=folds], thetaC=1, lower=-100, upper=100, method='L-BFGS')
+    if(isTRUE(optim)){
+        fitpar <- optim(pari, fn=truncLogLiklihoodDLasso, gr=gradientDLasso, 
+                        k=ki[fold!=folds], H=H[fold!=folds,], theta=theta, exclusionMask=1, lambda=lambda,
+                        sf=sf[fold!=folds], thetaC=1, lower=-100, upper=100, method='L-BFGS')
+    } else{
+        fitpar <- lbfgs(truncLogLiklihoodD, gradientD, pari, k=ki[fold!=folds], H=H[fold!=folds,], theta=theta, 
+                               exclusionMask=1, sf=sf[fold!=folds], thetaC=1, orthantwise_c=lambda, 
+                               orthantwise_start=1,orthantwise_end = length(pari), invisible=1)
+    }
     lossD(fitpar$par, ki[fold==folds], H[fold==folds,], sf[fold==folds], theta)
 
 }
