@@ -9,8 +9,10 @@ updateTheta <- function(ods, thetaRange, BPPARAM, CoxR, correctTheta){
     cts <- counts(ods)
     H <- H(ods)
     
-    if(isTRUE(correctTheta)){
+    if(correctTheta=='tc'){
         ods <- estimateThetaCorrection(ods)
+    } else if(correctTheta=='sf') {
+        thetaCorrection(ods) <- sizeFactors(ods)
     }
     thetaC <- thetaCorrection(ods)
     

@@ -4,7 +4,7 @@
 fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
                     convergence=1e-5, loops=15, pValCutoff=0.1,
                     initialize=TRUE, noRobustLast=TRUE, CoxR=FALSE, 
-                    correctTheta=FALSE, usePCA=TRUE, lasso=FALSE, runLassoFit=TRUE,
+                    correctTheta='none', usePCA=TRUE, lasso=FALSE, runLassoFit=TRUE,
                     control=list(), BPPARAM=bpparam(), ...){
     
     # Check input
