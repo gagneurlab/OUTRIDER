@@ -2,7 +2,7 @@
 #' Update D function
 #' 
 #' @noRd
-updateD <- function(ods, lasso, control, BPPARAM){
+updateD <- function(ods, lasso, control, BPPARAM, optim=TRUE){
     D <- D(ods)
     b <- b(ods)
     H <- H(ods)
@@ -15,15 +15,19 @@ updateD <- function(ods, lasso, control, BPPARAM){
     
     fitls <- bplapply(1:nrow(ods), singleDFit, D=D, b=b, k=k, sf=sf, H=H, 
             theta=theta, mask=mask, control=control, thetaC=thetaC, 
-            lasso=lasso, lambda=lambda, BPPARAM=BPPARAM)
+            lasso=lasso, lambda=lambda, BPPARAM=BPPARAM, optim=optim)
     
     # update D and bias terms
     parMat <- sapply(fitls, '[[', 'par')
-    mcols(ods)['FitDMessage'] <- sapply(fitls, '[[', 'message')
-    print(table(mcols(ods)[,'FitDMessage']))
-    mcols(ods)[,'NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
+    if(isTRUE(optim)){
+        mcols(ods)['FitDMessage'] <- sapply(fitls, '[[', 'message')
+        print(table(mcols(ods)[,'FitDMessage']))
+        mcols(ods)[,'NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
         "CONVERGENCE: REL_REDUCTION_OF_F .. FACTR.EPSMCH", 
         mcols(ods)[,'FitDMessage'])
+    }else{
+        ## eventually add Num converged for OWL-QN...
+    }
     b(ods) <- parMat[1,]
     D(ods) <- t(parMat)[,-1]
     
@@ -33,7 +37,7 @@ updateD <- function(ods, lasso, control, BPPARAM){
 }
 
 
-singleDFit <- function(i, D, b, k, theta, mask, lasso, lambda, ...){
+singleDFit <- function(i, D, b, k, theta, mask, lasso, lambda, optim, control, ...){
     pari <- c(b[i], D[i,])
     ki <- k[,i]
     thetai <- theta[i]
@@ -41,12 +45,19 @@ singleDFit <- function(i, D, b, k, theta, mask, lasso, lambda, ...){
     lambdai <- lambda[i]
     
     if(isTRUE(lasso)){
-        fit <- optim(pari, fn=truncLogLiklihoodDLasso, gr=gradientDLasso, 
+        if(isTRUE(optim)){
+            fit <- optim(pari, fn=truncLogLiklihoodDLasso, gr=gradientDLasso, 
                      k=ki, theta=thetai, exclusionMask=maski, lambda=lambdai,
-                     ..., lower=-100, upper=100, method='L-BFGS')
+                     ..., lower=-100, upper=100, method='L-BFGS', control=control)
+        } else {
+        fit <- lbfgs(truncLogLiklihoodD, gradientD,pari, k=ki, theta=thetai, 
+                     exclusionMask=maski, ..., orthantwise_c=lambdai, 
+                     orthantwise_start=1,orthantwise_end = length(pari), invisible=1)
+        }
+        
     }else{
         fit <- optim(pari, fn=truncLogLiklihoodD, gr=gradientD, 
-                     k=ki, theta=thetai, exclusionMask=maski, ...,
+                     k=ki, theta=thetai, exclusionMask=maski, ..., control=control,
                      lower=-100, upper=100, method='L-BFGS')   
     }
     return(fit)
