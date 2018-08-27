@@ -1,95 +1,73 @@
 
-
-
-### Lasso CV to identify lambda.
-
-
-
-
-updateLambda <- function(ods, control, BPPARAM, optim=TRUE){
+#'
+#' Lasso CV to identify lambda.
+#' 
+#' @noRd
+updateLambda <- function(ods, nFolds=10, control, BPPARAM, optim=TRUE){
     D <- D(ods)
     b <- b(ods)
     H <- H(ods)
     k <- t(counts(ods))
     sf <- sizeFactors(ods)
-    mask <- exclusionMask(ods)
     theta <- theta(ods)
-    thetaC <- thetaCorrection(ods)
     
-    lambda = exp(seq(-5, 5, length.out = 20))
+
+    lambda = exp(c(-10, -7, seq(-5, 5, length.out=18)))
+    t1 <- Sys.time()
+    fitls <- bplapply(seq_along(ods), lassoGeneCV, D=D, b=b, k=k, sf=sf, H=H, theta=theta, 
+            lambda=lambda, nFolds=nFolds, control=control, optim=optim, BPPARAM=BPPARAM)
+    t2 <- Sys.time()
     
-    fitls <- bplapply(1:nrow(ods), geneCV, D=D, b=b, k=k, sf=sf, H=H, 
-                      theta=theta, mask=mask, control=control, thetaC=thetaC, 
-                      lambda=lambda, optim=optim, BPPARAM=BPPARAM)
-    
-    # update D and bias terms
-    # parMat <- sapply(fitls, '[[', 'par')
-    # mcols(ods)['FitDMessage'] <- sapply(fitls, '[[', 'message')
-    # print(table(mcols(ods)[,'FitDMessage']))
-    # mcols(ods)[,'NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
-    #     "CONVERGENCE: REL_REDUCTION_OF_F .. FACTR.EPSMCH", 
-    #     mcols(ods)[,'FitDMessage'])
-    # b(ods) <- parMat[1,]
-    # D(ods) <- t(parMat)[,-1]
-    # 
-    # metadata(ods)[['Dfits']] <- fitls
     lambda(ods) <- sapply(fitls, '[[', 'lambda')
+    
+    print(paste('Lasso lambda fit time: ', t2 - t1))
+    print(summary(lambda(ods)))
+    
     return(ods)
 }
 
 
-geneCV <- function(i, D, b, k, theta, mask, lambda, H , sf, optim, ...){
+
+lassoGeneCV <- function(i, D, b, k, theta, lambda, H , sf, nFolds=20, optim, ...){
     pari <- c(b[i], D[i,])
     ki <- k[,i]
     thetai <- theta[i]
     
+    folds <- BBmisc::chunk(sample(seq_along(ki)), n.chunks=nFolds)
     
-    folds <- cut(seq(length(ki)),breaks=10,labels=FALSE)
-    fold = 1:10
-    ## lambda 
-    res <- matrix(0, length(fold), length(lambda))
-    for(l in seq(lambda)){
-        for(f in fold){
-            res[f,l] <- CVrun(lambda[l],f, folds=folds, ki=ki, H=H, theta=thetai, pari=pari, sf=sf, optim=optim)
-        }
-    }
+    #folds <- cut(sample(length(ki)),breaks=10,labels=FALSE)
+    
+    res <- sapply(lambda, function(l){
+        sapply(seq_len(nFolds), function(f){
+            lassoSingleCVrun(l, testSet=folds[[f]], ki=ki, H=H, theta=thetai, 
+                    pari=pari, sf=sf, optim=optim)
+        })
+    })
+    
     cmean = colMeans(res)
-    which.min(cmean)
-    return(c('means'=colMeans(res), 'min'= which.min(cmean), 'lambda'=lambda[which.min(cmean)]))
-    
+    ans <- c('means'=colMeans(res), 'minIdx'= which.min(cmean), 
+      'lambda'=lambda[which.min(cmean)])
+    return(ans)
 }
 
-
-CVrun <- function(lambda, fold, folds, ki, H, theta, pari, sf, optim){
-    
+lassoSingleCVrun <- function(l, testSet, ki, H, thetai, pari, sf, optim){
     if(isTRUE(optim)){
         fitpar <- optim(pari, fn=truncLogLiklihoodDLasso, gr=gradientDLasso, 
-                        k=ki[fold!=folds], H=H[fold!=folds,], theta=theta, exclusionMask=1, lambda=lambda,
-                        sf=sf[fold!=folds], thetaC=1, lower=-100, upper=100, method='L-BFGS')
+                        k=ki[-testSet], H=H[-testSet,], theta=thetai, exclusionMask=1, lambda=l,
+                        sf=sf[-testSet], thetaC=1, lower=-100, upper=100, method='L-BFGS')
     } else{
-        fitpar <- lbfgs(truncLogLiklihoodD, gradientD, pari, k=ki[fold!=folds], H=H[fold!=folds,], theta=theta, 
-                               exclusionMask=1, sf=sf[fold!=folds], thetaC=1, orthantwise_c=lambda, 
-                               orthantwise_start=1,orthantwise_end = length(pari), invisible=1)
+        fitpar <- lbfgs(truncLogLiklihoodD, gradientD, pari,  k=ki[-testSet], H=H[-testSet,], theta=thetai, 
+                        exclusionMask=1, sf=sf[-testSet], thetaC=1, orthantwise_c=l, 
+                        orthantwise_start=1,orthantwise_end = length(pari), invisible=1)
     }
-    lossD(fitpar$par, ki[fold==folds], H[fold==folds,], sf[fold==folds], theta)
-
+    lossD(fitpar$par, ki[testSet], H[testSet,], sf[testSet], thetai)
 }
 
-lossD <- function(par, k, H, sf, theta){
-    b <- par[1]
-    d <- par[-1]
-    
-    y <- H %*% d + b
-    yexp <- sf * exp(y)
-    
-    ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
-    
-    # if(!is.finite(ll) & debugMyCode){
-    #     browser()
-    # }
-    
-    return(-ll)
+if(FALSE){
+    pdf('high_lambda_values_raw_counts.pdf')
+    sapply(which(lambda(ods) > 1), function(i){
+        plotExpressionRank(ods, normalized = FALSE, basePlot=TRUE, geneID=i,
+                main=paste(rownames(ods)[i], 'lambda:', lambda(ods)[i]))
+    })
+    dev.off()
 }
-
-
-

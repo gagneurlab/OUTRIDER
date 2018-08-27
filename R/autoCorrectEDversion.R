@@ -4,7 +4,7 @@
 fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250), 
                     convergence=1e-5, loops=15, pValCutoff=0.1,
                     initialize=TRUE, noRobustLast=TRUE, CoxR=FALSE, 
-                    correctTheta=FALSE, usePCA=TRUE, lasso=FALSE, 
+                    correctTheta=FALSE, usePCA=TRUE, lasso=FALSE, runLassoFit=TRUE,
                     control=list(), BPPARAM=bpparam(), ...){
     
     # Check input
@@ -32,8 +32,8 @@ fitAutoencoder <- function(ods, q, robust=TRUE, thetaRange=c(0.1, 250),
         t2 <- Sys.time()
         
         # update lasso
-        if(isTRUE(lasso) & i == 2){
-            ods <- fitLassoQ(ods, BPPARAM)
+        if(isTRUE(lasso) & i == 2 & isTRUE(runLassoFit)){
+            ods <- updateLambda(ods, nFolds=10, control=control, BPPARAM=BPPARAM)
         }
         
         # update D step

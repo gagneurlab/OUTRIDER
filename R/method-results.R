@@ -32,8 +32,8 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
         }
     }
     
-    DTfitparameters <- as.data.table(as.matrix(mcols(
-            object, use.names=TRUE)[c('mu', 'disp')]), keep.rownames="geneID")
+    DTfitparameters <- data.table(geneID=rownames(object), 
+            theta=theta(object), lambda=lambda(object))
     
     countdataDF <- as.data.table(counts(object), keep.rownames="geneID")
     countNormDF <- as.data.table(counts(object, normalized=TRUE), 
@@ -77,7 +77,7 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
     tidyresults <- tidyresults[order(padjust)]
     
     if(is.numeric(round)){
-        col2round <- c("normcounts", "mu", "zScore", "l2fc", "disp",
+        col2round <- c("normcounts", "zScore", "l2fc", "theta",
                 "meanCorrected")
         devNull <- lapply(col2round, function(x){
                 tidyresults[,c(x):=round(get(x), as.integer(round))] })
