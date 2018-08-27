@@ -60,11 +60,6 @@ lossD <- function(par, k, H, sf, theta){
     yexp <- sf * exp(y)
     
     ll <- mean(dnbinom(k, mu=yexp, size=theta, log=TRUE))
-    
-    if(!is.finite(ll) & debugMyCode){
-        browser()
-    }
-    
     return(-ll)
 }
 
