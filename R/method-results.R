@@ -1,17 +1,9 @@
 
-compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
+compileResults <- function(object, padjCutoff, zScoreCutoff, round, all, BPPARAM=bpparam()){
+    checkOutriderDataSet(object)
+    checkFullAnalysis(object)
+    
     features <- c("pValue", "padjust", "zScore", "l2fc")
-    if(!is(object, 'OutriderDataSet')){
-        stop('Please provide an OutriderDataSet')
-    }
-    if(!"pValue" %in% assayNames(object)){
-        stop(paste0("The P-values are not computed yet. Please run the ",
-                "following command:\n\tods <- computePvalues(ods)"))
-    }
-    if(!"zScore" %in% assayNames(object)){
-        stop(paste0("The Z-scores are not computed yet. Please run the ",
-                "following command:\n\tods <- computeZscores(ods)"))
-    }
     if(!all(features %in% assayNames(object))){
         stop(paste0("Some of the assays are missing. Please run the full ", 
                 "analysis before extracting the results.",
@@ -25,10 +17,12 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
                 zScoreCutoff=zScoreCutoff, by="gene") > 0,]
         if(dim(object)[1]==0){
             warning('No significant events: use all=TRUE to print all counts.')
-            return(data.table(geneID='a', sampleID='a', pValue=0.1, padjust=0.1,
-                    zScore=1.1, l2fc=0.1, rawcounts=1, normcounts=1, mu=0.1,
-                    disp=1.2, meanCorrected=23.3, AberrantBySample=0,
-                    AberrantByGene=1, padj_rank=23.5)[0])
+            return(data.table(geneID=NA_character_, sampleID=NA_character_, 
+                    pValue=NA_real_, padjust=NA_real_, zScore=NA_real_,
+                    l2fc=NA_real_, rawcounts=NA_integer_, normcounts=NA_real_,
+                    theta=NA_real_, meanCorrected=NA_real_, 
+                    AberrantBySample=NA_integer_, AberrantByGene=NA_integer_,
+                    padj_rank=NA_real_)[0])
         }
     }
     
@@ -49,7 +43,7 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
     featureDTs <- append(featureDTs, list(
             rawcounts=countdataDF, normcounts=countNormDF, aberrant=aberrantDF))
     
-    featureMeltDTs <- bplapply(names(featureDTs), dt=featureDTs, 
+    featureMeltDTs <- bplapply(names(featureDTs), dt=featureDTs, BPPARAM=BPPARAM,
             mv=seq_len(ncol(object)) + 1,
             FUN=function(n, dt, mv){
                 dt[[n]] %>% melt(id.vars="geneID", value.name=n,
