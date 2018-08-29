@@ -197,6 +197,17 @@ autoEncoderImplList <- list(
                        convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
                        CoxR=FALSE, lasso=TRUE, correctTheta=FALSE, ...)
     },
+    ed_NRob_NCR_NTC_YLAS_OWL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=FALSE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
+                       CoxR=FALSE, lasso=TRUE, correctTheta=FALSE, useOptim=FALSE, ...)
+    },
+    ed_NRob_NCR_NTC_YLASENC_OWL = function(ods, q, theta, ...){
+        fitAutoencoder(ods, q, robust=FALSE, thetaRange=c(0.1,250),
+                       convergence=1e-5, noRobustLast=TRUE, pValCutoff=0.1, 
+                       CoxR=FALSE, lasso=TRUE, correctTheta=FALSE, useOptim=FALSE,
+                       L1encoder=TRUE, ...)
+    },
     ed_YRob01_NCR_NTC_YRL_YLAS = function(ods, q, theta, ...){
         fitAutoencoder(ods, q, robust=TRUE, thetaRange=c(0.1,250),
                        convergence=1e-5, noRobustLast=FALSE, pValCutoff=0.01, 

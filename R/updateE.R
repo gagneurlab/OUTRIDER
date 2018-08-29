@@ -2,7 +2,7 @@
 #' Update E step for the autoencoder fit
 #' 
 #' @noRd
-updateE <- function(ods, control, BPPARAM){
+updateE <- function(ods, control, BPPARAM, L1encoder = FALSE){
     e <- as.vector(E(ods))
     D <- D(ods)
     k <- t(counts(ods))
@@ -13,17 +13,25 @@ updateE <- function(ods, control, BPPARAM){
     mask <- t(exclusionMask(ods))
     thetaC <- thetaCorrection(ods)
     
-    control$trace <- 3
-    fit <- optim(e, fn=truncLogLiklihoodE, gr=gradientE,
-            k=k, x=x, sf=sf, D=D, b=b, theta=theta, exclusionMask=mask, 
-            thetaC=thetaC,
-            method="L-BFGS-B", lower=-100, upper=100, control=control)
+    if(L1encoder==FALSE){
+        control$trace <- 3
+        fit <- optim(e, fn=truncLogLiklihoodE, gr=gradientE,
+                k=k, x=x, sf=sf, D=D, b=b, theta=theta, exclusionMask=mask, 
+                thetaC=thetaC,
+                method="L-BFGS-B", lower=-100, upper=100, control=control)
     
-    # Check that fit converged
-    if(fit$convergence!=0){
-        print(paste('Update E did not converge: ', fit$message))
+        # Check that fit converged
+        if(fit$convergence!=0){
+            print(paste('Update E did not converge: ', fit$message))
+        }
+    } else {
+        lambdaMean = mean(lambda(ods))/nrow(ods)
+        fit <- lbfgs(truncLogLiklihoodE, gradientE, e, 
+                     k=k, x=x, sf=sf, D=D, b=b, theta=theta, exclusionMask=mask, 
+                     thetaC=thetaC, max_iterations=100,
+                     orthantwise_c=lambdaMean, 
+                     orthantwise_start=0, orthantwise_end = length(e), invisible=1)
     }
-    
     # update ods
     E(ods) <- fit$par
     
