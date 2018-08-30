@@ -17,8 +17,9 @@ We will use `devtools` and `BiocInstaller` to install the package and its depend
 
 ```
 install.packages('devtools', repos='http://cran.us.r-project.org')
-source('https://bioconductor.org/biocLite.R')
-biocLite('BiocInstaller')
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install('BiocInstaller')
 ```
 
 If you have dependency issues while installing devtools, please have a look at the Troubleshooting section.
