@@ -152,57 +152,6 @@ getBestQ <- function(ods){
     return(NA_integer_)
 }
 
-checkCountRequirements <- function(ods, test=FALSE){
-    checkOutriderDataSet(ods)
-    if(ncol(ods) == 0){
-        stop("Please provide at least one sample.")
-    }
-    if(nrow(ods) == 0){
-        stop("Please provide at least one gene.")
-    }
-    filterGenes <- rowSums(counts(ods)) == 0
-    if(any(filterGenes) & isFALSE(test)){
-        stop("There are genes without any read. Please filter first ",
-                "the data with: ods <- filterExpression(ods)")
-    }
-    filterGenes <- filterGenes | rowSums(counts(ods)) < ncol(ods)/100
-    if(any(filterGenes) & isFALSE(test)){
-        stop("The model requires for each gene at least 1 read ", 
-                "every 100 sample. Please filte first the data with: ",
-                "ods <- filterExpression(ods)")
-    }
-    return(invisible(filterGenes))
-}
-
-checkOutriderDataSet <- function(ods){
-    if(!is(ods, 'OutriderDataSet')){
-        stop('Please provide an OutriderDataSet')
-    }
-    return(invisible(TRUE))
-}
-
-checkSizeFactors <- function(ods, funName=sys.calls()[[1]]){
-    checkOutriderDataSet(ods)
-    if(is.null(sizeFactors(ods))){
-        stop("Please calculate the size factors before calling the '", funName,
-                "' function. Please do: ods <- estimateSizeFactors(ods)")
-    }
-    return(invisible(TRUE))
-}
-
-checkFullAnalysis <- function(ods, funName=sys.calls()[[1]]){
-    checkSizeFactors(ods)
-    if(!'padjust' %in% assayNames(ods)){
-        stop("Please calculate the P-values before calling the '", funName,
-             "' function. Please do: ods <- computePvalues(ods)")
-    }
-    if(!'zScore' %in% assayNames(ods)){
-        stop("Please calculate the Z-scores before calling the '", funName,
-             "' function. Please do: ods <- computeZscores(ods)")
-    }
-    return(invisible(TRUE))
-}
-
 #'
 #' Guess the best q for the given data set
 #' 

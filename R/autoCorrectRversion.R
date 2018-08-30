@@ -29,7 +29,7 @@
 #' plotCountCorHeatmap(ods, normalized=TRUE)
 #' 
 #' @export
-autoCorrect <- function(ods, q, theta=25, 
+autoCorrect <- function(ods, q,
                     implementation=names(autoEncoderImplList),
                     BPPARAM=bpparam(), ...){
     
@@ -64,7 +64,7 @@ autoCorrect <- function(ods, q, theta=25,
     }
     message(date(), ": Using the ", impl, " implementation for autoCorrect.")
     aeFun <- autoEncoderImplList[[impl]]
-    ans <- aeFun(ods=ods, q=q, theta=theta, BPPARAM=BPPARAM, ...)
+    ans <- aeFun(ods=ods, q=q, BPPARAM=BPPARAM, ...)
     message(date(), ": Used the ", impl, " implementation for autoCorrect.")
     
     return(ans)

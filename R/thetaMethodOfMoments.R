@@ -9,7 +9,7 @@
 #' to only one factor. This reduces some computation
 #'   
 #' @noRd
-robustMethodOfMomentsOfTheta <- function(cts, maxTheta=250, minTheta=0.1, minMu=0.01){
+robustMethodOfMomentsOfTheta <- function(cts, maxTheta, minTheta, minMu=0.01){
     
     mue <- apply(cts, 1, mean, trim=1/8)
     mue <- pmax(mue, minMu)
@@ -17,22 +17,9 @@ robustMethodOfMomentsOfTheta <- function(cts, maxTheta=250, minTheta=0.1, minMu=
     see <- apply(se, 1, mean, trim=1/8)
     ve <- 1.51*see
     
-    #v <- trimmedVariance(cts)
     theta <- mue^2/(ve-mue)
     
+    theta[theta < 0] <- maxTheta
     theta <- pmax(minTheta, pmin(maxTheta, theta))
     return(theta)
 }
-
-#' #'
-#' #' This function is adapted from the DESeq2:::trimmedCellVariance
-#' #' to only one factor. This reduces some computation
-#' #' 
-#' #' @noRd
-#' trimmedVariance <- function(cts){
-#'     mue <- apply(cts, 1, mean, trim=1/8)
-#'     se <- (cts - mue)^2
-#'     see <- apply(se, 1, mean, trim=1/8)
-#'     ve <- 1.51*see
-#'     return(ve)
-#' }

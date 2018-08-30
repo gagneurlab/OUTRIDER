@@ -24,7 +24,7 @@
 #'          assayNames mcols mcols<- assay assay<-
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
-#'          isScalarValue
+#'          isScalarValue chunk
 #' 
 #' @importFrom BiocParallel bplapply bpparam
 #' 
@@ -39,6 +39,8 @@
 #'          geom_vline geom_text
 #'          
 #' @importFrom glmnet cv.glmnet
+#' 
+#' @importFrom lbfgs lbfgs
 #'          
 #' @importFrom gplots barplot2 bluered heatmap.2
 #' 

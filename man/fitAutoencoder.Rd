@@ -4,12 +4,12 @@
 \alias{fitAutoencoder}
 \title{Main autoencoder fit function}
 \usage{
-fitAutoencoder(ods, q, robust = TRUE, thetaRange = c(0.1, 250),
-  convergence = 1e-05, loops = 15, pValCutoff = 0.1,
-  initialize = TRUE, noRobustLast = TRUE, CoxR = FALSE,
-  correctTheta = FALSE, usePCA = TRUE, lasso = FALSE,
-  control = list(), BPPARAM = bpparam(), ...)
+fitAutoencoder(ods, q, thetaRange = c(0.01, 1000), convergence = 1e-05,
+  iterations = 15, initialize = TRUE, correctTheta = "none",
+  usePCA = TRUE, lasso = FALSE, runLassoFit = TRUE, nFolds = 10,
+  control = list(), useOptim = TRUE, L1encoder = FALSE,
+  BPPARAM = bpparam())
 }
 \description{
-Main autoencoder fit function
+initialize D
 }

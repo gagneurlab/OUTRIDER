@@ -49,6 +49,7 @@ Imports:
     gplots,
     graphics,
     IRanges,
+    lbfgs,
     matrixStats,
     plotly,
     plyr,
