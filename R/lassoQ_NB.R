@@ -1,4 +1,7 @@
 
+##
+#https://de.mathworks.com/matlabcentral/fileexchange/34122-interface-to-a-lbfgs-solver?focused=5205992&tab=function
+
 #'
 #' Lasso CV to identify lambda.
 #' 
@@ -142,6 +145,7 @@ lassoGeneCV2 <- function(i, D, b, k, theta, lambda, H , sf, folds, optim, setPar
     }
     if(isTRUE(debug)){
         par(mfrow=c(1,2))
+        
         boxplot(lapply(1:ncol(res), function(x) pmin(1000, res[,x])), log='y')
         plot(apply(res, 2, mean, trim=0.1))
     }
