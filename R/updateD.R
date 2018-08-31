@@ -74,6 +74,16 @@ lossD <- function(par, k, H, sf, theta){
     return(-ll)
 }
 
+predictGeneMu <- function(par, k, H, sf){
+    b <- par[1]
+    d <- par[-1]
+    
+    y <- H %*% d + b
+    yexp <- sf * exp(y)
+    return(yexp)
+}
+
+
 lossDtrunc <- function(par, k, H, sf, theta, thetaC){
     b <- par[1]
     d <- par[-1]
