@@ -81,8 +81,10 @@ Collate:
     package-OUTRIDER.R
     class-OutriderDataSet.R
     AllGenerics.R
+    inputCheckerFunctions.R
     autoCorrectRversion.R
     method-gridSearch.R
+    lassoQ_NB.R
     fitNB.R
     ZscoreMatrix.R
     method-results.R

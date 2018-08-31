@@ -87,7 +87,7 @@ thetaCorrection <- function(ods){
     if(isScalarNumeric(value)){
         value <- rep(value, ncol(ods))
     }
-    colData(ods)[,'thetaCorrection'] <- value
+    colData(ods)[['thetaCorrection']] <- value
     return(ods)
 }
 
