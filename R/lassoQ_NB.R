@@ -138,7 +138,7 @@ lassoGeneCV2 <- function(i, D, b, k, theta, lambda, H , sf, folds, optim, setPar
         plot(apply(res, 2, mean, trim=0.1))
     }
     
-    cmean <- round(apply(res, 2, mean, trim=0), 3)
+    cmean <- apply(res, 2, mean, trim=0)
     minIdx <- max(which(cmean == min(cmean)))
     csd <- colSds(res)
     
