@@ -3,7 +3,7 @@
 #' Update theta step for autoencoder
 #' 
 #' @noRd
-updateTheta <- function(ods, thetaRange, BPPARAM, correctTheta){
+updateTheta <- function(ods, thetaRange, BPPARAM, CoxR, correctTheta){
     normalizationFactors(ods) <- t(predictC(ods))
     mu <- normalizationFactors(ods)
     cts <- counts(ods)
@@ -15,7 +15,12 @@ updateTheta <- function(ods, thetaRange, BPPARAM, correctTheta){
         thetaCorrection(ods) <- sizeFactors(ods)
     }
     thetaC <- thetaCorrection(ods)
-    nll <- negLogLikelihoodTheta
+    
+    if(isTRUE(CoxR)){
+        nll <- negCRLogLikelihoodTheta
+    }else{
+        nll <- negLogLikelihoodTheta
+    }
     
     fitparameters <- bplapply(seq_along(ods), estTheta, mu=mu, H=H,
             cts=cts, exclusionMask=NULL, thetaRange=thetaRange,

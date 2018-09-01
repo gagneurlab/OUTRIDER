@@ -6,6 +6,7 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
                     correctTheta='none', usePCA=TRUE, lasso=FALSE, 
                     runLassoFit=TRUE, nFolds=20,
                     control=list(), useOptim=TRUE, L1encoder=FALSE,
+                    newCVversion=FALSE,
                     BPPARAM=bpparam()){
     # Check input
     checkOutriderDataSet(ods)
@@ -50,7 +51,8 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
         
         # update lasso
         if(isTRUE(lasso) & i == 1 & isTRUE(runLassoFit)){
-            ods <- updateLambda(ods, nFolds=nFolds, control=control, BPPARAM=BPPARAM, optim=useOptim)
+            ods <- updateLambda(ods, nFolds=nFolds, control=control, 
+                    BPPARAM=BPPARAM, optim=useOptim, newCVversion=newCVversion)
         }
         
         print(paste('Time for one autoencoder loop:', Sys.time() - t2))
