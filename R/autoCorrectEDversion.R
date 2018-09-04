@@ -31,11 +31,22 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, 
             optim=useOptim)
     
+    # initialize theta step
+    ods <- updateTheta(ods, thetaRange, correctTheta=correctTheta, BPPARAM=BPPARAM)
+    
     # optimize log likelihood
     t1 <- Sys.time()
     currentLoss <- lossED(ods)
     for(i in seq_len(iterations)){
         t2 <- Sys.time()
+        
+        
+        # update lasso
+        if(isTRUE(lasso) & i == 2 & isTRUE(runLassoFit)){
+            ods <- updateLambda(ods, nFolds=nFolds, control=control, 
+                                BPPARAM=BPPARAM, optim=useOptim, newCVversion=newCVversion,
+                                useSE=useSE)
+        }
         
         # update E step
         ods <- updateE(ods, control=control, BPPARAM=BPPARAM, L1encoder=L1encoder)
@@ -48,13 +59,6 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
         # update theta step
         ods <- updateTheta(ods, thetaRange, correctTheta=correctTheta, BPPARAM=BPPARAM)
         lossList <- updateLossList(ods, lossList, i, 'theta')
-        
-        # update lasso
-        if(isTRUE(lasso) & i == 1 & isTRUE(runLassoFit)){
-            ods <- updateLambda(ods, nFolds=nFolds, control=control, 
-                    BPPARAM=BPPARAM, optim=useOptim, newCVversion=newCVversion,
-                    useSE=useSE)
-        }
         
         print(paste('Time for one autoencoder loop:', Sys.time() - t2))
         
