@@ -6,7 +6,7 @@
 #' Lasso CV to identify lambda.
 #' 
 #' @noRd
-updateLambda <- function(ods, nFolds=20, control, BPPARAM, optim=TRUE, newCVversion=FALSE){
+updateLambda <- function(ods, nFolds=20, control, BPPARAM, optim=TRUE, newCVversion=FALSE, useSE=FALSE){
     D <- D(ods)
     b <- b(ods)
     H <- H(ods)
@@ -32,8 +32,17 @@ updateLambda <- function(ods, nFolds=20, control, BPPARAM, optim=TRUE, newCVvers
     fitls <- bplapply(seq_along(ods), fn_lasso, D=D, b=b, k=k, sf=sf, H=H, theta=theta, 
             lambda=lambda, folds=folds, control=control, optim=optim, BPPARAM=BPPARAM)
     t2 <- Sys.time()
-    
-    lambda(ods) <- sapply(fitls, '[[', 'lambda')
+    if(useSE==FALSE){
+        lambda(ods) <- sapply(fitls, '[[', 'lambda')
+        if(isTRUE(newCVversion)){
+            mcols(ods)[['lambdaSE']] <- sapply(fitls, '[[', 'lambdaSE')
+        }
+    } else {
+        lambda(ods) <- sapply(fitls, '[[', 'lambdaSE')
+        if(isTRUE(newCVversion)){
+            mcols(ods)[['lambdaMin']] <- sapply(fitls, '[[', 'lambda')
+        }
+    }
     metadata(ods)[['lambdaFits']] <- fitls
     
     print(paste('Lasso lambda fit time: ', t2 - t1))
@@ -93,33 +102,30 @@ absGradientsatZeroFold <- function(fold, H, k, sf, theta, thetaC){
 lassoGeneCV2 <- function(i, D, b, k, theta, lambda, H , sf, folds, optim, setPar=TRUE, debug=FALSE, ...){
     ki <- k[,i]
     nlambda <- 20
-    
+    thetai <- theta[i]
     # matrix to store results.
     res <- matrix(0, nrow=length(folds), ncol=nlambda)
     
     # estimate initial theta and mu parameters. 
-    thetai <- estTheta(1, t(matrix(ki)), t(sf*mean(ki/sf)), H, 1, c(0.1, 200), NULL, negLogLikelihoodTheta)$minimum
-    initpar <- c(b[i], D[i,])
-    
-    binit <- log(mean(k))
-    absGrad <- abs(gradientD(c(binit, numeric(ncol(H))), H, k, sf, 1, thetai, 1)[-1])
+    initpar <- c(log(mean(ki/sf)), numeric(ncol(H)))
+    absGrad <- abs(gradientD(initpar, H, k, sf, 1, thetai, 1)[-1])
     
     maxLambda <- max(absGrad)
-    lambda <- c(exp(seq(log(maxLambda), -30, length.out=19)), 0)
+    lambda <- c(exp(seq(log(maxLambda), -6, length.out=19)), 0)
     
     for(f in seq_along(folds)){
-    
+        
+        testSet <- folds[[f]]    
         thetal <- thetai
+        pari <- initpar
         
         for(l in seq_along(lambda)){
             
-            testSet <- folds[[f]]
             lam <- lambda[l]
             
-            pari <- initpar
             fitpar <- lbfgs(truncLogLiklihoodD, gradientD, pari,  k=ki[-testSet], H=H[-testSet,], theta=thetal, 
-                            exclusionMask=1, sf=sf[-testSet], thetaC=1, orthantwise_c=lam, epsilon = 1e-9,
-                            orthantwise_start=2,orthantwise_end = length(pari), invisible=1, max_linesearch=50)
+                            exclusionMask=rep(1,length(ki[-testSet])), sf=sf[-testSet], thetaC=rep(1,length(ki[-testSet])), orthantwise_c=lam,
+                            orthantwise_start=1, orthantwise_end = length(pari), invisible=1, max_linesearch=20)
             pari <- fitpar$par
             
             mu <- predictGeneMu(pari, k[-testSet], H[-testSet,], sf[-testSet])
@@ -140,6 +146,7 @@ lassoGeneCV2 <- function(i, D, b, k, theta, lambda, H , sf, folds, optim, setPar
     
     cmean <- apply(res, 2, mean, trim=0)
     minIdx <- max(which(cmean == min(cmean)))
+    minSeIdx <- which(cmean < cmean[minIdx]+colSds(res)[minIdx]/2)[1]
     csd <- colSds(res)
     
     return(list(
@@ -147,6 +154,8 @@ lassoGeneCV2 <- function(i, D, b, k, theta, lambda, H , sf, folds, optim, setPar
         csd=csd, 
         minIdx=minIdx, 
         lambda=lambda[minIdx], 
+        minSeIdx=minSeIdx,
+        lambdaSE=lambda[minSeIdx],
         pari=pari,
         res=res))
 }

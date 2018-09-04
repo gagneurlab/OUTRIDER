@@ -45,6 +45,15 @@ autoEncoderImplList <- list(
         fitAutoencoder(ods, q, lasso=TRUE, correctTheta='sf', useOptim=FALSE, 
                 newCVversion=TRUE, ...)
     },
+    YOWL_TCNo_NewCV_useSE = function(ods, q, ...){
+        fitAutoencoder(ods, q, lasso=TRUE, useOptim=FALSE, newCVversion=TRUE, useSE=TRUE, ...)
+    },
+    YOWL_TCNo_NewCV_L1E = function(ods, q, ...){
+        fitAutoencoder(ods, q, lasso=TRUE, useOptim=FALSE, newCVversion=TRUE, L1encoder = TRUE, ...)
+    },
+    YOWL_TCNo_NewCV_useSE_L1E = function(ods, q, ...){
+        fitAutoencoder(ods, q, lasso=TRUE, useOptim=FALSE, newCVversion=TRUE, useSE=TRUE, L1encoder = TRUE, ...)
+    },
     YOWL_TCSf = function(ods, q, ...){
         fitAutoencoder(ods, q, lasso=TRUE, correctTheta='sf', useOptim=FALSE, ...)
     }
