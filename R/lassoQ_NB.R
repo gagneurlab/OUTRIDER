@@ -106,12 +106,14 @@ lassoGeneCV2 <- function(i, D, b, k, theta, lambda, H , sf, folds, optim, setPar
     # matrix to store results.
     res <- matrix(0, nrow=length(folds), ncol=nlambda)
     
+    initpar <- c(b[i], D[i,])
     # estimate initial theta and mu parameters. 
-    initpar <- c(log(mean(ki/sf)), numeric(ncol(H)))
-    absGrad <- abs(gradientD(initpar, H, k, sf, 1, thetai, 1)[-1])
+    #initpar <- c(log(mean(ki/sf)), numeric(ncol(H)))
+    #absGrad <- abs(gradientD(initpar, H, k, sf, 1, thetai, 1)[-1])
     
-    maxLambda <- max(absGrad)
-    lambda <- c(exp(seq(log(maxLambda), -6, length.out=19)), 0)
+    #maxLambda <- max(absGrad)
+    #lambda <- c(exp(seq(log(maxLambda), -6, length.out=19)), 0)
+    lambda <- c(0, exp(seq(log(0.002), log(10), length.out=19)))
     
     for(f in seq_along(folds)){
         
