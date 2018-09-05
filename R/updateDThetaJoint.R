@@ -47,7 +47,7 @@ singleDThetaFit <- function(i, D, b, k, theta, mask, lasso, lambda, optim, contr
    
     fit <- lbfgs(lossDTheta, gradDTheta,pari, k=ki, 
                 ..., orthantwise_c=lambdai, 
-                orthantwise_start=1,orthantwise_end = length(pari), invisible=0)
+                orthantwise_start=2,orthantwise_end = length(pari), invisible=0)
     return(fit)
 }
 
