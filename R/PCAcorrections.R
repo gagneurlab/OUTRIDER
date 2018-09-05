@@ -18,7 +18,7 @@ autoCorrectPCA <- function(ods, q, trim=0){
     # set the matrices
     E(ods) <- as.vector(pc)
     D(ods) <- as.vector(pc)
-    b(ods) <- numeric(ncol(k))
+    b(ods) <- xbar
     
     # add correction factor to object
     correctionFactors <- t(predictC(ods))
