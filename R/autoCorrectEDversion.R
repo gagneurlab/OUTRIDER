@@ -24,16 +24,18 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     }
      
     # initial loss
-    lossList <- lossED(ods)
+    lossList <- c(init_pca=lossED(ods))
     print(paste0('Initial PCA loss: ', lossList[1]))
     convList <- numeric()
     
     #' initialize D 
     ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, 
             optim=useOptim)
+    lossList <- updateLossList(ods, lossList, 'init', 'D')
     
     # initialize theta step
     ods <- updateTheta(ods, thetaRange, correctTheta=correctTheta, BPPARAM=BPPARAM)
+    lossList <- updateLossList(ods, lossList, 'init', 'Theta')
     
     # optimize log likelihood
     t1 <- Sys.time()
@@ -122,6 +124,7 @@ initAutoencoder <- function(ods, q, thetaRange, usePCA){
 updateLossList <- function(ods, lossList, i, stepText){
     currLoss <- lossED(ods)
     lossList <- c(lossList, currLoss)
+    names(lossList)[length(lossList)] <- paste0(i, '_', stepText)
     print(paste0(date(), ': Iteration: ', i, ' ', stepText, ' loss: ', currLoss))
     return(lossList)
 }
@@ -135,12 +138,22 @@ updateConvergenceList <- function(convList, lossList, ods, L1encoder){
     return(convList)
 }
 
-lossED <- function(ods){
+lossED <- function(ods, step=c('none', 'E', 'D', 'Theta')){
     k <- t(counts(ods))
     y_exp <- predictC(ods)
     theta <- outer(thetaCorrection(ods), theta(ods))
     
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=t(theta), log=TRUE)
-    - mean( ll )
+    
+    # compute lasso regularization
+    w <- switch(match.arg(step),
+                none = { 0 },
+                E = { sum(mean(lambda(ods)) * abs(E(ods))) },
+                D = { sum(lambda(ods) * abs(D(ods))) },
+                Theta = { 0 },
+                stop('Please provide a correct step for lossED.')
+    )
+    
+    return( - (mean(ll) + w) )
 }
