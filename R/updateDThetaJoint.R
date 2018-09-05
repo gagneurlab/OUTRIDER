@@ -80,6 +80,9 @@ gradDTheta <- function(par, k, H, sf=1, thetaC){
     
     dd <- t2 - t1
     db <- mean(kt - k)
-    dtheta <- gradTheta(theta, k, yexp)/length(k)/theta
+    dtheta <- gradTheta(theta, k, yexp)/theta
     return(c(dtheta, db, dd))
 }
+
+
+
