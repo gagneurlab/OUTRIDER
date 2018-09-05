@@ -10,7 +10,7 @@ updateDTheta <- function(ods, lasso, control, BPPARAM, optim=TRUE){
     sf <- sizeFactors(ods)
     mask <- exclusionMask(ods)
     theta <- theta(ods)
-    thetaC <- thetaCorrection(ods)
+    thetaC <- 1
     lambda <- lambda(ods)
     
     fitls <- bplapply(1:nrow(ods), singleDThetaFit, D=D, b=b, k=k, sf=sf, H=H, 
