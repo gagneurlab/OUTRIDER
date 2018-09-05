@@ -26,6 +26,7 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     # initial loss
     lossList <- lossED(ods)
     print(paste0('Initial PCA loss: ', lossList[1]))
+    convList <- numeric()
     
     #' initialize D 
     ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, 
@@ -51,24 +52,27 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
         # update E step
         ods <- updateE(ods, control=control, BPPARAM=BPPARAM, L1encoder=L1encoder)
         lossList <- updateLossList(ods, lossList, i, 'E')
+        convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
         
         # update D step
         ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, optim=useOptim)
         lossList <- updateLossList(ods, lossList, i, 'D')
+        convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
         
         # update theta step
         ods <- updateTheta(ods, thetaRange, correctTheta=correctTheta, BPPARAM=BPPARAM)
         lossList <- updateLossList(ods, lossList, i, 'theta')
+        convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
         
         print(paste('Time for one autoencoder loop:', Sys.time() - t2))
         
         # check 
-        if(all(abs(currentLoss - lossList[length(lossList) - 2:0]) < convergence)){
+        if(all(abs(currentLoss - convList[length(convList) - 2:0]) < convergence)){
             message(date(), ': the AE correction converged with:',
                     lossList[length(lossList)])
             break
         }
-        currentLoss <- lossList[length(lossList)]
+        currentLoss <- convList[length(convList)]
     }
     
     bpstop(BPPARAM)
@@ -84,6 +88,7 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     # add additional values for the user to the object
     metadata(ods)[['dim']] <- dim(ods)
     metadata(ods)[['loss']] <- lossList
+    metadata(ods)[['convList']] <- convList
     
     validObject(ods)
     return(ods)
@@ -118,7 +123,16 @@ updateLossList <- function(ods, lossList, i, stepText){
     currLoss <- lossED(ods)
     lossList <- c(lossList, currLoss)
     print(paste0(date(), ': Iteration: ', i, ' ', stepText, ' loss: ', currLoss))
-    lossList
+    return(lossList)
+}
+
+updateConvergenceList <- function(convList, lossList, ods, L1encoder){
+    currLoss <- lossList[length(lossList)] + sum(lambda(ods)*rowSums(abs(D(ods))))
+    if(isTRUE(L1encoder)){
+        currLoss <- currLoss + mean(lambda(ods)) * sum(abs(E(ods)))
+    }
+    convList <- c(convList, currLoss)
+    return(convList)
 }
 
 lossED <- function(ods){
