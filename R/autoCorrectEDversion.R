@@ -6,7 +6,7 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
                     correctTheta='none', usePCA=TRUE, lasso=FALSE, 
                     runLassoFit=TRUE, nFolds=20,
                     control=list(), useOptim=TRUE, L1encoder=FALSE,
-                    newCVversion=FALSE, useSE=FALSE,
+                    newCVversion=FALSE, useSE=FALSE, useJointDTheta=FALSE,
                     BPPARAM=bpparam()){
     # Check input
     checkOutriderDataSet(ods)
@@ -56,16 +56,26 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
         lossList <- updateLossList(ods, lossList, i, 'E')
         convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
         
-        # update D step
-        ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, optim=useOptim)
-        lossList <- updateLossList(ods, lossList, i, 'D')
-        convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
+        if(useJointDTheta==FALSE){
+            # update D step
+            ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, optim=useOptim)
+            lossList <- updateLossList(ods, lossList, i, 'D')
+            convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
         
-        # update theta step
-        ods <- updateTheta(ods, thetaRange, correctTheta=correctTheta, BPPARAM=BPPARAM)
-        lossList <- updateLossList(ods, lossList, i, 'theta')
-        convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
+            # update theta step
+            ods <- updateTheta(ods, thetaRange, correctTheta=correctTheta, BPPARAM=BPPARAM)
+            lossList <- updateLossList(ods, lossList, i, 'theta')
+            convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
+        }else{
+            ods <- updateDTheta(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, optim=FALSE)
+            lossList <- updateLossList(ods, lossList, i, 'D')
+            convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
+            lossList <- updateLossList(ods, lossList, i, 'theta')
+            convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
+        } 
         
+            
+            
         print(paste('Time for one autoencoder loop:', Sys.time() - t2))
         
         # check 
