@@ -30,9 +30,11 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     #' initialize D 
     ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, 
             optim=useOptim)
+    lossList <- updateLossList(ods, lossList, 'init', 'D')
     
     # initialize theta step
     ods <- updateTheta(ods, thetaRange, correctTheta=correctTheta, BPPARAM=BPPARAM)
+    lossList <- updateLossList(ods, lossList, 'init', 'Theta')
     
     # optimize log likelihood
     t1 <- Sys.time()
