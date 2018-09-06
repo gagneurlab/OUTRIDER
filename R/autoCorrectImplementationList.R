@@ -56,6 +56,10 @@ autoEncoderImplList <- list(
     },
     YOWL_TCSf = function(ods, q, ...){
         fitAutoencoder(ods, q, lasso=TRUE, correctTheta='sf', useOptim=FALSE, ...)
+    },
+    YOWL_TCNo_NewCV_YJoint = function(ods, q, ...){
+        fitAutoencoder(ods, q, lasso=TRUE, useOptim=FALSE, newCVversion=TRUE, 
+                useJointDTheta=FALSE, ...)
     }
 )
 
