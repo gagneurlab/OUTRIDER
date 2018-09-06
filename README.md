@@ -13,13 +13,13 @@ OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
 
 ### Prerequisite
 
-We will use `devtools` and `BiocInstaller` to install the package and its dependencies.
+We will use `devtools` and `BiocManager` to install the package and its dependencies.
 
 ```
 install.packages('devtools', repos='http://cran.us.r-project.org')
 if (!requireNamespace("BiocManager", quietly=TRUE))
     install.packages("BiocManager")
-BiocManager::install('BiocInstaller')
+BiocManager::install('OUTRIDER')
 ```
 
 If you have dependency issues while installing devtools, please have a look at the Troubleshooting section.
