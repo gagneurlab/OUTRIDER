@@ -17,7 +17,7 @@
 
 \textbf{Negative Binomial model}
 
-In this paper we use the following parameterization of the Negative Binomial distribution.
+We use the following parameterization of the Negative Binomial distribution:
 
 \begin{align*}
 P(k| \mu, \theta) = \frac{\Gamma(k + \theta)}{\Gamma(k) \theta!}  
@@ -52,19 +52,7 @@ Var = \mu + \frac{\mu^2}{\theta}
 
 
 
-
-\textbf{Autoencoder Fitting.}
-
-We use L-BFGS to fit the autoencoder model as described in the Methods.
-To speed up the fitting we implemented the following gradients as derived below.
-
-The expectations $\mu$ are modeled by:
-\begin{align*}
-\mu_{ij} &= s_{i}(m + e^{y_{ij} + \bar{x}_j})\\
-\matr{Y} &= \matr{X} \matr{W}_e \matr{W}_d^T + \matr{b}
-\end{align*}
-where the matrix $\matr{X}$ is given by the matrix: $\log{\frac{k_{ij}+1}{s_i}} - \bar{x}_j$. 
-
+\textbf{Average Negative LogLikelihood}
 
 The negative log likelihood of the negative binomial distribution is given by:
 \begin{align*}
@@ -75,74 +63,75 @@ nll=& -\sum_{ij} k_{ij} \log{(\mu_{ij})} -
 + \sum_{ij} \log{(\Gamma({\theta}) k_{ij}!)}
 \end{align*}
 
-For the optimization of $\matr{W}_e$ and $\matr{W}_d$ only the first and third term need to be considered, as all other terms are independent of $\matr{W}_e$ and $\matr{W}_d$, yielding the following truncated form of the negative log likelihood.
+
+For the optimization of the model for the means only the first and third 
+term of the $nll$ need to be considered, as all other terms are independent of 
+$\matr{W}_e$ and $\matr{W}_d$, yielding the following truncated form of the 
+negative log likelihood:
+
 \begin{align*}
-nll_W=& -\sum_{ij} \left[ k_{ij} \log{(\mu_{ij})} -
+nll_{\matr{W}}=& -\sum_{ij} \left[ k_{ij} \log{(\mu_{ij})} -
  (k_{ij} + \theta) \log{(\mu_{ij} + \theta)} \right]
 \end{align*}
 
 
+We use L-BFGS to fit the autoencoder model as described in the Methods.
+We implemented the following gradients as derived below.
+
+The expectations $\mu_{ij}$ are modeled by:
+\begin{align*}
+\mu_{ij} &= e^{y_{ij}} \\
+\matr{Y} &= \matr{X} \matr{W}_e \matr{W}_d^T + \matr{b},
+\end{align*}
+where the matrix $\matr{X}$ is given by: $\log{\frac{k_{ij}+1}{s_i}} - \bar{x}_j$. 
+
+Inserting the model the $nll$ can be rewritten as:
+
+\begin{align*}
+nll_{\matr{W}}=&  
+\frac{1}{N} \sum_{ij} \left[ k_{ij} \log(s_i) + y_{ij} - (k_{ij} + \theta_j) \cdot \left( \log(s_i) + y_{ij} + \log(1 + \frac{\theta_j}{s_i \cdot e^{y_{ij}}}) \right) \right]
+\end{align*}
 
 \textbf{Update $\matr{W}_d$}
-
-The updating of the matrix $matr{W}_d$ is performed gene wise.
+The updating of the matrix $\matr{W}_d$ is performed gene-wise.
 
 For each gene, the gene-wise average negative log likelihood is minimized. 
 To not run into convergence issues, for low expressed genes we force $-500 < y_{ij} < 500$ and rewrite the negative log liklihood in the following form:
 
-\begin{align*}
-nll_{\matr{W}_d}=&  
-\frac{1}{N} k \log(s) + y + \log(1 + \frac{m}{e^y}) \\
--& (k + \theta) \cdot \left( \log(s) + y + \log(1 + \frac{m}{e^y}) + \log(1 + \frac{\theta}{s(m + e^y)}) \right)
-\end{align*}
 
 
-Computing the derivative of the first term with respect to the matrix $\matr{W}$ by subsituting the autoencoder model for $\mu$. 
-Here the operations $\log[\matr{A}]$ and $\exp[\matr{A}]$ are understood to be element-wise for a matrix or vector $\matr{A}$,
+Computing the derivative of the first term with respect to the matrix $\matr{W}_e$ by subsituting the autoencoder model for $\mu$. 
+% Here the operations $\log[\matr{A}]$ and $\exp[\matr{A}]$ are understood to be element-wise for a matrix or vector $\matr{A}$,
 
+% \begin{align*}
+% &\frac{d}{dw_{ab}}\sum_{ij} k_{ij} \log{(\mu_{ij})} \\
+% &= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \log{[\exp{[\matr{X} \matr{W} \matr{W}^T + \matr{b}]}]} \\
+% &= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \left (\matr{X} \matr{W} \matr{W}^T + \matr{b} \right ) \\
+% &= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \left (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j \right ) \\
+% &= \sum_{ij} k_{ij} \left (x_{ia} w_{jb} + \delta_{aj} \sum_{l} x_{il}w_{lb} \right ) \\
+% &= \sum_{ij} x_{ia} k_{ij} w_{jb} + \sum_{il} k_{ia} x_{il} w_{lb}. \\
+% \end{align*}
+% Which can be written as:
+% \begin{align*}
+% \matr{K}^T \matr{X} \matr{W} - \matr{X}^T \matr{K} \matr{W}
+% \end{align*}
+% 
+% Equivalently the derivative of the third term is:
+% \begin{align*}
+% -\matr{L}^T \matr{X} \matr{W} - \matr{X}^T \matr{L} \matr{W}
+% \end{align*}
+
+The combined result is then:
 \begin{align*}
-&\frac{d}{dw_{ab}}\sum_{ij} k_{ij} \log{(\mu_{ij})} \\
-&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \log{[\exp{[\matr{X} \matr{W} \matr{W}^T + \matr{b}]}]} \\
-&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \left (\matr{X} \matr{W} \matr{W}^T + \matr{b} \right ) \\
-&= \frac{d}{dw_{ab}}\sum_{ij} k_{ij} \left (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j \right ) \\
-&= \sum_{ij} k_{ij} \left (x_{ia} w_{jb} + \delta_{aj} \sum_{l} x_{il}w_{lb} \right ) \\
-&= \sum_{ij} x_{ia} k_{ij} w_{jb} + \sum_{il} k_{ia} x_{il} w_{lb}. \\
-\end{align*}
-Which can be written as:
-\begin{align*}
-\matr{K}^T \matr{X} \matr{W} - \matr{X}^T \matr{K} \matr{W}
+&\frac{dnll}{d\matr{W}_e} = \matr{K}^T \matr{X} \matr{W}_d - \matr{L}^T \matr{X} \matr{W}_d \\
+&\frac{dnll}{d\matr{W}_d} = \matr{X}^T \matr{K} \matr{W}_e - \matr{X}^T \matr{L} \matr{W}_e \\
+&\frac{dnll}{db_a} = \sum_{i} k_{ia} - l_{ia}
 \end{align*}
 
-Equivalently the derivative of the third term is:
-\begin{align*}
--\matr{L}^T \matr{X} \matr{W} - \matr{X}^T \matr{L} \matr{W}
-\end{align*}
 where the components of the matrix $\matr{L}$ are computed by:
 \begin{align*}
 l_{ij} = \frac{(k_{ij} + \theta) \mu_{ij}}{\theta + \mu_{ij}}   
 \end{align*}
-
-The combined result is then:
-\begin{align*}
-\frac{dll}{d\matr{W}} = \matr{K}^T \matr{X} \matr{W} + \matr{X}^T \matr{K} \matr{W} - 
-\matr{L}^T \matr{X} \matr{W} - \matr{X}^T \matr{L} \matr{W}
-\end{align*}
-
-
-The derivative of the first term with respect to the bias $\matr{b}$ is computed as:
-
-\begin{align*}
-&\frac{d}{db_{a}}\sum_{ij} k_{ij} \log{(\mu_{ij})} \\
-&= \frac{d}{db_{a}}\sum_{ij} k_{ij} \left (\sum_{lm} x_{il} w_{lm} w_{jm} + b_j \right) \\
-&= \sum_{i} k_{ia}\\
-\end{align*}
-
-Equivalently for the third therm the derivative is $-\sum_{i} l_{ia}$ and so the derivative of the loglikelihood with respect to the bias is:
-
-\begin{align*}
-\frac{dll}{db_a} = \sum_{i} k_{ia} - l_{ia}\\
-\end{align*}
-
 
 
 \end{document}
