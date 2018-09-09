@@ -59,7 +59,15 @@ autoEncoderImplList <- list(
     },
     YOWL_TCNo_NewCV_YJoint = function(ods, q, ...){
         fitAutoencoder(ods, q, lasso=TRUE, useOptim=FALSE, newCVversion=TRUE, 
-                useJointDTheta=FALSE, ...)
+                useJointDTheta=TRUE, ...)
+    },
+    NLas_TCNo_YRob01 = function(ods, q, ...){
+        fitAutoencoder(ods, q, lasso=FALSE, useOptim=FALSE, newCVversion=FALSE, 
+                robust=TRUE, pValCutoff=0.01, useJointDTheta=FALSE, ...)
+    },
+    NLas_TCNo_YRob001 = function(ods, q, ...){
+        fitAutoencoder(ods, q, lasso=FALSE, useOptim=FALSE, newCVversion=FALSE, 
+                robust=TRUE, pValCutoff=0.001, useJointDTheta=FALSE, ...)
     }
 )
 

@@ -4,9 +4,9 @@
 fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3), 
                     convergence=1e-5, iterations=15, initialize=TRUE,
                     correctTheta='none', usePCA=TRUE, lasso=FALSE, 
-                    runLassoFit=TRUE, nFolds=20,
-                    control=list(), useOptim=TRUE, L1encoder=FALSE,
-                    newCVversion=FALSE, useSE=FALSE, useJointDTheta=FALSE,
+                    runLassoFit=TRUE, nFolds=20, control=list(), useOptim=TRUE, 
+                    L1encoder=FALSE, newCVversion=FALSE, useSE=FALSE, 
+                    useJointDTheta=FALSE, robust=FALSE, pValCutoff=0.001, 
                     BPPARAM=bpparam()){
     # Check input
     checkOutriderDataSet(ods)
@@ -43,6 +43,11 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     for(i in seq_len(iterations)){
         t2 <- Sys.time()
         
+        if(isTRUE(robust) & i > 2){
+            ods <- maskOutliers(ods, pValCutoff=pValCutoff, BPPARAM=BPPARAM)
+        } else {
+            exclusionMask(ods) <- 1
+        }
         
         # update lasso
         if(isTRUE(lasso) & i == 2 & isTRUE(runLassoFit)){
@@ -167,3 +172,17 @@ lossED <- function(ods, step=c('none', 'E', 'D', 'Theta')){
     
     return( - (mean(ll) + w) )
 }
+
+maskOutliers <- function(ods, pValCutoff=0.01, BPPARAM){
+    ods <- computePvalues(ods, BPPARAM=BPPARAM, method='None')
+    mask <- matrix(1, nrow=nrow(ods), ncol=ncol(ods))
+    mask[pValue(ods) < pValCutoff/ncol(ods)] <- 0
+    
+    print(paste(sum(mask==0), 'outliers identified in this iteration.'))
+    print(paste('Top 5 masked genes: ', paste(collapse=", ",
+            tail(sort(rowSums(mask == 0))))))
+    
+    exclusionMask(ods) <- mask
+    return(ods)
+}
+
