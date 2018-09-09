@@ -815,19 +815,37 @@ plotPowerAnalysis <- function(ods){
 #' @rdname plotFunctions
 #' @export
 plotEncDimSearch <- function(ods){
-    if(!'encDimTable' %in% colnames(metadata(ods)) & 
-            !is(metadata(ods)$encDimTable, 'data.table')){
-        stop('Please run first the findEncodingDim before ', 
-                'plotting the results of it.')
+    if(is(ods, 'OutriderDataSet')){
+        if(!'encDimTable' %in% colnames(metadata(ods)) & 
+                !is(metadata(ods)$encDimTable, 'data.table')){
+            stop('Please run first the findEncodingDim before ', 
+                    'plotting the results of it.')
+        }
+        dt <- metadata(ods)$encDimTable
+        q <- getBestQ(ods)
+    } else {
+        dt <- ods
+        dt <- dt[,opt:=encodingDimension[which.max(evaluationLoss)[1]], by=zScore]
+        q <- dt[opt == encodingDimension, opt]
     }
     
-    ggplot(metadata(ods)$encDimTable, aes(encodingDimension, evaluationLoss)) +
+    if(!is.data.table(dt)){
+        stop('Please provide the encDimTable from the OutriderDataSet object.')
+    }
+    if(!'zScore' %in% colnames(dt)){
+        dt[,zScore:='Optimum']
+        dt[,opt:=q]
+    }
+    dtPlot <- dt[,.(enc=encodingDimension, z=as.character(zScore), eva=evaluationLoss, opt)]
+    ggplot(dtPlot, aes(enc, eva, col=z)) +
         geom_point() + 
         scale_x_log10() + 
         geom_smooth(method='loess') +
         ggtitle('Search for best encoding dimension') + 
-        geom_vline(xintercept=getBestQ(ods), show.legend = TRUE) +
-        geom_text(aes(getBestQ(ods)-0.5), label=paste("Best Q:", getBestQ(ods)),
-                y=max(metadata(ods)$encDimTable$evaluationLoss)*0.9, angle=90)
-    
+        geom_vline(data=dtPlot[opt == enc], aes(xintercept=enc, col=z, shape='Optimum'),
+                linetype='dotted', show.legend=TRUE) +
+        geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) + 
+        labs(x='Encoding dimensions',
+                y='Evaluation loss', col='Z score', shape='Best Q') + 
+        grids(linetype='dotted')
 }
