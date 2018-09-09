@@ -43,7 +43,8 @@
 #' plotVolcano(ods, 1)
 #' 
 #' @export
-OUTRIDER <- function(object, q, autoCorrect=TRUE, implementation='edNew', ...){
+OUTRIDER <- function(object, q, autoCorrect=TRUE, implementation='edNew', 
+                    BPPARAM=bpparam(), ...){
     implementation <- tolower(implementation)
     
     message(date(), ": SizeFactor estimation ...")
@@ -51,19 +52,21 @@ OUTRIDER <- function(object, q, autoCorrect=TRUE, implementation='edNew', ...){
     
     if(isTRUE(autoCorrect)){
         message(date(), ": Running autoencoder ...")
-        object <- autoCorrect(object, q=q, implementation=implementation, ...)
+        object <- autoCorrect(object, q=q, implementation=implementation, 
+                BPPARAM=BPPARAM, ...)
     }
     
     if(isFALSE(autoCorrect) | grepl("^(peer|pca)$", implementation)){
         message(date(), ": Fitting the data ...")
-        object <- fit(object)
+        object <- fit(object, BPPARAM=BPPARAM)
     }
     
     message(date(), ": P-value calculation ...")
-    object <- computePvalues(object)
+    object <- computePvalues(object, BPPARAM=BPPARAM)
     
     message(date(), ": Zscore calculation ...")
-    object <- computeZscores(object, peerResidual=grepl('^peer$', implementation))
+    object <- computeZscores(object, 
+            peerResidual=grepl('^peer$', implementation))
     
     validObject(object)
     return(object)
