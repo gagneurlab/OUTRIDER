@@ -75,7 +75,7 @@ nll_{\matr{W}}=& -\sum_{ij} \left[ k_{ij} \log{(\mu_{ij})} -
 \end{align*}
 
 
-We use L-BFGS to fit the autoencoder model as described in the Methods.
+We use L-BFGS to fit the autoencoder model as described in Methods.
 We implemented the following gradients as derived below.
 
 The expectations $\mu_{ij}$ are modeled by:
@@ -100,7 +100,7 @@ To not run into convergence issues, for low expressed genes we force $-500 < y_{
 
 
 
-Computing the derivative of the first term with respect to the matrix $\matr{W}_e$ by subsituting the autoencoder model for $\mu$. 
+The derivative of the first term is computed with respect to the matrix $\matr{W}_e$ by subsituting the autoencoder model for $\mu$. 
 % Here the operations $\log[\matr{A}]$ and $\exp[\matr{A}]$ are understood to be element-wise for a matrix or vector $\matr{A}$,
 
 % \begin{align*}
