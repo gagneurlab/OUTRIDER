@@ -3,7 +3,6 @@
 
 vignettes/cache
 vignettes/figure
-vignettes/scared-knitr.Rnw
 .gitlab-ci.yml
 .gitignore
 .git
@@ -12,3 +11,4 @@ tmp_lib
 tmp
 ucsc.knownGenes.db
 ^codecov\.yml$
+

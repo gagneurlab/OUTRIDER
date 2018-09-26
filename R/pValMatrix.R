@@ -1,38 +1,40 @@
 #' 
-#' This is the main function to calculate all P-values.
+#' Calculate P-values
 #' 
-#' Computes two matrices with the same dimension as the count matrix, 
-#' which contain the corresponding P-values and adjusted P-values to every 
-#' count.
+#' This function computes the P-values based on fitted negative binomial model.
+#' It computes two matrices with the same dimension as the count matrix
+#' (samples x genes), which contain the corresponding P-values and 
+#' adjusted P-values to every count. 
 #' 
-#' 
-#' @param object object
-#' @param alternative "two.sided", "greater" or "less" P-values can 
-#'             be computed, default is "two.sided"
-#' @param method method used for multiple testing
-#' @param modelFile The file name where the fit model should be taken from
-#' @param BPPARAM by default bpparam()
+#' @param object An OutriderDataSet
+#' @param alternative Can be one of "two.sided", "greater" or "less" to specify
+#'             the alternative hypothesis used to calculate the P-values,
+#'             defaults to "two.sided"
+#' @param method Method used for multiple testing
+#' @param BPPARAM Can be used to parallelize the computation, defaults to
+#'             bpparam()
 #' @param ... additional params, currently not used.
 #' 
-#' @return An OutriderDataSet object with computed P-values and padjusted values
+#' @return An OutriderDataSet object with computed nominal and adjusted P-values
 #' 
 #' @seealso p.adjust
+#' 
 #' @docType methods
 #' @name computePvalues
 #' @rdname computePvalues
 #' @aliases computePvalues computePvalues,OutriderDataSet-method
 #' 
 #' @examples 
-#' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
+#' ods <- makeExampleOutriderDataSet()
+#' \dontshow{
+#'     ods <- ods[1:10,1:10]
+#' }
 #' ods <- estimateSizeFactors(ods)
 #' ods <- fit(ods)
+#' 
 #' ods <- computePvalues(ods)
 #' 
 #' assays(ods)[['pValue']][1:10,1:10]
-#' 
-#' ods <- computeZscores(ods)
-#' res <- results(ods)
-#' res
 #' 
 #' @exportMethod computePvalues
 setGeneric("computePvalues", 
@@ -41,35 +43,39 @@ setGeneric("computePvalues",
 #' @rdname computePvalues
 #' @export
 setMethod("computePvalues", "OutriderDataSet", function(object, 
-                    alternative=c("two.sided", "greater", "less"), 
-                    method='BY', modelFile=NULL, BPPARAM=bpparam()){
-    if(!is.null(modelFile)){
-        object <- readNBModel(object, modelFile)
-        object <- estimateSizeFactors(object)
-    }
+            alternative=c("two.sided", "greater", "less"), method='BY', 
+            BPPARAM=bpparam()){
+    
     alternative <- match.arg(alternative)
     object <- pValMatrix(object, alternative, BPPARAM=BPPARAM)
-    padjMatrix(object, method)
+    
+    if(method != 'None'){
+        object <- padjMatrix(object, method)
+    }
+    object
 })
 
 pValMatrix <- function(ods, alternative, BPPARAM){ 
-    if(!all(c("disp", "mu") %in% colnames(mcols(ods)))){
-        stop(paste("Please fit the models first to estimate disp and",
+    if(!all(c("theta") %in% colnames(mcols(ods)))){
+        stop(paste("Please fit the models first to estimate theta and",
                 "mu by running:\n\tods <- fit(ods)"))
     }
     ctsData <- counts(ods)
-    disp    <- mcols(ods)[,"disp"]
-    mu      <- mcols(ods)[,"mu"]
-    normF   <- normalizationFactors(ods)
+    mu <- rep(1, nrow(ods))
+    if('mu' %in% names(mcols(ods))){
+        mu <- mcols(ods)[,"mu"]
+    }
+    normF <- normalizationFactors(ods)
     if(is.null(normF)){
         normF <- sizeFactors(ods)
     }
+    thetaMat <- outer(theta(ods), thetaCorrection(ods))
     
-    pValMat <- bplapply(seq_along(ods), pValNorm, ctsData=ctsData, disp=disp,
+    pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, theta=thetaMat,
             mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
     
-    pValMat <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
-    assays(ods)[["pValue"]] <- pValMat
+    pValMat <- 
+    pValue(ods) <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
     validObject(ods)
     return(ods)
 }
@@ -91,44 +97,33 @@ pValMatrix <- function(ods, alternative, BPPARAM){
 #' }
 #' 
 #' @param x count 
-#' @param size fitted dispersion (size) for the neg. binomial dist
+#' @param size fitted theta (size) for the neg. binomial dist
 #' @param mu fitted mean for the neg. binomial dist
 #' @param s sizeFactor or normalizationFactor
 #'
 #' @return p Value
 #' @noRd
-pVal <- function(x, size, mu, s, alternative){
-    pless <- pnbinom(x, size = size, mu = s*mu)
+pVal <- function(index, ctsData, theta, mu, normFact, alternative){
+    x    <- ctsData[index,]
+    mu   <- mu[index]
+    
+    # check if you did not get only sizeFactors
+    if(is.matrix(normFact)){
+        normFact <- normFact[index,]
+    }
+    size <- theta[index,]
+    
+    pless <- pnbinom(x, size=size, mu=normFact*mu)
     if(alternative == "less"){
         return(pless)
     }
     
-    dval <- dnbinom(x, size = size, mu = s*mu)
+    dval <- dnbinom(x, size=size, mu=normFact*mu)
     if(alternative ==  "greater"){
         return(1 - pless + dval)
     }
     
-    return(2 * vapply(seq_along(pless), function(i) {
-            min(0.5, pless[i], 1 - pless[i] + dval[i]) }, numeric(1)))
-}
-
-
-#' pValues per gene
-#' computes pValues of all samples for a given gene.
-#' 
-#' @param index of gene
-#' @param ods object
-#'
-#' @return vector of pValues
-#' @noRd
-pValNorm <- function(index, ctsData, disp, mu, normFact, alternative){
-    data <- ctsData[index,]
-    disp <- disp[index]
-    mu   <- mu[index]
-    if(is.matrix(normFact)){
-        normFact <- normFact[index,]
-    }
-    pVal(data, size=disp, mu=mu, normFact, alternative=alternative)
+    return(2 * pmin(0.5, pless, 1 - pless + dval))
 }
 
 
@@ -142,19 +137,11 @@ pValNorm <- function(index, ctsData, disp, mu, normFact, alternative){
 #' @param method adjustment method, by default 'BH'
 #' @return OutriderDataSet containing adjusted pValues
 #' 
-#' @examples 
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- OUTRIDER(ods)
-#' ods <- padjMatrix(ods, method='BH')
-#' head(assays(ods)[["padjust"]][,1:10])
-#'
-#' ods <- padjMatrix(ods, method='fdr')
-#' head(assays(ods[,1:10])[["padjust"]])
-#' 
-#' @export
+#' @noRd
 padjMatrix <- function(ods, method='BH'){
-    padj <- apply(assays(ods)[["pValue"]], 2, p.adjust, method=method)
-    assays(ods)[["padjust"]] <- padj 
+    padj(ods) <- apply(pValue(ods), 2, p.adjust, method=method)
+    
     validObject(ods)
     return(ods)
 }
+

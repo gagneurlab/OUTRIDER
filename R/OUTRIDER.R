@@ -1,43 +1,77 @@
 #' 
-#' OUTRIDER - Full analysis pipeline
+#' OUTRIDER - Finding expression outlier events
 #' 
-#' The OUTRIDER function runs the default OUTRIDER pipline. 
-#' Combinig the fit, the computation of zScores and pValues.
-#' All computed values are returned as a OutriderDataSet object.
+#' @description The OUTRIDER function runs the default OUTRIDER pipline. 
+#' Combinig the fit, the computation of Z scores and P-values.
+#' All computed values are returned as an OutriderDataSet object.
 #' 
-#' @param object main OutriderDataSet object, which contains all the data 
-#' @param autoCorrect if TRUE the raw read counts will be controled 
-#'             for confounders by the autoencoder 
-#' @param nbModelFile The file where the negative binomial model should be saved
-#' @return OutriderDataSet with all the computed values. The values can be 
-#'             accessed by: \code{assays(ods)[['value']]}
+#' To have more control over each analysis step one can call each 
+#' function seperatly.
+#' 
+#' \enumerate{
+#'     \item \code{\link{estimateSizeFactors}} to calculte the sizeFactors
+#'     \item \code{\link{controlForConfounders}} to control for 
+#'               confounding effects
+#'     \item \code{\link{fit}} to fit the negative binomial model 
+#'               (only needed if not the autoencoder is used)
+#'     \item \code{\link{computePvalues}} to calculate the nominal and 
+#'               adjusted P-values
+#'     \item \code{\link{computeZscores}} to calculate the Z scores
+#' }
+#' 
+#' @inheritParams controlForConfounders
+#' @param controlData If TRUE, the default, the raw counts are controled 
+#'             for confounders by the autoencoder
+#' @param ... Further arguments passed on to \code{controlForConfounders}
+#' @return OutriderDataSet with all the computed values. The values are stored
+#'             as assays and can be accessed by: \code{assay(ods, 'value')}.
+#'             To get a full list of calculated values run:
+#'             \code{assayNames(ods)}
 #'
 #' @examples
-#' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
-#' ods <- OUTRIDER(ods)
+#' ods <- makeExampleOutriderDataSet()
+#' implementation <- 'autoencoder'
+#' \dontshow{
+#'     ods <- ods[1:10,1:10]
+#'     implementation <- 'pca'
+#' }
+#' ods <- OUTRIDER(ods, implementation=implementation)
 #' 
-#' assays(ods)[['pValue']][1:10,1:10]
+#' pValue(ods)[1:10,1:10]
 #' res <- results(ods, all=TRUE)
+#' res
+#' 
+#' plotAberrantPerSample(ods)
 #' plotVolcano(ods, 1)
 #' 
 #' @export
-OUTRIDER <- function(object, autoCorrect=TRUE, nbModelFile=NULL){
-    message(paste0(date(), ": SizeFactor estimation ..."))
-    object <- estimateSizeFactors(object)
-    if(autoCorrect == TRUE){
-        message(paste0(date(), ": Running auto correct ..."))
-        object <- autoCorrect(object, q=20)
+OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder', 
+                    BPPARAM=bpparam(), ...){
+    checkOutriderDataSet(ods)
+    implementation <- tolower(implementation)
+    
+    message(date(), ": SizeFactor estimation ...")
+    ods <- estimateSizeFactors(ods)
+    
+    if(isTRUE(controlData)){
+        message(date(), ": Controlling for confounders ...")
+        ods <- controlForConfounders(ods, q=q, 
+                implementation=implementation, BPPARAM=BPPARAM, ...)
     }
-    if(is.null(nbModelFile) || !file.exists(nbModelFile)){
-        message(paste0(date(), ": Fitting the data ..."))
-        object <- fit(object, modelFile=nbModelFile)
-        nbModelFile=NULL
-    } else {
-        message("Using existing NB parameters from model: ", nbModelFile)
+    
+    if(isFALSE(controlData) | grepl("^(peer|pca)$", implementation)){
+        message(date(), ": Fitting the data ...")
+        ods <- fit(ods, BPPARAM=BPPARAM)
     }
-    message(paste0(date(), ": P-value calculation ..."))
-    object <- computePvalues(object, modelFile=nbModelFile)
-    message(paste0(date(), ": Zscore calculation ..."))
-    object <- computeZscores(object)
-    return(object)
+    
+    message(date(), ": P-value calculation ...")
+    ods <- computePvalues(ods, BPPARAM=BPPARAM)
+    
+    message(date(), ": Zscore calculation ...")
+    ods <- computeZscores(ods, 
+            peerResiduals=grepl('^peer$', implementation))
+    
+    validObject(ods)
+    return(ods)
 }
+

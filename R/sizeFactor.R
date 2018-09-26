@@ -25,7 +25,7 @@
 #' 
 #' @examples
 #' 
-#' ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
+#' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' head(sizeFactors(ods))
 #' 
@@ -61,7 +61,7 @@ sizeFactors.replace.OutriderDataSet <- function(object, value){
     stopifnot(all(is.finite(value)))
     stopifnot(all(value > 0))
     
-    colData(object)$sizeFactor <- value
+    colData(object)[['sizeFactor']] <- value
     validObject( object )
     object
 }
@@ -70,6 +70,11 @@ sizeFactors.replace.OutriderDataSet <- function(object, value){
 #' @export "sizeFactors<-"
 setReplaceMethod("sizeFactors", signature(object="OutriderDataSet", 
         value="numeric"), sizeFactors.replace.OutriderDataSet)
+
+#' @rdname sizeFactors
+#' @export "sizeFactors<-"
+setReplaceMethod("sizeFactors", signature(object="OutriderDataSet", 
+        value="NULL"), sizeFactors.replace.OutriderDataSet)
 
 
 #'

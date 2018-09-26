@@ -1,10 +1,10 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 0.99.7
-Date: 2018-05-23
+Version: 0.99.26
+Date: 2018-06-26
 Maintainer: Christian Mertes <mertes@in.tum.de>
-URL: https://github.com/gagneurlab/OURIDER
+URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
 Author@R: c(
     person("Felix", "Brechtmann", role=c("aut", "cre"), 
@@ -29,8 +29,7 @@ biocViews: RNASeq, Transcriptomics, Alignment, Sequencing, GeneExpression,
 License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Depends:
     R (>= 3.4), 
     BiocParallel,
@@ -46,12 +45,15 @@ Imports:
     DESeq2 (>= 1.16.1),
     GenomicRanges,
     ggplot2,
+    ggpubr,
     gplots,
     graphics,
+    IRanges,
     matrixStats,
     plotly,
     plyr,
     pcaMethods,
+    PRROC,
     RColorBrewer,
     Rcpp,
     reticulate,
@@ -77,18 +79,28 @@ LinkingTo:
 Collate:
     package-OUTRIDER.R
     class-OutriderDataSet.R
-    AllGenerics.R
-    autoCorrectPython.R
-    autoCorrectRversion.R
-    method-gridSearch.R
+    inputCheckerFunctions.R
+    helperFunctions.R
+    getNSetterFuns.R
+    getNSetterFunsInternal.R
+    autoencoder.R
     fitNB.R
     ZscoreMatrix.R
+    method-evaluation.R
+    method-counts.R
+    method-gridSearch.R
+    method-plot.R
     method-results.R
     pValMatrix.R
     filterExpression.R
-    method-evaluation.R
     OUTRIDER.R
-    method-plot.R
-    helperFunctions.R
     sizeFactor.R
     RcppExports.R
+    peer.R
+    updateE.R
+    updateD.R
+    updateTheta.R
+    PCAcorrections.R
+    thetaMethodOfMoments.R
+    controlForConfounders.R
+    lossNGradientRVersion.R

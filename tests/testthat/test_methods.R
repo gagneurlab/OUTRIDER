@@ -15,36 +15,35 @@ test_that("filter expression", {
 test_that("fitting method", {
     ods <- makeExampleOutriderDataSet()
     expect_error(fit(ods), "Please provide sizeFactors or normal.*")
-    
 })
 
 test_that("pvalue calculation", {
     ods <- makeExampleOutriderDataSet()
     expect_error(computePvalues(ods), "Please fit the models first to .*")
-    
 })
 
 test_that("result method", {
     ods <- makeExampleOutriderDataSet()
-    expect_error(results(ods), "The P-values are not computed yet..*")
+    expect_error(results(ods), "Please calculate..*")
 })
 
 test_that("normalization method", {
-    ods <- makeExampleOutriderDataSet()[seq_len(3),1]
-    counts(ods) <- matrix(c(1L,2L,3L), ncol=1)
+    ods <- makeExampleOutriderDataSet(5, 5)
+    counts(ods) <- matrix(1:5, ncol=5, nrow=5)
     expect_null(normalizationFactors(ods))
-    nMat <- matrix(5L, ncol=1, nrow=3)
+    nMat <- matrix(6:10, ncol=5, nrow=5)
     normalizationFactors(ods) <- nMat
     expect_equivalent(normalizationFactors(ods), nMat)
-    expect_error(results(ods), "The P-values are not computed yet..*")
+    expect_error(results(ods), "Please calculate..*")
 })
 
 test_that("fit method", {
-    ods <- makeExampleOutriderDataSet(50)
+    ods <- makeExampleOutriderDataSet(30, 30)
     ods <- estimateSizeFactors(ods)
     ods <- fit(ods)
     expect_is(mcols(ods)[,"mu"], "numeric")
     expect_equal(length(mcols(ods)[,"mu"]), nrow(ods))
-    expect_is(mcols(ods)[,"disp"], "numeric")
-    expect_equal(length(mcols(ods)[,"disp"]), nrow(ods))
+    expect_is(theta(ods), "numeric")
+    expect_equal(length(theta(ods)), nrow(ods))
 })
+

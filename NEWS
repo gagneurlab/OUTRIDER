@@ -1,9 +1,23 @@
-R IMPLEMENTATION OF THE AUTOENCODER
+SECOND BIOCONDUCTOR SUBMISSION 0.99.10
+-----------------------------
+    o Smaller and faster example data set
+    o Loss and gradient of loss in C++
+    o Bugfixes
+
+INITIAL BIOCONDUCTOR SUBMISSION 0.99.8
+-----------------------------
+    o Better documentation
+    o Little changes in default values
+    o Code cleanup and improvements
+    o Bugfixes
+
+
+R IMPLEMENTATION OF THE AUTOENCODER 0.99.7
 -----------------------------
     o Adding the R implementation of the autoencoder
-    o little changes in default values
-    o updating and completing documentation
-    o Bufixes
+    o Little changes in default values
+    o Updating and completing documentation
+    o Bugfixes
 
 
 MINOR BUGFIXES AND UPDATE OF AUTOCORRECTION 0.99.6
@@ -21,5 +35,4 @@ GITHUB RELEASE OF OUTRIDER 0.99.5
 INITIAL SETUP OF OUTRIDER VERSION 0.99.2
 -----------------------------
 	o Initial setup of OUTRIDER package
-	
 	o Added autoCorrect (Auto Encoder) as normalization function

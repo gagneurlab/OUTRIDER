@@ -2,31 +2,58 @@
 % Please edit documentation in R/method-gridSearch.R
 \name{findEncodingDim}
 \alias{findEncodingDim}
-\title{findEncodingDim}
+\alias{findEncodingDim,}
+\alias{findInjectZscore}
+\title{Find the optimal encoding dimension}
 \usage{
-findEncodingDim(ods, params = seq(5, 30, 5), freq = 0.01, zScore = 3,
-  inj = "both", BPPARAM = bpparam())
+findEncodingDim(ods, params = seq(5, min(30, ncol(ods), nrow(ods)), 2),
+  freq = 0.01, zScore = 3, logsd = log(1.6), lnorm = FALSE,
+  inj = "both", evalAucPRLoss = TRUE, ..., BPPARAM = bpparam())
+
+findInjectZscore(ods, freq = 0.01, zScoreParams = c(seq(1.5, 4, 0.5),
+  "lnorm"), encDimParams = c(seq(3, 40, 3), seq(45, 70, 5), 100, 130,
+  160), inj = "both", ..., implementation = "autoencoder",
+  BPPARAM = bpparam())
 }
 \arguments{
-\item{ods}{OutriderDataSet}
+\item{ods}{An OutriderDataSet}
 
-\item{params}{set of possible q values.}
+\item{params}{Set of possible q values.}
 
-\item{freq}{frequncy of outlier by default 1E-2}
+\item{freq}{Frequency of outlier, defaults to 1E-2}
 
-\item{zScore}{injection Z-score, by default 3.}
+\item{zScore}{Injection Z-score, defaults to 3.}
 
-\item{inj}{injection strategy, by default 'both'.}
+\item{inj}{Injection strategy, by default 'both'.}
 
 \item{BPPARAM}{BPPARAM object by default bpparam().}
 }
 \value{
-optimal parameter value.
+The optimal encoding dimension
 }
 \description{
-finds the optimal encoding dimension for a given data set.
+Finds the optimal encoding dimension for a given data set by running a 
+grid search based on the provided parameter set.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()
-findEncodingDim(ods)
+encDimSearchParams <- c(5, 8, 10, 12, 15)
+zScoreParams <- c(2, 3, 5, 'lnorm')
+implementation <- 'autoencoder'
+register(MulticoreParam(4))
+\dontshow{
+    ods <- ods[1:12,1:12]
+    encDimSearchParams <- c(2)
+    zScoreParams <- c('lnorm')
+    register(SerialParam())
+    implementation <- 'pca'
+}
+ods1 <- findEncodingDim(ods, params=encDimSearchParams, 
+        implementation=implementation)
+plotEncDimSearch(ods1)
+
+ods2 <- findInjectZscore(ods, zScoreParams=zScoreParams,
+        encDimParams=encDimSearchParams, implementation=implementation)
+plotEncDimSearch(ods2)
+
 }

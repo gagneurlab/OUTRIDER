@@ -5,18 +5,7 @@
 
 \documentclass[11pt]{article}
 
-\usepackage{amsmath}
-\usepackage{verbatim}
-\usepackage[nottoc]{tocbibind}
-
-\newcommand{\outrider}{\Biocpkg{OUTRIDER}}
-\newcommand{\rna}{RNA-seq}
-\newcommand{\deseq}{\Biocpkg{DESeq2}}
-\newcommand{\ods}{\Rclass{OutriderDataSet}}
-
-\title{OUTRIDER - OUTlier RNA-Seq fInDER}
-
-<<style, eval=TRUE, echo=FALSE, results="asis">>=
+<<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
 BiocStyle::latex()
 @
 
@@ -27,12 +16,23 @@ opts_chunk$set(
     dev="png",
     fig.width=7,
     fig.height=7,
-    dpi = 300,
+    dpi=300,
     message=FALSE,
     warning=FALSE,
     cache=FALSE
 )
 @
+
+\usepackage{amsmath}
+\usepackage{verbatim}
+\usepackage[nottoc]{tocbibind}
+
+\newcommand{\outrider}{\Biocpkg{OUTRIDER}}
+\newcommand{\rna}{RNA-seq}
+\newcommand{\deseq}{\Biocpkg{DESeq2}}
+\newcommand{\ods}{\Rclass{OutriderDataSet}}
+
+\title{OUTRIDER - OUTlier in RNA-Seq fInDER}
 
 \author{
     Felix Brechtmann$^{1}$, Christian Mertes$^{1}$, Agne Matuseviciute$^{1}$, 
@@ -100,9 +100,20 @@ if(multicoreWorkers() >= 4){
 \section{Introduction}
 \outrider{} (OUTlier in RNA-seq fInDER) is a tool for finding aberrantly expressed
 genes in RNA-seq samples. It does so by fitting a negative binomial model 
-to RNA-seq read counts while correcting for variations in sequencing depth and 
+to RNA-seq read counts, correcting for variations in sequencing depth and 
 apparent co-variations across samples. Read counts that significantly deviate 
-from the distribution are detected as outliers.
+from the distribution are detected as outliers. \outrider{} makes use of an
+autoencoder to control automatically for confounders within the data. A scheme
+of this approach is given in Figure \ref{fig:Autencoder}.
+
+
+\begin{figure}
+    \includegraphics[width=0.8\textwidth]{autoencoder_sketch.png}
+    \caption{Context-dependent outlier detection. The algorithm identifies gene expression outliers whose read counts are significantly aberrant given the co-variations typically observed across genes in an RNA sequencing data set. This is illustrated by a read count (left panel, fifth column, second row from the bottom) that is exceptionally high in the context of correlated samples (left six samples) but not in absolute terms for this given gene. To capture commonly seen biological and technical contexts, an autoencoder models co-variations in an unsupervised fashion and predicts read count expectations. By comparing the earlier mentioned read count with these context-dependent expectations, it is revealed as exceptionally high (right panel). The lower panels illustrate the distribution of read counts before and after applying the correction for the relevant gene. The red dotted lines depict significance cutoffs.}
+    \label{fig:Autoencoder}
+\end{figure}
+
+
 
 Differential gene expression analysis from RNA-seq data is well-established.
 The packages \deseq{}\cite{Love2014} or \Biocpkg{edgeR}\cite{Robinson2010} 
@@ -142,9 +153,10 @@ into the \outrider{} package as we will describe below.
 \section{A quick tour}
 
 Here we assume that we already have a count table and no additional 
-preprocessing needs to be done. We can start and obtain results using 
-3 commands. First, create an \ods{} from a count table. Second, run the full 
-pipeline with the command \Rfunction{OUTRIDER}. In the third and last step the 
+preprocessing needs to be done. We can start and obtain results with 
+3 commands. First, create an \ods{} from a count table or a Summarized 
+Experiment object. Second, run the full 
+pipeline using the command \Rfunction{OUTRIDER}. In the third and last step the 
 results table is extracted from the \ods{} with the \Rfunction{results} 
 function. Furthermore, analysis plots that are described in section 
 \ref{sec:Results} can be directly created from the \ods{} object.
@@ -159,7 +171,7 @@ ctsTable <- read.table(ctsFile, check.names=FALSE)
 ods <- OutriderDataSet(countData=ctsTable)
 
 # filter out non expressed genes
-ods <- filterExpression(ods, onlyZeros=TRUE, filterGenes=TRUE)
+ods <- filterExpression(ods, minCounts=TRUE, filterGenes=TRUE)
 
 # run full OUTRIDER pipeline (control, fit model, calculate P-values)
 ods <- OUTRIDER(ods)
@@ -183,8 +195,14 @@ samples failing quality measurements should be done manually before running the
 In this section we will explain the analysis functions step by step.
 
 For this tutorial we will use the rare disease data set from Kremer 
-\textit{et al}.\cite{Kremer2017}. A small subset is contained in this package 
-for testing.
+\textit{et al}.\cite{Kremer2017} For testing, this package contains a small
+subset of it.
+
+\subsection{OutriderDataSet}
+To use \outrider{} create an \ods, which derives from a RangedSummarizedExperiment
+object. The \ods can be created by supplying a count matrix and optional sample 
+annotation matrices. Alternatively an existing Summarized experiment object
+from other Biocnductor backages can be used.
 
 <<GetDataSet>>=
 # small testing data set
@@ -211,6 +229,10 @@ low FPKM (Fragments Per Kilobase of transcript per Million mapped reads)
 expression values. The needed annotation to estimate FPKM values 
 from the counts should be the same as for the counting. Here, we normalize 
 by the total exon length of a gene.
+To do so the joint lenght of all exons needs to be provided. When providing a 
+gtf, gff or TxDb object to the \Rfunction{filterExpression}, we extract this 
+information automatically. But therfore the geneID's of the count table and the 
+gtf need to match.
 
 By default the cutoff is set to an FPKM value of one and only the filtered
 \ods{} object is returned. If required, the FPKM values can be stored in the
@@ -279,7 +301,7 @@ We have different ways to control for confounders present in the data.
 The first and standard way is to calculate the \Rfunction{sizeFactors} 
 as done in \deseq{}\cite{Love2014}.
 
-Additionally, the \Rfunction{autoCorrect} function calls an 
+Additionally, the \Rfunction{controlForConfounders} function calls an 
 autoencoder that automatically controls for confounders present in the data.
 Therefore an encoding dimension $q$ needs to be set or the default value 20 is 
 used. The optimal value of $q$ can be determinde using the
@@ -292,7 +314,8 @@ samples should be reduced and close to zero.
 
 # automatically control for confounders 
 ods <- estimateSizeFactors(ods)
-ods <- autoCorrect(ods, q=13)
+ods <- controlForConfounders(ods, q=21)
+
 
 # Heatmap of the sample correlation after controlling
 ods <- plotCountCorHeatmap(ods, normalized=TRUE)
@@ -305,15 +328,14 @@ for technical effects or control for additional expression patterns.
 
 \subsection{Fitting the negative binomial model}
 
+The fit of the model is done during the autoencoder fitting. This step is only
+needed if alternative methods to control the data is are used.
 To fit the dispersion and the mean, the \Rfunction{fit} function is applied
 to the \ods{}.
 
 <<fitting>>=
-# fit negative binomial distribution to each feature
-ods <- fit(ods)
-
 # plot dispersion versus mean counts 
-plotDispEsts(ods)
+#plotDispEsts(ods)
 @
 
 \subsection{P-value calculation}
@@ -377,7 +399,7 @@ through the analysis.
 The \Rfunction{results} function gathers all the previously computed values
 and combines them into one table.
 
-<<results>>=
+<<results fun>>=
 # get results (default only significant, padj < 0.05)
 res <- results(ods)
 head(res)
@@ -448,6 +470,18 @@ P-values for the other points. Here is an example with two outliers:
 ## QQ-plot for a given gene
 plotQQ(ods, "TIMMDC1")
 @
+
+
+\section{Details}
+
+We provide the \Rfunction{plotPowerAnalysis} function to show, what kind of 
+changes can be significant depending on the mean count.
+<<visualizationSigLevels, fig.height=5>>=
+## P-values versus Mean Count
+plotPowerAnalysis(ods)
+@
+Here, we see that it is only for sufficiently high expressed genes possible, to 
+obtain significant P-values, especially for the downregulation cases.
 
 \bibliography{bibliography}
 

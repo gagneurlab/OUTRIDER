@@ -1,70 +1,276 @@
-#'
-#' Plot a QQ-plot for a given gene
 #' 
-#' @param ods OutriderDataSet
-#' @param geneID Gene to be plotted
-#' @param global Flag to plot a global QQ-plot, default FALSE
-#' @param padjCutoff significance level to mark outliers
-#' @param zScoreCutoff Z-score cutoff to coloring outliers
-#' @param main title for the plot
-#' @param conf.alpha if set, a confidence interval is plotted
+#' @title Visualization functions for OUTRIDER
+#' 
+#' @description The OUTRIDER package provides mutliple functions to visualize 
+#' the data and the results of a full data set analysis.
+#' 
+#' This is the list of all plotting function provided by OUTRIDER:
+#' \itemize{
+#'   \item plotAberrantPerSample()
+#'   \item plotVolcano()
+#'   \item plotExpressionRank()
+#'   \item plotQQ()
+#'   \item plotCountCorHeatmap()
+#'   \item plotFPKM()
+#'   \item plotDispEsts()
+#'   \item plotPowerAnalysis()
+#'   \item plotEncDimSearch()
+#' }
+#' 
+#' For a detailed description of each plot function please see the details.
+#' Most of the functions share the same parameters. 
+#' 
+#### Data specific parameters
+#' @param ods An OutriderDataSet, which is used to extract the data for plotting
+#' @param object An OutriderDataSet, see ods parameter
+#' @param sampleID A sampleID, which should be plotted. Can also be a vector.
+#' @param geneID A geneID, which should be plotted. Can also be a vector.
+#' @param padjCutoff Significance level to mark outliers
+#' @param zScoreCutoff Z-score cutoff to mark outliers
+#' @param global Flag to plot a global Q-Q plot, default FALSE
 #' @param outlierRatio The fraction to be used for the outlier sample filtering
-#' @param sample sample points for QQplot, only used, when global==TRUE.
-#' @param legendPos set legendpos, by default topleft.
-#' @param col set color
-#' @param pch integer or character to be used for plotting points
-#' @param xlim The x limits for the plot or NULL to use the data range
-#' @param ylim The y limits for the plot or NULL to use the data range
-#' @param ... additional arguments for the internal plotQQ function.
-#'             This arguments are currently used for development.
+#' @param normalized If TRUE, the normalized counts are used, the default,
+#'             otherwise the raw counts
+#' @param compareDisp If TRUE, the default, and if the autoCorrect normalization
+#'             was used it computes the dispersion without autoCorrect and 
+#'             plots it for comparison.
+#### Graphical parameters
+#' @param main Title for the plot, if missing a default title will be used.
+#' @param pch Integer or character to be used for plotting the points
+#' @param col Set color for the points. If set, it must be a character vector 
+#'             of length 2. (1. normal point; 2. outlier point)
+#' @param basePlot if TRUE, use the R base plot version, else use the plotly 
+#'             framework, which is the default
+#' @param legendPos Set legendpos, by default topleft.
+#' @param conf.alpha If set, a confidence interval is plotted, defaults to 0.05
+#' @param samplePoints Sample points for Q-Q plot, defaults to max 30k points
+#' @param xlim The x limits for the plot or NULL to use the full data range
+#' @param ylim The y limits for the plot or NULL to use the full data range
+#' @param log If TRUE, the default, counts are plotted in log10.
+#' @param rowCentered If TRUE, the counts are row-wise (gene-wise) centered
+#' @param rowCoFactor A vector of co-factors for color coding the rows
+#' @param rowColSet A vector of colors or a color set from RColorBrewer
+#' @param colCoFactor A vector of co-factors for color coding the columns
+#' @param colColSet A vector of colors or a color set from RColorBrewer
+#' @param nCluster An integer to be used for cutting the dendrogram into groups.
+#'             If this argument is set the resulting clusters are saved in the 
+#'             returned OutriderDataSet.
+#' @param dendrogram A character string indicating whether to draw 
+#'             'none', 'row', 'column' or 'both' dendrograms.
+#' @param names character string indicating whether to draw 
+#'             'none', 'row', 'col', or 'both' names.
+#' @param yadjust Option to adjust position of Median and 90 percentile labels. 
+#' @param ylab The y axis label
+#' @param labCex The label cex parameter
+#' @param labLine Option to move axis labels
 #' 
-#' @return None
+#### Additional ... parameter
+#' @param ... Additional parameters passed to plot() or plot_ly() if not stated
+#'             otherwise in the details for each plot function
+#' 
+#' @details
+#' 
+#' \code{plotAberrantPerSample}: The number of aberrant events per sample are 
+#' plotted sorted by rank. The ... parameters are passed on to the 
+#' \code{\link{aberrant}} function. 
+#' 
+#' \code{plotVolcano}: the volcano plot is sample-centric. It plots for a given
+#' sample the negative log10 nominal P-values against the Z-scores for all
+#' genes.
+#' 
+#' \code{plotExpressionRank}: This function plots for a given gene the 
+#' expression level against the expression rank for all samples. This can 
+#' be used with normalized and unnormalized expression values.
+#' 
+#' \code{plotQQ}: the quantile-quantile plot for a given gene or if 
+#' \code{global} is set to \code{TRUE} over the full data set. Here the 
+#' observed P-values are plotted against the expected ones in the negative 
+#' log10 space.
+#' 
+#' \code{plotCountCorHeatmap}: The correlation heatmap of the count data
+#' of the full data set. Default the values are log transformed and 
+#' row centered. This function returns an OutriderDataSet with annotated 
+#' clusters if requested. The ... arguments are passed to the 
+#' \code{\link[gplots]{heatmap.2}} function.
+#' 
+#' \code{plotFPKM}: The distribution of FPKM values. If the OutriderDataSet
+#' object contains the \code{passedFilter} column, it will plot both FPKM
+#' distributions for the expressed genes and for the filtered genes.
+#' 
+#' \code{plotDispEsts}: Plots the dispersion of the OutriderDataSet 
+#' model against the normalized mean count. If autoCorrect is used it will also
+#' estimate the dispersion without normalization for comparison.
+#' 
+#' \code{plotPowerAnalysis}: The power analysis plot should give the user a
+#' ruff estimate of the events one can be detected with OUTRIDER. Based on 
+#' the dispersion of the provided OUTRIDER data set the theoretical P-value
+#' over the mean expression is plotted. This is done for different expression
+#' levels. The curves are smooths to make the reading of the plot easier.
+#' 
+#' @return If base R graphics are used nothing is returned else the plotly or
+#'             the gplot object is returned.
 #' 
 #' @examples
-#' ods <- makeExampleOutriderDataSet(500, 300)
-#' ods <- OUTRIDER(ods)
-#' plotQQ(ods, 1)
-#' plotQQ(ods, global=TRUE, filterOutliers=TRUE)
+#' ods <- makeExampleOutriderDataSet(dataset="Kremer")
+#' implementation <- 'autoencoder'
+#' \dontshow{
+#'     # reduce the object size to speed up the calculations
+#'     ods <- ods[400:410,60:70]
+#'     implementation <- 'pca'
+#' }
+#' ods <- filterExpression(ods, minCounts=TRUE)
+#' ods <- OUTRIDER(ods, implementation=implementation)
 #' 
+#' plotAberrantPerSample(ods)
+#' 
+#' plotVolcano(ods, 1)
+#' plotVolcano(ods, 'MUC1404', basePlot=TRUE)
+#' 
+#' plotExpressionRank(ods, 1)
+#' plotExpressionRank(ods, "FAAH", normalized=FALSE, 
+#'     log=FALSE, main="Over expression outlier", basePlot=TRUE)
+#' 
+#' plotQQ(ods, 1)
+#' plotQQ(ods, global=TRUE, outlierRatio=0.001)
+#' 
+#' sex <- sample(c("female", "male"), dim(ods)[2], replace=TRUE)
+#' colData(ods)$sex <- sex
+#' ods <- plotCountCorHeatmap(ods, colCoFactor="sex", normalized=FALSE)
+#' ods <- plotCountCorHeatmap(ods, nCluster=4)
+#' head(colData(ods)$clusterNumber)
+#' 
+#' mcols(ods)$basepairs <- 1
+#' mcols(ods)$passedFilter <- rowMeans(counts(ods)) > 10
+#' plotFPKM(ods)
+#' 
+#' plotDispEsts(ods, compareDisp=FALSE)
+#' 
+#' plotPowerAnalysis(ods)
+#' 
+#' \dontrun{
+#' ods <- findEncodingDim(ods)
+#' plotEncDimSearch(ods)
+#' }
+#' 
+#' @rdname plotFunctions
+#' @aliases plotFunctions plotVolcano plotQQ plotExpressionRank 
+#'             plotCountCorHeatmap plotAberrantPerSample plotFPKM 
+#'             plotDispEsts plotPowerAnalysis
+#'
+
+
+#' @rdname plotFunctions
 #' @export
-plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05, 
-                zScoreCutoff=0, main=NULL, sample=TRUE, legendPos="topleft",
-                outlierRatio=0.001, conf.alpha=0.05, pch=16, xlim=NULL, 
-                ylim=NULL, col=NULL, ...){
+plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
+                    pch=16, basePlot=FALSE, col=c("gray", "firebrick")){
+    if(missing(sampleID)){
+        stop("specify which sample should be plotted, sampleID = 'sample5'")
+    }
+    if(!all(c('padjust', 'zScore') %in% assayNames(ods))){
+        stop('Calculate Z-scores and P-values first.')
+    }
+    if(is.logical(sampleID)){
+        sampleID <- which(sampleID)
+    }
+    if(is.numeric(sampleID)){
+        if(!(is.numeric(sampleID) && max(sampleID) <= ncol(ods))){
+            stop('Sample index is out of bounds:', 
+                    paste(sampleID, collapse=", "))
+        }
+        sampleID <- colnames(ods)[sampleID]
+    }
+    if(!all(sampleID %in% colnames(ods))){
+        stop("Sample ID is not in the data set.")
+    }
+    if(length(sampleID) > 1){
+        ans <- lapply(sampleID, plotVolcano, ods=ods, padjCutoff=padjCutoff, 
+                zScoreCutoff=zScoreCutoff, basePlot=basePlot)
+        if(isTRUE(basePlot)){
+            return(invisible())
+        }
+        return(ans)
+    }
+    if(missing(main)){
+        main <- paste0("Volcano plot: ", sampleID)
+    }
+    
+    if(is.null(rownames(ods))){
+        rownames(ods) <- paste("feature", seq_len(nrow(ods)), sep="_")
+    }
+    
+    dt <- data.table(
+        GENE_ID   = rownames(ods),
+        pValue    = pValue(ods)[,sampleID],
+        padjust   = padj(ods)[,sampleID],
+        zScore    = zScore(ods)[,sampleID],
+        normCts   = counts(ods, normalized=TRUE)[,sampleID],
+        medianCts = rowMedians(counts(ods, normalized=TRUE)),
+        expRank   = apply(
+                counts(ods, normalized=TRUE), 2, rank)[,sampleID],
+        aberrant  = aberrant(ods, padjCutoff=padjCutoff,
+                zScoreCutoff=zScoreCutoff)[,sampleID],
+        color=col[1])
+    dt[aberrant == TRUE, color:=col[2]]
+    
+    # remove the NAs from the zScores for plotting
+    dt[is.na(zScore),zScore:=0]
+    
+    if(isTRUE(basePlot)){
+        dt[,plot(zScore, -log10(pValue), col=color, pch=pch, cex=.7, 
+                main=main, xlab='Z-score', ylab=expression(
+                        paste(-log[10], "(", italic(P), "-value)")))]
+        grid(equilogs=FALSE)
+        return(invisible())
+    }
+    plot_ly(
+        data=dt,
+        x=~zScore,
+        y=~-log10(pValue),
+        #y =~pValue,
+        type="scatter",
+        mode="markers",
+        marker = list(
+            color=~color
+        ),
+        text=~paste0(
+            "Gene ID: ", GENE_ID,
+            "<br>Sample ID: ", sampleID,
+            "<br>Median normcount: ", round(medianCts, 2),
+            "<br>normcount: ", round(normCts, 2),
+            "<br>expression rank: ", as.integer(expRank),
+            "<br>nominal P-value: ", signif(pValue,3),
+            "<br>adj. P-value: ", signif(padjust,3),
+            "<br>Z-score: ", signif(zScore,2)
+        )
+    ) %>% layout(title=main, 
+            yaxis=list(title="-log<sub>10</sub>(<i>P</i>-value)"))
+}
+
+#' @rdname plotFunctions
+#' @export
+plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05, 
+                zScoreCutoff=0, samplePoints=TRUE, 
+                legendPos="topleft", outlierRatio=0.001, conf.alpha=0.05, 
+                pch=16, xlim=NULL, ylim=NULL, col=NULL){
     if(!is(ods, 'OutriderDataSet')){
         stop('Please provide an OutriderDataSet')
     }
     stopifnot(isScalarLogical(global))
-    if(is.null(geneID) & isFALSE(global)){
+    if(missing(geneID) & isFALSE(global)){
         stop('Please provide a geneID or set global to TRUE')
     }
     # Singel gene QQplot.
     if(isFALSE(global)){
-        if(is.null(geneID)){
-            stop('Please provide a geneID')
-        }
-        if(is.logical(geneID)){
-            geneID <- which(geneID)
-        }
-        if(is.numeric(geneID)){
-            if(!(is.numeric(geneID) && max(geneID) <= nrow(ods))){
-                stop(paste('Gene index is out of bounds:', 
-                           paste(geneID, collapse=", ")))
-            }
-            geneID <- rownames(ods)[geneID]
-        }
-        if(!all(geneID %in% rownames(ods))){
-            stop("Gene ID is not in the data set.")
-        }
+        geneID <- getGeneIndex(geneID, ods)
     
         # Produce multiple qqplot if geneID is a vector.
         if(length(geneID)>1L){
-            sapply(geneID, plotQQ, ods=ods, main=main, legendPos=legendPos, col=col,
-                    global=FALSE)
-            return()
+            lapply(geneID, plotQQ, ods=ods, main=main, legendPos=legendPos,
+                    col=col, global=FALSE)
+            return(invisible())
         }
         #Plot QQplot for single gene.
-        if(is.null(main)){
+        if(missing(main)){
             main <- paste0('Q-Q plot for gene: ', geneID)
         }
         if(is.null(col)){
@@ -81,7 +287,7 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     
     # global QQplot
     } else {
-        if(is.null(main)){
+        if(missing(main)){
             main <- 'Global Q-Q plot'
         }
         if(is.null(col)){
@@ -98,22 +304,30 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
         if(!is.null(outlierRatio)){
             odssub <- ods[,aberrant(ods, by='s', padjCutoff=padjCutoff,
                     zScoreCutoff=zScoreCutoff) < outlierRatio*length(ods)]
-            pVal <- as.numeric(assay(odssub, 'pValue'))
+            if(ncol(odssub) > 0){
+                pVal <- as.numeric(assay(odssub, 'pValue'))
             
-            dfsub <- data.table(obs= -log10(pVal), col=col[2], pch=pch,
-                    subset=TRUE)
-            df <- rbind(df, dfsub)
+                dfsub <- data.table(obs= -log10(pVal), col=col[2], pch=pch,
+                        subset=TRUE)
+                df <- rbind(df, dfsub)
+            }
         }
     }
     
     # compute expected pValues.
     df <- df[order(subset, -obs)]
+    
+    # Correct p value if needed
+    df[is.na(obs) | is.infinite(obs), obs:=1]
+    minNonZeroP <- min(df[obs!=0, obs]) * 1e-2
+    df[obs==0, obs:=minNonZeroP]
+    
     df[,exp:=-log10(ppoints(.N)), by='subset']
     if(is.null(xlim)){
         xlim=range(df[,exp])
     }
     if(is.null(ylim)){
-        ylim=range(df[,obs])
+        ylim=range(df[,obs], na.rm=TRUE)
     }
     plot(NA, xlim=xlim, ylim=ylim, main=main,
             xlab=expression(
@@ -147,12 +361,13 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
     }
     
     #Add points to plot.
-    if(isTRUE(sample)){
-        sample <- c(5000, 30000)
+    if(isTRUE(samplePoints)){
+        samplePoints <- c(5000, 30000)
     }
-    if(is.numeric(sample) & length(sample) == 2){
-        plotPoint <- df[,seq_len(.N) %in% c(seq_len(min(.N, sample[1])), 
-                sample(seq_len(.N), size=min(.N, sample[2]))), by='subset'][,V1]
+    if(is.numeric(samplePoints) & length(samplePoints) == 2){
+        plotPoint <- df[,seq_len(.N) %in% c(seq_len(min(.N, samplePoints[1])), 
+                sample(seq_len(.N), size=min(.N, samplePoints[2]))), 
+                by='subset'][,V1]
         df <- df[plotPoint]
     }
     df[,points(exp, obs, pch=pch, col=col, cex=pointCex)]
@@ -182,136 +397,10 @@ plotQQ <- function(ods, geneID=NULL, global=FALSE, padjCutoff=0.05,
 }
 
 
-
-
-#' 
-#' Volcano plot
-#' 
-#' Volcano plot for a given sample over all genes.
-#' 
-#' @param ods OutriderDataSet
-#' @param sampleID sample which should be plotted. 
-#'        Can also be a vector of samples. 
-#' @param padjCutoff padj cutoff
-#' @param zScoreCutoff Z-score cutoff
-#' @param basePlot R base plot version of the plot.
-#' @param col colors for the points in the form of c(non outliers, outliers)
-#' @param main string passed to main (title) of the plot.
-#' @return None
-#' 
-#' @examples
-#' ods <- makeExampleOutriderDataSet(1000, 100)
-#' ods <- OUTRIDER(ods)
-#' plotVolcano(ods, 1)
-#' 
-#' @export 
-plotVolcano <- function(ods, sampleID, padjCutoff=0.05, zScoreCutoff=0, 
-                main=NULL, basePlot=FALSE, col=c("gray", "firebrick")){
-    if(missing(sampleID)){
-        stop("specify which sample should be plotted, sampleID = 'sample5'")
-    }
-    if(!all(c('padjust', 'zScore') %in% assayNames(ods))){
-        stop('Calculate Z-scores and P-values first.')
-    }
-    if(is.logical(sampleID)){
-        sampleID <- which(sampleID)
-    }
-    if(is.numeric(sampleID)){
-        if(!(is.numeric(sampleID) && max(sampleID) <= ncol(ods))){
-            stop(paste('Sample index is out of bounds:', 
-                    paste(sampleID, collapse=", ")))
-        }
-        sampleID <- colnames(ods)[sampleID]
-    }
-    if(!all(sampleID %in% colnames(ods))){
-        stop("Sample ID is not in the data set.")
-    }
-    if(length(sampleID) > 1){
-        sapply(sampleID, plotVolcano, ods=ods, padjCutoff=padjCutoff, 
-                zScoreCutoff=zScoreCutoff, basePlot=basePlot)
-        return()
-    }
-    
-    dt <- data.table(
-            GENE_ID   = rownames(ods),
-            pValue    = assays(ods)[['pValue']][,sampleID],
-            padjust   = assays(ods)[['padjust']][,sampleID],
-            zScore    = assays(ods)[['zScore']][,sampleID],
-            normCts   = as.vector(counts(ods[,sampleID], normalized=TRUE)),
-            medianCts = rowMedians(counts(ods, normalized=TRUE)),
-            expRank   = apply(
-                    counts(ods, normalized=TRUE), 2, rank)[,sampleID],
-            aberrant  = aberrant(ods, padjCutoff=padjCutoff,
-                    zScoreCutoff=zScoreCutoff)[,sampleID],
-            color=col[1])
-    dt[aberrant == TRUE, color:=col[2]]
-    
-    # remove the NAs from the zScores for plotting
-    dt[is.na(zScore),zScore:=0]
-    
-    if(isTRUE(basePlot)){
-        dt[,plot(zScore, -log10(pValue), col=color, pch=16, cex=.7, 
-                xlab='Z-score', ylab=expression(
-                        paste(-log[10], "(", italic(P), "-value)")))]
-        grid(equilogs=FALSE)
-        title(ifelse(!is.null(main), main, paste0("Volcano plot: ", sampleID)))
-    }else{
-        plot_ly(
-            data=dt,
-            x=~zScore,
-            y=~-log10(pValue),
-            #y =~pValue,
-            type="scatter",
-            mode="markers",
-            marker = list(
-                color=~color
-            ),
-            text=~paste0(
-                "Gene ID: ", GENE_ID,
-                "<br>Sample ID: ", sampleID,
-                "<br>Median normcount: ", round(medianCts, 2),
-                "<br>normcount: ", round(normCts, 2),
-                "<br>expression rank: ", as.integer(expRank),
-                "<br>nominal P-value: ", signif(pValue,3),
-                "<br>adj. P-value: ", signif(padjust,3),
-                "<br>Z-score: ", signif(zScore,2)
-            )
-        ) %>% layout(yaxis = list(title = "-log<sub>10</sub>(<i>P</i>-value)"))
-    }
-}
-
-
-
-#' 
-#' Expression rank plot
-#' 
-#' Plot expression over expression rank per gene.
-#' The plot can be used before and after fitting. 
-#' 
-#' @param ods An OutriderDataSet.
-#' @param geneID Id or name of gene wich should be plotted. 
-#'             If multiple gene ids are supplied mulitple plots will be made.
-#' @param padjCutoff Padj cutoff for coloring significant genes
-#' @param zScoreCutoff Z-score cutoff for coloring significant genes
-#' @param normalized If TRUE the normalized counts are used,
-#'             otherwise the raw counts
-#' @param basePlot If FALSE, the default, the plotly framework is used,
-#'             else if TRUE the R base plot version is used
-#' @param main String passed to main (title) of the plot.
-#' @param col Color to use for coloring the points. c(normal, significant)
-#' @param log If TRUE, the default, counts are plotted in log10.
-#' @param ... Additional parameters passed to plot() or plot_ly().
-#' @return None or a plotly object
-#' 
-#' @examples
-#' ods <- makeExampleOutriderDataSet(1000, 100)
-#' ods <- OUTRIDER(ods)
-#' plotExpressionRank(ods, 1)
-#' plotExpressionRank(ods, 1, normalized=FALSE, log=FALSE, main="1. Gene")
-#' 
+#' @rdname plotFunctions
 #' @export
-plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0, 
-                    normalized=TRUE, basePlot=FALSE, main=NULL, log=TRUE,
+plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, 
+                    zScoreCutoff=0, normalized=TRUE, basePlot=FALSE, log=TRUE,
                     col=c("gray", "firebrick"), ...){
     # check user input
     if(!is(ods, "OutriderDataSet")){
@@ -323,53 +412,53 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
     }
     if(missing(geneID)){
         stop("Please Specify which gene should be plotted, geneID = 'geneA'")
-    }    
-    if(is.logical(geneID)){
-        geneID <- which(geneID)
     }
-    if(is.numeric(geneID)){
-        if(!(is.numeric(geneID) && max(geneID) <= nrow(ods))){
-            stop(paste('Gene index is out of bounds:', 
-                    paste(geneID, collapse=", ")))
-        }
-        geneID <- rownames(ods)[geneID]
-    }
-    if(!all(geneID %in% rownames(ods))){
-        stop('The gene IDs are not within the data set.')
-    }
+    geneID <- getGeneIndex(geneID, ods)
+    
     if(length(col) != 2){
         stop("Please provide two colors as a vector.")
     }
     
     # apply over each gene if vector
     if(length(geneID) > 1){
-        sapply(geneID, plotExpressionRank, ods=ods, padjCutoff=padjCutoff, 
-                zScoreCutoff=zScoreCutoff, basePlot=basePlot, 
-                normalized=normalized)
-        return()
+        ans <- lapply(geneID, plotExpressionRank, ods=ods, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
+                basePlot=basePlot, normalized=normalized)
+        if(isTRUE(basePlot)){
+            return(invisible())
+        }
+        return(ans)
     }
+    
+    stopifnot(isScalarValue(geneID))
+    
+    # subset ods
+    ods <- ods[geneID,]
     
     # get data frame
     dt <- data.table(
         sampleID = colnames(ods),
-        normcounts = as.integer(counts(ods, normalized=normalized)[geneID,]))
+        normcounts = as.vector(counts(ods, normalized=normalized)),
+        rawcounts = as.vector(counts(ods)))
     dt[,normcounts:=normcounts + ifelse(isTRUE(log), 1, 0)]
     
     dt[, medianCts:= median(normcounts)]
     dt[, norm_rank:= rank(normcounts, ties.method = 'first')]
     dt[, color:=col[1]]
     if('padjust' %in% assayNames(ods) & 'zScore' %in% assayNames(ods)){
-        dt[, padjust  := assays(ods)[['padjust']][geneID,]]
-        dt[, zScore   := assays(ods)[['zScore']][geneID,]]
+        dt[, padjust  := assays(ods)[['padjust']][1,]]
+        dt[, zScore   := assays(ods)[['zScore']][1,]]
         dt[, aberrant := aberrant(ods, padjCutoff=padjCutoff,
-                zScoreCutoff=zScoreCutoff)[geneID,]]
+                zScoreCutoff=zScoreCutoff)[1,]]
         dt[aberrant == TRUE, color:=col[2]]
     } else {
         dt[,aberrant:=FALSE]
     }
     ylab <- paste0(ifelse(isTRUE(normalized), "Normalized", "Raw"),
             " counts", ifelse(isTRUE(log), " + 1", ""))
-    main <- ifelse(!is.null(main), main, geneID)
+    if(missing(main)){
+        main <- geneID
+    }
     
     # plot it
     if(isTRUE(basePlot)){
@@ -377,88 +466,58 @@ plotExpressionRank <- function(ods, geneID, padjCutoff=0.05, zScoreCutoff=0,
                 log=ifelse(isTRUE(log), "y", ""), pch=16, col=color,
                 main=main, xlab='Sample rank', ylab=ylab)]
         grid(equilogs=FALSE)
-    } else {
-        plot_ly(
-            data=dt,
-            x=~norm_rank,
-            y=~normcounts,
-            type="scatter",
-            mode="markers",
-            marker = list(
-                color=~color
-            ),
-            text=~paste0(
-                "Gene ID: ", geneID,
-                "<br>Sample ID: ", sampleID,
-                "<br>Median normcount: ", round(medianCts, digits = 1),
-                "<br>normcount: ", round(normcounts, digits = 1),
-                "<br>expression rank: ", round(norm_rank, digits = 1),
-                if(any(names(assays(ods))== 'padjust')){
-                    paste0("<br>adj. P-value: ", sprintf("%1.1E", padjust))
-                },
-                if(any(names(assays(ods))== 'zScore')){
-                    paste0("<br>Z-score: ", round(zScore, digits = 1))
-                }
-            )
-        ) %>% layout(title=main,
-                xaxis=list(showline=TRUE, title='Sample Rank'),
-                yaxis=list(type=ifelse(isTRUE(log), 'log', 'linear'), 
-                        dtick=ifelse(isTRUE(log), "D1", 
-                                signif(diff(range(dt[,normcounts]))/10, 1)), 
-                        exponentformat='power',
-                        title=ylab))
+        return(invisible())
+        
     }
+    plot_ly(
+        data=dt,
+        x=~norm_rank,
+        y=~normcounts,
+        type="scatter",
+        mode="markers",
+        marker = list(
+            color=~color
+        ),
+        text=~paste0(
+            "Gene ID: ", geneID,
+            "<br>Sample ID: ", sampleID,
+            "<br>Median normcount: ", round(medianCts, digits = 1),
+            "<br>rawcount: ", rawcounts,
+            if(isTRUE(normalized)){
+                paste0("<br>normcount: ", round(normcounts, digits = 1))
+            },
+            "<br>expression rank: ", round(norm_rank, digits = 1),
+            if(any(assayNames(ods) == 'padjust')){
+                paste0("<br>adj. P-value: ", sprintf("%1.1E", padjust))
+            },
+            if(any(names(assays(ods))== 'zScore')){
+                paste0("<br>Z-score: ", round(zScore, digits = 1))
+            }
+        )
+    ) %>% layout(title=main,
+            xaxis=list(showline=TRUE, title='Sample Rank'),
+            yaxis=list(type=ifelse(isTRUE(log), 'log', 'linear'), 
+                    dtick=ifelse(isTRUE(log), "D1", 
+                            signif(diff(range(dt[,normcounts]))/10, 1)), 
+                    exponentformat='power',
+                    title=ylab))
 }
 
 
-#' 
-#' Correlation heatmap
-#' 
-#' Correlation heatmap of the count data of the given samples
-#'
-#' @param x An OutriderDataSet object
-#' @param normalized if TRUE, the normalized counts are used, default.
-#' @param rowCentered if TRUE, the counts are rowwise (genewise) centered
-#' @param rowCoFactor a vector of co-factors for color coding the rows
-#' @param rowColSet A vector of colors or a color set from RColorBrewer
-#' @param colCoFactor A vector of co-factors for color coding the columns
-#' @param colColSet A vector of colors or a color set from RColorBrewer
-#' @param nCluster An integer to be used for cutting the dendrogram into groups
-#' @param main The title for the plot
-#' @param annotateCluster if TRUE and nCluster is a integer the grouping 
-#'             is saved in the returned OutriderDataSet
-#' @param dendrogram character string indicating whether to draw 
-#'             'none', 'row', 'column' or 'both' dendrograms.
-#' @param names character string indicating whether to draw 
-#'             'none', 'row', 'col', or 'both' names.
-#' @param basePlot if TRUE the heatmap.2 function is used otherwise the
-#'             interactive version from ggplotly is used.
-#' @param ... additional arguments to the \code{heatmap.2} function 
-#' @return OutriderDataSet object
-#' 
-#' @examples
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- estimateSizeFactors(ods)
-#' ods <- plotCountCorHeatmap(ods, annotateCluster=TRUE)
-#' 
-#' sex <- sample(c("female", "male"), dim(ods)[2], replace=TRUE)
-#' colData(ods)$sex <- sex 
-#' plotCountCorHeatmap(ods, colCoFactor="sex")
-#' 
+#' @rdname plotFunctions
 #' @export
-plotCountCorHeatmap <- function(x, normalized=TRUE, rowCentered=TRUE, 
+plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE, 
                     rowCoFactor=NULL, rowColSet="Set1", 
                     colCoFactor=NULL, colColSet="Set2", nCluster=4, 
-                    main="Count correlation heatmap", annotateCluster=TRUE,
+                    main="Count correlation heatmap",
                     dendrogram='both', basePlot=TRUE,
                     names=c("both", "row", "col", "none"), ...){
     if(!isTRUE(basePlot)){
-        return(plotCountCorHeatmapPlotly(x, normalized=normalized, 
+        return(plotCountCorHeatmapPlotly(ods, normalized=normalized, 
                 rowCoFactor=rowCoFactor, rowColSet=rowColSet, 
                 rowCentered=rowCentered,
                 colCoFactor=colCoFactor, colColSet=colColSet, 
-                nCluster=nCluster, main=main, annotateCluster=annotateCluster, 
-                dendrogram=dendrogram, ...))
+                nCluster=nCluster, main=main, dendrogram=dendrogram, ...))
     }
     
     colRows  <- NULL
@@ -466,7 +525,7 @@ plotCountCorHeatmap <- function(x, normalized=TRUE, rowCentered=TRUE,
     clustCol <- NULL
     
     # correlation
-    fcMat <- as.matrix(log2(counts(x, normalized=normalized) + 1))
+    fcMat <- as.matrix(log2(counts(ods, normalized=normalized) + 1))
     if(isTRUE(rowCentered)){
         fcMat <- fcMat - rowMeans(fcMat)
     }
@@ -479,8 +538,8 @@ plotCountCorHeatmap <- function(x, normalized=TRUE, rowCentered=TRUE,
     if(isScalarNumeric(nCluster) & nCluster > 0){
         clustCol <- getXColors(cutree(hclust(dist(ctscor)), nCluster))
     }
-    if(annotateCluster & !is.null(clustCol)){
-        colData(x)$clusterNumber <- names(clustCol)
+    if(!is.null(clustCol)){
+        colData(ods)$clusterNumber <- names(clustCol)
     }
     
     # color bars
@@ -488,14 +547,14 @@ plotCountCorHeatmap <- function(x, normalized=TRUE, rowCentered=TRUE,
         rowColSet <- colColSet
     }
     if(!is.null(colCoFactor)){
-        colCols <- getXColors(colData(x)[,colCoFactor], colColSet)
+        colCols <- getXColors(colData(ods)[,colCoFactor], colColSet)
     } else {
         if(!is.null(nCluster) & !is.null(colColSet)){
             colCols <- clustCol
         }
     }
     if(!is.null(rowCoFactor)){
-        colRows <- getXColors(colData(x)[,rowCoFactor], rowColSet)
+        colRows <- getXColors(colData(ods)[,rowCoFactor], rowColSet)
     } else {
         if(!is.null(nCluster)){
             colRows <- clustCol
@@ -539,15 +598,15 @@ plotCountCorHeatmap <- function(x, normalized=TRUE, rowCentered=TRUE,
     do.call("heatmap.2", args, quote = FALSE, envir = env)
     
     rm("tmpOUTRIDERMpos", envir=globalenv())
-    return(invisible(x))
+    return(invisible(ods))
 }
 
-#' @rdname plotCountCorHeatmap
+
 plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
                     rowCoFactor=NULL, 
                     rowColSet="Set1", colCoFactor=NULL, colColSet="Set2",
                     nCluster=4, main="Count correlation heatmap", 
-                    annotateCluster=TRUE, dendrogram='both', ...){
+                    dendrogram='both', ...){
     
     # correlation
     fcMat <- as.matrix(log2(counts(x, normalized=normalized) + 1))
@@ -562,7 +621,7 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
     
     # dendogram and clusters
     clustCol <- getXColors(cutree(hclust(dist(ctscor)), nCluster))
-    if(annotateCluster){
+    if(is.numeric(nCluster)){
         colData(x)$clusterNumber <- names(clustCol)
     }
     
@@ -597,46 +656,24 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 } 
 
 
-#' 
-#' Plot aberrant events per sample
-#' 
-#' @rdname plotAberrantPerSample
-#' @aliases plotAberrantPerSample plotAberrantPerSamplePlotly
-#' 
-#' @param ods OutriderDataSet
-#' @param padjCutoff Adjusted P-value cutoff.
-#' @param zScoreCutoff Z-score cutoff value.
-#' @param outlierRatio The fraction to be used for the outlier sample filtering
-#' @param ... further arguments to \code{aberrant}
-#' @param main string passed to main (title) of the plot.
-#' @param col set color.
-#' @param yadjust option to adjust position of Median and 90percentile labels. 
-#' @param ylab y-axis label
-#' @param labCex label cex parameter 
-#' @param labLine option to move axis labels
-#' @return None
-#' 
-#' @examples
-#' 
-#' ods <- makeExampleOutriderDataSet(500, 100)
-#' ods <- OUTRIDER(ods)
-#' 
-#' plotAberrantPerSample(ods)
-#' 
+#' @rdname plotFunctions
 #' @export
-plotAberrantPerSample <- function(ods, padjCutoff=0.05, zScoreCutoff=0,
-                    main=NULL, outlierRatio=0.001,
+plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
+                    outlierRatio=0.001,
                     col=brewer.pal(3, 'Dark2')[c(1,2)], yadjust=c(1.2, 1.2), 
                     labLine=c(3.5, 3), ylab="#Aberrantly expressed genes", 
-                    labCex=par()$cex, ...){
+                    labCex=par()$cex, ymax=NULL, ...){
     
-    if(is.null(main)){
+    if(missing(main)){
         main <- 'Aberrant Genes per Sample'
     }
     
     count_vector <- sort(aberrant(ods, by="sample", padjCutoff=padjCutoff, 
             zScoreCutoff=zScoreCutoff, ...))
     ylim = c(0.4, max(1, count_vector)*1.1)
+    if(!is.null(ymax)){
+        ylim[2] <- ymax
+    }
     replace_zero_unknown = 0.5
     ticks= c(replace_zero_unknown, signif(10^seq(
             from=0, to=round(log10(max(1, count_vector))), by=1/3), 1))
@@ -671,26 +708,8 @@ plotAberrantPerSample <- function(ods, padjCutoff=0.05, zScoreCutoff=0,
 }
 
 
-#' 
-#' Plot histogram of FPKM values 
-#'
-#' @param ods a OutriderDataSet object containing the reads and fpkm values
-#' @return a ggplot object containing the FPKM plot
-#' 
+#' @rdname plotFunctions
 #' @export
-#'
-#' @examples
-#' ctsFile <- system.file('extdata', 'GTExSkinSmall.tsv', package='OUTRIDER')
-#' ods <- OutriderDataSet(countData=read.table(ctsFile, check.names=FALSE))
-#' annotation <- system.file('extdata', 'gencode.v19.genes.small.gtf.gz', 
-#'         package='OUTRIDER')
-#' 
-#' # Filter, storing the fpkm values and not subsetting the ods object.
-#' ods <- filterExpression(ods, annotation, filterGenes=FALSE, savefpkm=TRUE)
-#' 
-#' #Display the pre distribution of counts.
-#' plotFPKM(ods)
-#' 
 plotFPKM <- function(ods){
     fpkm <- fpkm(ods)
     if(!'passedFilter' %in% colnames(mcols(ods))){
@@ -719,35 +738,19 @@ plotFPKM <- function(ods){
         labs(x='FPKM', y='Frequency')
     p
 }
-    
-#'
-#' Dispersion estimation plot
-#' 
-#' Plotting the dispersion of the OutriderDataSet model against the normalized 
-#' mean count.
-#' 
-#' @param object An OutriderDataSet
-#' @param compareDisp If TRUE, the default, and if the autoCorrect normalization
-#'             was used it computes the dispersion without autoCorrect and 
-#'             plots it for comparison.
-#' @return None
-#' 
-#' @examples 
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- estimateSizeFactors(ods)
-#' ods <- fit(ods)
-#' plotDispEsts(ods)
-#'
-setMethod("plotDispEsts", signature(object="OutriderDataSet"), 
-                    function(object, compareDisp=NULL){
+
+
+plotDispEsts.OUTRIDER <- function(object, compareDisp, xlim, ylim, 
+            main="Dispersion estimates versus mean expression", ...){
     # validate input                 
-    if(!'disp' %in% names(mcols(object))){
+    if(!'theta' %in% names(mcols(object))){
         stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods) ',
                 'or ods <- fit(ods)')
-    } 
-    if(is.null(compareDisp)){
-        compareDisp <- 'weights' %in% names(metadata(object))
     }
+    if(missing(compareDisp)){
+        compareDisp <- !is.null(E(ods))
+    }
+    
     # disp from OUTRIDER
     odsVals <- getDispEstsData(object)
     legText <- c("OUTRIDER fit")
@@ -761,11 +764,15 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
         ods2 <- fit(ods2)
         nonAutoVals <- getDispEstsData(ods2, odsVals$mu)
     }
-    
+    if(missing(xlim)){
+        xlim=range(odsVals$xpred)
+    }
+    if(missing(ylim)){
+        ylim=range(1/odsVals$disp)
+    }
     # plot dispersion
-    plot(NA, xlim=range(odsVals$mu), ylim=range(1/odsVals$disp),
-            pch='.', log="yx", xlab='Mean expression', ylab='Dispersion',
-            main="Dispersion estimates versus mean expression")
+    plot(NA, xlim=xlim, ylim=ylim, pch='.', log="yx", xlab='Mean expression', 
+            ylab='Dispersion', main=main)
     if(!is.null(nonAutoVals)){
         points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="black")
     }
@@ -780,42 +787,76 @@ setMethod("plotDispEsts", signature(object="OutriderDataSet"),
     }
     
     legend("bottomleft", legText, col=legCol, pch=20, lty=1, lwd=3)
-})
+}
 
 
+#' @rdname plotFunctions
+#' @exportMethod plotDispEsts
+setMethod("plotDispEsts", signature(object="OutriderDataSet"), 
+        plotDispEsts.OUTRIDER)
 
-#' PowerAnalysis Plot
-#'
-#' The spikes in the plot do come from the fraction not beeing integer valued,
-#' but the negative binomial is only defined for integer values.
-#'
-#' @param ods OutriderDataSet
-#'
-#' @return a plot showing, wich P-value can be theoretically reached for 
-#' specified fractions of expression reads.
+
+#' @rdname plotFunctions
 #' @export
-#'
-#' @examples
-#' ods <- makeExampleOutriderDataSet()
-#' ods <- estimateSizeFactors(ods)
-#' ods <- fit(ods)
-#' plotPowerAnalysis(ods)
 plotPowerAnalysis <- function(ods){
     dispfit <-getDispEstsData(ods)
     m <- 10^seq.int(0,4,length.out = 1E4)
     d <- 1/dispfit$fit(m)
     dt<-rbindlist(lapply(c(0,0.1,0.2,0.3,0.5, 2,5,10), function(frac) 
         data.table(mean=m, disp=d, frac=frac, 
-            pVal=pmin(0.5, pnbinom(frac * m, mu = m, size=d),
-                1 - pnbinom(frac * m, mu = m, size=d) + 
-                    dnbinom(frac * m, mu = m, size=d)
+            pVal=pmin(0.5, pnbinom(round(frac * m), mu = m, size=d),
+                1 - pnbinom(round(frac * m), mu = m, size=d) + 
+                    dnbinom(round(frac * m), mu = m, size=d)
             )
         )))
     
     dt[,negLog10pVal:=-log10(pVal)]
     dt[,Fraction:=as.factor(frac)]
-    ggplot(dt, aes(mean, negLog10pVal, col=Fraction)) +  
+    dt[,ExprType:= ifelse(frac<1, 'Downregulation', 'Overexpression')]
+    ggplot(dt, aes(mean, negLog10pVal, col=Fraction, linetype=ExprType)) +  
         geom_smooth(method=lm, formula = y ~ bs(x, 10), se = FALSE) +
         scale_x_log10(breaks=c(1,5,10,50,100,500,1000,5000,10000)) + 
-        labs(x="Mean", y='-log10(P-value)') + ylim(0,15) 
+        labs(x="Mean", y='-log10(P-value)',color='Expression level', 
+            linetype='Expression type') + ylim(0,15) 
+}
+
+#' @rdname plotFunctions
+#' @export
+plotEncDimSearch <- function(ods){
+    if(is(ods, 'OutriderDataSet')){
+        if(!'encDimTable' %in% colnames(metadata(ods)) & 
+                !is(metadata(ods)$encDimTable, 'data.table')){
+            stop('Please run first the findEncodingDim before ', 
+                    'plotting the results of it.')
+        }
+        dt <- metadata(ods)$encDimTable
+        q <- getBestQ(ods)
+    } else {
+        dt <- ods
+        dt <- dt[,
+                opt:=encodingDimension[which.max(evaluationLoss)[1]], by=zScore]
+        q <- dt[opt == encodingDimension, opt]
+    }
+    
+    if(!is.data.table(dt)){
+        stop('Please provide the encDimTable from the OutriderDataSet object.')
+    }
+    if(!'zScore' %in% colnames(dt)){
+        dt[,zScore:='Optimum']
+        dt[,opt:=q]
+    }
+    dtPlot <- dt[,.(enc=encodingDimension, z=as.character(zScore), 
+            eva=evaluationLoss, opt)]
+    ggplot(dtPlot, aes(enc, eva, col=z)) +
+        geom_point() + 
+        scale_x_log10() + 
+        geom_smooth(method='loess') +
+        ggtitle('Search for best encoding dimension') + 
+        geom_vline(data=dtPlot[opt == enc], 
+                aes(xintercept=enc, col=z, shape='Optimum'),
+                linetype='dotted', show.legend=TRUE) +
+        geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) + 
+        labs(x='Encoding dimensions',
+                y='Evaluation loss', col='Z score', shape='Best Q') + 
+        grids(linetype='dotted')
 }

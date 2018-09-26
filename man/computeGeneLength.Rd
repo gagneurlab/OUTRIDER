@@ -2,20 +2,20 @@
 % Please edit documentation in R/filterExpression.R
 \name{computeGeneLength}
 \alias{computeGeneLength}
-\title{Computes for each gene based on the GTF file the exon length}
+\title{Extracting the gene length from annotations}
 \usage{
 computeGeneLength(ods, gtfFile, format = "gtf", mapping = NULL, ...)
 }
 \arguments{
 \item{ods}{An OutriderDataSet for which the gene length should be computed.}
 
-\item{gtfFile}{Can be a gft file or an txDb object with annotation.}
+\item{gtfFile}{Can be a GTF file or an txDb object with annotation.}
 
-\item{format}{the format parameter from \code{makeTxDbFromGFF}}
+\item{format}{The format parameter from \code{makeTxDbFromGFF}}
 
-\item{mapping}{if set, it is used to map gene names between gtf and ods. 
-This should be a 2 column data.frame: 1. column GTF names 
-and 2. column ods names.}
+\item{mapping}{If set, it is used to map gene names between the GFT and the
+ods object. This should be a 2 column data.frame: 
+1. column GTF names and 2. column ods names.}
 
 \item{...}{further arguments to \code{makeTxDbFromGFF}}
 }
@@ -25,7 +25,9 @@ An OutriderDataSet containing a \code{basepairs} column with the
             \code{mcols(ods)['baisepairs']}
 }
 \description{
-Computes for each gene based on the GTF file the exon length
+Computes the length for each gene based on the given GTF file or annotation.
+Here the length of a gene is defind by the total number of bases covered
+by exons.
 }
 \examples{
 
@@ -33,17 +35,6 @@ ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 annotationFile <- system.file("extdata", "gencode.v19.genes.small.gtf.gz",
         package="OUTRIDER")
 ods <- computeGeneLength(ods, annotationFile)
-
-mcols(ods)['basepairs']
-fpkm(ods)[1:10,1:10]
-
-library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-library(org.Hs.eg.db)
-ods <- makeExampleOutriderDataSet(dataset="KremerNBaderSmall")
-txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
-mapping <- select(org.Hs.eg.db, keys=keys(txdb, keytype = "GENEID"), 
-        keytype="ENTREZID", columns=c("SYMBOL"))
-ods <- computeGeneLength(ods, txdb, mapping=mapping)
 
 mcols(ods)['basepairs']
 fpkm(ods)[1:10,1:10]

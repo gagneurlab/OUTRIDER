@@ -1,42 +1,47 @@
 
 counts.replace.OutriderDataSet <- function(object, value){
+    mode(value) <- "integer"
     assays(object)[["counts"]] <- value
+    
     validObject(object)
     object
 }
 
-counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0) {
+counts.OutriderDataSet <- function(object, normalized=FALSE, minE=0.5){
+    cnts <- assay(object, "counts")
     
-    cnts <- assays(object)[["counts"]]
+    # raw counts
     if(!normalized) {
         return(cnts)
     }
+    
+    # normalized by normalization factors
     if(!is.null(normalizationFactors(object))) {
-        return((cnts + offset)/ normalizationFactors(object)*
-                rowMeans(normalizationFactors(object)))
+        E <- t(apply(normalizationFactors(object), 1, pmax, minE))
+        return(cnts/E * exp(rowMeans(log(E))))
     }
+    
+    # normalization by sizeFactors
     if(is.null(sizeFactors(object)) || any(is.na(sizeFactors(object)))) {
         stop(paste("first calculate size factors, add normalizationFactors,",
                 "or set normalized=FALSE"))
     }
-    return(t(
-            t(cnts + offset) / sizeFactors(object) * mean(sizeFactors(object))))
+    return(t(t(cnts) / sizeFactors(object)))
 }
 
 #' 
-#' Accessors for the 'counts' slot of a OutriderDataSet object.
+#' Accessors for the 'counts' slot of an OutriderDataSet object.
 #' 
 #' The counts slot holds the count data as a matrix of non-negative integer
-#' count values, one row for each observational unit (gene or the like), and one
+#' count values, one row for each observational unit (eg.: gene), and one
 #' column for each sample. 
 #'
-#' By default this function returns the raw counts.
-#' If conrols/normalizations are computed the normalized counts can be returned 
-#' using normalized = TRUE.
-#' The offset parameter can be used to add a pseudocount to the count before 
-#' dividing by the normalization. This can be usefull when the log(counts) 
-#' should be computed and in case the controll values are in the same oder of 
-#' magnited as the counts.
+#' By default this function returns the raw counts. If conrol factors are
+#' computed or provided the normalized counts can be returned using 
+#' normalized = TRUE. The offset parameter can be used to add a pseudocount
+#' to the count before dividing by the normalization. This can be usefull 
+#' when the log(counts) are computed and in case the controll values are in 
+#' the same oder of magnited as the counts.
 #'
 #' @docType methods
 #' @name counts
@@ -46,15 +51,15 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, offset=0) {
 #'
 #' @param object OutriderDataSet
 #' @param normalized TRUE/FALSE whether counts should be normalized
-#' @param offset pseudocount offset by default 0.
 #' @param value An integer matrix containing the counts
+#' @param minE minimal expected count.
 #' @return A matrix containing the counts
 #' 
 #' @seealso \code{\link{sizeFactors}}, \code{\link{normalizationFactors}}
 #'
 #' @examples
 #' 
-#' ods <- makeExampleOutriderDataSet(n=111, m=10)
+#' ods <- makeExampleOutriderDataSet()
 #' counts(ods)[1:10,1:10]
 #'
 #' ods <- estimateSizeFactors(ods)
@@ -77,7 +82,7 @@ normalizationFactors.OutriderDataSet <- function(object) {
     assays(object)[["normalizationFactors"]]
 }
 
-normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
+normFactors.replace.OutriderDataSet <- function(object, value) {
     # enforce same dimnames and matrix type
     if(!is.matrix(value)){
         value <- as.matrix(value)
@@ -89,18 +94,6 @@ normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
     stopifnot(all(is.finite(value)))
     stopifnot(all(value > 0))
     
-    
-    # multiply the new values with existing ones if not otherwise requested
-    normF <- normalizationFactors(object)
-    sizeF <- sizeFactors(object)
-    if(replace == FALSE & !(is.null(normF) & is.null(sizeF))){
-        if(!is.null(normF)){
-            value <- value * normF
-        } else {
-            value <- t(t(value) * sizeF)
-        }
-    }
-    
     # set the values and check the object
     assays(object)[["normalizationFactors"]] <- value
     validObject(object)
@@ -108,8 +101,13 @@ normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
 }
 
 #' 
-#' Accessor functions for the normalization factors in a OutriderDataSet
+#' Accessor functions for the normalization factors in an OutriderDataSet
 #' object.
+#' 
+#' To normalize raw count data normalization factors can be provided as
+#' a matrix. When running \code{\link{controlForConfounders}} the normalization 
+#' factors are stored within the OutriderDataset object. This normalization 
+#' factors are then used to compute the normalized counts.
 #'
 #' @seealso DESeq2::normalizationFactors
 #' @docType methods
@@ -120,18 +118,18 @@ normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
 #'         normalizationFactors<-,OutriderDataSet,DataFrame-method 
 #'         normalizationFactors<-,OutriderDataSet,NULL-method
 #'         
-#' @param object a \code{OutriderDataSet} object.
-#' @param value the matrix of normalization factors
-#' @param replace if old values are present values are replcaed. If set to false
-#'                old and new values are multiplied.
+#' @param object An \code{OutriderDataSet} object.
+#' @param value The matrix of normalization factors
 #' @param ... additional arguments
 #' @return A numeric matrix containing the normalization factors or the 
 #'             OutriderDataSet object with an updated 
 #'             \code{normalizationFactors} assay.
 #' 
+#' @seealso \code{\link{sizeFactors}}
+#' 
 #' @examples
 #'
-#' ods <- makeExampleOutriderDataSet(n=111, m=10)
+#' ods <- makeExampleOutriderDataSet()
 #'
 #' normFactors <- matrix(runif(nrow(ods)*ncol(ods),0.5,1.5),
 #'     ncol=ncol(ods),nrow=nrow(ods))
@@ -144,7 +142,7 @@ normFactors.replace.OutriderDataSet <- function(object, value, replace=TRUE) {
 #' 
 #' normalizationFactors(ods) <- NULL
 #' ods <- estimateSizeFactors(ods)
-#' normalizationFactors(ods, replace=FALSE) <- normFactors
+#' normalizationFactors(ods) <- normFactors
 #' all(normalizationFactors(ods) == t(sizeFactors(ods) * t(normFactors)))
 #' 
 #' @export normalizationFactors

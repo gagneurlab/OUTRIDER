@@ -8,33 +8,32 @@
 \usage{
 filterExpression(x, ...)
 
-\S4method{filterExpression}{OutriderDataSet}(x, gtfFile = NULL,
-  fpkmCutoff = 1, filterGenes = FALSE, savefpkm = FALSE,
-  onlyZeros = FALSE, ...)
+\S4method{filterExpression}{OutriderDataSet}(x, gtfFile, fpkmCutoff = 1,
+  filterGenes = TRUE, savefpkm = FALSE, minCounts = FALSE, ...)
 }
 \arguments{
 \item{x}{An OutriderDataSet object}
 
-\item{...}{additional arguments passed to \code{computeGeneLength}}
+\item{...}{Additional arguments passed to \code{computeGeneLength}}
 
-\item{gtfFile}{a txdb object or a GTF/GFF file to be used as annotation}
+\item{gtfFile}{A txDb object or a GTF/GFF file to be used as annotation}
 
-\item{fpkmCutoff}{the threshold for filtering based on the FPKM value}
+\item{fpkmCutoff}{The threshold for filtering based on the FPKM value}
 
-\item{filterGenes}{if TRUE, the default, the object is subseted.}
+\item{filterGenes}{If TRUE, the default, the object is subseted.}
 
-\item{savefpkm}{if TRUE the FPKM values are saved as assay}
+\item{savefpkm}{If TRUE the FPKM values are saved as assay}
 
-\item{onlyZeros}{filter only based on zero counts on a gene}
+\item{minCounts}{Filter for required read counts per gene}
 }
 \value{
 An OutriderDataSet containing the \code{passedFilter} column, which
             indicates if the given gene passed the filtering threshold. If
-            filterGenes is TRUE the object is already subsetted.
+            \code{filterGenes} is TRUE the object is already subsetted.
 }
 \description{
-To filter out none expressed genes this method uses the fpkm values to 
-get a comparable value over genes. To calcute the fpkm values the user 
+To filter out non expressed genes this method uses the FPKM values to 
+get a comparable value over genes. To calcute the FPKM values the user 
 needs to provide a GTF file or the basepair parameter as described in 
 \code{\link[DESeq2]{fpkm}}.
 }
@@ -42,13 +41,13 @@ needs to provide a GTF file or the basepair parameter as described in
 ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 annotationFile <- system.file("extdata", 
     "gencode.v19.genes.small.gtf.gz", package="OUTRIDER")
-ods <- filterExpression(ods, annotationFile)
+ods <- filterExpression(ods, annotationFile, filterGenes=FALSE)
 
 mcols(ods)['passedFilter']
 fpkm(ods)[1:10,1:10]
 dim(ods)
 
-ods <- filterExpression(ods, annotationFile, filterGenes=TRUE)
+ods <- ods[mcols(ods)[['passedFilter']]]
 dim(ods)
 
 }
