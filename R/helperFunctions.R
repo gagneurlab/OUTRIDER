@@ -35,29 +35,30 @@ getXColors <- function(x, set="Set2"){
 }
 
 
+#' 
 #' This function is used by the plotDispEsts function.
 #' 
 #' TODO
 #' 
 #' @noRd
 getDispEstsData <- function(ods, mu=NULL){
-    if(!'disp' %in% colnames(mcols(ods))){
+    if(is.null(theta(ods))){
         stop('Please fit the ods first. ods <- fit(ods)')
     }
     odsMu <- rowMeans(counts(ods, normalized=TRUE))
     if(is.null(mu)){
         mu <- odsMu
     }
-    disp <- mcols(ods)$disp
+    theta <- theta(ods)
     xidx <- 10^(seq.int(max(-5,log10(min(mu))-1), log10(max(mu))+0.1, 
             length.out = 500))
     
     # fit DESeq2 parametric Disp Fit
-    fit <- parametricDispersionFit(mu, 1/disp)
+    fit <- parametricDispersionFit(mu, 1/theta)
     pred <- fit(xidx)
     return(list(
         mu=mu,
-        disp=disp,
+        disp=theta,
         xpred=xidx,
         ypred=pred,
         fit=fit
@@ -130,66 +131,47 @@ getGeneIndex <- function(geneIdx, ods){
     return(geneIdx)
 }
 
-getBestQ <- function(ods){
+#' @rdname getter_setter_functions
+#' @export
+getBestQ <- function(ods, digits=2){
     if('optimalEncDim' %in% names(metadata(ods))){
         return(metadata(ods)[['optimalEncDim']])
     }
+    
     if('encDimTable' %in% names(metadata(ods))){
-        return(metadata(ods)[['encDimTable']][
-            which.min(evaluationLoss),encodingDimension])
+        encTable <- metadata(ods)[['encDimTable']]
+        return(getBestQDT(encTable, 'aucPR', digits=digits))
     }
     # warning('Please find the optimal encoding dimension by running. ')
     return(NA_integer_)
 }
 
-checkCountRequirements <- function(ods, test=FALSE){
-    checkOutriderDataSet(ods)
-    if(ncol(ods) == 0){
-        stop("Please provide at least one sample.")
+getBestQDT <- function(dt, usedEvalMethod='aucPR', digits=2){
+    if('evalMethod' %in% colnames(dt)){
+        testFun <- ifelse(all(dt[,evalMethod == usedEvalMethod]), 
+                which.max, which.min)
+    } else {
+        testFun <- which.max
     }
-    if(nrow(ods) == 0){
-        stop("Please provide at least one gene.")
-    }
-    filterGenes <- rowSums(counts(ods)) == 0
-    if(any(filterGenes) & isFALSE(test)){
-        stop("There are genes without any read. Please filter first ",
-                "the data with: ods <- filterExpression(ods)")
-    }
-    filterGenes <- filterGenes | rowSums(counts(ods)) < ncol(ods)/100
-    if(any(filterGenes) & isFALSE(test)){
-        stop("The model requires for each gene at least 1 read ", 
-                "every 100 sample. Please filte first the data with: ",
-                "ods <- filterExpression(ods)")
-    }
-    return(invisible(filterGenes))
+    
+    dt[,encodingDimension[
+            seq_len(.N) == testFun(round(evaluationLoss, digits))]]
 }
 
-checkOutriderDataSet <- function(ods){
-    if(!is(ods, 'OutriderDataSet')){
-        stop('Please provide an OutriderDataSet')
-    }
-    return(invisible(TRUE))
+#'
+#' Estimation of Q
+#' 
+#' Estimating the best q for the given data set
+#' 
+#' @param ods An OutriderDataSet object
+#' @return The estimated dimension of hidden confounders
+#' 
+#' @examples
+#' ods <- makeExampleOutriderDataSet()
+#' 
+#' estimateBestQ(ods)
+#' 
+#' @export
+estimateBestQ <- function(ods){
+    round(max(2, min(500, 3.7 + 0.16*ncol(ods))))
 }
-
-checkSizeFactors <- function(ods, funName=sys.calls()[[1]]){
-    checkOutriderDataSet(ods)
-    if(is.null(sizeFactors(ods))){
-        stop("Please calculate the size factors before calling the '", funName,
-                "' function. Please do: ods <- estimateSizeFactors(ods)")
-    }
-    return(invisible(TRUE))
-}
-
-checkFullAnalysis <- function(ods, funName=sys.calls()[[1]]){
-    checkSizeFactors(ods)
-    if(!'padjust' %in% assayNames(ods)){
-        stop("Please calculate the P-values before calling the '", funName,
-             "' function. Please do: ods <- computePvalues(ods)")
-    }
-    if(!'zScore' %in% assayNames(ods)){
-        stop("Please calculate the Z-scores before calling the '", funName,
-             "' function. Please do: ods <- computeZscores(ods)")
-    }
-    return(invisible(TRUE))
-}
-

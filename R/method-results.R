@@ -1,17 +1,10 @@
 
-compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
+compileResults <- function(object, padjCutoff, zScoreCutoff, round, all, 
+                           BPPARAM=bpparam()){
+    checkOutriderDataSet(object)
+    checkFullAnalysis(object)
+    
     features <- c("pValue", "padjust", "zScore", "l2fc")
-    if(!is(object, 'OutriderDataSet')){
-        stop('Please provide an OutriderDataSet')
-    }
-    if(!"pValue" %in% assayNames(object)){
-        stop(paste0("The P-values are not computed yet. Please run the ",
-                "following command:\n\tods <- computePvalues(ods)"))
-    }
-    if(!"zScore" %in% assayNames(object)){
-        stop(paste0("The Z-scores are not computed yet. Please run the ",
-                "following command:\n\tods <- computeZscores(ods)"))
-    }
     if(!all(features %in% assayNames(object))){
         stop(paste0("Some of the assays are missing. Please run the full ", 
                 "analysis before extracting the results.",
@@ -25,15 +18,19 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
                 zScoreCutoff=zScoreCutoff, by="gene") > 0,]
         if(dim(object)[1]==0){
             warning('No significant events: use all=TRUE to print all counts.')
-            return(data.table(geneID='a', sampleID='a', pValue=0.1, padjust=0.1,
-                    zScore=1.1, l2fc=0.1, rawcounts=1, normcounts=1, mu=0.1,
-                    disp=1.2, meanCorrected=23.3, AberrantBySample=0,
-                    AberrantByGene=1, padj_rank=23.5)[0])
+            return(data.table(geneID=NA_character_, sampleID=NA_character_, 
+                    pValue=NA_real_, padjust=NA_real_, zScore=NA_real_,
+                    l2fc=NA_real_, rawcounts=NA_integer_, normcounts=NA_real_,
+                    theta=NA_real_, meanCorrected=NA_real_, 
+                    AberrantBySample=NA_integer_, AberrantByGene=NA_integer_,
+                    padj_rank=NA_real_)[0])
         }
     }
     
-    DTfitparameters <- as.data.table(as.matrix(mcols(
-            object, use.names=TRUE)[c('mu', 'disp')]), keep.rownames="geneID")
+    if(is.null(rownames(object))){
+        rownames(object) <- paste('feature', seq_len(nrow(object)), sep='_')
+    }
+    DTfitparameters <- data.table(geneID=rownames(object), theta=theta(object))
     
     countdataDF <- as.data.table(counts(object), keep.rownames="geneID")
     countNormDF <- as.data.table(counts(object, normalized=TRUE), 
@@ -49,26 +46,26 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
     featureDTs <- append(featureDTs, list(
             rawcounts=countdataDF, normcounts=countNormDF, aberrant=aberrantDF))
     
-    featureMeltDTs <- lapply(names(featureDTs), function(n){
-        featureDTs[[n]] %>% melt(id.vars="geneID", value.name=n,
-                measure.vars=2:(dim(object)[2]+1), variable.name="sampleID")})
+    featureMeltDTs <- bplapply(names(featureDTs), dt=featureDTs, 
+            BPPARAM=BPPARAM, mv=seq_len(ncol(object)) + 1,
+            FUN=function(n, dt, mv){
+                dt[[n]] %>% melt(id.vars="geneID", value.name=n,
+                        measure.vars=mv, variable.name="sampleID")})
     
     tidyresults <- Reduce(x=featureMeltDTs, f=function(x, y){
         merge(x, y, by=c("geneID", "sampleID")) })
     
+    # merge by geneID
     tidyresults <- merge(tidyresults, DTfitparameters, by=c('geneID'))
-    
     tidyresults <- merge(tidyresults, data.table(geneID=rownames(object), 
             meanCorrected=rowMeans(counts(object, normalized=TRUE))), 
+            AberrantByGene=aberrant(object, by='gene'), 
             by=c('geneID'))
     
+    # merge by sampleID
     tidyresults <- merge(tidyresults, data.table(sampleID=colnames(object), 
             AberrantBySample=aberrant(object, by='sample')), 
             by=c('sampleID'))
-    
-    tidyresults <- merge(tidyresults, data.table(geneID=rownames(object), 
-            AberrantByGene=aberrant(object, by='gene')), 
-            by=c('geneID'))
     
     if(isFALSE(all)){
         tidyresults <- tidyresults[aberrant == TRUE]
@@ -77,7 +74,7 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all){
     tidyresults <- tidyresults[order(padjust)]
     
     if(is.numeric(round)){
-        col2round <- c("normcounts", "mu", "zScore", "l2fc", "disp",
+        col2round <- c("normcounts", "zScore", "l2fc", "theta",
                 "meanCorrected")
         devNull <- lapply(col2round, function(x){
                 tidyresults[,c(x):=round(get(x), as.integer(round))] })

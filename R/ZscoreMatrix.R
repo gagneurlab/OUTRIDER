@@ -11,9 +11,10 @@
 #' mean and standard deviation for gene j, respectively.
 #' 
 #' @param ods OutriderDataSet
-#' @param ... Further arguments passed to \code{ZscoreMatrix}
-#' @return An OutriderDataSet containing the z score matrix ("zScore") and
-#'     the log2 fold changes ("l2fc") as asasys.
+#' @param ... Further arguments passed on to \code{ZscoreMatrix}.
+#' @param peerResiduals If TRUE, PEER residuals are used to compute Z scores
+#' @return An OutriderDataSet containing the Z score matrix "zScore" and
+#'     the log2 fold changes "l2fc" as asasys.
 #' 
 #' @docType methods
 #' @name computeZscores
@@ -23,10 +24,11 @@
 #' ods <- makeExampleOutriderDataSet()
 #' ods <- estimateSizeFactors(ods)
 #' 
+#' ods <- controlForConfounders(ods, implementation="pca")
 #' ods <- computeZscores(ods)
 #' 
-#' assays(ods)[['zScore']][1:10,1:10]
-#' assays(ods)[["l2fc"]][1:10,1:10]
+#' zScore(ods)[1:10,1:10]
+#' assay(ods, "l2fc")[1:10,1:10]
 #' 
 #' @exportMethod computeZscores
 setGeneric("computeZscores", 
@@ -34,23 +36,37 @@ setGeneric("computeZscores",
 
 #' @rdname computeZscores
 #' @export
-setMethod("computeZscores", "OutriderDataSet", function(ods, ...){
-    ZscoreMatrix(ods, ...)
-})
+setMethod("computeZscores", "OutriderDataSet", 
+    function(ods, peerResiduals=FALSE, ...){ 
+        ZscoreMatrix(ods, peerResiduals=peerResiduals) })
 
-ZscoreMatrix <- function(ods, normalized=TRUE, median=FALSE){
+ZscoreMatrix <- function(ods, peerResiduals){
+    if(length(normalizationFactors(ods)) == 0){
+        stop("Please fit the autoencoder first befor computing Z scores.")
+    }
+    
+    # default Zscore calculation
     log2fc <- log2fc(ods)
     Zscore <- (log2fc - rowMeans(log2fc)) / rowSds(log2fc)
-    assays(ods)[["l2fc"]] <- log2fc
-    assays(ods)[["zScore"]] <- Zscore
+    
+    # Use residuals from PEER if present
+    if(isTRUE(peerResiduals)){
+        if(!"PEER_model" %in% names(metadata(ods)) && 
+                    !"residuals" %in% names(metadata(ods)[['PEER_model']])){
+            stop("Please fit the data with 'peer' first.")
+        }
+        residuals <- metadata(ods)[['PEER_model']][['residuals']]
+        Zscore <- (residuals - rowMeans(residuals)) / rowSds(residuals)
+    }
+    
+    assay(ods, "l2fc") <- log2fc
+    zScore(ods) <- Zscore
     validObject(ods)
     return(ods)
 }
 
 
-log2fc <- function(object, normalized = TRUE){
-    l2fc <- log2(counts(object, normalized = normalized, offset = 1)) - 
-        log2(rowMeans(counts(object, normalized = normalized, offset = 1)))
-    return(l2fc)
+log2fc <- function(object){
+    log2(counts(object) + 1) - log2(normalizationFactors(object) + 1)
 }
 

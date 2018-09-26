@@ -8,16 +8,19 @@
 \usage{
 computeZscores(ods, ...)
 
-\S4method{computeZscores}{OutriderDataSet}(ods, ...)
+\S4method{computeZscores}{OutriderDataSet}(ods, peerResiduals = FALSE,
+  ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
 
-\item{...}{Further arguments passed to \code{ZscoreMatrix}}
+\item{...}{Further arguments passed on to \code{ZscoreMatrix}.}
+
+\item{peerResiduals}{If TRUE, PEER residuals are used to compute Z scores}
 }
 \value{
-An OutriderDataSet containing the z score matrix ("zScore") and
-    the log2 fold changes ("l2fc") as asasys.
+An OutriderDataSet containing the Z score matrix "zScore" and
+    the log2 fold changes "l2fc" as asasys.
 }
 \description{
 Computes the z scores for every count in the matrix. 
@@ -33,9 +36,10 @@ mean and standard deviation for gene j, respectively.
 ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 
+ods <- controlForConfounders(ods, implementation="pca")
 ods <- computeZscores(ods)
 
-assays(ods)[['zScore']][1:10,1:10]
-assays(ods)[["l2fc"]][1:10,1:10]
+zScore(ods)[1:10,1:10]
+assay(ods, "l2fc")[1:10,1:10]
 
 }
