@@ -26,7 +26,7 @@ sampleExclusionMask <- function(ods, aeMatrix=FALSE){
     }
     
     if(isTRUE(aeMatrix)){
-        ans <- as.integer(sapply(ans, isFALSE))
+        ans <- as.integer(vapply(ans, isFALSE, FALSE))
         return(matrix(ans, ncol=ncol(ods), nrow=nrow(ods)))
     }
     return(ans)

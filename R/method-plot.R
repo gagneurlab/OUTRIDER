@@ -399,8 +399,8 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
 
 #' @rdname plotFunctions
 #' @export
-plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=0, 
-                    normalized=TRUE, basePlot=FALSE, log=TRUE,
+plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, 
+                    zScoreCutoff=0, normalized=TRUE, basePlot=FALSE, log=TRUE,
                     col=c("gray", "firebrick"), ...){
     # check user input
     if(!is(ods, "OutriderDataSet")){
@@ -506,7 +506,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
 
 #' @rdname plotFunctions
 #' @export
-plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE, newVersion=FALSE,
+plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE, 
                     rowCoFactor=NULL, rowColSet="Set1", 
                     colCoFactor=NULL, colColSet="Set2", nCluster=4, 
                     main="Count correlation heatmap",
@@ -772,7 +772,7 @@ plotDispEsts.OUTRIDER <- function(object, compareDisp, xlim, ylim,
     }
     # plot dispersion
     plot(NA, xlim=xlim, ylim=ylim, pch='.', log="yx", xlab='Mean expression', 
-         ylab='Dispersion', main=main)
+            ylab='Dispersion', main=main)
     if(!is.null(nonAutoVals)){
         points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="black")
     }
@@ -833,7 +833,8 @@ plotEncDimSearch <- function(ods){
         q <- getBestQ(ods)
     } else {
         dt <- ods
-        dt <- dt[,opt:=encodingDimension[which.max(evaluationLoss)[1]], by=zScore]
+        dt <- dt[,
+                opt:=encodingDimension[which.max(evaluationLoss)[1]], by=zScore]
         q <- dt[opt == encodingDimension, opt]
     }
     

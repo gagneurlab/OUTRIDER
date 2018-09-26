@@ -19,7 +19,7 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     if(isTRUE(initialize) | is.null(E(ods)) | is.null(D(ods))){
         ods <- initAutoencoder(ods, q, thetaRange)
     }
-     
+    
     # initial loss
     lossList <- c(init_pca=lossED(ods))
     print(paste0('Initial PCA loss: ', lossList[1]))
@@ -106,7 +106,8 @@ updateLossList <- function(ods, lossList, i, stepText){
     currLoss <- lossED(ods)
     lossList <- c(lossList, currLoss)
     names(lossList)[length(lossList)] <- paste0(i, '_', stepText)
-    print(paste0(date(), ': Iteration: ', i, ' ', stepText, ' loss: ', currLoss))
+    print(paste0(date(), ': Iteration: ', i, ' ', 
+            stepText, ' loss: ', currLoss))
     return(lossList)
 }
 

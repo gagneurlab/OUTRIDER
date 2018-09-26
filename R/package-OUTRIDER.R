@@ -40,10 +40,6 @@
 #' 
 #' @importFrom ggpubr grids
 #'          
-#' @importFrom glmnet cv.glmnet
-#' 
-#' @importFrom lbfgs lbfgs
-#'          
 #' @importFrom gplots barplot2 bluered heatmap.2
 #' 
 #' @importFrom graphics plot abline axis box grid legend lines mtext par points 
@@ -99,11 +95,19 @@ globalVariables(c(
     "opt",
     "padj_rank", 
     "padjust", 
-                  
-## color", "frac", "Fraction", "ExprType", 
-##       "evaluationLoss", "loggeomeans", "lty", 
-##        "lwd", "medianCts", "mu", "negLog10pVal", "normcounts", "norm_rank", 
-##        "obs", "onlyFull","passedFilter", "pValue", 
+    "medianCts", 
+    "negLog10pVal", "normcounts", 
+    "obs", "onlyFull",
+    "lty", 
+    "lwd", 
+    ##"mu",
+    "norm_rank", 
+    "color", "frac",
+    "Fraction",
+    "ExprType", 
+    "passedFilter",
+##       loggeomeans", 
+##         "pValue", 
 ## "zScore"), 
        "sampleID", "value", "V1", "Var1", "Var2", ".x", 
         "z"), package="OUTRIDER")

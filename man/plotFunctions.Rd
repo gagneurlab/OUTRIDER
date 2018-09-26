@@ -28,8 +28,8 @@ plotExpressionRank(ods, geneID, main, padjCutoff = 0.05,
   log = TRUE, col = c("gray", "firebrick"), ...)
 
 plotCountCorHeatmap(ods, normalized = TRUE, rowCentered = TRUE,
-  newVersion = FALSE, rowCoFactor = NULL, rowColSet = "Set1",
-  colCoFactor = NULL, colColSet = "Set2", nCluster = 4,
+  rowCoFactor = NULL, rowColSet = "Set1", colCoFactor = NULL,
+  colColSet = "Set2", nCluster = 4,
   main = "Count correlation heatmap", dendrogram = "both",
   basePlot = TRUE, names = c("both", "row", "col", "none"), ...)
 

@@ -13,13 +13,13 @@ updateD <- function(ods, control, BPPARAM){
     thetaC <- thetaCorrection(ods)
     
     # run fits
-    fitls <- bplapply(1:nrow(ods), singleDFit, D=D, b=b, k=k, sf=sf, H=H, 
+    fitls <- bplapply(seq_len(nrow(ods)), singleDFit, D=D, b=b, k=k, sf=sf, H=H, 
             theta=theta, mask=sMask, control=control, thetaC=thetaC, 
             BPPARAM=BPPARAM)
     
     # extract infos
-    parMat <- sapply(fitls, '[[', 'par')
-    mcols(ods)['FitDMessage'] <- sapply(fitls, '[[', 'message')
+    parMat <- vapply(fitls, '[[', double(ncol(D) + 1), 'par')
+    mcols(ods)['FitDMessage'] <- vapply(fitls, '[[', 'text', 'message')
     print(table(mcols(ods)[,'FitDMessage']))
     mcols(ods)[,'NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
             "CONVERGENCE: REL_REDUCTION_OF_F .. FACTR.EPSMCH", 

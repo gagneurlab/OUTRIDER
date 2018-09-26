@@ -46,11 +46,9 @@ Imports:
     GenomicRanges,
     ggplot2,
     ggpubr,
-    glmnet,
     gplots,
     graphics,
     IRanges,
-    lbfgs,
     matrixStats,
     plotly,
     plyr,
@@ -106,5 +104,3 @@ Collate:
     thetaMethodOfMoments.R
     controlForConfounders.R
     lossNGradientRVersion.R
-    
-    

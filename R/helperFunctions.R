@@ -154,7 +154,8 @@ getBestQDT <- function(dt, usedEvalMethod='aucPR', digits=2){
         testFun <- which.max
     }
     
-    dt[,encodingDimension[1:.N == testFun(round(evaluationLoss, digits))]]
+    dt[,encodingDimension[
+            seq_len(.N) == testFun(round(evaluationLoss, digits))]]
 }
 
 #'
