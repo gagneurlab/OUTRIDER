@@ -1,4 +1,3 @@
-
 #'
 #' PEER implementation
 #'

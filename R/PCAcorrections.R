@@ -1,6 +1,7 @@
 #'
 #' the PCA implementation
-#'
+#' 
+#' @noRd
 autoCorrectPCA <- function(ods, q, trim=0){
     
     k <- t(counts(ods, normalized=FALSE))

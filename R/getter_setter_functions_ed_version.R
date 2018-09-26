@@ -1,3 +1,47 @@
+#' Sample exclusion
+#' 
+#' To exclude a sample from the fit process, one can use this function to mask 
+#' specific samples. This can be used if replicates are present.
+#' 
+#' @param ods OutriderDataSet
+#' @param aeMatrix if TRUE, it returns a 0-1 matrix for the 
+#'             internal autoencoder functions
+#' @return The exclusion vector/matrix.
+#' 
+#' @name sampleExclusionMask
+#' @rdname sampleExclusionMask
+#' @aliases sampleExclusionMask, `sampleExclusionMask<-`
+#' 
+#' @examples 
+#' ods <- makeExampleOutriderDataSet()
+#' sampleExclusionMask(ods) <- sample(c(FALSE, TRUE), ncol(ods), replace=TRUE)
+#' 
+#' sampleExclusionMask(ods)
+#' 
+#' @export sampleExclusionMask
+sampleExclusionMask <- function(ods, aeMatrix=FALSE){
+    ans <- rep(FALSE, ncol(ods))
+    if('exclude' %in% colnames(colData(ods))){
+        ans <- colData(ods)[['exclude']]
+    }
+    
+    if(isTRUE(aeMatrix)){
+        ans <- as.integer(sapply(ans, isFALSE))
+        return(matrix(ans, ncol=ncol(ods), nrow=nrow(ods)))
+    }
+    return(ans)
+}
+
+#' @rdname sampleExclusionMask
+#' @export "sampleExclusionMask<-"
+`sampleExclusionMask<-` <- function(ods, value){
+    if(isScalarLogical(value)){
+        value <- rep(value, ncol(ods))
+    }
+    colData(ods)[['exclude']] <- value
+    return(ods)
+}
+
 x <- function(ods){
     k <- t(counts(ods, normalized=FALSE))
     s <- sizeFactors(ods)
@@ -55,10 +99,6 @@ predictY <- function(ods){
     predictMatY(x(ods), E(ods), D(ods), b(ods))
 }
 
-getw <- function(ods){
-    return(c(as.vector(getE(ods)), as.vector(getD(ods)), getb(ods)))
-}
-
 trueCounts <- function(ods){
     if('replacedTrueCounts' %in% assayNames(ods)){
         return(assay(ods, 'replacedTrueCounts'))
@@ -75,9 +115,9 @@ trueCounts <- function(ods){
 
 thetaCorrection <- function(ods){
     if(!"thetaCorrection" %in% colnames(colData(ods))){
-        warning('thetaFactors are not computed. If this intended you can ', 
-                'ignore this message by setting them to 1. Otherwise please ',
-                'fit the autoencoder first.')
+        #warning('thetaFactors are not computed. If this intended you can ', 
+        #        'ignore this message by setting them to 1. Otherwise please ',
+        #        'fit the autoencoder first.')
         return(rep(1, ncol(ods)))
     }
     return(colData(ods)[,'thetaCorrection'])
@@ -88,37 +128,5 @@ thetaCorrection <- function(ods){
         value <- rep(value, ncol(ods))
     }
     colData(ods)[['thetaCorrection']] <- value
-    return(ods)
-}
-
-lambda <- function(ods){
-    if(!"lambda" %in% colnames(mcols(ods))){
-        warning('TODO Replace by apropriate warning.')
-        return(rep(0, nrow(ods)))
-    }
-    return(mcols(ods)[,'lambda'])
-}
-
-`lambda<-` <- function(ods, value){
-    if(isScalarNumeric(value)){
-        value <- rep(value, nrow(ods))
-    }
-    mcols(ods)[,'lambda'] <- value
-    return(ods)
-}
-
-
-exclusionMask <- function(ods){
-    if('exclusionMask' %in% assayNames(ods)){
-        return(assay(ods, 'exclusionMask'))
-    }
-    return(matrix(1, ncol=ncol(ods), nrow=nrow(ods)))
-}
-
-`exclusionMask<-` <- function(ods, value){
-    if(isScalarNumeric(value)){
-        value <- matrix(value, ncol=ncol(ods), nrow=nrow(ods))
-    }
-    assay(ods, 'exclusionMask') <- value
     return(ods)
 }

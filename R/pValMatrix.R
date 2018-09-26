@@ -45,8 +45,10 @@ setGeneric("computePvalues",
 setMethod("computePvalues", "OutriderDataSet", function(object, 
             alternative=c("two.sided", "greater", "less"), method='BY', 
             BPPARAM=bpparam()){
+    
     alternative <- match.arg(alternative)
     object <- pValMatrix(object, alternative, BPPARAM=BPPARAM)
+    
     if(method != 'None'){
         object <- padjMatrix(object, method)
     }
@@ -63,7 +65,7 @@ pValMatrix <- function(ods, alternative, BPPARAM){
     if('mu' %in% names(mcols(ods))){
         mu <- mcols(ods)[,"mu"]
     }
-    normF   <- normalizationFactors(ods)
+    normF <- normalizationFactors(ods)
     if(is.null(normF)){
         normF <- sizeFactors(ods)
     }
@@ -72,8 +74,8 @@ pValMatrix <- function(ods, alternative, BPPARAM){
     pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, theta=thetaMat,
             mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
     
-    pValMat <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
-    assays(ods)[["pValue"]] <- pValMat
+    pValMat <- 
+    pValue(ods) <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
     validObject(ods)
     return(ods)
 }
@@ -137,8 +139,7 @@ pVal <- function(index, ctsData, theta, mu, normFact, alternative){
 #' 
 #' @noRd
 padjMatrix <- function(ods, method='BH'){
-    padj <- apply(assays(ods)[["pValue"]], 2, p.adjust, method=method)
-    assays(ods)[["padjust"]] <- padj
+    padj(ods) <- apply(pValue(ods), 2, p.adjust, method=method)
     
     validObject(ods)
     return(ods)

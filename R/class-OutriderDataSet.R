@@ -1,7 +1,7 @@
-#'
+#' 
 #' OutriderDataSet class and constructors 
 #' 
-#' @description The OutriderDataSet class is designed to store the whole 
+#' The OutriderDataSet class is designed to store the whole 
 #' OUTRIDER data set needed for an analysis. It is a subclass of 
 #' \code{RangedSummarizedExperiment}. All calculated values and results are 
 #' stored as assays or as annotation in the mcols structure provided by the
@@ -36,9 +36,8 @@
 #'    
 setClass("OutriderDataSet", contains="RangedSummarizedExperiment")
 
-#
-# check sample annotation within the colData slot of the SE object
-#
+#' check sample annotation within the colData slot of the SE object
+#' @noRd
 validateCounts <- function(object) {
     if(!"counts" %in% assayNames(object)){
         return("No counts are detected. Please provide a count matrix.")
@@ -61,7 +60,8 @@ checkNames <- function(object){
 }
 
 
-## general validate function
+#' general validate function
+#' @noRd
 validateOutriderDataSet <- function(object) {
     c(
         checkNames(object),
@@ -71,7 +71,8 @@ validateOutriderDataSet <- function(object) {
 setValidity("OutriderDataSet", validateOutriderDataSet)
 
 
-## show method for OutriderDataSet
+#' show method for OutriderDataSet
+#' @noRd
 showOutriderDataSet <- function(object) {
     cat("class: OutriderDataSet\n")
     show(as(object, "RangedSummarizedExperiment"))
@@ -80,7 +81,6 @@ showOutriderDataSet <- function(object) {
 setMethod("show", "OutriderDataSet", function(object) {
     showOutriderDataSet(object)
 })
-
 
 #' @rdname OutriderDataSet-class
 #' @export
@@ -118,7 +118,7 @@ OutriderDataSet <- function(se, countData, colData, ...) {
     return(obj)
 }
 
-#'
+#' 
 #' Create example data sets for OUTRIDER
 #' 
 #' Creates an example data set from a file or simulates a data set based 
@@ -135,11 +135,9 @@ OutriderDataSet <- function(se, countData, colData, ...) {
 #' @param inj Determines whether counts are injected with the strategy 
 #'            ('both', 'low', 'high'), default is 'both'.
 #' @param sizeFactors Artificial Size Factors
-#' @param betaSD Standard deviation.
-#' @param dispMeanRel Mean dispersion relation ship. 
 #'
 #' @return An OutriderDataSet containing an example dataset. Depending on the
-#'             parameters it is based on a real data set or it is simulated
+#'            parameters it is based on a real data set or it is simulated
 #' 
 #' @examples
 #' # A generic dataset 
@@ -154,15 +152,12 @@ OutriderDataSet <- function(se, countData, colData, ...) {
 #' ods3 <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 #' ods3
 #' 
-#' @export 
-makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6, 
-                    inj=c('both', 'low', 'high'), sizeFactors = rep(1, m),
-                    betaSD=4, dispMeanRel = function(x) 4/x + 0.1,
-                    dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall')
-                    ){
+#' @export
+makeExampleOutriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
+                    inj=c('both', 'low', 'high'), sf=rnorm(m, mean=1, sd=0.1),
+                    dataset=c('none', 'GTExSkinSmall', 'KremerNBaderSmall')){
     # load example data set 
     dataset <- match.arg(dataset)
-    inj <- match.arg(inj)
     if(dataset != 'none'){
         file <- system.file("extdata", paste0(dataset, ".tsv"), 
                 package="OUTRIDER", mustWork=TRUE)
@@ -170,71 +165,86 @@ makeExampleOutriderDataSet <- function(n=200, m=80, freq=1E-2, zScore=6,
         return(OutriderDataSet(countData=countData))
     }
     
-    # generate in-silico data set
-    x <- rep(1, m)
-    beta <- rnorm(n, 6, betaSD)
-    # make sure to stay in the required count range (1 read per 100 samples)
-    if(min(beta) < -1){
-        beta <- beta - min(beta) - 1
-    }
-    dispersion <- dispMeanRel(2^beta)
-    mu <- t(2^(x %*% t(beta)) * sizeFactors)
-    countData <- matrix(rnbinom(m * n, mu=mu, size=1/dispersion), ncol=m)
+    theta <- rlnorm(n, meanlog=log(180), sdlog=2)  # dispersion
+    logMean <- 5                                   # log offset for mean expres
+    sdVec <- rep(0.5, m)                           # sd for H matrix
     
-    ## generate in-silico outliers.
-    # generate index of injected counts
-    index <- matrix(sample(c(0,1,-1), n*m, prob = c(1 - freq, freq/2, freq/2), 
-            replace = TRUE), nrow = n)
-    # inject on low, high or both sides
-    if(inj=='low'){
-        index <- -abs(index)
-    }
-    if(inj=='high'){
-        index <- abs(index)
-    }
-    list_index <- which(index != 0, arr.ind = TRUE)
+    #
+    # Simulate covariates.
+    #
+    H_true <- matrix(rnorm(m*q), nrow=m, ncol=q)
+    D_true <- matrix(rnorm(n*q, sd=sdVec), nrow=n, ncol=q)
+    y_true <- D_true %*% t(cbind(H_true))
+    mu     <- t(t(exp(rnorm(n, logMean) + y_true))*sf)
     
-    max_out <- 1E2 * min(max(countData), .Machine$integer.max/1E3)
+    # scale it up to overcome the estimation error
+    true_sd <- sdLogScale(rowMeans(mu), theta)
+    
+    #
+    # Simulate count Matrix with specified means.
+    #
+    k <- matrix(rnbinom(m*n, mu=mu, size=theta), nrow=n, ncol=m)
+    mode(k) <- 'integer'
+    
+    #
+    # Create Outrider data set
+    #
+    ods <- OutriderDataSet(countData=k)
+    assay(ods, "trueMean")            <- mu
+    assay(ods, "trueSd")              <- matrix(true_sd, nrow=n, ncol=m)
+    mcols(ods)[,"trueTheta"]          <- theta
+    colData(ods)[['trueSizeFactor']]  <- sf
+    metadata(ods)[['optimalEncDim']]  <- q
+    metadata(ods)[['encDimTable']]    <- data.table(
+        encodingDimension=q, evaluationLoss=1, evalMethod='simulation')
+    
+    #
+    # inject outliers
+    #
+    indexOut <- matrix(nrow=n, ncol=m,
+        sample(c(-1,1,0), m*n, replace=TRUE, prob=c(freq/2, freq/2, 1-freq)))
+    indexOut <- switch(match.arg(inj),
+        low  = -abs(indexOut),
+        high =  abs(indexOut),
+        indexOut
+    )
+    normtable <- t(t(k)/sf)
+    datasd <- assay(ods, "trueSd")
+    lmu <- log2(assay(ods, "trueMean"))
+    
+    # inject outliers
+    max_out <- 1E2 * min(max(k), .Machine$integer.max/1E3)
     n_rejected <- 0
+    list_index <- which(indexOut != 0, arr.ind = TRUE)
     for(i in seq_len(nrow(list_index))){
         row <- list_index[i,'row']
         col <- list_index[i,'col']
-        fc <- zScore * sdLogScale(mu[row,col], dispersion[row])
-        clcount <- index[row,col]*fc + 
-            log2(1 + countData[row,col])
+        fc <- zScore * datasd[row,col]
+        clcount <- indexOut[row,col] * fc + lmu[row,col]
+        
         #multiply size factor again
-        art_out <- round(sizeFactors[col]*2^clcount)
+        art_out <- round(sf[col]*2^clcount)
         if(art_out < max_out){
-            countData[row,col] <- art_out
+            k[row,col] <- art_out
         }else{
             #remove super large outliers
-            index[row,col] <- 0 
+            indexOut[row,col] <- 0 
             n_rejected <- n_rejected + 1
         }
-        
     }
+    mode(k) <- "integer"
     
-    mode(countData) <- "integer"
+    assay(ods, 'trueCounts') <- counts(ods)
+    counts(ods) <- k
+    assay(ods, "trueOutliers") <- indexOut
     
-    colnames(countData) <- paste("sample", seq_len(m), sep = "")
-    rowRanges <- GRanges("1", IRanges(start=seq_len(n) * 100, width=100))
-    names(rowRanges) <- paste0("gene", seq_len(n))
-    
-    object <- OutriderDataSet(countData = countData, rowRanges = rowRanges)
-    trueVals <- DataFrame(trueBeta = beta, trueDisp = dispersion,
-            trueMean = rowMeans2(mu))
-    mcols(trueVals) <- DataFrame(type = rep("input", ncol(trueVals)), 
-            description = c("simulated beta values", "simulated means",
-                "simulated dispersion values"))
-    mcols(object) <- cbind(mcols(object), trueVals)
-    metadata(object)[['trueOutliers']] <- index
-    
-    return(object)
+    return(ods)
 }
 
+#' 
 #' Aproximates standard deviation of counts in log2 space.
-#'
-#'@noRd
-sdLogScale <- function(mu, disp){
-    sqrt(mu*(1+mu/disp))/((mu + 1)*log(2))
+#' 
+#' @noRd
+sdLogScale <- function(mu, theta){
+    sqrt(mu*(1 + mu/theta)) / ((mu + 1)*log(2)) * 2
 }

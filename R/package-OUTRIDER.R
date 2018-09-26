@@ -26,7 +26,7 @@
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
 #'          isScalarValue chunk
 #' 
-#' @importFrom BiocParallel bplapply bpparam
+#' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
 #' 
 #' @importFrom compiler cmpfun
 #' 
@@ -37,6 +37,8 @@
 #' @importFrom ggplot2 aes geom_histogram geom_smooth geom_tile geom_point 
 #'          ggplot labs scale_x_log10 scale_fill_manual theme ylim ggtitle
 #'          geom_vline geom_text
+#' 
+#' @importFrom ggpubr grids
 #'          
 #' @importFrom glmnet cv.glmnet
 #' 
@@ -70,7 +72,7 @@
 #' @importFrom splines bs
 #' 
 #' @importFrom stats cor coefficients cutree dist dnbinom hclust p.adjust 
-#'          setNames sd  
+#'          setNames sd optimize rlnorm
 #'          quantile optim var pnbinom  median ppoints qbeta runif 
 #'            lm predict rnorm glm Gamma rnbinom
 #' 
@@ -86,10 +88,23 @@ NULL
 #' TODO This is to get rid of the warnings of undefined variables
 #'     due to the nature of data.table and ggplot/plotly
 #' @noRd
-globalVariables(c("color", "disp", "frac", "Fraction", "ExprType", 
-        "encodingDimension", "evaluationLoss", "loggeomeans", "lty", 
-        "lwd", "medianCts", "mu", "negLog10pVal", "normcounts", "norm_rank", 
-        "obs", "onlyFull", "padj_rank", "padjust", "passedFilter", "pValue", 
-        "sampleID", "value", "V1", "Var1", "Var2", ".x", "zScore"), 
-        package="OUTRIDER")
+NULL
+globalVariables(c(
+    "enc",
+    "eva",
+    "encodingDimension", 
+    "evalMethod", 
+    "evaluationLoss",
+    "normcounts",
+    "opt",
+    "padj_rank", 
+    "padjust", 
+                  
+## color", "frac", "Fraction", "ExprType", 
+##       "evaluationLoss", "loggeomeans", "lty", 
+##        "lwd", "medianCts", "mu", "negLog10pVal", "normcounts", "norm_rank", 
+##        "obs", "onlyFull","passedFilter", "pValue", 
+## "zScore"), 
+       "sampleID", "value", "V1", "Var1", "Var2", ".x", 
+        "z"), package="OUTRIDER")
 

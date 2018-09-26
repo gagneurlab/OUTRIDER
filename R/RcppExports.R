@@ -17,35 +17,11 @@ gradientD <- function(par, H, k, sf, exclusionMask, theta, thetaC) {
     .Call('_OUTRIDER_gradientD', PACKAGE = 'OUTRIDER', par, H, k, sf, exclusionMask, theta, thetaC)
 }
 
-truncLogLiklihoodDLasso <- function(par, H, k, sf, exclusionMask, theta, thetaC, lambda) {
-    .Call('_OUTRIDER_truncLogLiklihoodDLasso', PACKAGE = 'OUTRIDER', par, H, k, sf, exclusionMask, theta, thetaC, lambda)
-}
-
-gradientDLasso <- function(par, H, k, sf, exclusionMask, theta, thetaC, lambda) {
-    .Call('_OUTRIDER_gradientDLasso', PACKAGE = 'OUTRIDER', par, H, k, sf, exclusionMask, theta, thetaC, lambda)
-}
-
 truncLogLiklihoodE <- function(e, D, k, b, x, sf, theta, exclusionMask, thetaC) {
     .Call('_OUTRIDER_truncLogLiklihoodE', PACKAGE = 'OUTRIDER', e, D, k, b, x, sf, theta, exclusionMask, thetaC)
 }
 
 gradientE <- function(e, D, k, b, x, sf, theta, exclusionMask, thetaC) {
     .Call('_OUTRIDER_gradientE', PACKAGE = 'OUTRIDER', e, D, k, b, x, sf, theta, exclusionMask, thetaC)
-}
-
-truncLogLiklihood <- function(k, x, W, b, s, theta) {
-    .Call('_OUTRIDER_truncLogLiklihood', PACKAGE = 'OUTRIDER', k, x, W, b, s, theta)
-}
-
-truncLogLiklihoodNonOutlier <- function(k, x, W, b, s, theta, outlier) {
-    .Call('_OUTRIDER_truncLogLiklihoodNonOutlier', PACKAGE = 'OUTRIDER', k, x, W, b, s, theta, outlier)
-}
-
-gradLogLiklihood <- function(k, x, W, b, s, theta) {
-    .Call('_OUTRIDER_gradLogLiklihood', PACKAGE = 'OUTRIDER', k, x, W, b, s, theta)
-}
-
-gradLogLiklihoodNonOutlier <- function(k, x, W, b, s, theta, outlier) {
-    .Call('_OUTRIDER_gradLogLiklihoodNonOutlier', PACKAGE = 'OUTRIDER', k, x, W, b, s, theta, outlier)
 }
 

@@ -45,6 +45,7 @@ Imports:
     DESeq2 (>= 1.16.1),
     GenomicRanges,
     ggplot2,
+    ggpubr,
     glmnet,
     gplots,
     graphics,
@@ -84,7 +85,6 @@ Collate:
     inputCheckerFunctions.R
     autoCorrectRversion.R
     method-gridSearch.R
-    lassoQ_NB.R
     fitNB.R
     ZscoreMatrix.R
     method-results.R
@@ -102,8 +102,7 @@ Collate:
     updateD.R
     updateTheta.R
     PCAcorrections.R
-    autoCorrectImplementationList.R
     getter_Setter_functions.R
     getter_setter_functions_ed_version.R
     thetaMethodOfMoments.R
-    MathCrap.R
+    loss_n_gradient_r_version.R

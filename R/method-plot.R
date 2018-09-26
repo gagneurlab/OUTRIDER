@@ -112,12 +112,14 @@
 #' 
 #' @examples
 #' ods <- makeExampleOutriderDataSet(dataset="Kremer")
+#' implementation <- 'autoencoder'
 #' \dontshow{
 #'     # reduce the object size to speed up the calculations
 #'     ods <- ods[400:410,60:70]
+#'     implementation <- 'pca'
 #' }
 #' ods <- filterExpression(ods, minCounts=TRUE)
-#' ods <- OUTRIDER(ods)
+#' ods <- OUTRIDER(ods, implementation=implementation)
 #' 
 #' plotAberrantPerSample(ods)
 #' 
@@ -145,8 +147,10 @@
 #' 
 #' plotPowerAnalysis(ods)
 #' 
+#' \dontrun{
 #' ods <- findEncodingDim(ods)
 #' plotEncDimSearch(ods)
+#' }
 #' 
 #' @rdname plotFunctions
 #' @aliases plotFunctions plotVolcano plotQQ plotExpressionRank 
@@ -190,11 +194,15 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
         main <- paste0("Volcano plot: ", sampleID)
     }
     
+    if(is.null(rownames(ods))){
+        rownames(ods) <- paste("feature", seq_len(nrow(ods)), sep="_")
+    }
+    
     dt <- data.table(
         GENE_ID   = rownames(ods),
-        pValue    = assays(ods)[['pValue']][,sampleID],
-        padjust   = assays(ods)[['padjust']][,sampleID],
-        zScore    = assays(ods)[['zScore']][,sampleID],
+        pValue    = pValue(ods)[,sampleID],
+        padjust   = padj(ods)[,sampleID],
+        zScore    = zScore(ods)[,sampleID],
         normCts   = counts(ods, normalized=TRUE)[,sampleID],
         medianCts = rowMedians(counts(ods, normalized=TRUE)),
         expRank   = apply(
@@ -836,13 +844,15 @@ plotEncDimSearch <- function(ods){
         dt[,zScore:='Optimum']
         dt[,opt:=q]
     }
-    dtPlot <- dt[,.(enc=encodingDimension, z=as.character(zScore), eva=evaluationLoss, opt)]
+    dtPlot <- dt[,.(enc=encodingDimension, z=as.character(zScore), 
+            eva=evaluationLoss, opt)]
     ggplot(dtPlot, aes(enc, eva, col=z)) +
         geom_point() + 
         scale_x_log10() + 
         geom_smooth(method='loess') +
         ggtitle('Search for best encoding dimension') + 
-        geom_vline(data=dtPlot[opt == enc], aes(xintercept=enc, col=z, shape='Optimum'),
+        geom_vline(data=dtPlot[opt == enc], 
+                aes(xintercept=enc, col=z, shape='Optimum'),
                 linetype='dotted', show.legend=TRUE) +
         geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) + 
         labs(x='Encoding dimensions',

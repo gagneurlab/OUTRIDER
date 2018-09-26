@@ -69,42 +69,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// truncLogLiklihoodDLasso
-double truncLogLiklihoodDLasso(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, arma::vec exclusionMask, double theta, arma::vec thetaC, double lambda);
-RcppExport SEXP _OUTRIDER_truncLogLiklihoodDLasso(SEXP parSEXP, SEXP HSEXP, SEXP kSEXP, SEXP sfSEXP, SEXP exclusionMaskSEXP, SEXP thetaSEXP, SEXP thetaCSEXP, SEXP lambdaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type par(parSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type k(kSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type sf(sfSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type exclusionMask(exclusionMaskSEXP);
-    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type thetaC(thetaCSEXP);
-    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(truncLogLiklihoodDLasso(par, H, k, sf, exclusionMask, theta, thetaC, lambda));
-    return rcpp_result_gen;
-END_RCPP
-}
-// gradientDLasso
-arma::vec gradientDLasso(arma::vec par, arma::mat H, arma::vec k, arma::vec sf, arma::vec exclusionMask, double theta, arma::vec thetaC, double lambda);
-RcppExport SEXP _OUTRIDER_gradientDLasso(SEXP parSEXP, SEXP HSEXP, SEXP kSEXP, SEXP sfSEXP, SEXP exclusionMaskSEXP, SEXP thetaSEXP, SEXP thetaCSEXP, SEXP lambdaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type par(parSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type k(kSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type sf(sfSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type exclusionMask(exclusionMaskSEXP);
-    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type thetaC(thetaCSEXP);
-    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(gradientDLasso(par, H, k, sf, exclusionMask, theta, thetaC, lambda));
-    return rcpp_result_gen;
-END_RCPP
-}
 // truncLogLiklihoodE
 double truncLogLiklihoodE(arma::vec e, arma::mat D, arma::mat k, arma::vec b, arma::mat x, arma::vec sf, arma::vec theta, arma::mat exclusionMask, arma::vec thetaC);
 RcppExport SEXP _OUTRIDER_truncLogLiklihoodE(SEXP eSEXP, SEXP DSEXP, SEXP kSEXP, SEXP bSEXP, SEXP xSEXP, SEXP sfSEXP, SEXP thetaSEXP, SEXP exclusionMaskSEXP, SEXP thetaCSEXP) {
@@ -143,82 +107,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// truncLogLiklihood
-SEXP truncLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta);
-RcppExport SEXP _OUTRIDER_truncLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(truncLogLiklihood(k, x, W, b, s, theta));
-    return rcpp_result_gen;
-END_RCPP
-}
-// truncLogLiklihoodNonOutlier
-SEXP truncLogLiklihoodNonOutlier(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta, arma::mat outlier);
-RcppExport SEXP _OUTRIDER_truncLogLiklihoodNonOutlier(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP, SEXP outlierSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type outlier(outlierSEXP);
-    rcpp_result_gen = Rcpp::wrap(truncLogLiklihoodNonOutlier(k, x, W, b, s, theta, outlier));
-    return rcpp_result_gen;
-END_RCPP
-}
-// gradLogLiklihood
-SEXP gradLogLiklihood(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta);
-RcppExport SEXP _OUTRIDER_gradLogLiklihood(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(gradLogLiklihood(k, x, W, b, s, theta));
-    return rcpp_result_gen;
-END_RCPP
-}
-// gradLogLiklihoodNonOutlier
-SEXP gradLogLiklihoodNonOutlier(arma::mat k, arma::mat x, arma::mat W, arma::vec b, arma::vec s, arma::vec theta, arma::mat outlier);
-RcppExport SEXP _OUTRIDER_gradLogLiklihoodNonOutlier(SEXP kSEXP, SEXP xSEXP, SEXP WSEXP, SEXP bSEXP, SEXP sSEXP, SEXP thetaSEXP, SEXP outlierSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type k(kSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type outlier(outlierSEXP);
-    rcpp_result_gen = Rcpp::wrap(gradLogLiklihoodNonOutlier(k, x, W, b, s, theta, outlier));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_OUTRIDER_predictMatY", (DL_FUNC) &_OUTRIDER_predictMatY, 4},
     {"_OUTRIDER_predictMatC", (DL_FUNC) &_OUTRIDER_predictMatC, 5},
     {"_OUTRIDER_truncLogLiklihoodD", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodD, 7},
     {"_OUTRIDER_gradientD", (DL_FUNC) &_OUTRIDER_gradientD, 7},
-    {"_OUTRIDER_truncLogLiklihoodDLasso", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodDLasso, 8},
-    {"_OUTRIDER_gradientDLasso", (DL_FUNC) &_OUTRIDER_gradientDLasso, 8},
     {"_OUTRIDER_truncLogLiklihoodE", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodE, 9},
     {"_OUTRIDER_gradientE", (DL_FUNC) &_OUTRIDER_gradientE, 9},
-    {"_OUTRIDER_truncLogLiklihood", (DL_FUNC) &_OUTRIDER_truncLogLiklihood, 6},
-    {"_OUTRIDER_truncLogLiklihoodNonOutlier", (DL_FUNC) &_OUTRIDER_truncLogLiklihoodNonOutlier, 7},
-    {"_OUTRIDER_gradLogLiklihood", (DL_FUNC) &_OUTRIDER_gradLogLiklihood, 6},
-    {"_OUTRIDER_gradLogLiklihoodNonOutlier", (DL_FUNC) &_OUTRIDER_gradLogLiklihoodNonOutlier, 7},
     {NULL, NULL, 0}
 };
 

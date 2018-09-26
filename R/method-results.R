@@ -26,8 +26,10 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all, BPPARAM
         }
     }
     
-    DTfitparameters <- data.table(geneID=rownames(object), 
-            theta=theta(object), lambda=lambda(object))
+    if(is.null(rownames(object))){
+        rownames(object) <- paste('feature', seq_len(nrow(object)), sep='_')
+    }
+    DTfitparameters <- data.table(geneID=rownames(object), theta=theta(object))
     
     countdataDF <- as.data.table(counts(object), keep.rownames="geneID")
     countNormDF <- as.data.table(counts(object, normalized=TRUE), 

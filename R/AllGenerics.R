@@ -120,8 +120,6 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
 #'         
 #' @param object An \code{OutriderDataSet} object.
 #' @param value The matrix of normalization factors
-#' @param replace If old values are present values are replcaed. If set to false
-#'             old and new values are multiplied.
 #' @param ... additional arguments
 #' @return A numeric matrix containing the normalization factors or the 
 #'             OutriderDataSet object with an updated 
@@ -144,7 +142,7 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
 #' 
 #' normalizationFactors(ods) <- NULL
 #' ods <- estimateSizeFactors(ods)
-#' normalizationFactors(ods, replace=FALSE) <- normFactors
+#' normalizationFactors(ods) <- normFactors
 #' all(normalizationFactors(ods) == t(sizeFactors(ods) * t(normFactors)))
 #' 
 #' @export normalizationFactors

@@ -14,20 +14,28 @@
 #' @return The optimal encoding dimension
 #'
 #' @examples
-#' set.seed(42)
 #' ods <- makeExampleOutriderDataSet()
-#' encDimSearchParam <- seq(4, 20, 2)
+#' encDimSearchParams <- c(5, 8, 10, 12, 15)
+#' zScoreParams <- c(2, 3, 5, 'lnorm')
+#' implementation <- 'autoencoder'
 #' register(MulticoreParam(4))
 #' \dontshow{
 #'     ods <- ods[1:12,1:12]
-#'     encDimSearchParam <- c(2)
+#'     encDimSearchParams <- c(2)
+#'     zScoreParams <- c('lnorm')
 #'     register(SerialParam())
+#'     implementation <- 'pca'
 #' }
-#' ods <- findEncodingDim(ods, params=encDimSearchParam)
+#' ods1 <- findEncodingDim(ods, params=encDimSearchParams, 
+#'         implementation=implementation)
+#' plotEncDimSearch(ods1)
 #' 
-#' # plot the results of the dimension search
-#' metadata(ods)$encDimTable[plot(encodingDimension, evaluationLoss)]
+#' ods2 <- findInjectZscore(ods, zScoreParams=zScoreParams,
+#'         encDimParams=encDimSearchParams, implementation=implementation)
+#' plotEncDimSearch(ods2)
 #' 
+#' @rdname findEncodingDim
+#' @aliases findEncodingDim, findInjectZscore
 #' @export
 findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
                     freq=1E-2, zScore=3, logsd=log(1.6), lnorm=FALSE, inj='both',
@@ -77,14 +85,12 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
     return(ods)
 }
 
-#'
-#' TODO
-#' 
+#' @rdname findEncodingDim 
 #' @export
 findInjectZscore <- function(ods, freq=1E-2,
                     zScoreParams=c(seq(1.5, 4, 0.5), 'lnorm'),
                     encDimParams=c(seq(3, 40, 3), seq(45,70, 5), 100, 130, 160),
-                    inj='both', ..., implementation="robustR",
+                    inj='both', ..., implementation="autoencoder",
                     BPPARAM=bpparam()){
     encDimParams <- encDimParams[encDimParams < min(dim(ods), nrow(ods))]
     
@@ -114,13 +120,12 @@ findInjectZscore <- function(ods, freq=1E-2,
             metadata(odsres[[i]])$encDimTable[,.(
                     encodingDimension, zScore=parGrid[i,"z"], evaluationLoss)]
     }))
-    metadata(ods)[['optimalZscoreEncDim']] <- res
-    
-    #ggplot(data=res, aes(encodingDimension, evaluationLoss, 
-    #                color=factor(zScore))) +
-    #        geom_line() + 
-    #        scale_x_log10()
-    
+    res <- rbindlist(lapply(zScoreParams, function(z){
+        tmpdt <- res[zScore==z]
+        tmpdt[,opt:=getBestQDT(tmpdt)]
+        tmpdt
+    }))
+    metadata(ods)[['encDimTable']] <- res
     return(ods)
 }
 
@@ -223,7 +228,7 @@ evalAucPRLoss <- function(ods){
 evalAutoCorrection <- function(ods, encoding_dim=20, theta=25, 
                     evalAucPRLoss=FALSE, BPPARAM=bpparam(), ...){
     
-    ods <- autoCorrect(ods, q=encoding_dim, BPPARAM=BPPARAM, ...)
+    ods <- controlForConfounders(ods, q=encoding_dim, BPPARAM=BPPARAM, ...)
     if(isTRUE(evalAucPRLoss)){
         ods <- fit(ods, BPPARAM=BPPARAM)
         ods <- computePvalues(ods, BPPARAM=BPPARAM)

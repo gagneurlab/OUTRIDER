@@ -28,13 +28,10 @@ setGeneric("fit", function(object, ...) standardGeneric("fit"))
 
 #' @rdname fit
 #' @export
-setMethod("fit", "OutriderDataSet", function(object, method='OUTRIDER', BPPARAM=bpparam(), excludeMask){
-    ans <- fitTheta(object, BPPARAM=BPPARAM, excludeMask=excludeMask)
-    return(ans)
-})
+setMethod("fit", "OutriderDataSet", function(object, BPPARAM=bpparam()){
+    fitTheta(object, BPPARAM=BPPARAM)})
 
-
-fitTheta <- function(ods, BPPARAM, excludeMask){
+fitTheta <- function(ods, BPPARAM){
     checkOutriderDataSet(ods)
     checkCountRequirements(ods)
     
@@ -49,20 +46,7 @@ fitTheta <- function(ods, BPPARAM, excludeMask){
                 " ods <- estimateSizeFactors(ods).")
     }
     
-    # if(!missing(excludeMask)){
-    #     if(!is.null(excludeMask) & !any(is.na(excludeMask))){
-    #         assay(ods, 'excludeMask') <- excludeMask
-    #     }
-    # } else {
-    #     excludeMask <- NULL
-    #     if('excludeMask' %in% assayNames(ods)){
-    #         message('Use existing exclusion mask for fit.')
-    #         excludeMask <- assay(ods, 'excludeMask')
-    #     }
-    # }
-    
-    excludeMask <- NULL
-    
+    excludeMask <- sampleExclusionMask(ods, aeMatrix=TRUE)
     
     fitparameters <- bplapply(seq_along(ods), fitNegBinom, normF=normF,
             ctsData=ctsData, excludeMask=excludeMask, BPPARAM=BPPARAM)
@@ -91,25 +75,10 @@ initialSizeMu <- function(data, norm){
     c("size"=c(size), "mu"=c(m))
 }
 
-# # log of the probability denity function
-# dens <- function(x, size, mu, s) dnbinom(x, size=size, mu=mu*s, log=TRUE)
-
 # log likelihood
 loglikelihood <- function(sizemu, x, SizeF){
     -sum(dnbinom(x, size=sizemu[1], mu=sizemu[2]*SizeF, log=TRUE))
 }
-
-CRloglikelihood <- function(sizemu, x, SizeF, H){
-    theta <- sizemu[1]
-    mu <- sizemu[2]*SizeF
-    # construct a diagonal matrix.
-    H <- cbind(1,H)
-    w <- matrix(0, ncol=nrow(H), nrow=nrow(H))
-    diag(w) <- 1/(1/mu + 1/theta)
-    -sum(dnbinom(x, size=theta, mu=mu, log=TRUE)) + 
-        0.5*log(det(t(H) %*% w %*% H))
-}
-
 
 # gradient of log likelihood
 gradloglikelihood <- function(sizemu, x, SizeF){
@@ -126,32 +95,6 @@ gradTheta <- function(theta, k, mu){
     sum(ll)
 }
 
-negCRlogLikelihood <- function(theta, k, mu, H){
-    H <- cbind(1,H)
-    # construct a diagonal matrix.
-    w <- matrix(0, ncol=nrow(H), nrow=nrow(H))
-    diag(w) <- 1/(1/mu + 1/theta)
-    -sum(dnbinom(x=k, size=theta, mu=mu, log=TRUE)) + 
-        0.5*log(det(t(H) %*% w %*% H))
-}
-
-
-gradnegCRlogLikelihood <- function(theta, k, mu, H){
-    H <- cbind(1,H)
-    
-    # construct a diagonal matrix.
-    w <- matrix(0, ncol=nrow(H), nrow=nrow(H))
-    diag(w) <- mu * theta/(mu + theta)
-    w2 <- matrix(0, ncol=nrow(H), nrow=nrow(H))
-    diag(w2) <- mu^2/(mu + theta)^2
-    CR <- t(H) %*% w %*% H
-    gradCR <- t(H) %*% w2 %*% H
-    gradTheta(theta, k, mu) + 
-        0.5/(det(CR)) *
-        sum(diag(adjoint(CR)%*%gradCR))
-}
-
-
 #fit for individual gene
 fitNegBinom <- function(index, ctsData, normF, excludeMask){
     data <- ctsData[index,]
@@ -160,10 +103,8 @@ fitNegBinom <- function(index, ctsData, normF, excludeMask){
     }
     stopifnot(!is.null(normF))
     
-    if(!is.null(excludeMask)){
-        data <- data[!excludeMask[index,]]
-        normF <- normF[!excludeMask[index,]]
-    }
+    data  <- data[ excludeMask[index,] == 1]
+    normF <- normF[excludeMask[index,] == 1]
     
     ##correct s factor
     est <- tryCatch(
@@ -175,33 +116,4 @@ fitNegBinom <- function(index, ctsData, normF, excludeMask){
                     par <-list("mu"=NA_real_, "size"=NA_real_)
                     list(par=par)})
     c(est$par["mu"], est$par["size"])
-} 
-
-
-
-if(FALSE){
-    k <- rnbinom(100, mu=100, size=10)
-    
-    gradTheta(10, k, 100)
-    gradloglikelihood(c(10, 100), x = k, SizeF = 1)
-    numericLossGrad(loglikelihood, 1E-8,c(10,100), x=k, SizeF=1)
-    
-    uniroot(f = gradnegCRlogLikelihood, interval = c(0.1,100), k=counts(ods[1,]), mu=mu, H=H)
-    optim(10, fn= negCRlogLikelihood, gr=gradnegCRlogLikelihood, method='L-BFGS', lower=c(0.01), k=counts(ods[1,]), mu=mu, H=H)
-    optimize(f= negCRlogLikelihood, interval = c(0.01, 100), k=counts(ods[1,]), mu=mu, H=H)
-    nlm(f=fnlm, p=10, k=counts(ods[1,]), mu=mu, H=H)
-    
-    fnlm <- function(theta, k, mu, H){
-        return(c('f'=negCRlogLikelihood(theta, k, mu, H), 'gradient'=gradnegCRlogLikelihood(theta, k, mu, H)))
-    }
-    
-    microbenchmark::microbenchmark(
-        uniroot(f = gradnegCRlogLikelihood, interval = c(0.1,100), k=counts(ods[1,]), mu=mu, H=H),
-        optim(10, fn= negCRlogLikelihood, gr=gradnegCRlogLikelihood, method='L-BFGS', lower=c(0.01), k=counts(ods[1,]), mu=mu, H=H),
-        optimize(f= negCRlogLikelihood, interval = c(0.01, 100), k=counts(ods[1,]), mu=mu, H=H)
-    )
-    
-    
-    gradnegCRlogLikelihood(0.1, counts(ods[1,]), mu=mu, H=H)
-    numericLossGrad(negCRlogLikelihood, 1E-8, 0.1, k=counts(ods[1,]), mu=mu, H=H)
 }

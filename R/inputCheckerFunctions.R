@@ -13,13 +13,13 @@ checkCountRequirements <- function(ods, test=FALSE){
     filterGenes <- rowSums(counts(ods)) == 0
     if(any(filterGenes) & isFALSE(test)){
         stop("There are genes without any read. Please filter first ",
-             "the data with: ods <- filterExpression(ods)")
+                "the data with: ods <- filterExpression(ods)")
     }
     filterGenes <- filterGenes | rowSums(counts(ods)) < ncol(ods)/100
     if(any(filterGenes) & isFALSE(test)){
         stop("The model requires for each gene at least 1 read ", 
-             "in every 100 sample. Please filter first the data with: ",
-             "ods <- filterExpression(ods)")
+                "in every 100 sample. Please filter first the data with: ",
+                "ods <- filterExpression(ods)")
     }
     return(invisible(filterGenes))
 }
@@ -41,7 +41,7 @@ checkSizeFactors <- function(ods, funName=sys.calls()[[1]]){
     checkOutriderDataSet(ods)
     if(is.null(sizeFactors(ods))){
         stop("Please calculate the size factors before calling the '", funName,
-             "' function. Please do: ods <- estimateSizeFactors(ods)")
+                "' function. Please do: ods <- estimateSizeFactors(ods)")
     }
     return(invisible(TRUE))
 }
@@ -53,11 +53,11 @@ checkFullAnalysis <- function(ods, funName=sys.calls()[[1]]){
     checkSizeFactors(ods)
     if(!'padjust' %in% assayNames(ods)){
         stop("Please calculate the P-values before calling the '", funName,
-             "' function. Please do: ods <- computePvalues(ods)")
+                "' function. Please do: ods <- computePvalues(ods)")
     }
     if(!'zScore' %in% assayNames(ods)){
         stop("Please calculate the Z-scores before calling the '", funName,
-             "' function. Please do: ods <- computeZscores(ods)")
+                "' function. Please do: ods <- computeZscores(ods)")
     }
     return(invisible(TRUE))
 }
@@ -74,7 +74,7 @@ checkThetaRange <- function(thetaRange){
     }
     if(thetaRange[1] > thetaRange[2]){
         stop('The first element of the range has to be smaller', 
-             'than the second one.')
+                'than the second one.')
     }
     return(invisible(TRUE))
 }

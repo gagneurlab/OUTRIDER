@@ -1,13 +1,10 @@
-#'
+#' 
 #' Main autoencoder fit function
-#'
+#' 
+#' @noRd
 fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3), 
                     convergence=1e-5, iterations=15, initialize=TRUE,
-                    correctTheta='none', usePCA=TRUE, lasso=FALSE, 
-                    runLassoFit=TRUE, nFolds=20, control=list(), useOptim=TRUE, 
-                    L1encoder=FALSE, newCVversion=FALSE, useSE=FALSE, 
-                    useJointDTheta=FALSE, robust=FALSE, pValCutoff=0.001, 
-                    BPPARAM=bpparam()){
+                    control=list(), BPPARAM=bpparam()){
     # Check input
     checkOutriderDataSet(ods)
     checkCountRequirements(ods)
@@ -20,21 +17,19 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     
     # initialize W using PCA and bias as zeros.
     if(isTRUE(initialize) | is.null(E(ods)) | is.null(D(ods))){
-        ods <- initAutoencoder(ods, q, thetaRange, usePCA=usePCA)
+        ods <- initAutoencoder(ods, q, thetaRange)
     }
      
     # initial loss
     lossList <- c(init_pca=lossED(ods))
     print(paste0('Initial PCA loss: ', lossList[1]))
-    convList <- numeric()
     
-    #' initialize D 
-    ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, 
-            optim=useOptim)
+    # initialize D 
+    ods <- updateD(ods, control=control, BPPARAM=BPPARAM)
     lossList <- updateLossList(ods, lossList, 'init', 'D')
     
     # initialize theta step
-    ods <- updateTheta(ods, thetaRange, correctTheta=correctTheta, BPPARAM=BPPARAM)
+    ods <- updateTheta(ods, thetaRange, BPPARAM=BPPARAM)
     lossList <- updateLossList(ods, lossList, 'init', 'Theta')
     
     # optimize log likelihood
@@ -43,53 +38,28 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     for(i in seq_len(iterations)){
         t2 <- Sys.time()
         
-        if(isTRUE(robust) & i > 2){
-            ods <- maskOutliers(ods, pValCutoff=pValCutoff, BPPARAM=BPPARAM)
-        } else {
-            exclusionMask(ods) <- 1
-        }
-        
-        # update lasso
-        if(isTRUE(lasso) & i == 2 & isTRUE(runLassoFit)){
-            ods <- updateLambda(ods, nFolds=nFolds, control=control, 
-                                BPPARAM=BPPARAM, optim=useOptim, newCVversion=newCVversion,
-                                useSE=useSE)
-        }
-        
         # update E step
-        ods <- updateE(ods, control=control, BPPARAM=BPPARAM, L1encoder=L1encoder)
+        ods <- updateE(ods, control=control, BPPARAM=BPPARAM)
         lossList <- updateLossList(ods, lossList, i, 'E')
-        convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
         
-        if(useJointDTheta==FALSE){
-            # update D step
-            ods <- updateD(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, optim=useOptim)
-            lossList <- updateLossList(ods, lossList, i, 'D')
-            convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
+        # update D step
+        ods <- updateD(ods, control=control, BPPARAM=BPPARAM)
+        lossList <- updateLossList(ods, lossList, i, 'D')
+    
+        # update theta step
+        ods <- updateTheta(ods, thetaRange, BPPARAM=BPPARAM)
+        lossList <- updateLossList(ods, lossList, i, 'theta')
         
-            # update theta step
-            ods <- updateTheta(ods, thetaRange, correctTheta=correctTheta, BPPARAM=BPPARAM)
-            lossList <- updateLossList(ods, lossList, i, 'theta')
-            convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
-        }else{
-            ods <- updateDTheta(ods, lasso=lasso, control=control, BPPARAM=BPPARAM, optim=FALSE)
-            lossList <- updateLossList(ods, lossList, i, 'D')
-            convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
-            lossList <- updateLossList(ods, lossList, i, 'theta')
-            convList <- updateConvergenceList(convList, lossList, ods, L1encoder=L1encoder)
-        } 
-        
-            
-            
         print(paste('Time for one autoencoder loop:', Sys.time() - t2))
         
         # check 
-        if(all(abs(currentLoss - convList[length(convList) - 2:0]) < convergence)){
+        curLossDiff <- abs(currentLoss - lossList[length(lossList) - 2:0])
+        if(all(curLossDiff < convergence)){
             message(date(), ': the AE correction converged with:',
                     lossList[length(lossList)])
             break
         }
-        currentLoss <- convList[length(convList)]
+        currentLoss <- lossList[length(lossList)]
     }
     
     bpstop(BPPARAM)
@@ -105,20 +75,16 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     # add additional values for the user to the object
     metadata(ods)[['dim']] <- dim(ods)
     metadata(ods)[['loss']] <- lossList
-    metadata(ods)[['convList']] <- convList
+    metadata(ods)[['convList']] <- lossList
     
     validObject(ods)
     return(ods)
 }
 
-initAutoencoder <- function(ods, q, thetaRange, usePCA){
+initAutoencoder <- function(ods, q, thetaRange){
     
     pca <- pca(x(ods), nPcs=q)
     pc  <- loadings(pca)
-    
-    if(isFALSE(usePCA)){
-        rnorm(length(pc), sd=sd(pc))
-    }
     
     # Set initial values from PCA
     D(ods) <- pc
@@ -144,15 +110,6 @@ updateLossList <- function(ods, lossList, i, stepText){
     return(lossList)
 }
 
-updateConvergenceList <- function(convList, lossList, ods, L1encoder){
-    currLoss <- lossList[length(lossList)] + sum(lambda(ods)*rowSums(abs(D(ods))))
-    if(isTRUE(L1encoder)){
-        currLoss <- currLoss + mean(lambda(ods)) * sum(abs(E(ods)))
-    }
-    convList <- c(convList, currLoss)
-    return(convList)
-}
-
 lossED <- function(ods, step=c('none', 'E', 'D', 'Theta')){
     k <- t(counts(ods))
     y_exp <- predictC(ods)
@@ -161,28 +118,5 @@ lossED <- function(ods, step=c('none', 'E', 'D', 'Theta')){
     ## log likelihood 
     ll <- dnbinom(t(k), mu=t(y_exp), size=t(theta), log=TRUE)
     
-    # compute lasso regularization
-    w <- switch(match.arg(step),
-                none = { 0 },
-                E = { sum(mean(lambda(ods)) * abs(E(ods))) },
-                D = { sum(lambda(ods) * abs(D(ods))) },
-                Theta = { 0 },
-                stop('Please provide a correct step for lossED.')
-    )
-    
-    return( - (mean(ll) + w) )
+    return( - mean(ll) )
 }
-
-maskOutliers <- function(ods, pValCutoff=0.01, BPPARAM){
-    ods <- computePvalues(ods, BPPARAM=BPPARAM, method='None')
-    mask <- matrix(1, nrow=nrow(ods), ncol=ncol(ods))
-    mask[pValue(ods) < pValCutoff/ncol(ods)] <- 0
-    
-    print(paste(sum(mask==0), 'outliers identified in this iteration.'))
-    print(paste('Top 5 masked genes: ', paste(collapse=", ",
-            tail(sort(rowSums(mask == 0))))))
-    
-    exclusionMask(ods) <- mask
-    return(ods)
-}
-

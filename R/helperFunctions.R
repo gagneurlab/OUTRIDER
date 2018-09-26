@@ -131,11 +131,7 @@ getGeneIndex <- function(geneIdx, ods){
     return(geneIdx)
 }
 
-#'
-#' Best Q
-#' 
-#' A getter function for the best dimension.
-#' 
+#' @rdname getter_setter_functions
 #' @export
 getBestQ <- function(ods, digits=2){
     if('optimalEncDim' %in% names(metadata(ods))){
@@ -162,7 +158,17 @@ getBestQDT <- function(dt, usedEvalMethod='aucPR', digits=2){
 }
 
 #'
-#' Guess the best q for the given data set
+#' Estimation of Q
+#' 
+#' Estimating the best q for the given data set
+#' 
+#' @param ods An OutriderDataSet object
+#' @return The estimated dimension of hidden confounders
+#' 
+#' @examples
+#' ods <- makeExampleOutriderDataSet()
+#' 
+#' estimateBestQ(ods)
 #' 
 #' @export
 estimateBestQ <- function(ods){
