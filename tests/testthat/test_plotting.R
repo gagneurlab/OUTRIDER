@@ -23,9 +23,9 @@ test_that("plotting", {
     ods <- filterExpression(ods, filterGenes=FALSE, fpkmCutoff=1e5)
     expect_is(plotFPKM(ods), 'ggplot')
     
-    expect_warning(out <- plotDispEsts(ods), "Parametric dispersion fit failed..")
-    expect_is(out, 'list')
-    expect_length(out, 2)
+    # expect_warning(out <- plotDispEsts(ods), "Parametric dispersion fit failed..")
+    # expect_is(out, 'list')
+    # expect_length(out, 2)
     
     expect_equal(class(plotVolcano(ods, 1)), c("plotly", "htmlwidget"))
     expect_null(plotVolcano(ods, 1, basePlot=TRUE))
