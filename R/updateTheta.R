@@ -23,9 +23,9 @@ updateTheta <- function(ods, thetaRange, BPPARAM){
 }
 
 estTheta <- function(index, cts, mu, H, thetaC, thetaRange, exclusionMask, nll){
-    sMaski  <- exclusionMask[index,]
-    ctsi    <- cts[index,sMaski]
-    mui     <- mu[index,sMaski]
+    sMaski  <- as.logical(exclusionMask[index,])
+    ctsi    <- cts[index, sMaski]
+    mui     <- mu[index, sMaski]
     thetaCi <- thetaC[sMaski]
     
     est <- optimize(f=nll, 
