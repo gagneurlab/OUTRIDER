@@ -6,7 +6,7 @@ test_that("setter and getter function", {
     sizeFactors(ord) <- sf
     
     expect_equal(sizeFactors(ord), sf, check.names=FALSE)
-    expect_equal(t(t(counts(ord))/sf*mean(sf)), counts(ord, normalized=TRUE))
+    expect_equal(t(t(counts(ord))/sf), counts(ord, normalized=TRUE))
 })
 
 test_that("sizefactor estimation", {
