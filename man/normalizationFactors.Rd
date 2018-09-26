@@ -28,9 +28,6 @@ object.}
 
 \item{value}{The matrix of normalization factors}
 
-\item{replace}{If old values are present values are replcaed. If set to false
-old and new values are multiplied.}
-
 \item{...}{additional arguments}
 }
 \value{
@@ -59,7 +56,7 @@ normalizationFactors(ods)[1:10,1:10]
 
 normalizationFactors(ods) <- NULL
 ods <- estimateSizeFactors(ods)
-normalizationFactors(ods, replace=FALSE) <- normFactors
+normalizationFactors(ods) <- normFactors
 all(normalizationFactors(ods) == t(sizeFactors(ods) * t(normFactors)))
 
 }

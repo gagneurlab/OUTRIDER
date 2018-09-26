@@ -22,7 +22,7 @@ ods <- makeExampleOutriderDataSet()
     ods <- ods[1:10, 1:10]
 }
 ods <- estimateSizeFactors(ods)
-ods <- autoCorrect(ods)
+ods <- controlForConfounders(ods, implementation="pca")
 computeLatentSpace(ods)[,1:6]
 
 }

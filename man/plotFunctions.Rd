@@ -189,12 +189,14 @@ levels. The curves are smooths to make the reading of the plot easier.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="Kremer")
+implementation <- 'autoencoder'
 \dontshow{
     # reduce the object size to speed up the calculations
     ods <- ods[400:410,60:70]
+    implementation <- 'pca'
 }
 ods <- filterExpression(ods, minCounts=TRUE)
-ods <- OUTRIDER(ods)
+ods <- OUTRIDER(ods, implementation=implementation)
 
 plotAberrantPerSample(ods)
 
@@ -222,7 +224,9 @@ plotDispEsts(ods, compareDisp=FALSE)
 
 plotPowerAnalysis(ods)
 
+\dontrun{
 ods <- findEncodingDim(ods)
 plotEncDimSearch(ods)
+}
 
 }

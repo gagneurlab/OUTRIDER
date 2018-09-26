@@ -8,8 +8,7 @@
 \usage{
 fit(object, ...)
 
-\S4method{fit}{OutriderDataSet}(object, method = "OUTRIDER",
-  BPPARAM = bpparam(), excludeMask)
+\S4method{fit}{OutriderDataSet}(object, BPPARAM = bpparam())
 }
 \arguments{
 \item{object}{An OutriderDataSet}

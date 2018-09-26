@@ -2,10 +2,22 @@
 % Please edit documentation in R/helperFunctions.R
 \name{estimateBestQ}
 \alias{estimateBestQ}
-\title{Guess the best q for the given data set}
+\title{Estimation of Q}
 \usage{
 estimateBestQ(ods)
 }
+\arguments{
+\item{ods}{An OutriderDataSet object}
+}
+\value{
+The estimated dimension of hidden confounders
+}
 \description{
-Guess the best q for the given data set
+Estimating the best q for the given data set
+}
+\examples{
+ods <- makeExampleOutriderDataSet()
+
+estimateBestQ(ods)
+
 }
