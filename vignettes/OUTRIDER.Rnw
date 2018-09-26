@@ -375,7 +375,7 @@ The Z-scores are calculated using:
     z_{ij} = \frac{l_{ij} - \mu_j^l}{\sigma_j^l}
 \end{equation}
 \begin{equation*}
-    l_{ij} = \log_2{(\frac{k_{ij} + 1}{c_{ij}})},
+    l_{ij} = \log_2{(\frac{k_{ij} + 1}{c_{ij} + 1})},
 \end{equation*}
 
 where $\mu_j^l$ is the mean and $\sigma_j^l$ the 
