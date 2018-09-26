@@ -74,7 +74,8 @@ padj <- function(ods){
 
 #' @rdname getter_setter_functions
 #' @export dispersions
-setMethod("dispersions", signature(object="OutriderDataSet"), function(object, ...){
+setMethod("dispersions", signature(object="OutriderDataSet"), 
+          function(object, ...){
     1/theta(object)
 })
 

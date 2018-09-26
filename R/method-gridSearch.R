@@ -38,8 +38,8 @@
 #' @aliases findEncodingDim, findInjectZscore
 #' @export
 findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
-                    freq=1E-2, zScore=3, logsd=log(1.6), lnorm=FALSE, inj='both',
-                    evalAucPRLoss=TRUE, ..., BPPARAM=bpparam()){
+                    freq=1E-2, zScore=3, logsd=log(1.6), lnorm=FALSE, 
+                    inj='both', evalAucPRLoss=TRUE, ..., BPPARAM=bpparam()){
     
     # compute auto Correction
     ods <- estimateSizeFactors(ods)
@@ -71,7 +71,8 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
 
     eval <- bplapply(X=params, ..., evalAucPRLoss=evalAucPRLoss, 
             BPPARAM=BPPARAM, FUN=function(i, ...){
-        evalAutoCorrection(ods, encoding_dim=i, BPPARAM=SerialParam(), evalAucPRLoss, ...)})
+        evalAutoCorrection(ods, encoding_dim=i, BPPARAM=SerialParam(), 
+                evalAucPRLoss, ...)})
     
     metadata(ods)[['encDimTable']] <- data.table(
             encodingDimension= params,

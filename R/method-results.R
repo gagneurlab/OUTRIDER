@@ -1,5 +1,6 @@
 
-compileResults <- function(object, padjCutoff, zScoreCutoff, round, all, BPPARAM=bpparam()){
+compileResults <- function(object, padjCutoff, zScoreCutoff, round, all, 
+                           BPPARAM=bpparam()){
     checkOutriderDataSet(object)
     checkFullAnalysis(object)
     
@@ -45,8 +46,8 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all, BPPARAM
     featureDTs <- append(featureDTs, list(
             rawcounts=countdataDF, normcounts=countNormDF, aberrant=aberrantDF))
     
-    featureMeltDTs <- bplapply(names(featureDTs), dt=featureDTs, BPPARAM=BPPARAM,
-            mv=seq_len(ncol(object)) + 1,
+    featureMeltDTs <- bplapply(names(featureDTs), dt=featureDTs, 
+            BPPARAM=BPPARAM, mv=seq_len(ncol(object)) + 1,
             FUN=function(n, dt, mv){
                 dt[[n]] %>% melt(id.vars="geneID", value.name=n,
                         measure.vars=mv, variable.name="sampleID")})
