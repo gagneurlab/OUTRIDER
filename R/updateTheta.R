@@ -24,16 +24,15 @@ updateTheta <- function(ods, thetaRange, BPPARAM){
 
 estTheta <- function(index, cts, mu, H, thetaC, thetaRange, exclusionMask, nll){
     sMaski  <- exclusionMask[index,]
-    ctsi    <- cts[index,!sMaski]
-    mui     <- mu[index,!sMaski]
-    Hi      <- H[!sMaski,]
-    thetaCi <- thetaC[!sMaski]
+    ctsi    <- cts[index,sMaski]
+    mui     <- mu[index,sMaski]
+    thetaCi <- thetaC[sMaski]
     
     est <- optimize(f=nll, 
-            interval=thetaRange, k=ctsi, mu=mui, H=Hi, thetaC=thetaCi)
+            interval=thetaRange, k=ctsi, mu=mui, thetaC=thetaCi)
 } 
 
-negLogLikelihoodTheta <- function(theta, k, mu, H, thetaC){
+negLogLikelihoodTheta <- function(theta, k, mu, thetaC){
     theta <- theta * thetaC
     -sum(dnbinom(x=k, size=theta, mu=mu, log=TRUE))
 }
