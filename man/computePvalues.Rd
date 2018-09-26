@@ -4,7 +4,6 @@
 \name{computePvalues}
 \alias{computePvalues}
 \alias{computePvalues,OutriderDataSet-method}
-\alias{computePvalues,OutriderDataSet-method}
 \title{Calculate P-values}
 \usage{
 computePvalues(object, ...)

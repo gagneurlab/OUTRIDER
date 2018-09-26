@@ -2,27 +2,37 @@
 % Please edit documentation in R/OUTRIDER.R
 \name{OUTRIDER}
 \alias{OUTRIDER}
-\title{OUTRIDER - Finding aberrant expression events}
+\title{OUTRIDER - Finding expression outlier events}
 \usage{
-OUTRIDER(object, q, autoCorrect = TRUE)
+OUTRIDER(ods, q, controlData = TRUE, implementation = "autoencoder",
+  BPPARAM = bpparam(), ...)
 }
 \arguments{
-\item{object}{An OutriderDataSet object containing the counts}
+\item{ods}{An OutriderDataSet object}
 
 \item{q}{The encoding dimensions}
 
-\item{autoCorrect}{If TRUE, the default, the raw read counts are controled 
+\item{controlData}{If TRUE, the default, the raw counts are controled 
 for confounders by the autoencoder}
+
+\item{implementation}{"autoencoder", the default, will use the autoencoder
+implementation. Also 'pca' and 'peer' can be used to control
+for confounding effects}
+
+\item{BPPARAM}{A \code{\link[BiocParallel]{BiocParallelParam}} instance
+to be used for parallel computing.}
+
+\item{...}{Further arguments passed on to \code{controlForConfounders}}
 }
 \value{
 OutriderDataSet with all the computed values. The values are stored
-            as assays and can be accessed by: \code{assays(ods)[['value']]}.
+            as assays and can be accessed by: \code{assay(ods, 'value')}.
             To get a full list of calculated values run:
             \code{assayNames(ods)}
 }
 \description{
 The OUTRIDER function runs the default OUTRIDER pipline. 
-Combinig the fit, the computation of z scores and P-values.
+Combinig the fit, the computation of Z scores and P-values.
 All computed values are returned as an OutriderDataSet object.
 
 To have more control over each analysis step one can call each 
@@ -30,23 +40,25 @@ function seperatly.
 
 \enumerate{
     \item \code{\link{estimateSizeFactors}} to calculte the sizeFactors
-    \item \code{\link{autoCorrect}} to correct for confounding effects
-    \item \code{\link{fit}} to fit the negative binomial model
+    \item \code{\link{controlForConfounders}} to control for 
+              confounding effects
+    \item \code{\link{fit}} to fit the negative binomial model 
+              (only needed if not the autoencoder is used)
     \item \code{\link{computePvalues}} to calculate the nominal and 
               adjusted P-values
-    \item \code{\link{computeZscores}} to calculate the z scores
+    \item \code{\link{computeZscores}} to calculate the Z scores
 }
 }
 \examples{
 ods <- makeExampleOutriderDataSet()
-runAutoCorrect <- TRUE
+implementation <- 'autoencoder'
 \dontshow{
     ods <- ods[1:10,1:10]
-    runAutoCorrect <- FALSE
+    implementation <- 'pca'
 }
-ods <- OUTRIDER(ods, autoCorrect=runAutoCorrect)
+ods <- OUTRIDER(ods, implementation=implementation)
 
-assays(ods)[['pValue']][1:10,1:10]
+pValue(ods)[1:10,1:10]
 res <- results(ods, all=TRUE)
 res
 

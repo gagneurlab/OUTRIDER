@@ -19,6 +19,7 @@ framed.sty
 *.toc
 *.log
 *.bbl
+*.blg
 *.synctex.gz
 *-concordance.tex
 

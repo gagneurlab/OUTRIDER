@@ -11,13 +11,7 @@
 \alias{plotFPKM}
 \alias{plotDispEsts}
 \alias{plotPowerAnalysis}
-\alias{plotQQ}
-\alias{plotExpressionRank}
-\alias{plotCountCorHeatmap}
-\alias{plotAberrantPerSample}
-\alias{plotFPKM}
 \alias{plotDispEsts,OutriderDataSet-method}
-\alias{plotPowerAnalysis}
 \alias{plotEncDimSearch}
 \title{Visualization functions for OUTRIDER}
 \usage{
@@ -29,20 +23,21 @@ plotQQ(ods, geneID, main, global = FALSE, padjCutoff = 0.05,
   outlierRatio = 0.001, conf.alpha = 0.05, pch = 16, xlim = NULL,
   ylim = NULL, col = NULL)
 
-plotExpressionRank(ods, geneID, main, padjCutoff = 0.05, zScoreCutoff = 0,
-  normalized = TRUE, basePlot = FALSE, log = TRUE, col = c("gray",
-  "firebrick"), ...)
+plotExpressionRank(ods, geneID, main, padjCutoff = 0.05,
+  zScoreCutoff = 0, normalized = TRUE, basePlot = FALSE,
+  log = TRUE, col = c("gray", "firebrick"), ...)
 
 plotCountCorHeatmap(ods, normalized = TRUE, rowCentered = TRUE,
   rowCoFactor = NULL, rowColSet = "Set1", colCoFactor = NULL,
-  colColSet = "Set2", nCluster = 4, main = "Count correlation heatmap",
-  dendrogram = "both", basePlot = TRUE, names = c("both", "row", "col",
-  "none"), ...)
+  colColSet = "Set2", nCluster = 4,
+  main = "Count correlation heatmap", dendrogram = "both",
+  basePlot = TRUE, names = c("both", "row", "col", "none"), ...)
 
 plotAberrantPerSample(ods, main, padjCutoff = 0.05, zScoreCutoff = 0,
   outlierRatio = 0.001, col = brewer.pal(3, "Dark2")[c(1, 2)],
   yadjust = c(1.2, 1.2), labLine = c(3.5, 3),
-  ylab = "#Aberrantly expressed genes", labCex = par()$cex, ...)
+  ylab = "#Aberrantly expressed genes", labCex = par()$cex,
+  ymax = NULL, ...)
 
 plotFPKM(ods)
 
@@ -194,12 +189,14 @@ levels. The curves are smooths to make the reading of the plot easier.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="Kremer")
+implementation <- 'autoencoder'
 \dontshow{
     # reduce the object size to speed up the calculations
     ods <- ods[400:410,60:70]
+    implementation <- 'pca'
 }
 ods <- filterExpression(ods, minCounts=TRUE)
-ods <- OUTRIDER(ods)
+ods <- OUTRIDER(ods, implementation=implementation)
 
 plotAberrantPerSample(ods)
 
@@ -227,7 +224,9 @@ plotDispEsts(ods, compareDisp=FALSE)
 
 plotPowerAnalysis(ods)
 
+\dontrun{
 ods <- findEncodingDim(ods)
 plotEncDimSearch(ods)
+}
 
 }

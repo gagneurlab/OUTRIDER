@@ -1,8 +1,8 @@
 #' 
-#' OUTRIDER - Finding aberrant expression events
+#' OUTRIDER - Finding expression outlier events
 #' 
 #' @description The OUTRIDER function runs the default OUTRIDER pipline. 
-#' Combinig the fit, the computation of z scores and P-values.
+#' Combinig the fit, the computation of Z scores and P-values.
 #' All computed values are returned as an OutriderDataSet object.
 #' 
 #' To have more control over each analysis step one can call each 
@@ -10,32 +10,34 @@
 #' 
 #' \enumerate{
 #'     \item \code{\link{estimateSizeFactors}} to calculte the sizeFactors
-#'     \item \code{\link{autoCorrect}} to correct for confounding effects
-#'     \item \code{\link{fit}} to fit the negative binomial model
+#'     \item \code{\link{controlForConfounders}} to control for 
+#'               confounding effects
+#'     \item \code{\link{fit}} to fit the negative binomial model 
+#'               (only needed if not the autoencoder is used)
 #'     \item \code{\link{computePvalues}} to calculate the nominal and 
 #'               adjusted P-values
-#'     \item \code{\link{computeZscores}} to calculate the z scores
+#'     \item \code{\link{computeZscores}} to calculate the Z scores
 #' }
 #' 
-#' @param object An OutriderDataSet object containing the counts
-#' @inheritParams autoCorrect
-#' @param autoCorrect If TRUE, the default, the raw read counts are controled 
+#' @inheritParams controlForConfounders
+#' @param controlData If TRUE, the default, the raw counts are controled 
 #'             for confounders by the autoencoder
+#' @param ... Further arguments passed on to \code{controlForConfounders}
 #' @return OutriderDataSet with all the computed values. The values are stored
-#'             as assays and can be accessed by: \code{assays(ods)[['value']]}.
+#'             as assays and can be accessed by: \code{assay(ods, 'value')}.
 #'             To get a full list of calculated values run:
 #'             \code{assayNames(ods)}
 #'
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
-#' runAutoCorrect <- TRUE
+#' implementation <- 'autoencoder'
 #' \dontshow{
 #'     ods <- ods[1:10,1:10]
-#'     runAutoCorrect <- FALSE
+#'     implementation <- 'pca'
 #' }
-#' ods <- OUTRIDER(ods, autoCorrect=runAutoCorrect)
+#' ods <- OUTRIDER(ods, implementation=implementation)
 #' 
-#' assays(ods)[['pValue']][1:10,1:10]
+#' pValue(ods)[1:10,1:10]
 #' res <- results(ods, all=TRUE)
 #' res
 #' 
@@ -43,26 +45,33 @@
 #' plotVolcano(ods, 1)
 #' 
 #' @export
-OUTRIDER <- function(object, q, autoCorrect=TRUE){
+OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder', 
+                    BPPARAM=bpparam(), ...){
+    checkOutriderDataSet(ods)
+    implementation <- tolower(implementation)
     
-    message(paste0(date(), ": SizeFactor estimation ..."))
-    object <- estimateSizeFactors(object)
+    message(date(), ": SizeFactor estimation ...")
+    ods <- estimateSizeFactors(ods)
     
-    if(isTRUE(autoCorrect)){
-        message(paste0(date(), ": Running auto correct ..."))
-        object <- autoCorrect(object, q=q)
+    if(isTRUE(controlData)){
+        message(date(), ": Controlling for confounders ...")
+        ods <- controlForConfounders(ods, q=q, 
+                implementation=implementation, BPPARAM=BPPARAM, ...)
     }
     
-    message(paste0(date(), ": Fitting the data ..."))
-    object <- fit(object)
+    if(isFALSE(controlData) | grepl("^(peer|pca)$", implementation)){
+        message(date(), ": Fitting the data ...")
+        ods <- fit(ods, BPPARAM=BPPARAM)
+    }
     
-    message(paste0(date(), ": P-value calculation ..."))
-    object <- computePvalues(object)
+    message(date(), ": P-value calculation ...")
+    ods <- computePvalues(ods, BPPARAM=BPPARAM)
     
-    message(paste0(date(), ": Zscore calculation ..."))
-    object <- computeZscores(object)
+    message(date(), ": Zscore calculation ...")
+    ods <- computeZscores(ods, 
+            peerResiduals=grepl('^peer$', implementation))
     
-    validObject(object)
-    return(object)
+    validObject(ods)
+    return(ods)
 }
 

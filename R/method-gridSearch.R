@@ -14,27 +14,37 @@
 #' @return The optimal encoding dimension
 #'
 #' @examples
-#' set.seed(42)
 #' ods <- makeExampleOutriderDataSet()
-#' encDimSearchParam <- seq(4, 20, 2)
+#' encDimSearchParams <- c(5, 8, 10, 12, 15)
+#' zScoreParams <- c(2, 3, 5, 'lnorm')
+#' implementation <- 'autoencoder'
 #' register(MulticoreParam(4))
 #' \dontshow{
 #'     ods <- ods[1:12,1:12]
-#'     encDimSearchParam <- c(2)
+#'     encDimSearchParams <- c(2)
+#'     zScoreParams <- c('lnorm')
 #'     register(SerialParam())
+#'     implementation <- 'pca'
 #' }
-#' ods <- findEncodingDim(ods, params=encDimSearchParam)
+#' ods1 <- findEncodingDim(ods, params=encDimSearchParams, 
+#'         implementation=implementation)
+#' plotEncDimSearch(ods1)
 #' 
-#' # plot the results of the dimension search
-#' metadata(ods)$encDimTable[plot(encodingDimension, evaluationLoss)]
+#' ods2 <- findInjectZscore(ods, zScoreParams=zScoreParams,
+#'         encDimParams=encDimSearchParams, implementation=implementation)
+#' plotEncDimSearch(ods2)
 #' 
+#' @rdname findEncodingDim
+#' @aliases findEncodingDim, findInjectZscore
 #' @export
 findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
-                    freq=1E-2, zScore=3, inj='both', BPPARAM=bpparam()){
+                    freq=1E-2, zScore=3, logsd=log(1.6), lnorm=FALSE, 
+                    inj='both', evalAucPRLoss=TRUE, ..., BPPARAM=bpparam()){
     
     # compute auto Correction
     ods <- estimateSizeFactors(ods)
-    ods <- injectOutliers(ods, freq=freq, zScore=zScore, inj=inj)
+    ods <- injectOutliers(ods, freq=freq, zScore=zScore, inj=inj, lnorm=lnorm,
+            logsd=logsd)
     
     ## Check limits of loss:
     # Check min and max of loss by substituting
@@ -59,17 +69,64 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
             'Max overfitting loss (c=kcorr)' = overfit,
             'Max underfitting loss (c=colMeans(kcorr)' = underfit)
 
-    eval <- bplapply(X=params, BPPARAM=BPPARAM, 
-            FUN=function(i) evalAutoCorrection(ods, encoding_dim=i))
+    eval <- bplapply(X=params, ..., evalAucPRLoss=evalAucPRLoss, 
+            BPPARAM=BPPARAM, FUN=function(i, ...){
+        evalAutoCorrection(ods, encoding_dim=i, BPPARAM=SerialParam(), 
+                evalAucPRLoss, ...)})
     
     metadata(ods)[['encDimTable']] <- data.table(
-            'encodingDimension' = params,
-            'evaluationLoss' = unlist(eval))
-    
+            encodingDimension= params,
+            evaluationLoss= unlist(eval), 
+            evalMethod=ifelse(isTRUE(evalAucPRLoss), 'aucPR', 'loss'))
+    metadata(ods)[['optimalEncDim']] <- NULL
     metadata(ods)[['optimalEncDim']] <- getBestQ(ods)
     
     counts(ods) <- assay(ods, 'trueCounts')
     validateOutriderDataSet(ods)
+    return(ods)
+}
+
+#' @rdname findEncodingDim 
+#' @export
+findInjectZscore <- function(ods, freq=1E-2,
+                    zScoreParams=c(seq(1.5, 4, 0.5), 'lnorm'),
+                    encDimParams=c(seq(3, 40, 3), seq(45,70, 5), 100, 130, 160),
+                    inj='both', ..., implementation="autoencoder",
+                    BPPARAM=bpparam()){
+    encDimParams <- encDimParams[encDimParams < min(dim(ods), nrow(ods))]
+    
+    FUN <- function(idx, grid, ods, RNDseed, ...){
+        z <- grid[idx,"z"]
+        enc <- grid[idx,"enc"]
+        lnorm <- FALSE
+        if(z == 'lnorm'){
+            z <- 3
+            lnorm=TRUE
+        } else {
+            z <- as.integer(z)
+        }
+        message(date(), ": run Z-score: ", z, " and enc: ", enc)
+        set.seed(RNDseed)
+        findEncodingDim(ods, lnorm=lnorm, zScore=z, params=enc, 
+                BPPARAM=SerialParam(), ...)
+    }
+    
+    RNDseed <- .Random.seed
+    parGrid <- expand.grid(z=zScoreParams, enc=encDimParams)
+    odsres <- bplapply(seq_len(nrow(parGrid)), FUN, 
+            ods=ods, freq=freq, inj=inj, evalAucPRLoss=TRUE, RNDseed=RNDseed,
+            implementation=implementation, grid=parGrid, BPPARAM=BPPARAM)
+    
+    res <- rbindlist(lapply(seq_along(odsres), function(i){
+            metadata(odsres[[i]])$encDimTable[,.(
+                    encodingDimension, zScore=parGrid[i,"z"], evaluationLoss)]
+    }))
+    res <- rbindlist(lapply(zScoreParams, function(z){
+        tmpdt <- res[zScore==z]
+        tmpdt[,opt:=getBestQDT(tmpdt)]
+        tmpdt
+    }))
+    metadata(ods)[['encDimTable']] <- res
     return(ods)
 }
 
@@ -85,7 +142,7 @@ findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
 #'
 #' @return and OutriderDataSet with artificially corrupted counts.
 #' @noRd
-injectOutliers <- function(ods, freq, zScore, inj){
+injectOutliers <- function(ods, freq, zScore, inj, lnorm, logsd){
     # copy true counts to be able to acces them in the loss later
     assays(ods)[['trueCounts']] <- counts(ods)
     
@@ -98,6 +155,14 @@ injectOutliers <- function(ods, freq, zScore, inj){
         low = { index <- -abs(index) },
         high = { index <- abs(index) }
     )
+    
+    tmpzScore <- matrix(0, ncol=ncol(ods), nrow=nrow(ods))
+    if(isTRUE(lnorm)){
+        tmpzScore[index!=0] <- rlnorm(sum(index!=0), log(zScore), logsd)
+    } else {
+        tmpzScore[index!=0] <- zScore
+    }
+    zScore <- tmpzScore
     
     #inject counts
     max_out <- min(10*max(counts(ods), na.rm=TRUE), .Machine$integer.max)
@@ -114,7 +179,7 @@ injectOutliers <- function(ods, freq, zScore, inj){
         idxRow <- list_index[i,'row']
         
         cts <- as.numeric(normtable[idxRow,])
-        fc <- zScore * sd(log2(1 + cts))
+        fc <- zScore[idxRow, idxCol] * sd(log2(1 + cts))
         clcount <- index[idxRow, idxCol] * fc + log2(1 + cts[idxCol])
         
         #multiply size factor again
@@ -125,12 +190,14 @@ injectOutliers <- function(ods, freq, zScore, inj){
         if(art_out < max_out & counts[idxRow, idxCol] != art_out){
             counts[idxRow, idxCol] <- art_out
         }else{
-            index[idxRow, idxCol] <- 0 
+            index[idxRow, idxCol] <- 0
+            zScore
         }
     }
     # save coruppted counts and index of corruption into ods
     assay(ods, 'counts') <- matrix(as.integer(counts),nrow(ods))
-    assays(ods)[['trueCorruptions']] <- index 
+    assay(ods, 'trueCorruptions') <- index
+    assay(ods, 'injectedZscore') <- zScore
     return(ods)
 }
 
@@ -147,10 +214,29 @@ evalLoss <- function(ods, theta=25){
     return(eval)
 }
 
-evalAutoCorrection <- function(ods, encoding_dim=20, theta=25){
+evalAucPRLoss <- function(ods){
+    scores <- -as.vector(assay(ods, 'pValue'))
+    labels <- as.vector(assay(ods, 'trueCorruptions') != 0) + 0
     
-    ods <- autoCorrect(ods, q=encoding_dim)
-    eloss <- evalLoss(ods, theta)
+    if(any(is.na(scores))){
+        warning(sum(is.na(scores)), " P-values where NAs.")
+        scores[is.na(scores)] <- min(scores, na.rm=TRUE)-1
+    }
+    pr <- pr.curve(scores, weights.class0=labels)
+    return(pr$auc.integral)
+}
+
+evalAutoCorrection <- function(ods, encoding_dim=20, theta=25, 
+                    evalAucPRLoss=FALSE, BPPARAM=bpparam(), ...){
+    
+    ods <- controlForConfounders(ods, q=encoding_dim, BPPARAM=BPPARAM, ...)
+    if(isTRUE(evalAucPRLoss)){
+        ods <- fit(ods, BPPARAM=BPPARAM)
+        ods <- computePvalues(ods, BPPARAM=BPPARAM)
+        eloss <- evalAucPRLoss(ods)
+    } else {
+        eloss <- evalLoss(ods, theta)
+    }
     
     print(paste0('Evaluation loss: ', eloss))
     return(eloss)

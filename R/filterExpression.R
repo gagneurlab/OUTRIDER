@@ -35,11 +35,8 @@
 setGeneric("filterExpression", 
         function(x, ...) standardGeneric("filterExpression"))
 
-#' @rdname filterExpression
-#' @export
-setMethod("filterExpression", "OutriderDataSet", function(x, gtfFile, 
-                    fpkmCutoff=1, filterGenes=TRUE, savefpkm=FALSE, 
-                    minCounts=FALSE, ...){
+filterExpression.OUTRIDER <- function(x, gtfFile, fpkmCutoff=1, 
+                    filterGenes=TRUE, savefpkm=FALSE, minCounts=FALSE, ...){
     x <- filterMinCounts(x, filterGenes=filterGenes)
     if(minCounts == TRUE){
         return(x)
@@ -49,10 +46,14 @@ setMethod("filterExpression", "OutriderDataSet", function(x, gtfFile,
     }
     filterExp(x, fpkmCutoff=fpkmCutoff, filterGenes=filterGenes, 
             savefpkm=savefpkm)
-})
+}
+
+#' @rdname filterExpression
+#' @export
+setMethod("filterExpression", "OutriderDataSet", filterExpression.OUTRIDER)
 
 filterExp <- function(ods, fpkmCutoff=1, filterGenes=filterGenes, 
-                savefpkm=savefpkm){
+                    savefpkm=savefpkm){
     fpkm <- fpkm(ods)
     if(savefpkm){
         assays(ods)[['fpkm']]<-fpkm
