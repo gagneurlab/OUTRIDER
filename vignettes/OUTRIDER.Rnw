@@ -285,7 +285,7 @@ We have different ways to control for confounders present in the data.
 The first and standard way is to calculate the \Rfunction{sizeFactors} 
 as done in \deseq{}\cite{Love2014}.
 
-Additionally, the \Rfunction{autoCorrect} function calls an 
+Additionally, the \Rfunction{controlForConfounders} function calls an 
 autoencoder that automatically controls for confounders present in the data.
 Therefore an encoding dimension $q$ needs to be set or the default value 20 is 
 used. The optimal value of $q$ can be determinde using the
@@ -298,7 +298,7 @@ samples should be reduced and close to zero.
 
 # automatically control for confounders 
 ods <- estimateSizeFactors(ods)
-ods <- autoCorrect(ods, q=13)
+ods <- controlForConfounders(ods, q=20)
 
 # Heatmap of the sample correlation after controlling
 ods <- plotCountCorHeatmap(ods, normalized=TRUE)
