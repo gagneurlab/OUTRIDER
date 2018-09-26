@@ -43,6 +43,7 @@ test_that("fit method", {
     ods <- fit(ods)
     expect_is(mcols(ods)[,"mu"], "numeric")
     expect_equal(length(mcols(ods)[,"mu"]), nrow(ods))
-    expect_is(mcols(ods)[,"disp"], "numeric")
-    expect_equal(length(mcols(ods)[,"disp"]), nrow(ods))
+    expect_is(theta(ods), "numeric")
+    expect_equal(length(theta(ods)), nrow(ods))
 })
+

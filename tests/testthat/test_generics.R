@@ -26,33 +26,19 @@ test_that("normalization function", {
     normalizationFactors(ord) <- normF
     
     expect_equivalent(normF, normalizationFactors(ord))
-    expect_equal(counts(ord)/normF*rowMeans(normF), counts(ord, normalized=TRUE))
-    
+    E <- t(apply(normF, 1, pmax, 0.5))
+    expect_equal(counts(ord)/E * exp(rowMeans(log(E))), counts(ord, normalized=TRUE))
     
     normalizationFactors(ord) <- NULL
     expect_null(normalizationFactors(ord))
-    
-    ord <- estimateSizeFactors(ord)
-    sizeF <- sizeFactors(ord)
-    normalizationFactors(ord, replace=FALSE) <- normF
-    normalizationFactors(ord, replace=FALSE) <- as.data.table(normF)
-    normalizationFactors(ord, replace=FALSE) <- DataFrame(normF)
-    
-    normFShouldBe <- t(t(normF)*sizeF)*normF*normF
-    expect_equivalent(normalizationFactors(ord), normFShouldBe)
-    expect_equal(counts(ord, normalized=TRUE), counts(ord)/normFShouldBe*
-                     rowMeans(normFShouldBe))
-    
     
     ord <- OutriderDataSet(countData = matrix(c(1,1,3,3), ncol = 2))
     colData(ord)[['sizeFactor']] <- c(.5, 1.5)
     expect_true(all(counts(ord, normalized = TRUE) == matrix(c(2,2,2,2), ncol = 2)))
     
     ord <- OutriderDataSet(countData = matrix(c(1,1,3,3), ncol = 2))
-    normalizationFactors(ord) <- matrix(c(.5, .5, 1.5, 1.5), ncol = 2)
-    expect_true(all(counts(ord, normalized = TRUE) == matrix(c(2,2,2,2), ncol = 2)))
-    
-    
+    normalizationFactors(ord) <- matrix(c(.5, .5, 1.5, 1.5), ncol=2)
+    expect_true(all(round(counts(ord, normalized=TRUE), 4) == matrix(1.7321, ncol=2, nrow=2)))
 })
 
 test_that("counts_function", {
@@ -63,3 +49,4 @@ test_that("counts_function", {
     expect_equal(assays(ord)[['counts']], cts+1L)
     expect_equal(counts(ord), assays(ord)[['counts']])
 })
+

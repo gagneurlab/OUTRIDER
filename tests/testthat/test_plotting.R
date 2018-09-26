@@ -3,7 +3,8 @@ context("Testing plot functions: ")
 test_that("plotting", {
     set.seed(42)
     ods <- makeExampleOutriderDataSet(n=20, m=20)
-    ods <- OUTRIDER(ods)
+    ods <- OUTRIDER(ods, implementation='pca')
+    mcols(ods)[['basepairs']] <- rnbinom(nrow(ods), mu=1e4, size=25)
     
     expect_is(plotCountCorHeatmap(ods, basePlot=FALSE), 'plotly')
     ods <- plotCountCorHeatmap(ods)

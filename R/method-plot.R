@@ -743,12 +743,12 @@ plotFPKM <- function(ods){
 plotDispEsts.OUTRIDER <- function(object, compareDisp, xlim, ylim, 
             main="Dispersion estimates versus mean expression", ...){
     # validate input                 
-    if(!'disp' %in% names(mcols(object))){
+    if(!'theta' %in% names(mcols(object))){
         stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods) ',
                 'or ods <- fit(ods)')
-    } 
+    }
     if(missing(compareDisp)){
-        compareDisp <- 'weights' %in% names(metadata(object))
+        compareDisp <- !is.null(E(ods))
     }
     
     # disp from OUTRIDER

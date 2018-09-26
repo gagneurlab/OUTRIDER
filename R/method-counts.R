@@ -105,9 +105,9 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
 #' object.
 #' 
 #' To normalize raw count data normalization factors can be provided as
-#' a matrix. When running \code{\link{autoCorrect}} the normalization factors 
-#' are stored within the OutriderDataset object. This normalization factors are
-#' then used to compute the normalized counts.
+#' a matrix. When running \code{\link{controlForConfounders}} the normalization 
+#' factors are stored within the OutriderDataset object. This normalization 
+#' factors are then used to compute the normalized counts.
 #'
 #' @seealso DESeq2::normalizationFactors
 #' @docType methods

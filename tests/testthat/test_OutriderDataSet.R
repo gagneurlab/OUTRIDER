@@ -4,7 +4,7 @@ test_that("create test data set", {
     ods <- makeExampleOutriderDataSet(20,20)
     expect_is(ods, "OutriderDataSet")
     expect_equal(dim(ods), c(20,20))
-    expect_equal(dim(metadata(ods)[['trueOutliers']]), c(20,20))
+    expect_equal(dim(assay(ods, 'trueOutliers')), c(20,20))
 })
 
 test_that("constructur for OutriderDataSet", {
