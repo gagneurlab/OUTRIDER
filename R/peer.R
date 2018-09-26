@@ -5,7 +5,7 @@
 peer <- function(ods, maxItr=1000){
     
     # check for PEER
-    if(!require(peer)){
+    if(!requireNamespace("peer")){
         stop("Please install the 'peer' package from GitHub to use this ",
                 "functionality.")
     }
