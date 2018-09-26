@@ -17,9 +17,9 @@
 
 \item{normalized}{TRUE/FALSE whether counts should be normalized}
 
-\item{value}{An integer matrix containing the counts}
+\item{minE}{minimal expected count.}
 
-\item{offset}{Pseudocount offset by default 0.}
+\item{value}{An integer matrix containing the counts}
 }
 \value{
 A matrix containing the counts

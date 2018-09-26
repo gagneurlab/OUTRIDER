@@ -26,7 +26,7 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, minE=0.5){
         stop(paste("first calculate size factors, add normalizationFactors,",
                 "or set normalized=FALSE"))
     }
-    return(t(t(cnts) / sizeFactors(object) * mean(sizeFactors(object))))
+    return(t(t(cnts) / sizeFactors(object)))
 }
 
 #' 
@@ -51,8 +51,8 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, minE=0.5){
 #'
 #' @param object OutriderDataSet
 #' @param normalized TRUE/FALSE whether counts should be normalized
-#' @param offset Pseudocount offset by default 0.
 #' @param value An integer matrix containing the counts
+#' @param minE minimal expected count.
 #' @return A matrix containing the counts
 #' 
 #' @seealso \code{\link{sizeFactors}}, \code{\link{normalizationFactors}}

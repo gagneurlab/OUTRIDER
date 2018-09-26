@@ -13,6 +13,8 @@ makeExampleOutriderDataSet(n = 200, m = 80, q = 10, freq = 0.001,
 
 \item{m}{Number of simulated samples}
 
+\item{q}{number of simulated latend variables.}
+
 \item{freq}{Frequency of in-silico outliers}
 
 \item{zScore}{Absolute z score of in-silico outliers (default 6).}
@@ -20,11 +22,11 @@ makeExampleOutriderDataSet(n = 200, m = 80, q = 10, freq = 0.001,
 \item{inj}{Determines whether counts are injected with the strategy 
 ('both', 'low', 'high'), default is 'both'.}
 
+\item{sf}{Artificial Size Factors}
+
 \item{dataset}{If "none", the default, an example data set is simulated. 
 One can also use example data set included in the package by
 specifying 'GTExSkinSmall' or 'KremerNBaderSmall'}
-
-\item{sizeFactors}{Artificial Size Factors}
 }
 \value{
 An OutriderDataSet containing an example dataset. Depending on the
