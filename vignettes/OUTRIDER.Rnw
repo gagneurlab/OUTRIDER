@@ -298,7 +298,7 @@ samples should be reduced and close to zero.
 
 # automatically control for confounders 
 ods <- estimateSizeFactors(ods)
-ods <- autoCorrect(ods, q=13)
+ods <- controlForConfounders(ods, q=21)
 
 # Heatmap of the sample correlation after controlling
 ods <- plotCountCorHeatmap(ods, normalized=TRUE)
@@ -311,15 +311,14 @@ for technical effects or control for additional expression patterns.
 
 \subsection{Fitting the negative binomial model}
 
+The fit of the model is done during the autoencoder fitting. This step is only
+needed if alternative methods to control the data is are used.
 To fit the dispersion and the mean, the \Rfunction{fit} function is applied
 to the \ods{}.
 
 <<fitting>>=
-# fit negative binomial distribution to each feature
-ods <- fit(ods)
-
 # plot dispersion versus mean counts 
-plotDispEsts(ods)
+#plotDispEsts(ods)
 @
 
 \subsection{P-value calculation}
