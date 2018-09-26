@@ -81,28 +81,30 @@ LinkingTo:
 Collate:
     package-OUTRIDER.R
     class-OutriderDataSet.R
-    AllGenerics.R
     inputCheckerFunctions.R
-    autoCorrectRversion.R
-    method-gridSearch.R
+    helperFunctions.R
+    getNSetterFuns.R
+    getNSetterFunsInternal.R
+    autoencoder.R
     fitNB.R
     ZscoreMatrix.R
+    method-evaluation.R
+    method-counts.R
+    method-gridSearch.R
+    method-plot.R
     method-results.R
     pValMatrix.R
     filterExpression.R
-    method-evaluation.R
     OUTRIDER.R
-    method-plot.R
-    helperFunctions.R
     sizeFactor.R
     RcppExports.R
     peer.R
-    autoCorrectEDversion.R
     updateE.R
     updateD.R
     updateTheta.R
     PCAcorrections.R
-    getter_Setter_functions.R
-    getter_setter_functions_ed_version.R
     thetaMethodOfMoments.R
-    loss_n_gradient_r_version.R
+    controlForConfounders.R
+    lossNGradientRVersion.R
+    
+    
