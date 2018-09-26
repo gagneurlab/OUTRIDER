@@ -3,7 +3,7 @@ context("Testing plot functions: ")
 test_that("plotting", {
     set.seed(42)
     ods <- makeExampleOutriderDataSet(n=20, m=20)
-    ods <- OUTRIDER(ods, implementation='pca')
+    ods <- OUTRIDER(ods, implementation='pca', q=2)
     mcols(ods)[['basepairs']] <- rnbinom(nrow(ods), mu=1e4, size=25)
     
     expect_is(plotCountCorHeatmap(ods, basePlot=FALSE), 'plotly')
@@ -23,7 +23,7 @@ test_that("plotting", {
     ods <- filterExpression(ods, filterGenes=FALSE, fpkmCutoff=1e5)
     expect_is(plotFPKM(ods), 'ggplot')
     
-    out <- plotDispEsts(ods)
+    expect_warning(out <- plotDispEsts(ods), "Parametric dispersion fit failed..")
     expect_is(out, 'list')
     expect_length(out, 2)
     
