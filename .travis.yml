@@ -34,16 +34,16 @@ install:
   - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, threads=4)'
 
 script:
-  - R CMD build .
+  - travis_wait 60 R CMD build .
+  - R CMD BiocCheck --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
   - R -e 'devtools::run_examples()'
   - cd vignettes && if [[ $TRAVIS_R_VERSION_STRING != "3.4.0" ]]; then
-        R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw";
+        travis_wait 60 R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw";
     else 
-        R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw" 2>&1 | tee /dev/tty | grep Error | exit `wc -l`;
+        travis_wait 60 R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw" 2>&1 | tee /dev/tty | grep Error | exit `wc -l`;
     fi
-  - R CMD BiocCheck --no-check-vignettes *tar.gz
-
+  
 after_success:
   - Rscript -e 'covr::codecov()'
 
