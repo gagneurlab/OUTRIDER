@@ -31,7 +31,7 @@
 #' 
 #' @export
 controlForConfounders <- function(ods, q,
-                    implementation=c('autoencoder', 'pca', 'peer'),
+                    implementation=c('autoencoder', 'pca'),
                     BPPARAM=bpparam(), ...){
     
     # error checking
@@ -58,8 +58,6 @@ controlForConfounders <- function(ods, q,
     aeFun <- switch(implementation,
         autoencoder = { 
                 function(ods, q, ...){ fitAutoencoder(ods, q, ...) } },
-        peer        = { 
-                function(ods, q, BPPARAM, ...){ peer(ods, ...) } },
         pca         = { 
                 function(ods, q, BPPARAM, ...){ autoCorrectPCA(ods, q, ...) } },
         stop("Requested control implementation is unknown.")

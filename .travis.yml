@@ -42,7 +42,7 @@ script:
     else 
         R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw" 2>&1 | tee /dev/tty | grep Error | exit `wc -l`;
     fi
-  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
+  - R CMD BiocCheck --no-check-vignettes *tar.gz
 
 after_success:
   - Rscript -e 'covr::codecov()'
