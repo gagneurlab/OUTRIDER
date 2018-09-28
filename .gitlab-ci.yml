@@ -31,7 +31,7 @@ R-BiocCheck:
   when: always
   tags: [shell]
   script:
-    - R_LIBS_USER=$R_LIBS_U R --vanilla CMD BiocCheck --new-package --no-check-vignettes "${PKG_FILE_NAME}"
+    - R_LIBS_USER=$R_LIBS_U R --vanilla CMD BiocCheck --no-check-vignettes "${PKG_FILE_NAME}"
 
 R-coverage:
   stage: testing

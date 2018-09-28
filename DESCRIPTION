@@ -96,7 +96,6 @@ Collate:
     OUTRIDER.R
     sizeFactor.R
     RcppExports.R
-    peer.R
     updateE.R
     updateD.R
     updateTheta.R
