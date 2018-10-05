@@ -11,8 +11,7 @@ matrix:
     - r: bioc-devel
     - r: 3.5.0
     - r: 3.4.4
-#    - r: 3.4.2
-#    - r: 3.4.0
+    - r: 3.4.2
 
 addons:
   apt:
