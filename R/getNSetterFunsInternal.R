@@ -23,12 +23,16 @@ sampleExclusionMask <- function(ods, aeMatrix=FALSE){
     ans <- rep(FALSE, ncol(ods))
     if('exclude' %in% colnames(colData(ods))){
         ans <- colData(ods)[['exclude']]
+        names(ans) <- colnames(ods)
     }
     
     if(isTRUE(aeMatrix)){
         ans <- as.integer(vapply(ans, isFALSE, FALSE))
-        return(matrix(ans, ncol=ncol(ods), nrow=nrow(ods)))
+        ans <- matrix(ans, ncol=ncol(ods), nrow=nrow(ods))
+        colnames(ans) <- colnames(ods)
+        rownames(ans) <- rownames(ods)
     }
+    
     return(ans)
 }
 
