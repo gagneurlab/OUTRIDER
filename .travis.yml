@@ -10,7 +10,7 @@ matrix:
     - r: bioc-release
     - r: bioc-devel
     - r: 3.5.0
-#    - r: 3.4.4
+    - r: 3.4.4
 #    - r: 3.4.2
 #    - r: 3.4.0
 
@@ -37,7 +37,7 @@ script:
   - travis_wait 60 R CMD build .
   - R CMD BiocCheck --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
-  - R -e 'devtools::run_examples()'
+#  - R -e 'devtools::run_examples()'
   - cd vignettes && if [[ $TRAVIS_R_VERSION_STRING != "3.4.0" ]]; then
         travis_wait 60 R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw";
     else 
