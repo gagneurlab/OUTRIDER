@@ -113,6 +113,7 @@ OutriderDataSet <- function(se, countData, colData, ...) {
     }
     
     obj <- new("OutriderDataSet", se)
+    metadata(obj)[["version"]] <- packageVersion("OUTRIDER")
     validObject(obj)
     
     return(obj)
