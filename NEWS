@@ -1,5 +1,6 @@
-REVISED VERSION 0.99.29
+REVISED VERSION 0.99.28
 -----------------------------
+    o Major changes
     o Improved autoencoder model.
     o Updated API
     o Improved default parameters.
