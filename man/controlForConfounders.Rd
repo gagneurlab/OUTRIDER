@@ -4,8 +4,8 @@
 \alias{controlForConfounders}
 \title{Autoencoder function to correct for confounders.}
 \usage{
-controlForConfounders(ods, q, implementation = c("autoencoder", "pca",
-  "peer"), BPPARAM = bpparam(), ...)
+controlForConfounders(ods, q, implementation = c("autoencoder", "pca"),
+  BPPARAM = bpparam(), ...)
 }
 \arguments{
 \item{ods}{An OutriderDataSet object}

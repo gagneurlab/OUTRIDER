@@ -16,7 +16,7 @@
 \alias{theta}
 \title{Getter/Setter functions}
 \usage{
-getBestQ(ods, digits = 2)
+getBestQ(ods)
 
 zScore(ods)
 
@@ -29,7 +29,9 @@ padj(ods)
 theta(ods)
 }
 \arguments{
-\item{ods}{OutriderDataSet}
+\item{ods, object}{An OutriderDataSet object.}
+
+\item{...}{Further arguments currently not in use.}
 }
 \value{
 A matrix or vector dependent on the type of data retrieved.

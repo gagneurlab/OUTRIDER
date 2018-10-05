@@ -13,7 +13,7 @@ updateD <- function(ods, control, BPPARAM){
     thetaC <- thetaCorrection(ods)
     
     # run fits
-    fitls <- bplapply(seq_len(nrow(ods)), singleDFit, D=D, b=b, k=k, sf=sf, H=H, 
+    fitls <- bplapply(seq_len(nrow(ods)), singleDFit, D=D, b=b, k=k, sf=sf, H=H,
             theta=theta, mask=sMask, control=control, thetaC=thetaC, 
             BPPARAM=BPPARAM)
     

@@ -7,24 +7,31 @@
 \title{Find the optimal encoding dimension}
 \usage{
 findEncodingDim(ods, params = seq(5, min(30, ncol(ods), nrow(ods)), 2),
-  freq = 0.01, zScore = 3, logsd = log(1.6), lnorm = FALSE,
-  inj = "both", evalAucPRLoss = TRUE, ..., BPPARAM = bpparam())
+  freq = 0.01, zScore = 3, sdlog = log(1.6), lnorm = FALSE,
+  inj = "both", ..., BPPARAM = bpparam())
 
 findInjectZscore(ods, freq = 0.01, zScoreParams = c(seq(1.5, 4, 0.5),
   "lnorm"), encDimParams = c(seq(3, 40, 3), seq(45, 70, 5), 100, 130,
-  160), inj = "both", ..., implementation = "autoencoder",
-  BPPARAM = bpparam())
+  160), inj = "both", ..., BPPARAM = bpparam())
 }
 \arguments{
 \item{ods}{An OutriderDataSet}
 
-\item{params}{Set of possible q values.}
+\item{params, encDimParams}{Set of possible q values.}
 
 \item{freq}{Frequency of outlier, defaults to 1E-2}
 
-\item{zScore}{Injection Z-score, defaults to 3.}
+\item{zScore, zScoreParams}{Set of possible injection Z-score, defaults to 3.}
+
+\item{sdlog}{Standard deviation of the sitribution on the log scale.}
+
+\item{lnorm}{If TRUE, the default, Z-scores are drawn from a log normal 
+distribution with a mean of \code{log(zScore)} in log-scale.}
 
 \item{inj}{Injection strategy, by default 'both'.}
+
+\item{...}{Further arguments passed on to the \code{controlForConfounders}
+function.}
 
 \item{BPPARAM}{BPPARAM object by default bpparam().}
 }

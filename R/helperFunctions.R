@@ -133,20 +133,20 @@ getGeneIndex <- function(geneIdx, ods){
 
 #' @rdname getter_setter_functions
 #' @export
-getBestQ <- function(ods, digits=2){
+getBestQ <- function(ods){
     if('optimalEncDim' %in% names(metadata(ods))){
         return(metadata(ods)[['optimalEncDim']])
     }
     
     if('encDimTable' %in% names(metadata(ods))){
         encTable <- metadata(ods)[['encDimTable']]
-        return(getBestQDT(encTable, 'aucPR', digits=digits))
+        return(getBestQDT(encTable, 'aucPR'))
     }
     # warning('Please find the optimal encoding dimension by running. ')
     return(NA_integer_)
 }
 
-getBestQDT <- function(dt, usedEvalMethod='aucPR', digits=2){
+getBestQDT <- function(dt, usedEvalMethod='aucPR', digits=10){
     if('evalMethod' %in% colnames(dt)){
         testFun <- ifelse(all(dt[,evalMethod == usedEvalMethod]), 
                 which.max, which.min)

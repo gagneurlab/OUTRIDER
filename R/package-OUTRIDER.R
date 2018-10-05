@@ -72,7 +72,7 @@
 #'          quantile optim var pnbinom  median ppoints qbeta runif 
 #'            lm predict rnorm glm Gamma rnbinom
 #' 
-#' @importFrom utils read.table head compareVersion
+#' @importFrom utils read.table head compareVersion packageVersion
 #' 
 #' @importFrom PRROC pr.curve
 #' 
@@ -84,31 +84,33 @@ NULL
 #' TODO This is to get rid of the warnings of undefined variables
 #'     due to the nature of data.table and ggplot/plotly
 #' @noRd
-NULL
-globalVariables(c(
-    "enc",
-    "eva",
-    "encodingDimension", 
-    "evalMethod", 
-    "evaluationLoss",
-    "normcounts",
-    "opt",
-    "padj_rank", 
-    "padjust", 
-    "medianCts", 
-    "negLog10pVal", "normcounts", 
-    "obs", "onlyFull",
-    "lty", 
-    "lwd", 
-    ##"mu",
-    "norm_rank", 
-    "color", "frac",
-    "Fraction",
-    "ExprType", 
-    "passedFilter",
-##       loggeomeans", 
-##         "pValue", 
-## "zScore"), 
-       "sampleID", "value", "V1", "Var1", "Var2", ".x", 
-        "z"), package="OUTRIDER")
+globalVariables(package="OUTRIDER", c(
+        "color",
+        "enc",
+        "encodingDimension", 
+        "eva",
+        "evalMethod", 
+        "evaluationLoss",
+        "ExprType", 
+        "frac",
+        "Fraction",
+        "lty", 
+        "lwd", 
+        "medianCts", 
+        "negLog10pVal",
+        "normcounts",
+        "norm_rank", 
+        "opt",
+        "padj_rank", 
+        "padjust", 
+        "obs",
+        "onlyFull",
+        "passedFilter",
+        "sampleID",
+        "value",
+        "V1",
+        "Var1",
+        "Var2",
+        ".x", 
+        "z"))
 

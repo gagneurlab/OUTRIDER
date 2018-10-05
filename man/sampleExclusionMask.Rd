@@ -12,10 +12,14 @@ sampleExclusionMask(ods, aeMatrix = FALSE)
 sampleExclusionMask(ods) <- value
 }
 \arguments{
-\item{ods}{OutriderDataSet}
+\item{ods}{An OutriderDataSet object}
 
-\item{aeMatrix}{if TRUE, it returns a 0-1 matrix for the 
+\item{aeMatrix}{If \code{TRUE}, it returns a 0-1 matrix for the 
 internal autoencoder functions}
+
+\item{value}{A logical vector of the length of the samples. If \code{TRUE},
+the corresponding sample will be excluded from the autoencoder
+fit.}
 }
 \value{
 The exclusion vector/matrix.

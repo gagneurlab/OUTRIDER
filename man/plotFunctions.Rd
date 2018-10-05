@@ -49,25 +49,23 @@ plotPowerAnalysis(ods)
 plotEncDimSearch(ods)
 }
 \arguments{
-\item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
+\item{ods, object}{An OutriderDataSet object.}
 
-\item{sampleID}{A sampleID, which should be plotted. Can also be a vector.}
+\item{sampleID, geneID}{A sample or gene ID, which should be plotted. 
+Can also be a vector. Integers are treated as indices.}
 
 \item{main}{Title for the plot, if missing a default title will be used.}
 
-\item{padjCutoff}{Significance level to mark outliers}
-
-\item{zScoreCutoff}{Z-score cutoff to mark outliers}
+\item{padjCutoff, zScoreCutoff}{Significance or Z-score cutoff
+to mark outliers}
 
 \item{pch}{Integer or character to be used for plotting the points}
 
-\item{basePlot}{if TRUE, use the R base plot version, else use the plotly 
-framework, which is the default}
+\item{basePlot}{if \code{TRUE}, use the R base plot version, else use the
+plotly framework, which is the default}
 
 \item{col}{Set color for the points. If set, it must be a character vector 
 of length 2. (1. normal point; 2. outlier point)}
-
-\item{geneID}{A geneID, which should be plotted. Can also be a vector.}
 
 \item{global}{Flag to plot a global Q-Q plot, default FALSE}
 
@@ -79,9 +77,8 @@ of length 2. (1. normal point; 2. outlier point)}
 
 \item{conf.alpha}{If set, a confidence interval is plotted, defaults to 0.05}
 
-\item{xlim}{The x limits for the plot or NULL to use the full data range}
-
-\item{ylim}{The y limits for the plot or NULL to use the full data range}
+\item{xlim, ylim}{The x/y limits for the plot or NULL to use 
+the full data range}
 
 \item{normalized}{If TRUE, the normalized counts are used, the default,
 otherwise the raw counts}
@@ -119,7 +116,7 @@ returned OutriderDataSet.}
 
 \item{labCex}{The label cex parameter}
 
-\item{object}{An OutriderDataSet, see ods parameter}
+\item{ymax}{If set, ymax is the upper bound for the plot range on the y axis.}
 
 \item{compareDisp}{If TRUE, the default, and if the autoCorrect normalization
 was used it computes the dispersion without autoCorrect and 

@@ -21,12 +21,11 @@
 #' Most of the functions share the same parameters. 
 #' 
 #### Data specific parameters
-#' @param ods An OutriderDataSet, which is used to extract the data for plotting
-#' @param object An OutriderDataSet, see ods parameter
-#' @param sampleID A sampleID, which should be plotted. Can also be a vector.
-#' @param geneID A geneID, which should be plotted. Can also be a vector.
-#' @param padjCutoff Significance level to mark outliers
-#' @param zScoreCutoff Z-score cutoff to mark outliers
+#' @param ods,object An OutriderDataSet object.
+#' @param sampleID,geneID A sample or gene ID, which should be plotted. 
+#'             Can also be a vector. Integers are treated as indices.
+#' @param padjCutoff,zScoreCutoff Significance or Z-score cutoff
+#'             to mark outliers
 #' @param global Flag to plot a global Q-Q plot, default FALSE
 #' @param outlierRatio The fraction to be used for the outlier sample filtering
 #' @param normalized If TRUE, the normalized counts are used, the default,
@@ -39,13 +38,14 @@
 #' @param pch Integer or character to be used for plotting the points
 #' @param col Set color for the points. If set, it must be a character vector 
 #'             of length 2. (1. normal point; 2. outlier point)
-#' @param basePlot if TRUE, use the R base plot version, else use the plotly 
-#'             framework, which is the default
+#' @param basePlot if \code{TRUE}, use the R base plot version, else use the
+#'             plotly framework, which is the default
 #' @param legendPos Set legendpos, by default topleft.
 #' @param conf.alpha If set, a confidence interval is plotted, defaults to 0.05
 #' @param samplePoints Sample points for Q-Q plot, defaults to max 30k points
-#' @param xlim The x limits for the plot or NULL to use the full data range
-#' @param ylim The y limits for the plot or NULL to use the full data range
+#' @param xlim,ylim The x/y limits for the plot or NULL to use 
+#'             the full data range
+#' @param ymax If set, ymax is the upper bound for the plot range on the y axis.
 #' @param log If TRUE, the default, counts are plotted in log10.
 #' @param rowCentered If TRUE, the counts are row-wise (gene-wise) centered
 #' @param rowCoFactor A vector of co-factors for color coding the rows
@@ -748,7 +748,7 @@ plotDispEsts.OUTRIDER <- function(object, compareDisp, xlim, ylim,
                 'or ods <- fit(ods)')
     }
     if(missing(compareDisp)){
-        compareDisp <- !is.null(E(ods))
+        compareDisp <- !is.null(E(object))
     }
     
     # disp from OUTRIDER

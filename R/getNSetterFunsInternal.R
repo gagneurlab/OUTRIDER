@@ -3,8 +3,11 @@
 #' To exclude a sample from the fit process, one can use this function to mask 
 #' specific samples. This can be used if replicates are present.
 #' 
-#' @param ods OutriderDataSet
-#' @param aeMatrix if TRUE, it returns a 0-1 matrix for the 
+#' @param ods An OutriderDataSet object
+#' @param value A logical vector of the length of the samples. If \code{TRUE},
+#'             the corresponding sample will be excluded from the autoencoder
+#'             fit.
+#' @param aeMatrix If \code{TRUE}, it returns a 0-1 matrix for the 
 #'             internal autoencoder functions
 #' @return The exclusion vector/matrix.
 #' 

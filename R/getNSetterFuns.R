@@ -3,7 +3,8 @@
 #' This is a collection of small accessor/setter functions for easy access to
 #' the values within the OUTRIDER model.
 #' 
-#' @param ods OutriderDataSet
+#' @param ods,object An OutriderDataSet object.
+#' @param ... Further arguments currently not in use.
 #' @return A matrix or vector dependent on the type of data retrieved.
 #' 
 #' @name getter_setter_functions
@@ -75,9 +76,7 @@ padj <- function(ods){
 #' @rdname getter_setter_functions
 #' @export dispersions
 setMethod("dispersions", signature(object="OutriderDataSet"), 
-          function(object, ...){
-    1/theta(object)
-})
+    function(object, ...){ 1/theta(object) })
 
 #' @rdname getter_setter_functions
 #' @export theta

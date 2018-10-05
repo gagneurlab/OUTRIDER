@@ -1,6 +1,6 @@
 
 compileResults <- function(object, padjCutoff, zScoreCutoff, round, all, 
-                           BPPARAM=bpparam()){
+                    BPPARAM=bpparam()){
     checkOutriderDataSet(object)
     checkFullAnalysis(object)
     
