@@ -1,87 +1,4 @@
 
-compileResults <- function(object, padjCutoff, zScoreCutoff, round, all, 
-                    BPPARAM=bpparam()){
-    checkOutriderDataSet(object)
-    checkFullAnalysis(object)
-    
-    features <- c("pValue", "padjust", "zScore", "l2fc")
-    if(!all(features %in% assayNames(object))){
-        stop(paste0("Some of the assays are missing. Please run the full ", 
-                "analysis before extracting the results.",
-                "\n\tods <- OUTRIDER(ods)"))
-    }
-    if(isTRUE(round)){
-        round <- 2
-    }
-    if(isFALSE(all)){
-        object <- object[aberrant(object, padjCutoff=padjCutoff, 
-                zScoreCutoff=zScoreCutoff, by="gene") > 0,]
-        if(dim(object)[1]==0){
-            warning('No significant events: use all=TRUE to print all counts.')
-            return(data.table(geneID=NA_character_, sampleID=NA_character_, 
-                    pValue=NA_real_, padjust=NA_real_, zScore=NA_real_,
-                    l2fc=NA_real_, rawcounts=NA_integer_, normcounts=NA_real_,
-                    theta=NA_real_, meanCorrected=NA_real_, 
-                    AberrantBySample=NA_integer_, AberrantByGene=NA_integer_,
-                    padj_rank=NA_real_)[0])
-        }
-    }
-    
-    if(is.null(rownames(object))){
-        rownames(object) <- paste('feature', seq_len(nrow(object)), sep='_')
-    }
-    DTfitparameters <- data.table(geneID=rownames(object), theta=theta(object))
-    
-    countdataDF <- as.data.table(counts(object), keep.rownames="geneID")
-    countNormDF <- as.data.table(counts(object, normalized=TRUE), 
-            keep.rownames="geneID")
-    aberrantDF <- as.data.table(keep.rownames="geneID", aberrant(
-            object, padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff))
-    
-    featureDTs <- lapply(features, function(f){
-        dt <- as.data.table(assays(object)[[f]], keep.rownames='geneID')
-    })
-    names(featureDTs) <- features
-    
-    featureDTs <- append(featureDTs, list(
-            rawcounts=countdataDF, normcounts=countNormDF, aberrant=aberrantDF))
-    
-    featureMeltDTs <- bplapply(names(featureDTs), dt=featureDTs, 
-            BPPARAM=BPPARAM, mv=seq_len(ncol(object)) + 1,
-            FUN=function(n, dt, mv){
-                dt[[n]] %>% melt(id.vars="geneID", value.name=n,
-                        measure.vars=mv, variable.name="sampleID")})
-    
-    tidyresults <- Reduce(x=featureMeltDTs, f=function(x, y){
-        merge(x, y, by=c("geneID", "sampleID")) })
-    
-    # merge by geneID
-    tidyresults <- merge(tidyresults, DTfitparameters, by=c('geneID'))
-    tidyresults <- merge(tidyresults, data.table(geneID=rownames(object), 
-            meanCorrected=rowMeans(counts(object, normalized=TRUE))), 
-            AberrantByGene=aberrant(object, by='gene'), 
-            by=c('geneID'))
-    
-    # merge by sampleID
-    tidyresults <- merge(tidyresults, data.table(sampleID=colnames(object), 
-            AberrantBySample=aberrant(object, by='sample')), 
-            by=c('sampleID'))
-    
-    if(isFALSE(all)){
-        tidyresults <- tidyresults[aberrant == TRUE]
-    }
-    tidyresults[,padj_rank:=rank(padjust), by=sampleID]
-    tidyresults <- tidyresults[order(padjust)]
-    
-    if(is.numeric(round)){
-        col2round <- c("normcounts", "zScore", "l2fc", "theta",
-                "meanCorrected")
-        devNull <- lapply(col2round, function(x){
-                tidyresults[,c(x):=round(get(x), as.integer(round))] })
-    }
-    return(tidyresults)
-}
-
 #' 
 #' Accessor function for the 'results' object in an OutriderDataSet object. 
 #' 
@@ -117,15 +34,113 @@ compileResults <- function(object, padjCutoff, zScoreCutoff, round, all,
 #' @docType methods
 #' @name results
 #' @rdname results
-#' @export results
+#' @aliases results, results.OutriderDataSet
+#' 
+NULL
+
+#' internal result function
+#' @noRd
+compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
+                    round=2, all=FALSE, ...){
+    
+    #
+    # input check and parsing
+    # 
+    
+    checkOutriderDataSet(object)
+    checkFullAnalysis(object)
+    
+    if(is.null(rownames(object))){
+        rownames(object) <- paste('feature', seq_len(nrow(object)), sep='_')
+    }
+    
+    if(is.null(colnames(object))){
+        colnames(object) <- paste('sample', seq_len(ncol(object)), sep='_')
+    }
+    
+    if(isTRUE(round)){
+        round <- 2
+    }
+    
+    if(isFALSE(all)){
+        abByGene <- aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene")
+        abBySample <- aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")
+        object <- object[abByGene > 0, abBySample > 0]
+    }
+    
+    if(nrow(object) == 0){
+        if(isFALSE(all)){
+            warning('No significant events: use all=TRUE to print all events.')
+        } else {
+            warning('Please provide an object with at least one feature.')
+        }
+        return(data.table(
+                geneID=NA_character_,
+                sampleID=NA_character_,
+                pValue=NA_real_,
+                padjust=NA_real_,
+                zScore=NA_real_,
+                l2fc=NA_real_,
+                rawcounts=NA_integer_,
+                normcounts=NA_real_,
+                meanCorrected=NA_real_,
+                theta=NA_real_,
+                AberrantBySample=NA_integer_,
+                AberrantByGene=NA_integer_,
+                padj_rank=NA_real_)[0])
+    }
+    
+    #
+    # extract data
+    # 
+    
+    ans <- data.table(
+        geneID           = rownames(object), 
+        sampleID         = rep(colnames(object), each=nrow(object)),
+        pValue           = c(pValue(object)),
+        padjust          = c(padj(object)),
+        zScore           = c(zScore(object)),
+        l2fc             = NA_real_,
+        rawcounts        = c(counts(object)),
+        normcounts       = c(counts(object, normalized=TRUE)),
+        meanCorrected    = rowMeans(counts(object, normalized=TRUE)),
+        theta            = theta(object),
+        aberrant         = c(aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff)),
+        AberrantBySample = rep(each=nrow(object), aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")),
+        AberrantByGene   = aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene"),
+        padj_rank        = c(apply(padj(object), 2, rank)))
+    
+    if("l2fc" %in% assayNames(object)){
+        ans[,l2fc:=c(assay(object, "l2fc"))]
+    }
+
+    # round columns if requested
+    if(is.numeric(round)){
+        devNull <- lapply(
+                c("normcounts", "zScore", "l2fc", "theta", "meanCorrected"),
+                function(x) ans[,c(x):=round(get(x), as.integer(round))] )
+    }
+    
+    # 
+    # keep only aberrent events and sort by padj value
+    # 
+    if(isFALSE(all)){
+        ans <- ans[aberrant == TRUE]
+    }
+    ans <- ans[order(padjust)]
+    
+    return(ans)
+}
+
+#' @rdname results
 #' @export
 setGeneric("results", function(object, ...) standardGeneric("results"))
 
 #' @rdname results
 #' @export
-setMethod("results", "OutriderDataSet", function(object, 
-                    padjCutoff=0.05, zScoreCutoff=0, round=2, all=FALSE, 
-                    ...){
-    compileResults(object, padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff,
-            round=round, all=all, ...)
-})
+setMethod("results", "OutriderDataSet", compileResults.OUTRIDER)
