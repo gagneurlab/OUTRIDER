@@ -684,7 +684,8 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
         replace(count_vector, count_vector==0, replace_zero_unknown),
         log='y', ylim=ylim, names.arg='', xlab='', plot.grid=TRUE, 
         grid.col='lightgray', ylab='', yaxt='n', border=NA, xpd=TRUE,
-        col=col[(!count_vector < length(ods)*outlierRatio) + 1], main=main)
+        col=col[(!count_vector <= max(1, length(ods)*outlierRatio)) + 1],
+        main=main)
     
     n_names <- floor(length(count_vector)/20)
     xnames= seq_len(n_names*20)
