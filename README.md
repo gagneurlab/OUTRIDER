@@ -35,7 +35,7 @@ devtools::install_github('gagneurlab/OUTRIDER', dependencies=TRUE)
 
 ### Quick tour through OUTRIDER
 
-To get started with `OUTRIDER`, please have a look at our [vignette](https://i12g-gagneurweb.in.tum.de/public/paper/OUTRIDER/OUTRIDER-vignette.pdf).
+To get started with `OUTRIDER`, please have a look at our [vignette](http://bioconductor.org/packages/devel/bioc/manuals/OUTRIDER/man/OUTRIDER.pdf).
 In order to get the pdf version, please type the following code in an R session:
 
 ```
@@ -45,7 +45,7 @@ vignette('OUTRIDER')
 
 ### Toubleshooting
 
-#### Missing libraries while install R packages
+#### Missing libraries while compiling R packages
 
 On some Linux distributions we need the developer libraries for compiling the R packages.
 
