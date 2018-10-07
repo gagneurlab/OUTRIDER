@@ -332,86 +332,26 @@ ods <- plotCountCorHeatmap(ods, normalized=TRUE)
 
 Alternatively, other methods can be used to control for confounders. In addition
 to the \textit{autoencoder}, we implemented a PCA based approach. The PCA 
-implementation can be utilized by setting \Robject{implementation="pca"}.
+implementation can be utilized by setting \Robject{implementation="pca"}. 
+Also PEER can be used together with the OUTRIDER framework. A detailed 
+description on how to do this can be found in section \ref{sec:PEER}.
 Furthermore, any other method can be used by providing the 
 \Rfunction{normalizationFactor} matrix. 
 This matrix must be computed beforehand using the appropriate method. 
 Its purpose is to normalize for technical effects or control for additional
-expression patterns.
-
-\subsubsection{Using PEER to control for confounders}
-
-PEER\cite{Stegle2012} is a well known tool to control for unknown effects in
-RNA-seq data. PEER is only available through the \Githubpkg{PMBio/peer} 
-GitHub repository. The R source code can be downloaded form here: 
-\url{https://github.com/downloads/PMBio/peer/R_peer_source_1.3.tgz}. The 
-installation of the package has to be done manually by the user. 
-After the installation one can use the following function to control for 
-confounders. 
-
-<<peer_function, eval=FALSE>>=
-#'
-#' PEER implementation
-#'
-peer <- function(ods, maxFactors=NA, maxItr=1000){
-    
-    # check for PEER
-    if(!require(peer)){
-        stop("Please install the 'peer' package from GitHub to use this ",
-                "functionality.")
-    }
-    
-    # default and recommendation by PEER: min(0.25*n, 100)
-    if(is.na(maxFactors)){
-        maxFactors <- min(as.integer(0.25* ncol(ods)), 100)
-    }
-    
-    # log counts
-    logCts <- log2(t(t(counts(ods)+1)/sizeFactors(ods)))
-    
-    # prepare PEER model
-    model <- PEER()
-    PEER_setNmax_iterations(model, maxItr)
-    PEER_setNk(model, maxFactors)
-    PEER_setPhenoMean(model, logCts)
-    PEER_setAdd_mean(model, TRUE)
-    
-    # run fullpeer pipeline
-    PEER_update(model)
-    
-    # extract PEER data
-    peerResiduals <- PEER_getResiduals(model)
-    peerMean <- t(t(2^(logCts - peerResiduals)) * sizeFactors(ods))
-    
-    # save model in object
-    normalizationFactors(ods) <- pmax(peerMean, 1E-8)
-    metadata(ods)[["PEER_model"]] <- list(
-            alpha     = PEER_getAlpha(model),
-            residuals = PEER_getResiduals(model),
-            W         = PEER_getW(model))
-    
-    return(ods)
-}
-
-# Control for confounders with PEER
-ods <- estimateSizeFactors(ods)
-ods <- peer(ods)
-
-# Heatmap of the sample correlation after controlling
-ods <- plotCountCorHeatmap(ods, normalized=TRUE)
-@
+expression patterns. 
 
 \subsubsection{Excluding samples from the autoencoder fit}
 
 Since OUTRIDER expects that each sample within the population is independent 
-of each other, replicates could mask effects specific to this sample. This is 
+of all others, replicates could mask effects specific to this sample. This is 
 also true if trios are present in the data, where the parents can be seen as
-biological replicates. Here, we recomment to mask the sample of interest or 
-the replicats during the autoencoder fit. Later on, for all samples P-values 
+biological replicates. Here, we recommend to exclude the sample of interest or 
+the replicates from the fitting. Later on, for all samples P-values 
 are calculated. 
 
 In this rare disease data set we know that two samples (MUC1344 and MUC1365)
-have the same defect. To exclude one or both of them we could use
+have the same defect. To exclude one or both of them, we can use
 the \Rfunction{sampleExclusionMask} function.
 
 <<maskSamples>>=
@@ -574,7 +514,80 @@ plotQQ(ods, "TIMMDC1")
 @
 
 
-\section{Details}
+\section{Additional features}
+
+\subsection{Using PEER to control for confounders}
+\label{sec:PEER}
+
+PEER\cite{Stegle2012} is a well known tool to control for unknown effects in
+RNA-seq data. PEER is only available through the \Githubpkg{PMBio/peer} 
+GitHub repository. The R source code can be downloaded form here: 
+\url{https://github.com/downloads/PMBio/peer/R_peer_source_1.3.tgz}. The 
+installation of the package has to be done manually by the user. 
+After the installation one can use the following function to control for 
+confounders with PEER. 
+
+<<peer_function, eval=FALSE>>=
+#'
+#' PEER implementation
+#'
+peer <- function(ods, maxFactors=NA, maxItr=1000){
+    
+    # check for PEER
+    if(!require(peer)){
+        stop("Please install the 'peer' package from GitHub to use this ",
+                "functionality.")
+    }
+    
+    # default and recommendation by PEER: min(0.25*n, 100)
+    if(is.na(maxFactors)){
+        maxFactors <- min(as.integer(0.25* ncol(ods)), 100)
+    }
+    
+    # log counts
+    logCts <- log2(t(t(counts(ods)+1)/sizeFactors(ods)))
+    
+    # prepare PEER model
+    model <- PEER()
+    PEER_setNmax_iterations(model, maxItr)
+    PEER_setNk(model, maxFactors)
+    PEER_setPhenoMean(model, logCts)
+    PEER_setAdd_mean(model, TRUE)
+    
+    # run fullpeer pipeline
+    PEER_update(model)
+    
+    # extract PEER data
+    peerResiduals <- PEER_getResiduals(model)
+    peerMean <- t(t(2^(logCts - peerResiduals)) * sizeFactors(ods))
+    
+    # save model in object
+    normalizationFactors(ods) <- pmax(peerMean, 1E-8)
+    metadata(ods)[["PEER_model"]] <- list(
+            alpha     = PEER_getAlpha(model),
+            residuals = PEER_getResiduals(model),
+            W         = PEER_getW(model))
+    
+    return(ods)
+}
+@ 
+
+With the function above we can run the full OUTRIDER pipeline as follows:
+
+<<how to run peer, eval=FALSE>>=
+# Control for confounders with PEER
+ods <- estimateSizeFactors(ods)
+ods <- peer(ods)
+ods <- fit(ods)
+ods <- computeZscores(ods, peerResiduals=TRUE)
+ods <- computePvalues(ods)
+
+# Heatmap of the sample correlation after controlling
+ods <- plotCountCorHeatmap(ods, normalized=TRUE)
+@
+
+
+\subsection{Power anaylsis}
 
 We provide the \Rfunction{plotPowerAnalysis} function to show, what kind of 
 changes can be significant depending on the mean count.
