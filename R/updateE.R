@@ -2,7 +2,7 @@
 #' Update E step for the autoencoder fit
 #' 
 #' @noRd
-updateE <- function(ods, control, BPPARAM){
+updateE <- function(ods, control, BPPARAM, verbose){
     e <- as.vector(E(ods))
     D <- D(ods)
     k <- t(counts(ods))
@@ -18,7 +18,7 @@ updateE <- function(ods, control, BPPARAM){
             method="L-BFGS-B", lower=-100, upper=100, control=control)
     
     # Check that fit converged
-    if(fit$convergence!=0){
+    if(isTRUE(verbose) & fit$convergence != 0){
         print(paste('Update E did not converge: ', fit$message))
     }
     

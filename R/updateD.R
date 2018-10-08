@@ -2,7 +2,7 @@
 #' Update D function
 #' 
 #' @noRd
-updateD <- function(ods, control, BPPARAM){
+updateD <- function(ods, control, BPPARAM, verbose){
     D <- D(ods)
     b <- b(ods)
     H <- H(ods)
@@ -20,10 +20,13 @@ updateD <- function(ods, control, BPPARAM){
     # extract infos
     parMat <- vapply(fitls, '[[', double(ncol(D) + 1), 'par')
     mcols(ods)['FitDMessage'] <- vapply(fitls, '[[', 'text', 'message')
-    print(table(mcols(ods)[,'FitDMessage']))
     mcols(ods)[,'NumConvergedD'] <- mcols(ods)[,'NumConvergedD'] + grepl(
             "CONVERGENCE: REL_REDUCTION_OF_F .. FACTR.EPSMCH", 
             mcols(ods)[,'FitDMessage'])
+    
+    if(isTRUE(verbose)){
+        print(table(mcols(ods)[,'FitDMessage']))
+    }
     
     # update b and D 
     b(ods) <- parMat[1,]

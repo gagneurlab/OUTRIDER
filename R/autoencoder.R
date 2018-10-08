@@ -4,7 +4,8 @@
 #' @noRd
 fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3), 
                     convergence=1e-5, iterations=15, initialize=TRUE,
-                    control=list(), BPPARAM=bpparam()){
+                    control=list(), BPPARAM=bpparam(), verbose=FALSE){
+    
     # Check input
     checkOutriderDataSet(ods)
     checkCountRequirements(ods)
@@ -25,12 +26,12 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     print(paste0('Initial PCA loss: ', lossList[1]))
     
     # initialize D 
-    ods <- updateD(ods, control=control, BPPARAM=BPPARAM)
-    lossList <- updateLossList(ods, lossList, 'init', 'D')
+    ods <- updateD(ods, control=control, BPPARAM=BPPARAM, verbose=verbose)
+    lossList <- updateLossList(ods, lossList, 'init', 'D', verbose=verbose)
     
     # initialize theta step
-    ods <- updateTheta(ods, thetaRange, BPPARAM=BPPARAM)
-    lossList <- updateLossList(ods, lossList, 'init', 'Theta')
+    ods <- updateTheta(ods, thetaRange, BPPARAM=BPPARAM, verbose=verbose)
+    lossList <- updateLossList(ods, lossList, 'init', 'Theta', verbose=verbose)
     
     # optimize log likelihood
     t1 <- Sys.time()
@@ -39,18 +40,23 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
         t2 <- Sys.time()
         
         # update E step
-        ods <- updateE(ods, control=control, BPPARAM=BPPARAM)
-        lossList <- updateLossList(ods, lossList, i, 'E')
+        ods <- updateE(ods, control=control, BPPARAM=BPPARAM, verbose=verbose)
+        lossList <- updateLossList(ods, lossList, i, 'E', verbose=verbose)
         
         # update D step
-        ods <- updateD(ods, control=control, BPPARAM=BPPARAM)
-        lossList <- updateLossList(ods, lossList, i, 'D')
+        ods <- updateD(ods, control=control, BPPARAM=BPPARAM, verbose=verbose)
+        lossList <- updateLossList(ods, lossList, i, 'D', verbose=verbose)
     
         # update theta step
-        ods <- updateTheta(ods, thetaRange, BPPARAM=BPPARAM)
-        lossList <- updateLossList(ods, lossList, i, 'theta')
+        ods <- updateTheta(ods, thetaRange, BPPARAM=BPPARAM, verbose=verbose)
+        lossList <- updateLossList(ods, lossList, i, 'theta', verbose=verbose)
         
-        print(paste('Time for one autoencoder loop:', Sys.time() - t2))
+        if(isTRUE(verbose)){
+            print(paste('Time for one autoencoder loop:', Sys.time() - t2))
+        } else {
+            print(paste0(date(), ': Iteration: ', i, ' loss: ', 
+                    lossList[length(lossList)]))
+        }
         
         # check 
         curLossDiff <- abs(currentLoss - lossList[length(lossList) - 2:0])
@@ -102,12 +108,14 @@ initAutoencoder <- function(ods, q, thetaRange){
     return(ods)
 }
 
-updateLossList <- function(ods, lossList, i, stepText){
+updateLossList <- function(ods, lossList, i, stepText, verbose){
     currLoss <- lossED(ods)
     lossList <- c(lossList, currLoss)
     names(lossList)[length(lossList)] <- paste0(i, '_', stepText)
-    print(paste0(date(), ': Iteration: ', i, ' ', 
-            stepText, ' loss: ', currLoss))
+    if(isTRUE(verbose)){
+        print(paste0(date(), ': Iteration: ', i, ' ', 
+                stepText, ' loss: ', currLoss))
+    }
     return(lossList)
 }
 

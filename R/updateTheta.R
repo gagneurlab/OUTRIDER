@@ -3,7 +3,7 @@
 #' Update theta step for autoencoder
 #' 
 #' @noRd
-updateTheta <- function(ods, thetaRange, BPPARAM){
+updateTheta <- function(ods, thetaRange, BPPARAM, verbose){
     normalizationFactors(ods) <- t(predictC(ods))
     mu <- normalizationFactors(ods)
     cts <- counts(ods)
@@ -16,7 +16,10 @@ updateTheta <- function(ods, thetaRange, BPPARAM){
             BPPARAM=BPPARAM, nll=negLogLikelihoodTheta, thetaC=thetaC)
     
     theta(ods) <- vapply(fitparameters, "[[", double(1), "minimum")
-    print(summary(theta(ods)))
+    
+    if(isTRUE(verbose)){
+        print(summary(theta(ods)))
+    }
     
     validObject(ods)
     return(ods)

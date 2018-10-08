@@ -19,8 +19,9 @@ for confounders by the autoencoder}
 implementation. Also 'pca' and 'peer' can be used to control
 for confounding effects}
 
-\item{BPPARAM}{A \code{\link[BiocParallel]{BiocParallelParam}} instance
-to be used for parallel computing.}
+\item{BPPARAM}{A 
+\code{\link[BiocParallel:BiocParallelParam-class]{BiocParallelParam}}
+        instance to be used for parallel computing.}
 
 \item{...}{Further arguments passed on to \code{controlForConfounders}}
 }
