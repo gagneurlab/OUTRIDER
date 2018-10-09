@@ -11,25 +11,22 @@ OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
 
 `OUTRIDER` is an R software package requiring a running [R 3.4 version or higher](https://cran.r-project.org/).
 
-### Prerequisite
-
-We will use `devtools` and `BiocManager` to install the package and its dependencies.
+We will use `BiocManager` to install the package and its dependencies.
 
 ```
-install.packages('devtools', repos='http://cran.us.r-project.org')
 if (!requireNamespace("BiocManager", quietly=TRUE))
     install.packages("BiocManager")
 BiocManager::install('OUTRIDER')
 ```
 
-If you have dependency issues while installing devtools, please have a look at the Troubleshooting section.
+If you have dependency issues while installing any package, please have a look at the Troubleshooting section.
 
+### OUTRIDER development installation
 
-### OUTRIDER and R dependencies
-
-The `OUTRIDER` R package and its dependencies can then be installed by running:
+To get the latest development version of `OUTRIDER` one can install it from GitHub with `devtools'.
 
 ```
+install.packages('devtools')
 devtools::install_github('gagneurlab/OUTRIDER', dependencies=TRUE)
 ``` 
 
