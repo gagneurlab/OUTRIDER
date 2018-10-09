@@ -1,6 +1,6 @@
 context("Testing helper functions")
 
-test_that("check ODS object"){
+test_that("check ODS object", {
     ods <- makeExampleOutriderDataSet(10,10)
     expect_error(checkOutriderDataSet("a"), "Please provide an OutriderData")
     expect_true(checkOutriderDataSet(ods))
@@ -8,14 +8,14 @@ test_that("check ODS object"){
     expect_error(checkFullAnalysis(ods), "Please calculate the size factors")
     ods <- estimateSizeFactors(ods)
     
-    expect_error(checkFullAnalysis(ods), "Please calulcate the P-values before")
+    expect_error(checkFullAnalysis(ods), "Please calculate the P-values before")
     padj(ods) <- matrix(runif(ncol(ods)*nrow(ods)), ncol=ncol(ods))
     
-    expect_error(checkFullAnalysis(ods), "Please calulcate the Z-scores before")
+    expect_error(checkFullAnalysis(ods), "Please calculate the Z-scores before")
     zScore(ods) <- matrix(runif(ncol(ods)*nrow(ods)), ncol=ncol(ods))
     
     expect_true(checkFullAnalysis(ods))
-}
+})
 
 test_that("check theta range", {
     expect_error(checkThetaRange("aaa"), "Please provide a range for theta")
@@ -32,7 +32,7 @@ test_that("check requirements", {
     counts(ods)[1,] <- 0
     expect_error(checkCountRequirements(ods), "There are genes without any re")
     counts(ods)[1,1] <- 1
-    expect_error(checkCountRequirements(ods), "There model requires for each")
+    expect_error(checkCountRequirements(ods), "The model requires for each")
     counts(ods)[1,2] <- 1
     expect_true(!any(checkCountRequirements(ods)))
 })

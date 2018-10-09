@@ -28,11 +28,11 @@ test_that("result method", {
     expect_error(results(ods), "Please calculate..*")
     ods <- OUTRIDER(ods, iteration=2)
     
-    expect_warning(results(ods, padj=1e-10), "No significant events:")
-    expect_equal(colnames(results(ods, padj=1e-10)), colnames(results(ods)))
+    expect_warning(res <- results(ods, padj=1e-10), "No significant events:")
+    expect_equal(colnames(res), colnames(results(ods)))
     expect_true(all(results(ods)$aberrant))
     expect_equal(nrow(results(ods, all=TRUE)), nrow(ods)*ncol(ods))
-    res <- results(ods, round=TRUE)
+    expect(nrow(results(ods, round=TRUE)), 3)
 })
 
 test_that("normalization method", {
