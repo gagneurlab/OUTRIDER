@@ -87,6 +87,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
                 normcounts=NA_real_,
                 meanCorrected=NA_real_,
                 theta=NA_real_,
+                aberrant=NA,
                 AberrantBySample=NA_integer_,
                 AberrantByGene=NA_integer_,
                 padj_rank=NA_real_)[0])
@@ -102,7 +103,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         pValue           = c(pValue(object)),
         padjust          = c(padj(object)),
         zScore           = c(zScore(object)),
-        l2fc             = NA_real_,
+        l2fc             = c(assay(object, "l2fc")),
         rawcounts        = c(counts(object)),
         normcounts       = c(counts(object, normalized=TRUE)),
         meanCorrected    = rowMeans(counts(object, normalized=TRUE)),
@@ -114,10 +115,6 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         AberrantByGene   = aberrant(object, 
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene"),
         padj_rank        = c(apply(padj(object), 2, rank)))
-    
-    if("l2fc" %in% assayNames(object)){
-        ans[,l2fc:=c(assay(object, "l2fc"))]
-    }
 
     # round columns if requested
     if(is.numeric(round)){

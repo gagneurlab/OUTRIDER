@@ -69,12 +69,12 @@ checkThetaRange <- function(thetaRange){
     if(length(thetaRange) != 2){
         stop('Please provide a range for thetaRange (eg: `c(0.1, 250)`).')
     }
-    if(all(!is.finite(thetaRange))){
+    if(!all(is.finite(thetaRange))){
         stop('Please provide finite values for the theta range.')
     }
     if(thetaRange[1] > thetaRange[2]){
         stop('The first element of the range has to be smaller', 
-                'than the second one.')
+                ' than the second one.')
     }
     return(invisible(TRUE))
 }
