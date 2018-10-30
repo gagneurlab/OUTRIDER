@@ -6,6 +6,7 @@ OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
 [![Version](https://img.shields.io/badge/Version-0.99.31-orange.svg)](https://github.com/gagneurlab/OUTRIDER/tree/master)
 [![Coverage status](https://codecov.io/gh/gagneurlab/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/gagneurlab/OUTRIDER?branch=master)
 [![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/gagneurlab/OUTRIDER/blob/master/LICENSE)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/c-mertes/OUTRIDER?branch=master&svg=true)](https://ci.appveyor.com/project/c-mertes/OUTRIDER)
 
 ## Installation
 
