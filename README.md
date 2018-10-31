@@ -12,7 +12,8 @@ OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
 
 `OUTRIDER` is an R software package requiring a running [R 3.4 version or higher](https://cran.r-project.org/).
 
-We will use `BiocManager` to install the package and its dependencies.
+We will use `BiocManager` to install the package and its dependencies. If you use an R version < 3.5.1 or Bioconductor version < 3.8, please install OUTRIDER with devtools from GitHub directly [(see below)](#OUTRIDER-development-installation).
+
 
 ```
 if (!requireNamespace("BiocManager", quietly=TRUE))
@@ -20,16 +21,23 @@ if (!requireNamespace("BiocManager", quietly=TRUE))
 BiocManager::install('OUTRIDER')
 ```
 
-If you have dependency issues while installing any package, please have a look at the Troubleshooting section.
+If you have dependency issues while installing any package, please have a look at the Troubleshooting section or submit an issue on [GitHub](https://github.com/gagneurlab/OUTRIDER/issues).
 
 ### OUTRIDER development installation
 
-To get the latest development version of `OUTRIDER` one can install it from GitHub with `devtools'.
+If you use a Bioconductor version prio 3.8 or if you want to get the latest development version of `OUTRIDER`, you can install it from GitHub with `devtools`. For this, you need a working development environment to compile the C++ code (see for details: [Windows](https://cran.r-project.org/bin/windows/Rtools/) or [MacOS X](https://cran.r-project.org/bin/macosx/tools/)). 
 
 ```
 install.packages('devtools')
+
+# latest development version
 devtools::install_github('gagneurlab/OUTRIDER', dependencies=TRUE)
+
+# installing specific version/tag of OUTRIDER
+devtools::install_github("gagneurlab/OUTRIDER", ref="0.99.31")
 ``` 
+
+To check which versions/tags are available you can check the GitHub repo [here](https://github.com/gagneurlab/OUTRIDER/releases).
 
 ### Quick tour through OUTRIDER
 
