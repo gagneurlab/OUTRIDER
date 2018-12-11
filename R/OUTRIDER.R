@@ -1,11 +1,11 @@
 #' 
 #' OUTRIDER - Finding expression outlier events
 #' 
-#' @description The OUTRIDER function runs the default OUTRIDER pipline. 
+#' @description The OUTRIDER function runs the default OUTRIDER pipeline. 
 #' Combinig the fit, the computation of Z scores and P-values.
 #' All computed values are returned as an OutriderDataSet object.
 #' 
-#' To have more control over each analysis step one can call each 
+#' To have more control over each analysis step, one can call each 
 #' function seperatly.
 #' 
 #' \enumerate{
