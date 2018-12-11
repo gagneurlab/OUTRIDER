@@ -7,7 +7,7 @@
 #' stored as assays or as annotation in the mcols structure provided by the
 #' \code{RangedSummarizedExperiment} class.
 #' 
-#' @param se An RangedSummarizedExperiment object or any object which inherits
+#' @param se A RangedSummarizedExperiment object or any object which inherits
 #'             from it and contains a count matrix as the first element in the
 #'             assay list.
 #' @param countData A simple count matrix. If dim names are provided, they have
