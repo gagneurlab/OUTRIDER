@@ -16,13 +16,13 @@ Author@R: c(
     person("Julien", "Gagneur", role=c("aut"), email="gagneur@in.tum.de"))
 Author: Felix Brechtmann [aut, cre], Christian Mertes [aut, cre], 
     Ange Matuseviciute [aut, cre], Vicente Yepez [aut], Julien Gagneur [aut]
-Description: Identification of aberrent gene expression in RNA-seq data.
+Description: Identification of aberrant gene expression in RNA-seq data.
     Read count expectations are modeled by an autoencoder to control for
     confounders in the data. Given these expectations, the RNA-seq read counts
     are assumed to follow a negative binomial distribution with a gene-specific
     dispersion. Outliers are then identified as read counts that significantly 
-    deviate from this distribution. Further OUTRIDER provides useful plotting 
-    function to analyze and visualize the results.
+    deviate from this distribution. Furthermore, OUTRIDER provides useful plotting 
+    functions to analyze and visualize the results.
 VignetteBuilder: knitr
 biocViews: RNASeq, Transcriptomics, Alignment, Sequencing, GeneExpression, 
     Genetics
