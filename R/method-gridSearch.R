@@ -43,7 +43,7 @@
 #' @aliases findEncodingDim, findInjectZscore
 #' @export
 findEncodingDim <- function(ods, params=seq(5,min(30,ncol(ods), nrow(ods)), 2),
-                    freq=1E-2, zScore=3, sdlog=log(1.6), lnorm=FALSE, 
+                    freq=1E-2, zScore=3, sdlog=log(1.6), lnorm=TRUE, 
                     inj='both', ..., BPPARAM=bpparam()){
     
     # compute auto Correction
