@@ -1,5 +1,5 @@
 #'
-#' This is the import mapping for the scared package
+#' This is the import mapping for the OUTRIDER package
 #' 
 #' @noRd
 #' 
