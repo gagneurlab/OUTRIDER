@@ -4,7 +4,7 @@
 #' Accessor functions for the 'sizeFactors' information in a OutriderDataSet
 #' object. 
 #' 
-#' The estimation of the size factors can make also use of existing 
+#' The estimation of the size factors can also make use of the existing 
 #' log geometric means in the object. Those can be loaded from an 
 #' existing model.
 #'    
@@ -17,7 +17,7 @@
 #'         
 #' @param object OutriderDataSet
 #' @param value A numberic vector of sizeFactors
-#' @return An OutriderDatasSet with the estimated sizeFactors or with the 
+#' @return An OutriderDatasSet with the estimated sizeFactors, or with the 
 #'             getter function it returns a numeric vector containing the 
 #'             sizeFactors.
 #' 
