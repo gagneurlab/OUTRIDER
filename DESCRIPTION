@@ -6,7 +6,7 @@ Date: 2018-06-26
 Maintainer: Christian Mertes <mertes@in.tum.de>
 URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
-Author@R: c(
+Authors@R: c(
     person("Felix", "Brechtmann", role=c("aut", "cre"), 
             email="brechtma@in.tum.de"),
     person("Christian", "Mertes", role=c("aut", "cre"), 
