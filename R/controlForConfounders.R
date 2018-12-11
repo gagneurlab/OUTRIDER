@@ -9,13 +9,13 @@
 #' @param q The encoding dimensions
 #' @param implementation "autoencoder", the default, will use the autoencoder
 #'             implementation. Also 'pca' and 'peer' can be used to control
-#'             for confounding effects
+#'             for confounding effects.
 #' @param BPPARAM A 
 #'     \code{\link[BiocParallel:BiocParallelParam-class]{BiocParallelParam}}
 #'             instance to be used for parallel computing.
 #' @param ... Further arguments passed on to the specific implementation method.
 #' 
-#' @return An ods object including the control factors 
+#' @return An ods object including the control factors. 
 #'
 #' @examples
 #' ods <- makeExampleOutriderDataSet()

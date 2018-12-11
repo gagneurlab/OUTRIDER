@@ -1,10 +1,10 @@
 #' 
 #' Calculate P-values
 #' 
-#' This function computes the P-values based on fitted negative binomial model.
+#' This function computes the P-values based on the fitted negative binomial model.
 #' It computes two matrices with the same dimension as the count matrix
 #' (samples x genes), which contain the corresponding P-values and 
-#' adjusted P-values to every count. 
+#' adjusted P-values of every count. 
 #' 
 #' @param object An OutriderDataSet
 #' @param alternative Can be one of "two.sided", "greater" or "less" to specify
