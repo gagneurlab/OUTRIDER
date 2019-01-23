@@ -1,0 +1,28 @@
+citHeader("To cite OUTRIDER in publications use:")
+
+citEntry(entry = "Article",
+    title    = "OUTRIDER: A Statistical Method for Detecting Aberrantly Expressed Genes in RNA Sequencing Data",
+    author   = personList(as.person("Felix Brechtmann"), 
+                  as.person("Christian Mertes"),
+                  as.person("Agne Matuseviciute"),
+                  as.person("Vicente A. Yepez"),
+                  as.person("Ziga Avsec"),
+                  as.person("Maximilian Herzog"),
+                  as.person("Daniel M. Bader"),
+                  as.person("Holger Prokisch"),
+                  as.person("Julien Gagneur")),
+    journal  = "The American Journal of Human Genetics",
+    volume   = "103",
+    number   = "6",
+    pages    = "907 - 917",
+    year     = "2018",
+    issn     = "0002-9297",
+    doi      = "https://doi.org/10.1016/j.ajhg.2018.10.025",
+    url      = "http://www.sciencedirect.com/science/article/pii/S0002929718304014",
+
+    textVersion  = paste(
+            "Brechtmann F, Mertes C, Matuseviciute A, et al.,",
+            "OUTRIDER: A Statistical Method for Detecting Aberrantly Expressed Genes in RNA Sequencing Data.",
+            "AJHG, 2018, 103(6), 907-917.",
+            "DOI: 10.1016/j.ajhg.2018.10.025.")
+)

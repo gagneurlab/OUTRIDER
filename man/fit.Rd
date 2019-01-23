@@ -23,7 +23,7 @@ An OutriderDataSet object with the fitted model. Accessible through:
 }
 \description{
 Fit a negative binomial (NB) distribution to the counts per gene
-over all samples using if available the precomputed control factors.
+over all samples using, if available, the precomputed control factors.
 If no normalization factors are provided only the sizeFactors are used.
 }
 \examples{

@@ -1,7 +1,7 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.1.1
+Version: 1.1.2
 Date: 2018-06-26
 Maintainer: Christian Mertes <mertes@in.tum.de>
 URL: https://github.com/gagneurlab/OUTRIDER
@@ -29,7 +29,7 @@ biocViews: RNASeq, Transcriptomics, Alignment, Sequencing, GeneExpression,
 License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Depends:
     R (>= 3.4), 
     BiocParallel,
