@@ -9,13 +9,13 @@
 #' @param q The encoding dimensions
 #' @param implementation "autoencoder", the default, will use the autoencoder
 #'             implementation. Also 'pca' and 'peer' can be used to control
-#'             for confounding effects.
+#'             for confounding effects
 #' @param BPPARAM A 
 #'     \code{\link[BiocParallel:BiocParallelParam-class]{BiocParallelParam}}
 #'             instance to be used for parallel computing.
 #' @param ... Further arguments passed on to the specific implementation method.
 #' 
-#' @return An ods object including the control factors. 
+#' @return An ods object including the control factors 
 #'
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
@@ -41,7 +41,7 @@ controlForConfounders <- function(ods, q,
     checkSizeFactors(ods)
     
     if(!missing(q)){
-        if(!is.numeric(q) && q > 1 && min(dim(ods)) <= q){
+        if(!(is.numeric(q) & q > 1 & q <= min(dim(ods)))){
             stop("Please provide for q an integer greater than 1 and smaller ", 
                     "than number of samples or genes.")
         }
@@ -50,6 +50,8 @@ controlForConfounders <- function(ods, q,
         if(is.na(q)){
             q <- estimateBestQ(ods)
             message('Using estimated q with: ', q)
+        } else {
+          message('Using provided q with: ', q)
         }
     }
     

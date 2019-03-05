@@ -98,7 +98,8 @@ if(multicoreWorkers() >= 4){
 @
 
 \section{Introduction}
-\outrider{} (OUTlier in RNA-seq fInDER) is a tool for finding aberrantly expressed
+\outrider{} (OUTlier in RNA-seq fInDER) is a tool for finding aberrantly 
+expressed
 genes in RNA-seq samples. It does so by fitting a negative binomial model 
 to RNA-seq read counts, correcting for variations in sequencing depth and 
 apparent co-variations across samples. Read counts that significantly deviate 
@@ -149,9 +150,12 @@ par(par.old)
 
 \section{Prerequisites}
 To get started on the preprocessing step, we recommend to read the 
-introductions of \deseq{}\cite{Love2014}, \Biocpkg{edgeR}\cite{Robinson2010} or the RNA-seq workflow from
-Bioconductor: \Biocpkg{rnaseqGene}. In brief, one usually starts with the raw FASTQ files from
-the RNA sequencing run. Those are then aligned to a given reference genome. At the time of writing
+introductions of \deseq{}\cite{Love2014}, \Biocpkg{edgeR}\cite{Robinson2010}
+or the RNA-seq workflow from
+Bioconductor: \Biocpkg{rnaseqGene}. In brief, one usually starts with the raw
+FASTQ files from
+the RNA sequencing run. Those are then aligned to a given reference genome. 
+At the time of writing
 (October 2018), we recommend the STAR aligner\cite{Dobin2013}. After 
 obtaining the aligned BAM files, one can map the reads to exons or genes of a 
 GTF annotation file using HT-seq or by using \Rfunction{summarizedOverlaps} from
@@ -194,7 +198,8 @@ plotQQ(ods, res[1, geneID])
 
 \section{An \outrider{} analysis in detail}
 
-Apart from running the full pipeline using the single wrapper function \Rfunction{OUTRIDER}, 
+Apart from running the full pipeline using the single wrapper function 
+\Rfunction{OUTRIDER}, 
 the analysis can also be run step by step. The wrapper function does
 not include any preprocessing functions. Discarding non expressed genes or 
 samples failing quality measurements should be done manually before running the 
@@ -203,11 +208,12 @@ samples failing quality measurements should be done manually before running the
 In this section we will explain the analysis functions step by step.
 
 For this tutorial we will use the rare disease data set from Kremer 
-\textit{et al}.\cite{Kremer2017}. For testing purposes, this package contains a small
-subset of it.
+\textit{et al}.\cite{Kremer2017}. For testing purposes, this package 
+contains a small subset of it.
 
 \subsection{OutriderDataSet}
-To use \outrider{} create an \ods, which derives from a RangedSummarizedExperiment
+To use \outrider{} create an \ods, which derives from a 
+RangedSummarizedExperiment
 object. The \ods can be created by supplying a count matrix and optional sample 
 annotation matrices. Alternatively, an existing Summarized experiment object
 from other Biocnductor backages can be used.
@@ -229,8 +235,8 @@ ods <- OutriderDataSet(countData=ctsTable)
 
 It is recommended to preprocess the data before fitting. Our model 
 requires that for every gene at least one sample has a non-zero count and 
-that we observe at least one read for every 100 samples. Therefore, all genes that are not 
-expressed must be discarded.
+that we observe at least one read for every 100 samples. Therefore, 
+all genes that are not expressed must be discarded.
 
 We provide the function \Rfunction{filterExpression} to remove genes that have 
 low FPKM (Fragments Per Kilobase of transcript per Million mapped reads) 
@@ -257,7 +263,8 @@ map <- select(org.Hs.eg.db, keys=keys(txdb, keytype = "GENEID"),
         keytype="ENTREZID", columns=c("SYMBOL"))
 @
 
-However, the \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only well annotated 
+However, the \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only 
+well annotated 
 genes. This annotation will miss a lot of genes captured by RNA-seq. To include 
 all predicted annotations as well as non-coding RNAs please download the txdb 
 object from our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
@@ -292,8 +299,10 @@ ods <- ods[mcols(ods)$passedFilter,]
 
 The next step in any analysis workflow is to visualize the correlations
 between samples. In most RNA-seq experiments correlations between the samples 
-can be observed. These are often due to technical confounders (e.g. sequencing batch) 
-or biological confounders (e.g. sex, age). These confounders can adversely affect the 
+can be observed. These are often due to technical confounders 
+(e.g. sequencing batch) 
+or biological confounders (e.g. sex, age). These confounders can adversely
+affect the 
 detection of aberrant features. Therefore, we provide options to control for 
 them.
 
@@ -340,6 +349,37 @@ Furthermore, any other method can be used by providing the
 This matrix must be computed beforehand using the appropriate method. 
 Its purpose is to normalize for technical effects or control for additional
 expression patterns. 
+
+
+\subsection{Finding the right encoding dimension \textit{q}}
+
+In the previous section, we fixed the encoding dimension $q=21$. But having 
+the right encoding dimension is crucial in finding outliers in the data. 
+On the one hand, if \textit{q} is too big the autoencoder will learn the 
+identity matrix and will overfit the data. On the other hand, if \textit{q}
+is too small the autoencoder cannot learn the necessary covariates existing
+in the data. Therefore, it is recommended for any new dataset to estimate the
+optimal encoding dimension to gain the best performance. With the function 
+\Rfunction{findEncodingDim} one can find the optimal encoding dimension. 
+To this end, we artificially introduce corrupted counts randomly into the 
+dataset and monitor the performance calling those corrupted counts. The optimal
+dimension \textit{q} is then selected as the dimension maximizing the area under
+the precision-recall curve for identifying corrupted counts.
+
+<<findEncodingDim, eval=FALSE>>=
+# find the optimal encoding dimension q
+ods <- findEncodingDim(ods)
+
+# visualize the hyper parameter optimization
+plotEncDimSearch(ods)
+
+@
+
+Since this function runs a full OUTRIDER fit for a range of encoding dimensions,
+it is quite CPU intensive, but can increase the overall performance of the
+autoencoder and is recommended for any data set. If \textit{q} is not provided
+by the user, it will be estimated based on the number of samples.
+
 
 \subsubsection{Excluding samples from the autoencoder fit}
 

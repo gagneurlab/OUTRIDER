@@ -14,7 +14,7 @@ controlForConfounders(ods, q, implementation = c("autoencoder", "pca"),
 
 \item{implementation}{"autoencoder", the default, will use the autoencoder
 implementation. Also 'pca' and 'peer' can be used to control
-for confounding effects.}
+for confounding effects}
 
 \item{BPPARAM}{A 
 \code{\link[BiocParallel:BiocParallelParam-class]{BiocParallelParam}}
@@ -23,7 +23,7 @@ for confounding effects.}
 \item{...}{Further arguments passed on to the specific implementation method.}
 }
 \value{
-An ods object including the control factors.
+An ods object including the control factors
 }
 \description{
 This is the wrapper function for the autoencoder implementation. 
