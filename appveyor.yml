@@ -16,10 +16,10 @@ environment:
   BIOC_USE_DEVEL: FALSE
   GCC_PATH: mingw_32
   matrix:
-    - R_VERSION: release
+    - R_VERSION: devel
       BIOC_USE_DEVEL: TRUE
       
-    - R_VERSION: release
+    - R_VERSION: devel
       BIOC_USE_DEVEL: TRUE
       GCC_PATH: mingw_64
       R_ARCH: x64
