@@ -6,7 +6,7 @@
 \alias{findInjectZscore}
 \title{Find the optimal encoding dimension}
 \usage{
-findEncodingDim(ods, params = seq(5, min(30, ncol(ods) - 1, nrow(ods) -
+findEncodingDim(ods, params = seq(2, min(100, ncol(ods) - 1, nrow(ods) -
   1), 2), freq = 0.01, zScore = 3, sdlog = log(1.6), lnorm = TRUE,
   inj = "both", ..., BPPARAM = bpparam())
 
