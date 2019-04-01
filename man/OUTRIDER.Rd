@@ -17,7 +17,7 @@ for confounders by the autoencoder}
 
 \item{implementation}{"autoencoder", the default, will use the autoencoder
 implementation. Also 'pca' and 'peer' can be used to control
-for confounding effects.}
+for confounding effects}
 
 \item{BPPARAM}{A 
 \code{\link[BiocParallel:BiocParallelParam-class]{BiocParallelParam}}
