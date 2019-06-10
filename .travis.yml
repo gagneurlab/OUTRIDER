@@ -18,6 +18,7 @@ addons:
     packages:
       - libxml2-dev
       - tk-dev
+      - libgit2-dev
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
@@ -27,7 +28,7 @@ install:
   - which R
   - R -e "
         install.packages('devtools');
-        if(compareVersion('3.5.0', paste(R.Version()[c('major', 'minor')], collapse='.')) < 1){ 
+        if(0 < compareVersion('3.5.0', paste(R.Version()[c('major', 'minor')], collapse='.'))){ 
           source('https://bioconductor.org/biocLite.R');
           biocLite(c('BiocInstaller', 'BiocCheck'), Ncpu=4);
         } else {
