@@ -1,6 +1,6 @@
 language: r
 sudo: required
-dist: trusty
+dist: xenial
 cache:
   - directories:
     - $HOME/R/Library
@@ -25,17 +25,24 @@ before_install:
 install:
   - R --version
   - which R
-  - R -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstaller')"
-  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools', 'roxygen2'), Ncpu=4)"
-  - R -e "message(BiocInstaller::isDevel())"
+  - R -e "
+        install.packages('devtools');
+        if(compareVersion('3.5.0', paste(R.Version()[c('major', 'minor')], collapse='.')) < 1){ 
+          source('https://bioconductor.org/biocLite.R');
+          biocLite(c('BiocInstaller', 'BiocCheck'), Ncpu=4);
+        } else {
+          install.packages('BiocManager');
+          BiocManager::install('BiocCheck');
+        }"
+  - R -e "devtools::install(c('covr', 'roxygen2'), Ncpu=4)"
   - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
   - R -e 'BiocParallel::multicoreWorkers()'
   - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, threads=4)'
 
 script:
-  - travis_wait 60 R CMD build .
+  - R CMD build .
   - R CMD BiocCheck --no-check-vignettes *tar.gz
-  - R CMD check --no-vignettes --timings *tar.gz
+#  - R CMD check --no-vignettes --timings *tar.gz
 #  - R -e 'devtools::run_examples()'
 #  - cd vignettes && if [[ $TRAVIS_R_VERSION_STRING != "3.4.0" ]]; then
 #        travis_wait 60 R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw";
