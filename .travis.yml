@@ -25,20 +25,16 @@ before_install:
 
 install:
   - R --version
-  - which R
-  - R -e "
-        install.packages('devtools');
-        if(0 < compareVersion('3.5.0', paste(R.Version()[c('major', 'minor')], collapse='.'))){ 
-          source('https://bioconductor.org/biocLite.R');
-          biocLite(c('BiocInstaller', 'BiocCheck'), Ncpu=4);
+  - R -e "install.packages(c('devtools', 'covr', 'roxygen2'), Ncpus=6)"
+  - R -e "if(0 < compareVersion('3.5.0', paste(R.Version()[c('major', 'minor')], collapse='.'))){ 
+            source('https://bioconductor.org/biocLite.R');
+            biocLite(c('BiocInstaller', 'BiocCheck'), Ncpus=6);
         } else {
-          install.packages('BiocManager');
-          BiocManager::install('BiocCheck');
+            install.packages('BiocManager');
+            BiocManager::install('BiocCheck');
         }"
-  - R -e "devtools::install(c('covr', 'roxygen2'), Ncpu=4)"
-  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
-  - R -e 'BiocParallel::multicoreWorkers()'
-  - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, threads=4)'
+  - R -e 'devtools::install_deps(dependencies=TRUE, Ncpus=6)'
+  - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, Ncpus=6)'
 
 script:
   - R CMD build .
