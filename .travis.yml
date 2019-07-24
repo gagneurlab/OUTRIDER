@@ -18,6 +18,10 @@ r:
   - 3.4.4
   - 3.5.0
   
+stages:
+  - Setup Cache
+  - Test
+  
 jobs:
   include:
     - stage: Setup Cache
