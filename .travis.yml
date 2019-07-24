@@ -22,13 +22,14 @@ r:
 jobs: 
   include:
     - stage: setup cache
+      r: bioc-release
       before_install:
         - tlmgr install index marginfix bera nowidow parnotes
       install:
         - R --version
         - Rscript setupEnv.R
-
     - state: test
+      r: bioc-release
       before_install:
         - tlmgr install index marginfix bera nowidow parnotes
       install:
