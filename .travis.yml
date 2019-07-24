@@ -5,7 +5,7 @@ cache:
   - directories:
     - $HOME/R/Library
 
-r
+r:
   - bioc-release
   - bioc-devel
   - 3.5.0
