@@ -18,22 +18,16 @@ r: bioc-release
 #      - 3.5.0
 #      - bioc-devel
 
+before_install:
+  - tlmgr install index marginfix bera nowidow parnotes   
+
 jobs: 
   include:
-    - stage: setup cache
+    - stage: A1
       r: bioc-devel
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
+      script: Rscript setupEnv.R
+    - stage: A2
       install:
-        - R --version
-        - Rscript setupEnv.R
-      script: true
-    - state: test
-      r: bioc-devel
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
-      install:
-        - R --version
         - Rscript setupEnv.R 
       script:
         - R CMD build .
