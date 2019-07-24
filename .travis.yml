@@ -11,14 +11,13 @@ addons:
       - libxml2-dev
       - tk-dev
 
-matrix:
-  include:
-    r:
-      - 3.4.2
-      - 3.4.4
-      - 3.5.0
-      - bioc-release
-      - bioc-devel
+r:
+  - bioc-release
+
+#- 3.4.2
+#      - 3.4.4
+#      - 3.5.0
+#      - bioc-devel
 
 jobs: 
   include:
