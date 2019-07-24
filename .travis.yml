@@ -1,6 +1,21 @@
+
+install:
+  - R --version
+  - R -e "install.packages(c('devtools', 'covr', 'roxygen2'), Ncpus=6)"
+  - R -e "if(0 < compareVersion('3.5.0', paste(R.Version()[c('major', 'minor')], collapse='.'))){ 
+            source('https://bioconductor.org/biocLite.R');
+            biocLite(c('BiocInstaller', 'BiocCheck'), Ncpus=6);
+        } else {
+            install.packages('BiocManager', Ncpus=6);
+            BiocManager::install('BiocCheck', Ncpus=6);
+        }"
+  - R -e 'devtools::install_deps(dependencies=TRUE, Ncpus=6)'
+  - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, Ncpus=6)'
+
+
 language: r
 sudo: required
-dist: trusty
+dist: xenial
 cache:
   - directories:
     - $HOME/R/Library
@@ -10,9 +25,8 @@ matrix:
     - r: bioc-release
     - r: bioc-devel
     - r: 3.5.0
-#    - r: 3.4.4
-#    - r: 3.4.2
-#    - r: 3.4.0
+    - r: 3.4.4
+    - r: 3.4.2
 
 addons:
   apt:
@@ -25,14 +39,30 @@ before_install:
 
 install:
   - R --version
-  - which R
-  - R -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstaller')"
-  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools', 'roxygen2'), Ncpu=4)"
-  - R -e "message(BiocInstaller::isDevel())"
-  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
-  - R -e 'BiocParallel::multicoreWorkers()'
-  - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, threads=4)'
-
+  - R -q -e "
+      if(0 < compareVersion('3.5.0', paste(R.Version()[c('major', 'minor')], collapse='.'))){
+          if(!requireNamespace('BiocInstaller')){
+              source('https://bioconductor.org/biocLite.R')
+              biocLite(c('BiocInstaller'), Ncpus=6)
+          }
+          INSTALL <- BiocInstaller::biocLite
+      } else {
+          if(!requireNamespace('BiocInstaller'))
+              install.packages('BiocManager', Ncpus=6)
+          INSTALL <- BiocManager::install
+          print(BiocManager::isDevel())
+      }
+      
+      for(p in c('devtools', 'covr', 'roxygen2', 'BiocCheck', 'R.utils'))
+          if(!requireNamespace(p, quietly=TRUE))
+              INSTALL(p, Ncpus=6)
+          
+      R.utils::withTimeout(timeout=2400, {
+          INSTALL(ask=FALSE, Ncpus=6)
+          devtools::install('.', ask=FALSE, dependencies=TRUE, upgrade=TRUE)
+      })
+  "
+  
 script:
   - R CMD build .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
