@@ -18,7 +18,7 @@ addons:
       - libxml2-dev
       - tk-dev
 
-jobs:
+matrix:
   include:
     - stage: setup cache
       before_install:
