@@ -24,8 +24,7 @@ before_install:
 
 install:
   - R --version
-  - R -q -e '
-      if(0 < compareVersion("3.5.0", paste(R.Version()[c("major", "minor")], collapse="."))){
+  - R -e 'if(0 < compareVersion("3.5.0", paste(R.Version()[c("major", "minor")], collapse="."))){
           if(!requireNamespace("BiocInstaller")){
               source("https://bioconductor.org/biocLite.R")
               biocLite(c("BiocInstaller"), Ncpus=6)
