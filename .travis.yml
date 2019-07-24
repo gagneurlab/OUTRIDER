@@ -70,7 +70,7 @@ jobs:
         - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
         - R CMD check --no-vignettes --timings *tar.gz
         - R -e 'devtools::run_examples()'
-        - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw
+        - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
       after_success:
         - Rscript -e 'covr::codecov()'
 
