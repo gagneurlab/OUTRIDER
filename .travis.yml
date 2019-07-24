@@ -35,13 +35,10 @@ install:
           if(!requireNamespace('BiocInstaller'))
               install.packages('BiocManager', Ncpus=6)
           INSTALL <- BiocManager::install
-          print(BiocManager::isDevel())
       }
-      
       for(p in c('devtools', 'covr', 'roxygen2', 'BiocCheck', 'R.utils'))
           if(!requireNamespace(p, quietly=TRUE))
-              INSTALL(p, Ncpus=6)
-          
+              INSTALL(p, Ncpus=6)   
       R.utils::withTimeout(timeout=2400, {
           INSTALL(ask=FALSE, Ncpus=6)
           devtools::install('.', ask=FALSE, dependencies=TRUE, upgrade=TRUE)
