@@ -11,30 +11,31 @@ addons:
       - libxml2-dev
       - tk-dev
 
-jobs: 
-  include: 
-    - r: bioc-release
-    - r: 3.4.2
-    - r: 3.4.4
-    - r: 3.5.0
-    - r: bioc-devel
-    - stage: Test
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
-      install:
-        - R --version
-        - Rscript setupEnv.R
-    - stage: Testing
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
-      install:
-        - Rscript setupEnv.R 
-      script:
-        - R CMD build .
-        - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
-        - R CMD check --no-vignettes --timings *tar.gz
-        - R -e 'devtools::run_examples()'
-        - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw
-      after_success:
-        - Rscript -e 'covr::codecov()'
+r: 
+  - bioc-release
+  - 3.4.2
+  - 3.4.4
+  - 3.5.0
+  - bioc-devel
+  
+stage: Setup Cache
+  before_install:
+    - tlmgr install index marginfix bera nowidow parnotes
+  install:
+    - R --version
+    - Rscript setupEnv.R
+
+stage: Testing
+  before_install:
+    - tlmgr install index marginfix bera nowidow parnotes
+  install:
+    - Rscript setupEnv.R 
+  script:
+    - R CMD build .
+    - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
+    - R CMD check --no-vignettes --timings *tar.gz
+    - R -e 'devtools::run_examples()'
+    - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw
+  after_success:
+    - Rscript -e 'covr::codecov()'
 
