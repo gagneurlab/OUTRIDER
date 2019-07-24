@@ -45,8 +45,8 @@ install:
       R.utils::withTimeout(timeout=2400, {
           INSTALL(ask=FALSE, Ncpus=6)
           devtools::install('.', ask=FALSE, dependencies=TRUE, upgrade=TRUE)
-      })
-  "
+      })"
+
 
 script:
   - R CMD build .
