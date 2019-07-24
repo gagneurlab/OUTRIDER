@@ -11,7 +11,7 @@ addons:
       - libxml2-dev
       - tk-dev
 
-jobs: 
+matrix: 
   include:
     - stage: Build Cache
       r: 
