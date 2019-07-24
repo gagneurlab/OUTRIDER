@@ -13,13 +13,12 @@ addons:
 
 matrix:
   include:
-    - r: 3.4.2
-    - r: 3.4.4
-    - r: 3.5.0
-    - r: bioc-release
-    - r: bioc-devel
-    
     - stage: setup cache
+      - r: 3.4.2
+      - r: 3.4.4
+      - r: 3.5.0
+      - r: bioc-release
+      - r: bioc-devel
       before_install:
         - tlmgr install index marginfix bera nowidow parnotes
       install:
