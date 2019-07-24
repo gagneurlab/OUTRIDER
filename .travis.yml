@@ -12,13 +12,12 @@ addons:
       - tk-dev
 
 matrix: 
-  include:
-    r: 
-     - bioc-release
-     - 3.4.2
-     - 3.4.4
-     - 3.5.0
-     - bioc-devel
+  include: 
+    - r: bioc-release
+    - r: 3.4.2
+    - r: 3.4.4
+    - r: 3.5.0
+    - r: bioc-devel
     - stage: Build Cache
       before_install:
         - tlmgr install index marginfix bera nowidow parnotes
