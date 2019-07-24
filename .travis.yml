@@ -6,11 +6,11 @@ cache:
     - $HOME/R/Library
 
 r:
+  - 3.4.2
+  - 3.4.4
+  - 3.5.0
   - bioc-release
   - bioc-devel
-  - 3.5.0
-  - 3.4.4
-  - 3.4.2
 
 addons:
   apt:
@@ -18,18 +18,17 @@ addons:
       - libxml2-dev
       - tk-dev
 
-before_install:
-  - tlmgr install index marginfix bera nowidow parnotes
-
-
 jobs:
   include:
     - stage: setup cache
+      before_install:
+        - tlmgr install index marginfix bera nowidow parnotes
       install:
         - R --version
         - Rscript setupEnv.R
-        
     - state: test
+      before_install:
+        - tlmgr install index marginfix bera nowidow parnotes
       install:
         - R --version
         - Rscript setupEnv.R 
@@ -37,9 +36,8 @@ jobs:
         - R CMD build .
         - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
         - R CMD check --no-vignettes --timings *tar.gz
-      #  - R -e 'devtools::run_examples()'
-      #  - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw"
-
-after_success:
-  - Rscript -e 'covr::codecov()'
+        - R -e 'devtools::run_examples()'
+        - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw
+      after_success:
+        - Rscript -e 'covr::codecov()'
 
