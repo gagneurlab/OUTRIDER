@@ -11,22 +11,24 @@ addons:
       - libxml2-dev
       - tk-dev
 
-r: bioc-release
-
-#- 3.4.2
-#      - 3.4.4
-#      - 3.5.0
-#      - bioc-devel
-
-before_install:
-  - tlmgr install index marginfix bera nowidow parnotes   
+r: 
+ - bioc-release
+ - 3.4.2
+ - 3.4.4
+ - 3.5.0
+ - bioc-devel
 
 jobs: 
   include:
-    - stage: A1
-      r: bioc-devel
-      script: Rscript setupEnv.R
-    - stage: A2
+    - stage: Build Cache
+      before_install:
+        - tlmgr install index marginfix bera nowidow parnotes
+      install:
+        - R --version
+        - Rscript setupEnv.R
+    - stage: Testing
+      before_install:
+        - tlmgr install index marginfix bera nowidow parnotes
       install:
         - Rscript setupEnv.R 
       script:
