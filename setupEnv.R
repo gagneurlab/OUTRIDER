@@ -1,5 +1,5 @@
 # install Bioconductor dependent on the R version
-R_VERSION <- paste(R.Version()[c("major", "minor")], collapse="."))
+R_VERSION <- paste(R.Version()[c("major", "minor")], collapse=".")
 message(paste0(date(), ": Current R version: ", R_VERSION))
 if(0 < compareVersion("3.5.0", R_VERSION)){
     if(!requireNamespace("BiocInstaller")){
