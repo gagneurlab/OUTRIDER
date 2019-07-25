@@ -28,23 +28,18 @@ jobs:
   include:
     - stage: Setup Cache
       r: bioc-devel
-      install: Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: bioc-release
-      install: Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: 3.5.0
-      install: Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: 3.4.4
-      install: Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: 3.4.2
-      install: Rscript setupEnv.R
       script: true
 
 before_install:
@@ -63,4 +58,6 @@ script:
   
 after_success:
   - Rscript -e 'covr::codecov()'
+  on:
+    condition: TRAVIS_BUILD_STAGE_NAME == "Test"
 
