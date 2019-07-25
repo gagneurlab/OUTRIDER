@@ -12,13 +12,12 @@ addons:
       - tk-dev
 
 r:
-  matrix:
-    - bioc-devel
-    - bioc-release
-    - 3.4.2
-    - 3.4.4
-    - 3.5.0
-  
+  - bioc-devel
+  - bioc-release
+  - 3.4.2
+  - 3.4.4
+  - 3.5.0
+
 stages:
   - Setup Cache
   - Test
