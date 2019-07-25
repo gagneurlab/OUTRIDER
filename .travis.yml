@@ -10,57 +10,50 @@ addons:
     packages:
       - libxml2-dev
       - tk-dev
+      - libgit2-dev
 
 r:
   - bioc-devel
   - bioc-release
-  - 3.4.2
-  - 3.4.4
   - 3.5.0
+  - 3.4.4
+  - 3.4.2
 
 stages:
   - Setup Cache
   - Test
-  
+
+# setup cache first
 jobs:
   include:
     - stage: Setup Cache
       r: bioc-devel
-      install:
-        - R --version
-        - Rscript setupEnv.R
+      install: Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: bioc-release
-      install:
-        - R --version
-        - Rscript setupEnv.R
+      install: Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: 3.5.0
-      install:
-        - R --version
-        - Rscript setupEnv.R
+      install: Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: 3.4.4
-      install:
-        - R --version
-        - Rscript setupEnv.R
+      install: Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: 3.4.2
-      install:
-        - R --version
-        - Rscript setupEnv.R
+      install: Rscript setupEnv.R
       script: true
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
   
 install:
+  - R --version
   - Rscript setupEnv.R 
-  
+
 script:
   - R CMD build .
   - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
