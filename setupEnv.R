@@ -5,7 +5,7 @@ print_log <- function(...){
 
 # install Bioconductor dependent on the R version
 R_VERSION <- paste(R.Version()[c("major", "minor")], collapse=".")
-message(paste0(date(), ": Current R version: ", R_VERSION))
+print_log("Current R version: ", R_VERSION)
 if(0 < compareVersion("3.5.0", R_VERSION)){
     if(!requireNamespace("BiocInstaller", quietly=TRUE)){
         print_log("Install BiocInstaller")
@@ -26,7 +26,7 @@ if(0 < compareVersion("3.5.0", R_VERSION)){
 # add testthat to pre installation dependencies due to: https://github.com/r-lib/pkgload/issues/89
 for(p in c("testthat", "devtools", "covr", "roxygen2", "BiocCheck", "R.utils")){
     if(!requireNamespace(p, quietly=TRUE)){
-        print_log("Install", p)
+        print_log("Install ", p)
         INSTALL(p, Ncpus=6)
     }
 }
@@ -37,6 +37,5 @@ R.utils::withTimeout(timeout=2400, {
     INSTALL(ask=FALSE, Ncpus=6)
     
     print_log("Install OUTRIDER")
-    devtools::install(".", ask=FALSE, dependencies=TRUE, upgrade=TRUE)
+    devtools::install(".", ask=FALSE, dependencies=TRUE, upgrade=TRUE, Ncpus=6)
 })
-
