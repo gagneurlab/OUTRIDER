@@ -858,6 +858,7 @@ plotEncDimSearch <- function(ods){
                 linetype='dotted', show.legend=TRUE) +
         geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) + 
         labs(x='Encoding dimensions',
-                y='Evaluation loss', col='Z score', shape='Best Q') + 
-        grids(linetype='dotted')
+                y='Evaluation loss', col='Z score', shape='Best Q') 
+        # TODO compatibility with 3.4 because of ggpubr/cowplot + 
+        # grids(linetype='dotted')
 }
