@@ -44,10 +44,10 @@ jobs:
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
-  
+
 install:
   - R --version
-  - Rscript setupEnv.R 
+  - Rscript setupEnv.R
 
 script:
   - travis_wait 60 R CMD build .
@@ -55,9 +55,8 @@ script:
   - R CMD check --no-vignettes --timings *tar.gz
   - R -e 'devtools::run_examples()'
   - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
-  
-after_success:
-  - Rscript -e 'covr::codecov()'
-  on:
-    condition: TRAVIS_BUILD_STAGE_NAME == "Test"
 
+after_success:
+    #  on:
+    #condition: TRAVIS_BUILD_STAGE_NAME == "Test"
+  - Rscript -e 'covr::codecov()'
