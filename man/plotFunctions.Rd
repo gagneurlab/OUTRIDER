@@ -11,13 +11,8 @@
 \alias{plotFPKM}
 \alias{plotDispEsts}
 \alias{plotPowerAnalysis}
-\alias{plotQQ}
-\alias{plotExpressionRank}
-\alias{plotCountCorHeatmap}
-\alias{plotAberrantPerSample}
-\alias{plotFPKM}
 \alias{plotDispEsts,OutriderDataSet-method}
-\alias{plotPowerAnalysis}
+\alias{plotEncDimSearch}
 \title{Visualization functions for OUTRIDER}
 \usage{
 plotVolcano(ods, sampleID, main, padjCutoff = 0.05, zScoreCutoff = 0,
@@ -28,20 +23,21 @@ plotQQ(ods, geneID, main, global = FALSE, padjCutoff = 0.05,
   outlierRatio = 0.001, conf.alpha = 0.05, pch = 16, xlim = NULL,
   ylim = NULL, col = NULL)
 
-plotExpressionRank(ods, geneID, main, padjCutoff = 0.05, zScoreCutoff = 0,
-  normalized = TRUE, basePlot = FALSE, log = TRUE, col = c("gray",
-  "firebrick"), ...)
+plotExpressionRank(ods, geneID, main, padjCutoff = 0.05,
+  zScoreCutoff = 0, normalized = TRUE, basePlot = FALSE,
+  log = TRUE, col = c("gray", "firebrick"), ...)
 
 plotCountCorHeatmap(ods, normalized = TRUE, rowCentered = TRUE,
   rowCoFactor = NULL, rowColSet = "Set1", colCoFactor = NULL,
-  colColSet = "Set2", nCluster = 4, main = "Count correlation heatmap",
-  dendrogram = "both", basePlot = TRUE, names = c("both", "row", "col",
-  "none"), ...)
+  colColSet = "Set2", nCluster = 4,
+  main = "Count correlation heatmap", dendrogram = "both",
+  basePlot = TRUE, names = c("both", "row", "col", "none"), ...)
 
 plotAberrantPerSample(ods, main, padjCutoff = 0.05, zScoreCutoff = 0,
   outlierRatio = 0.001, col = brewer.pal(3, "Dark2")[c(1, 2)],
   yadjust = c(1.2, 1.2), labLine = c(3.5, 3),
-  ylab = "#Aberrantly expressed genes", labCex = par()$cex, ...)
+  ylab = "#Aberrantly expressed genes", labCex = par()$cex,
+  ymax = NULL, ...)
 
 plotFPKM(ods)
 
@@ -49,27 +45,27 @@ plotFPKM(ods)
   main = "Dispersion estimates versus mean expression", ...)
 
 plotPowerAnalysis(ods)
+
+plotEncDimSearch(ods)
 }
 \arguments{
-\item{ods}{An OutriderDataSet, which is used to extract the data for plotting}
+\item{ods, object}{An OutriderDataSet object.}
 
-\item{sampleID}{A sampleID, which should be plotted. Can also be a vector.}
+\item{sampleID, geneID}{A sample or gene ID, which should be plotted. 
+Can also be a vector. Integers are treated as indices.}
 
 \item{main}{Title for the plot, if missing a default title will be used.}
 
-\item{padjCutoff}{Significance level to mark outliers}
-
-\item{zScoreCutoff}{Z-score cutoff to mark outliers}
+\item{padjCutoff, zScoreCutoff}{Significance or Z-score cutoff
+to mark outliers}
 
 \item{pch}{Integer or character to be used for plotting the points}
 
-\item{basePlot}{if TRUE, use the R base plot version, else use the plotly 
-framework, which is the default}
+\item{basePlot}{if \code{TRUE}, use the R base plot version, else use the
+plotly framework, which is the default}
 
 \item{col}{Set color for the points. If set, it must be a character vector 
 of length 2. (1. normal point; 2. outlier point)}
-
-\item{geneID}{A geneID, which should be plotted. Can also be a vector.}
 
 \item{global}{Flag to plot a global Q-Q plot, default FALSE}
 
@@ -81,9 +77,8 @@ of length 2. (1. normal point; 2. outlier point)}
 
 \item{conf.alpha}{If set, a confidence interval is plotted, defaults to 0.05}
 
-\item{xlim}{The x limits for the plot or NULL to use the full data range}
-
-\item{ylim}{The y limits for the plot or NULL to use the full data range}
+\item{xlim, ylim}{The x/y limits for the plot or NULL to use 
+the full data range}
 
 \item{normalized}{If TRUE, the normalized counts are used, the default,
 otherwise the raw counts}
@@ -121,7 +116,7 @@ returned OutriderDataSet.}
 
 \item{labCex}{The label cex parameter}
 
-\item{object}{An OutriderDataSet, see ods parameter}
+\item{ymax}{If set, ymax is the upper bound for the plot range on the y axis.}
 
 \item{compareDisp}{If TRUE, the default, and if the autoCorrect normalization
 was used it computes the dispersion without autoCorrect and 
@@ -145,6 +140,7 @@ This is the list of all plotting function provided by OUTRIDER:
   \item plotFPKM()
   \item plotDispEsts()
   \item plotPowerAnalysis()
+  \item plotEncDimSearch()
 }
 
 For a detailed description of each plot function please see the details.
@@ -190,12 +186,14 @@ levels. The curves are smooths to make the reading of the plot easier.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="Kremer")
+implementation <- 'autoencoder'
 \dontshow{
     # reduce the object size to speed up the calculations
     ods <- ods[400:410,60:70]
+    implementation <- 'pca'
 }
 ods <- filterExpression(ods, minCounts=TRUE)
-ods <- OUTRIDER(ods)
+ods <- OUTRIDER(ods, implementation=implementation)
 
 plotAberrantPerSample(ods)
 
@@ -222,5 +220,10 @@ plotFPKM(ods)
 plotDispEsts(ods, compareDisp=FALSE)
 
 plotPowerAnalysis(ods)
+
+\dontrun{
+ods <- findEncodingDim(ods)
+plotEncDimSearch(ods)
+}
 
 }

@@ -3,6 +3,8 @@
 \docType{methods}
 \name{results}
 \alias{results}
+\alias{results,}
+\alias{results.OutriderDataSet}
 \alias{results,OutriderDataSet-method}
 \title{Accessor function for the 'results' object in an OutriderDataSet object.}
 \usage{

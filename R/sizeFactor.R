@@ -4,7 +4,7 @@
 #' Accessor functions for the 'sizeFactors' information in a OutriderDataSet
 #' object. 
 #' 
-#' The estimation of the size factors can make also use of existing 
+#' The estimation of the size factors can also make use of the existing 
 #' log geometric means in the object. Those can be loaded from an 
 #' existing model.
 #'    
@@ -17,7 +17,7 @@
 #'         
 #' @param object OutriderDataSet
 #' @param value A numberic vector of sizeFactors
-#' @return An OutriderDatasSet with the estimated sizeFactors or with the 
+#' @return An OutriderDatasSet with the estimated sizeFactors, or with the 
 #'             getter function it returns a numeric vector containing the 
 #'             sizeFactors.
 #' 
@@ -61,7 +61,7 @@ sizeFactors.replace.OutriderDataSet <- function(object, value){
     stopifnot(all(is.finite(value)))
     stopifnot(all(value > 0))
     
-    colData(object)$sizeFactor <- value
+    colData(object)[['sizeFactor']] <- value
     validObject( object )
     object
 }
@@ -70,6 +70,11 @@ sizeFactors.replace.OutriderDataSet <- function(object, value){
 #' @export "sizeFactors<-"
 setReplaceMethod("sizeFactors", signature(object="OutriderDataSet", 
         value="numeric"), sizeFactors.replace.OutriderDataSet)
+
+#' @rdname sizeFactors
+#' @export "sizeFactors<-"
+setReplaceMethod("sizeFactors", signature(object="OutriderDataSet", 
+        value="NULL"), sizeFactors.replace.OutriderDataSet)
 
 
 #'

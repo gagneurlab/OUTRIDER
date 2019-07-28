@@ -1,12 +1,12 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 0.99.26
-Date: 2018-06-26
+Version: 1.1.5
+Date: 2019-03-18
 Maintainer: Christian Mertes <mertes@in.tum.de>
 URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
-Author@R: c(
+Authors@R: c(
     person("Felix", "Brechtmann", role=c("aut", "cre"), 
             email="brechtma@in.tum.de"),
     person("Christian", "Mertes", role=c("aut", "cre"), 
@@ -16,20 +16,20 @@ Author@R: c(
     person("Julien", "Gagneur", role=c("aut"), email="gagneur@in.tum.de"))
 Author: Felix Brechtmann [aut, cre], Christian Mertes [aut, cre], 
     Ange Matuseviciute [aut, cre], Vicente Yepez [aut], Julien Gagneur [aut]
-Description: Identification of aberrent gene expression in RNA-seq data.
+Description: Identification of aberrant gene expression in RNA-seq data.
     Read count expectations are modeled by an autoencoder to control for
     confounders in the data. Given these expectations, the RNA-seq read counts
     are assumed to follow a negative binomial distribution with a gene-specific
     dispersion. Outliers are then identified as read counts that significantly 
-    deviate from this distribution. Further OUTRIDER provides useful plotting 
-    function to analyze and visualize the results.
+    deviate from this distribution. Furthermore, OUTRIDER provides useful 
+    plotting functions to analyze and visualize the results.
 VignetteBuilder: knitr
-biocViews: RNASeq, Transcriptomics, Alignment, Sequencing, GeneExpression, 
-    Genetics
+biocViews: ImmunoOncology, RNASeq, Transcriptomics, Alignment, Sequencing, 
+    GeneExpression, Genetics
 License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Depends:
     R (>= 3.4), 
     BiocParallel,
@@ -45,6 +45,7 @@ Imports:
     DESeq2 (>= 1.16.1),
     GenomicRanges,
     ggplot2,
+    ggpubr,
     gplots,
     graphics,
     IRanges,
@@ -52,6 +53,7 @@ Imports:
     plotly,
     plyr,
     pcaMethods,
+    PRROC,
     RColorBrewer,
     Rcpp,
     reticulate,
@@ -67,7 +69,7 @@ Suggests:
     BiocStyle,
     TxDb.Hsapiens.UCSC.hg19.knownGene,
     org.Hs.eg.db,
-    RMySQL,
+    RMariaDB,
     AnnotationDbi,
     beeswarm,
     covr
@@ -77,18 +79,27 @@ LinkingTo:
 Collate:
     package-OUTRIDER.R
     class-OutriderDataSet.R
-    AllGenerics.R
-    autoCorrectPython.R
-    autoCorrectRversion.R
-    method-gridSearch.R
+    inputCheckerFunctions.R
+    helperFunctions.R
+    getNSetterFuns.R
+    getNSetterFunsInternal.R
+    autoencoder.R
     fitNB.R
     ZscoreMatrix.R
+    method-evaluation.R
+    method-counts.R
+    method-gridSearch.R
+    method-plot.R
     method-results.R
     pValMatrix.R
     filterExpression.R
-    method-evaluation.R
     OUTRIDER.R
-    method-plot.R
-    helperFunctions.R
     sizeFactor.R
     RcppExports.R
+    updateE.R
+    updateD.R
+    updateTheta.R
+    PCAcorrections.R
+    thetaMethodOfMoments.R
+    controlForConfounders.R
+    lossNGradientRVersion.R

@@ -1,10 +1,10 @@
 #' 
 #' Calculate P-values
 #' 
-#' This function computes the P-values based on fitted negative binomial model.
+#' This function computes the P-values based on the fitted negative binomial model.
 #' It computes two matrices with the same dimension as the count matrix
 #' (samples x genes), which contain the corresponding P-values and 
-#' adjusted P-values to every count. 
+#' adjusted P-values of every count. 
 #' 
 #' @param object An OutriderDataSet
 #' @param alternative Can be one of "two.sided", "greater" or "less" to specify
@@ -45,29 +45,37 @@ setGeneric("computePvalues",
 setMethod("computePvalues", "OutriderDataSet", function(object, 
             alternative=c("two.sided", "greater", "less"), method='BY', 
             BPPARAM=bpparam()){
+    
     alternative <- match.arg(alternative)
     object <- pValMatrix(object, alternative, BPPARAM=BPPARAM)
-    padjMatrix(object, method)
+    
+    if(method != 'None'){
+        object <- padjMatrix(object, method)
+    }
+    object
 })
 
 pValMatrix <- function(ods, alternative, BPPARAM){ 
-    if(!all(c("disp", "mu") %in% colnames(mcols(ods)))){
-        stop(paste("Please fit the models first to estimate disp and",
+    if(!all(c("theta") %in% colnames(mcols(ods)))){
+        stop(paste("Please fit the models first to estimate theta and",
                 "mu by running:\n\tods <- fit(ods)"))
     }
     ctsData <- counts(ods)
-    disp    <- mcols(ods)[,"disp"]
-    mu      <- mcols(ods)[,"mu"]
-    normF   <- normalizationFactors(ods)
+    mu <- rep(1, nrow(ods))
+    if('mu' %in% names(mcols(ods))){
+        mu <- mcols(ods)[,"mu"]
+    }
+    normF <- normalizationFactors(ods)
     if(is.null(normF)){
         normF <- sizeFactors(ods)
     }
+    thetaMat <- outer(theta(ods), thetaCorrection(ods))
     
-    pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, disp=disp,
+    pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, theta=thetaMat,
             mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
     
-    pValMat <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
-    assays(ods)[["pValue"]] <- pValMat
+    pValMat <- 
+    pValue(ods) <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
     validObject(ods)
     return(ods)
 }
@@ -89,21 +97,21 @@ pValMatrix <- function(ods, alternative, BPPARAM){
 #' }
 #' 
 #' @param x count 
-#' @param size fitted dispersion (size) for the neg. binomial dist
+#' @param size fitted theta (size) for the neg. binomial dist
 #' @param mu fitted mean for the neg. binomial dist
 #' @param s sizeFactor or normalizationFactor
 #'
 #' @return p Value
 #' @noRd
-pVal <- function(index, ctsData, disp, mu, normFact, alternative){
+pVal <- function(index, ctsData, theta, mu, normFact, alternative){
     x    <- ctsData[index,]
-    size <- disp[index]
     mu   <- mu[index]
     
     # check if you did not get only sizeFactors
     if(is.matrix(normFact)){
         normFact <- normFact[index,]
     }
+    size <- theta[index,]
     
     pless <- pnbinom(x, size=size, mu=normFact*mu)
     if(alternative == "less"){
@@ -131,8 +139,7 @@ pVal <- function(index, ctsData, disp, mu, normFact, alternative){
 #' 
 #' @noRd
 padjMatrix <- function(ods, method='BH'){
-    padj <- apply(assays(ods)[["pValue"]], 2, p.adjust, method=method)
-    assays(ods)[["padjust"]] <- padj
+    padj(ods) <- apply(pValue(ods), 2, p.adjust, method=method)
     
     validObject(ods)
     return(ods)

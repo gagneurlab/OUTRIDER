@@ -4,15 +4,16 @@
 \alias{makeExampleOutriderDataSet}
 \title{Create example data sets for OUTRIDER}
 \usage{
-makeExampleOutriderDataSet(n = 200, m = 80, freq = 0.01, zScore = 6,
-  inj = c("both", "low", "high"), sizeFactors = rep(1, m), betaSD = 4,
-  dispMeanRel = function(x) 4/x + 0.1, dataset = c("none", "GTExSkinSmall",
-  "KremerNBaderSmall"))
+makeExampleOutriderDataSet(n = 200, m = 80, q = 10, freq = 0.001,
+  zScore = 6, inj = c("both", "low", "high"), sf = rnorm(m, mean = 1,
+  sd = 0.1), dataset = c("none", "GTExSkinSmall", "KremerNBaderSmall"))
 }
 \arguments{
 \item{n}{Number of simulated genes}
 
 \item{m}{Number of simulated samples}
+
+\item{q}{number of simulated latend variables.}
 
 \item{freq}{Frequency of in-silico outliers}
 
@@ -21,11 +22,7 @@ makeExampleOutriderDataSet(n = 200, m = 80, freq = 0.01, zScore = 6,
 \item{inj}{Determines whether counts are injected with the strategy 
 ('both', 'low', 'high'), default is 'both'.}
 
-\item{sizeFactors}{Artificial Size Factors}
-
-\item{betaSD}{Standard deviation.}
-
-\item{dispMeanRel}{Mean dispersion relation ship.}
+\item{sf}{Artificial Size Factors}
 
 \item{dataset}{If "none", the default, an example data set is simulated. 
 One can also use example data set included in the package by
@@ -33,7 +30,7 @@ specifying 'GTExSkinSmall' or 'KremerNBaderSmall'}
 }
 \value{
 An OutriderDataSet containing an example dataset. Depending on the
-            parameters it is based on a real data set or it is simulated
+           parameters it is based on a real data set or it is simulated
 }
 \description{
 Creates an example data set from a file or simulates a data set based 

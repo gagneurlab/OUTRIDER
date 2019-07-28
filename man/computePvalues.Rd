@@ -4,7 +4,6 @@
 \name{computePvalues}
 \alias{computePvalues}
 \alias{computePvalues,OutriderDataSet-method}
-\alias{computePvalues,OutriderDataSet-method}
 \title{Calculate P-values}
 \usage{
 computePvalues(object, ...)
@@ -31,10 +30,10 @@ bpparam()}
 An OutriderDataSet object with computed nominal and adjusted P-values
 }
 \description{
-This function computes the P-values based on fitted negative binomial model.
+This function computes the P-values based on the fitted negative binomial model.
 It computes two matrices with the same dimension as the count matrix
 (samples x genes), which contain the corresponding P-values and 
-adjusted P-values to every count.
+adjusted P-values of every count.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()
