@@ -57,6 +57,4 @@ script:
   - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
 
 after_success:
-    #  on:
-    #condition: TRAVIS_BUILD_STAGE_NAME == "Test"
-  - Rscript -e 'covr::codecov()'
+  - [[ $TRAVIS_BUILD_STAGE_NAME == "Test" ]] && Rscript -e 'covr::codecov()'
