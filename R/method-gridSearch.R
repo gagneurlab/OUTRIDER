@@ -236,7 +236,7 @@ evalAucPRLoss <- function(ods){
         scores[is.na(scores)] <- min(scores, na.rm=TRUE)-1
     }
     pr <- pr.curve(scores, weights.class0=labels)
-    return(pr$auc.integral)
+    return(max(0, pr$auc.integral, na.rm=TRUE))
 }
 
 evalAutoCorrection <- function(ods, encoding_dim, BPPARAM=bpparam(), ...){
