@@ -8,14 +8,14 @@
 \alias{sizeFactors<-,OutriderDataSet,numeric-method}
 \alias{estimateSizeFactors}
 \alias{estimateSizeFactors,OutriderDataSet-method}
-\alias{sizeFactors,OutriderDataSet-method}
-\alias{sizeFactors<-,OutriderDataSet,numeric-method}
-\alias{estimateSizeFactors,OutriderDataSet-method}
+\alias{sizeFactors<-,OutriderDataSet,NULL-method}
 \title{SizeFactors accessor and estimation function}
 \usage{
 \S4method{sizeFactors}{OutriderDataSet}(object)
 
 \S4method{sizeFactors}{OutriderDataSet,numeric}(object) <- value
+
+\S4method{sizeFactors}{OutriderDataSet,`NULL`}(object) <- value
 
 \S4method{estimateSizeFactors}{OutriderDataSet}(object)
 }
@@ -25,7 +25,7 @@
 \item{value}{A numberic vector of sizeFactors}
 }
 \value{
-An OutriderDatasSet with the estimated sizeFactors or with the 
+An OutriderDatasSet with the estimated sizeFactors, or with the 
             getter function it returns a numeric vector containing the 
             sizeFactors.
 }
@@ -34,7 +34,7 @@ Accessor functions for the 'sizeFactors' information in a OutriderDataSet
 object.
 }
 \details{
-The estimation of the size factors can make also use of existing 
+The estimation of the size factors can also make use of the existing 
 log geometric means in the object. Those can be loaded from an 
 existing model.
 }

@@ -14,18 +14,18 @@
 #'   \item plotFPKM()
 #'   \item plotDispEsts()
 #'   \item plotPowerAnalysis()
+#'   \item plotEncDimSearch()
 #' }
 #' 
 #' For a detailed description of each plot function please see the details.
 #' Most of the functions share the same parameters. 
 #' 
 #### Data specific parameters
-#' @param ods An OutriderDataSet, which is used to extract the data for plotting
-#' @param object An OutriderDataSet, see ods parameter
-#' @param sampleID A sampleID, which should be plotted. Can also be a vector.
-#' @param geneID A geneID, which should be plotted. Can also be a vector.
-#' @param padjCutoff Significance level to mark outliers
-#' @param zScoreCutoff Z-score cutoff to mark outliers
+#' @param ods,object An OutriderDataSet object.
+#' @param sampleID,geneID A sample or gene ID, which should be plotted. 
+#'             Can also be a vector. Integers are treated as indices.
+#' @param padjCutoff,zScoreCutoff Significance or Z-score cutoff
+#'             to mark outliers
 #' @param global Flag to plot a global Q-Q plot, default FALSE
 #' @param outlierRatio The fraction to be used for the outlier sample filtering
 #' @param normalized If TRUE, the normalized counts are used, the default,
@@ -38,13 +38,14 @@
 #' @param pch Integer or character to be used for plotting the points
 #' @param col Set color for the points. If set, it must be a character vector 
 #'             of length 2. (1. normal point; 2. outlier point)
-#' @param basePlot if TRUE, use the R base plot version, else use the plotly 
-#'             framework, which is the default
+#' @param basePlot if \code{TRUE}, use the R base plot version, else use the
+#'             plotly framework, which is the default
 #' @param legendPos Set legendpos, by default topleft.
 #' @param conf.alpha If set, a confidence interval is plotted, defaults to 0.05
 #' @param samplePoints Sample points for Q-Q plot, defaults to max 30k points
-#' @param xlim The x limits for the plot or NULL to use the full data range
-#' @param ylim The y limits for the plot or NULL to use the full data range
+#' @param xlim,ylim The x/y limits for the plot or NULL to use 
+#'             the full data range
+#' @param ymax If set, ymax is the upper bound for the plot range on the y axis.
 #' @param log If TRUE, the default, counts are plotted in log10.
 #' @param rowCentered If TRUE, the counts are row-wise (gene-wise) centered
 #' @param rowCoFactor A vector of co-factors for color coding the rows
@@ -111,12 +112,14 @@
 #' 
 #' @examples
 #' ods <- makeExampleOutriderDataSet(dataset="Kremer")
+#' implementation <- 'autoencoder'
 #' \dontshow{
 #'     # reduce the object size to speed up the calculations
 #'     ods <- ods[400:410,60:70]
+#'     implementation <- 'pca'
 #' }
 #' ods <- filterExpression(ods, minCounts=TRUE)
-#' ods <- OUTRIDER(ods)
+#' ods <- OUTRIDER(ods, implementation=implementation)
 #' 
 #' plotAberrantPerSample(ods)
 #' 
@@ -143,6 +146,11 @@
 #' plotDispEsts(ods, compareDisp=FALSE)
 #' 
 #' plotPowerAnalysis(ods)
+#' 
+#' \dontrun{
+#' ods <- findEncodingDim(ods)
+#' plotEncDimSearch(ods)
+#' }
 #' 
 #' @rdname plotFunctions
 #' @aliases plotFunctions plotVolcano plotQQ plotExpressionRank 
@@ -186,12 +194,16 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
         main <- paste0("Volcano plot: ", sampleID)
     }
     
+    if(is.null(rownames(ods))){
+        rownames(ods) <- paste("feature", seq_len(nrow(ods)), sep="_")
+    }
+    
     dt <- data.table(
         GENE_ID   = rownames(ods),
-        pValue    = assays(ods)[['pValue']][,sampleID],
-        padjust   = assays(ods)[['padjust']][,sampleID],
-        zScore    = assays(ods)[['zScore']][,sampleID],
-        normCts   = as.vector(counts(ods[,sampleID], normalized=TRUE)),
+        pValue    = pValue(ods)[,sampleID],
+        padjust   = padj(ods)[,sampleID],
+        zScore    = zScore(ods)[,sampleID],
+        normCts   = counts(ods, normalized=TRUE)[,sampleID],
         medianCts = rowMedians(counts(ods, normalized=TRUE)),
         expRank   = apply(
                 counts(ods, normalized=TRUE), 2, rank)[,sampleID],
@@ -304,12 +316,18 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
     
     # compute expected pValues.
     df <- df[order(subset, -obs)]
+    
+    # Correct p value if needed
+    df[is.na(obs) | is.infinite(obs), obs:=1]
+    minNonZeroP <- min(df[obs!=0, obs]) * 1e-2
+    df[obs==0, obs:=minNonZeroP]
+    
     df[,exp:=-log10(ppoints(.N)), by='subset']
     if(is.null(xlim)){
         xlim=range(df[,exp])
     }
     if(is.null(ylim)){
-        ylim=range(df[,obs])
+        ylim=range(df[,obs], na.rm=TRUE)
     }
     plot(NA, xlim=xlim, ylim=ylim, main=main,
             xlab=expression(
@@ -381,8 +399,8 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
 
 #' @rdname plotFunctions
 #' @export
-plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=0, 
-                    normalized=TRUE, basePlot=FALSE, log=TRUE,
+plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, 
+                    zScoreCutoff=0, normalized=TRUE, basePlot=FALSE, log=TRUE,
                     col=c("gray", "firebrick"), ...){
     # check user input
     if(!is(ods, "OutriderDataSet")){
@@ -412,20 +430,26 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
         return(ans)
     }
     
+    stopifnot(isScalarValue(geneID))
+    
+    # subset ods
+    ods <- ods[geneID,]
+    
     # get data frame
     dt <- data.table(
         sampleID = colnames(ods),
-        normcounts = as.integer(counts(ods, normalized=normalized)[geneID,]))
+        normcounts = as.vector(counts(ods, normalized=normalized)),
+        rawcounts = as.vector(counts(ods)))
     dt[,normcounts:=normcounts + ifelse(isTRUE(log), 1, 0)]
     
     dt[, medianCts:= median(normcounts)]
     dt[, norm_rank:= rank(normcounts, ties.method = 'first')]
     dt[, color:=col[1]]
     if('padjust' %in% assayNames(ods) & 'zScore' %in% assayNames(ods)){
-        dt[, padjust  := assays(ods)[['padjust']][geneID,]]
-        dt[, zScore   := assays(ods)[['zScore']][geneID,]]
+        dt[, padjust  := assays(ods)[['padjust']][1,]]
+        dt[, zScore   := assays(ods)[['zScore']][1,]]
         dt[, aberrant := aberrant(ods, padjCutoff=padjCutoff,
-                zScoreCutoff=zScoreCutoff)[geneID,]]
+                zScoreCutoff=zScoreCutoff)[1,]]
         dt[aberrant == TRUE, color:=col[2]]
     } else {
         dt[,aberrant:=FALSE]
@@ -458,9 +482,12 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05, zScoreCutoff=
             "Gene ID: ", geneID,
             "<br>Sample ID: ", sampleID,
             "<br>Median normcount: ", round(medianCts, digits = 1),
-            "<br>normcount: ", round(normcounts, digits = 1),
+            "<br>rawcount: ", rawcounts,
+            if(isTRUE(normalized)){
+                paste0("<br>normcount: ", round(normcounts, digits = 1))
+            },
             "<br>expression rank: ", round(norm_rank, digits = 1),
-            if(any(names(assays(ods))== 'padjust')){
+            if(any(assayNames(ods) == 'padjust')){
                 paste0("<br>adj. P-value: ", sprintf("%1.1E", padjust))
             },
             if(any(names(assays(ods))== 'zScore')){
@@ -635,7 +662,7 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
                     outlierRatio=0.001,
                     col=brewer.pal(3, 'Dark2')[c(1,2)], yadjust=c(1.2, 1.2), 
                     labLine=c(3.5, 3), ylab="#Aberrantly expressed genes", 
-                    labCex=par()$cex, ...){
+                    labCex=par()$cex, ymax=NULL, ...){
     
     if(missing(main)){
         main <- 'Aberrant Genes per Sample'
@@ -644,6 +671,9 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
     count_vector <- sort(aberrant(ods, by="sample", padjCutoff=padjCutoff, 
             zScoreCutoff=zScoreCutoff, ...))
     ylim = c(0.4, max(1, count_vector)*1.1)
+    if(!is.null(ymax)){
+        ylim[2] <- ymax
+    }
     replace_zero_unknown = 0.5
     ticks= c(replace_zero_unknown, signif(10^seq(
             from=0, to=round(log10(max(1, count_vector))), by=1/3), 1))
@@ -654,7 +684,8 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
         replace(count_vector, count_vector==0, replace_zero_unknown),
         log='y', ylim=ylim, names.arg='', xlab='', plot.grid=TRUE, 
         grid.col='lightgray', ylab='', yaxt='n', border=NA, xpd=TRUE,
-        col=col[(!count_vector < length(ods)*outlierRatio) + 1], main=main)
+        col=col[(!count_vector <= max(1, length(ods)*outlierRatio)) + 1],
+        main=main)
     
     n_names <- floor(length(count_vector)/20)
     xnames= seq_len(n_names*20)
@@ -713,12 +744,12 @@ plotFPKM <- function(ods){
 plotDispEsts.OUTRIDER <- function(object, compareDisp, xlim, ylim, 
             main="Dispersion estimates versus mean expression", ...){
     # validate input                 
-    if(!'disp' %in% names(mcols(object))){
+    if(!'theta' %in% names(mcols(object))){
         stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods) ',
                 'or ods <- fit(ods)')
-    } 
+    }
     if(missing(compareDisp)){
-        compareDisp <- 'weights' %in% names(metadata(object))
+        compareDisp <- !is.null(E(object))
     }
     
     # disp from OUTRIDER
@@ -742,7 +773,7 @@ plotDispEsts.OUTRIDER <- function(object, compareDisp, xlim, ylim,
     }
     # plot dispersion
     plot(NA, xlim=xlim, ylim=ylim, pch='.', log="yx", xlab='Mean expression', 
-         ylab='Dispersion', main=main)
+            ylab='Dispersion', main=main)
     if(!is.null(nonAutoVals)){
         points(odsVals$mu, 1/nonAutoVals$disp, pch='.', col="black")
     }
@@ -790,3 +821,44 @@ plotPowerAnalysis <- function(ods){
             linetype='Expression type') + ylim(0,15) 
 }
 
+#' @rdname plotFunctions
+#' @export
+plotEncDimSearch <- function(ods){
+    if(is(ods, 'OutriderDataSet')){
+        if(!'encDimTable' %in% colnames(metadata(ods)) & 
+                !is(metadata(ods)$encDimTable, 'data.table')){
+            stop('Please run first the findEncodingDim before ', 
+                    'plotting the results of it.')
+        }
+        dt <- metadata(ods)$encDimTable
+        q <- getBestQ(ods)
+    } else {
+        dt <- ods
+        dt <- dt[,
+                opt:=encodingDimension[which.max(evaluationLoss)[1]], by=zScore]
+        q <- dt[opt == encodingDimension, opt]
+    }
+    
+    if(!is.data.table(dt)){
+        stop('Please provide the encDimTable from the OutriderDataSet object.')
+    }
+    if(!'zScore' %in% colnames(dt)){
+        dt[,zScore:='Optimum']
+        dt[,opt:=q]
+    }
+    dtPlot <- dt[,.(enc=encodingDimension, z=as.character(zScore), 
+            eva=evaluationLoss, opt)]
+    ggplot(dtPlot, aes(enc, eva, col=z)) +
+        geom_point() + 
+        scale_x_log10() + 
+        geom_smooth(method='loess') +
+        ggtitle('Search for best encoding dimension') + 
+        geom_vline(data=dtPlot[opt == enc], 
+                aes(xintercept=enc, col=z, shape='Optimum'),
+                linetype='dotted', show.legend=TRUE) +
+        geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) + 
+        labs(x='Encoding dimensions',
+                y='Evaluation loss', col='Z score', shape='Best Q') 
+        # TODO compatibility with 3.4 because of ggpubr/cowplot + 
+        # grids(linetype='dotted')
+}

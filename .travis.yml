@@ -10,72 +10,51 @@ addons:
     packages:
       - libxml2-dev
       - tk-dev
+      - libgit2-dev
 
-r: 
+r:
   - bioc-devel
   - bioc-release
-  - 3.4.2
-  - 3.4.4
   - 3.5.0
-  
+  - 3.4.4
+  - 3.4.2
+
 stages:
   - Setup Cache
   - Test
-  
+
+# setup cache first
 jobs:
   include:
     - stage: Setup Cache
       r: bioc-devel
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
-      install:
-        - R --version
-        - Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: bioc-release
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
-      install:
-        - R --version
-        - Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: 3.5.0
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
-      install:
-        - R --version
-        - Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: 3.4.4
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
-      install:
-        - R --version
-        - Rscript setupEnv.R
       script: true
     - stage: Setup Cache
       r: 3.4.2
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
-      install:
-        - R --version
-        - Rscript setupEnv.R
       script: true
 
-    - stage: Test
-      before_install:
-        - tlmgr install index marginfix bera nowidow parnotes
-      install:
-        - Rscript setupEnv.R 
-      script:
-        - R CMD build .
-        - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
-        - R CMD check --no-vignettes --timings *tar.gz
-        - R -e 'devtools::run_examples()'
-        - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
-      after_success:
-        - Rscript -e 'covr::codecov()'
+before_install:
+  - tlmgr install index marginfix bera nowidow parnotes
 
+install:
+  - R --version
+  - Rscript setupEnv.R
+
+script:
+  - travis_wait 60 R CMD build .
+  - R CMD BiocCheck --no-check-vignettes *tar.gz
+  - R CMD check --no-vignettes --timings *tar.gz
+  - R -e 'devtools::run_examples()'
+  - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
+
+after_success:
+  - test $TRAVIS_BUILD_STAGE_NAME = "Test" && Rscript -e 'covr::codecov()'

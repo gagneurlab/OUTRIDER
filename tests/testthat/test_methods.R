@@ -23,8 +23,16 @@ test_that("pvalue calculation", {
 })
 
 test_that("result method", {
-    ods <- makeExampleOutriderDataSet()
-    expect_error(results(ods), "The P-values are not computed yet..*")
+    set.seed(42)
+    ods <- makeExampleOutriderDataSet(100, 50)
+    expect_error(results(ods), "Please calculate..*")
+    ods <- OUTRIDER(ods, iteration=2)
+    
+    expect_warning(res <- results(ods, padj=1e-10), "No significant events:")
+    expect_equal(colnames(res), colnames(results(ods)))
+    expect_true(all(results(ods)$aberrant))
+    expect_equal(nrow(results(ods, all=TRUE)), nrow(ods)*ncol(ods))
+    expect(nrow(results(ods, round=TRUE)), 3)
 })
 
 test_that("normalization method", {
@@ -34,7 +42,7 @@ test_that("normalization method", {
     nMat <- matrix(6:10, ncol=5, nrow=5)
     normalizationFactors(ods) <- nMat
     expect_equivalent(normalizationFactors(ods), nMat)
-    expect_error(results(ods), "The P-values are not computed yet..*")
+    expect_error(results(ods), "Please calculate..*")
 })
 
 test_that("fit method", {
@@ -43,6 +51,7 @@ test_that("fit method", {
     ods <- fit(ods)
     expect_is(mcols(ods)[,"mu"], "numeric")
     expect_equal(length(mcols(ods)[,"mu"]), nrow(ods))
-    expect_is(mcols(ods)[,"disp"], "numeric")
-    expect_equal(length(mcols(ods)[,"disp"]), nrow(ods))
+    expect_is(theta(ods), "numeric")
+    expect_equal(length(theta(ods)), nrow(ods))
 })
+

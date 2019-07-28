@@ -1,5 +1,5 @@
 #'
-#' This is the import mapping for the scared package
+#' This is the import mapping for the OUTRIDER package
 #' 
 #' @noRd
 #' 
@@ -17,14 +17,16 @@
 #'          sizeFactors sizeFactors<- counts counts<-
 #'          DESeqDataSetFromMatrix DESeqDataSet
 #'          makeExampleDESeqDataSet show fpkm fpm
-#'          estimateSizeFactorsForMatrix
+#'          estimateSizeFactorsForMatrix replaceOutliers
+#'          dispersions
 #' 
 #' @importFrom SummarizedExperiment colData colData<- assays assays<-
 #'          assayNames mcols mcols<- assay assay<-
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
+#'          isScalarValue chunk
 #' 
-#' @importFrom BiocParallel bplapply bpparam
+#' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
 #' 
 #' @importFrom compiler cmpfun
 #' 
@@ -33,7 +35,10 @@
 #' @importFrom GenomicRanges GRanges reduce width 
 #' 
 #' @importFrom ggplot2 aes geom_histogram geom_smooth geom_tile geom_point 
-#'          ggplot labs scale_x_log10 scale_fill_manual theme ylim
+#'          ggplot labs scale_x_log10 scale_fill_manual theme ylim ggtitle
+#'          geom_vline geom_text
+#' 
+#### TODO @importFrom ggpubr grids
 #'          
 #' @importFrom gplots barplot2 bluered heatmap.2
 #' 
@@ -63,11 +68,13 @@
 #' @importFrom splines bs
 #' 
 #' @importFrom stats cor coefficients cutree dist dnbinom hclust p.adjust 
-#'          setNames sd  
+#'          setNames sd optimize rlnorm
 #'          quantile optim var pnbinom  median ppoints qbeta runif 
 #'            lm predict rnorm glm Gamma rnbinom
 #' 
-#' @importFrom utils read.table head compareVersion
+#' @importFrom utils read.table head compareVersion packageVersion
+#' 
+#' @importFrom PRROC pr.curve
 #' 
 #' @useDynLib OUTRIDER
 #' 
@@ -77,10 +84,33 @@ NULL
 #' TODO This is to get rid of the warnings of undefined variables
 #'     due to the nature of data.table and ggplot/plotly
 #' @noRd
-globalVariables(c("color", "disp", "frac", "Fraction", "ExprType", 
-        "encodingDimension", "evaluationLoss", "loggeomeans", "lty", 
-        "lwd", "medianCts", "mu", "negLog10pVal", "normcounts", "norm_rank", 
-        "obs", "onlyFull", "padj_rank", "padjust", "passedFilter", "pValue", 
-        "sampleID", "value", "V1", "Var1", "Var2", ".x", "zScore"), 
-        package="OUTRIDER")
+globalVariables(package="OUTRIDER", c(
+        "color",
+        "enc",
+        "encodingDimension", 
+        "eva",
+        "evalMethod", 
+        "evaluationLoss",
+        "ExprType", 
+        "frac",
+        "Fraction",
+        "lty", 
+        "lwd", 
+        "medianCts", 
+        "negLog10pVal",
+        "normcounts",
+        "norm_rank", 
+        "opt",
+        "padj_rank", 
+        "padjust", 
+        "obs",
+        "onlyFull",
+        "passedFilter",
+        "sampleID",
+        "value",
+        "V1",
+        "Var1",
+        "Var2",
+        ".x", 
+        "z"))
 

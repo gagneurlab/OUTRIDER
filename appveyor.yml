@@ -25,6 +25,7 @@ environment:
       R_ARCH: x64
       
     - R_VERSION: release
+    - R_VERSION: 3.5.1
     - R_VERSION: 3.4.4
     - R_VERSION: 3.4.2
     - R_VERSION: 3.4.0
@@ -38,7 +39,7 @@ build_script:
 test_script:
   - R CMD build --no-build-vignettes .
   - R CMD check --install-args=--build --no-vignettes --no-manual --timings *tar.gz
-  - R -e "devtools::run_examples()"
+#  - R -e "devtools::run_examples()"
 #  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
 #  - R -e "BiocCheck::BiocCheck('.')"
 #  - R -e "date(); devtools::build_vignettes(); date()"

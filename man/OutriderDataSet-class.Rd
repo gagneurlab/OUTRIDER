@@ -9,7 +9,7 @@
 OutriderDataSet(se, countData, colData, ...)
 }
 \arguments{
-\item{se}{An RangedSummarizedExperiment object or any object which inherits
+\item{se}{A RangedSummarizedExperiment object or any object which inherits
 from it and contains a count matrix as the first element in the
 assay list.}
 

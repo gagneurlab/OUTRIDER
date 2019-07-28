@@ -5,7 +5,7 @@
 
 \documentclass[11pt]{article}
 
-<<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
+<<style-knitr, eval=TRUE, echo=FALSE, cache=FALSE, results="asis">>=
 BiocStyle::latex()
 @
 
@@ -19,7 +19,7 @@ opts_chunk$set(
     dpi=300,
     message=FALSE,
     warning=FALSE,
-    cache=FALSE
+    cache=TRUE
 )
 @
 
@@ -58,8 +58,8 @@ group of samples. It uses the negative binomial distribution which is fitted
 for each gene over all samples. We additionally provide an autoencoder, 
 which automatically controls for co-variation before fitting. After fitting,
 each sample can be tested for aberrantly expressed genes. Furthermore,
-\outrider{} provides methods to easily filter unexpressed genes and to 
-analyse as well as to visualize the results.
+\outrider{} provides functionality to easily filter unexpressed genes, to 
+analyse the data as well as to visualize the results.
 
 \vspace{3em}
 
@@ -68,7 +68,7 @@ analyse as well as to visualize the results.
 \hline
 If you use \outrider{} in published research, please cite:  \\
 \\
-Brechtmann F*, Matuseviciute A*, Mertes C*, Yepez V, Avsec Z, Herzog M, \\
+Brechtmann F*, Mertes C*, Matuseviciute A*, Yepez V, Avsec Z, Herzog M, \\
 Bader D M, Prokisch H, Gagneur J; \textbf{OUTRIDER: A statistical method} \\
 \textbf{for detecting aberrantly expressed genes in RNA sequencing data}; \\
 \emph{bioRxiv}; 2018 \\
@@ -85,7 +85,7 @@ Bader D M, Prokisch H, Gagneur J; \textbf{OUTRIDER: A statistical method} \\
 \newpage
 
 
-<<hiden_config, echo=FALSE, cache=FALSE>>=
+<<hiden_config, echo=FALSE>>=
 suppressPackageStartupMessages({
     library(OUTRIDER)
     library(beeswarm)
@@ -98,22 +98,29 @@ if(multicoreWorkers() >= 4){
 @
 
 \section{Introduction}
-\outrider{} (OUTlier in RNA-seq fInDER) is a tool to find aberrantly expressed
+\outrider{} (OUTlier in RNA-seq fInDER) is a tool for finding aberrantly 
+expressed
 genes in RNA-seq samples. It does so by fitting a negative binomial model 
 to RNA-seq read counts, correcting for variations in sequencing depth and 
-apparent co-variations across samples. Read counts significantly deviating 
+apparent co-variations across samples. Read counts that significantly deviate 
 from the distribution are detected as outliers. \outrider{} makes use of an
 autoencoder to control automatically for confounders within the data. A scheme
-of this approach is given in Figure \ref{fig:Autencoder}.
+of this approach is given in Figure \ref{autoencoder_sketch}.
 
-
-\begin{figure}
-    \includegraphics[width=0.8\textwidth]{autoencoder_sketch.png}
-    \caption{Context-dependent outlier detection. The algorithm identifies gene expression outliers whose read counts are significantly aberrant given the co-variations typically observed across genes in an RNA sequencing data set. This is illustrated by a read count (left panel, fifth column, second row from the bottom) that is exceptionally high in the context of correlated samples (left six samples) but not in absolute terms for this given gene. To capture commonly seen biological and technical contexts, an autoencoder models co-variations in an unsupervised fashion and predicts read count expectations. By comparing the earlier mentioned read count with these context-dependent expectations, it is revealed as exceptionally high (right panel). The lower panels illustrate the distribution of read counts before and after applying the correction for the relevant gene. The red dotted lines depict significance cutoffs.}
-    \label{fig:Autoencoder}
-\end{figure}
-
-
+\incfig{autoencoder_sketch}{1\textwidth}{Context-dependent outlier detection.}{
+The algorithm identifies 
+gene expression outliers whose read counts are significantly aberrant given the
+co-variations typically observed across genes in an RNA sequencing data set.
+This is illustrated by a read count (left panel, fifth column, second row from
+the bottom) that is exceptionally high in the context of correlated samples
+(left six samples) but not in absolute terms for this given gene. To capture
+commonly seen biological and technical contexts, an autoencoder models
+co-variations in an unsupervised fashion and predicts read count expectations.
+By comparing the earlier mentioned read count with these context-dependent
+expectations, it is revealed as exceptionally high (right panel). The lower
+panels illustrate the distribution of read counts before and after applying
+the correction for the relevant gene. The red dotted lines depict significance
+cutoffs.}
 
 Differential gene expression analysis from RNA-seq data is well-established.
 The packages \deseq{}\cite{Love2014} or \Biocpkg{edgeR}\cite{Robinson2010} 
@@ -131,30 +138,36 @@ a <- rnorm(10, 250, 10)
 b <- rnorm(10, 120, 10)
 c <- rnorm(100, 250, 20)
 c[1] <- 105
-beeswarm(list(A=a, B=b), main="Differential expression\nanalysis",
-     xlab="Condition", ylab="Expression", ylim=ylim, pch=20, 
-     col=c("darkblue", "firebrick"))
-beeswarm(c, main="Outlier detection", ylim=ylim, pch=20, 
-    xlab="Population", ylab="Expression", col="firebrick")
+beeswarm(list(A=a, B=b), 
+        main="Differential\nexpression analysis\n(DESeq2/edgeR)",
+        xlab="Condition", ylab="Expression", ylim=ylim, pch=20, 
+        col=c("darkblue", "firebrick"))
+beeswarm(c, main="Outlier\ndetection\n(OUTRIDER)", ylim=ylim, pch=20, 
+        xlab="Population", ylab="Expression", col="firebrick")
 
 par(par.old)
 @
 
 \section{Prerequisites}
 To get started on the preprocessing step, we recommend to read the 
-introductions of the aforementioned tools or the RNA-seq workflow from
-Bioconductor. In brief, one usually starts with the raw FASTQ files from
-the RNA sequencing run. Those are then aligned to a given reference genome. As 
-of now (June 2018), we recommend the STAR aligner\cite{Dobin2013}. After 
+introductions of \deseq{}\cite{Love2014}, \Biocpkg{edgeR}\cite{Robinson2010}
+or the RNA-seq workflow from
+Bioconductor: \Biocpkg{rnaseqGene}. In brief, one usually starts with the raw
+FASTQ files from
+the RNA sequencing run. Those are then aligned to a given reference genome. 
+At the time of writing
+(October 2018), we recommend the STAR aligner\cite{Dobin2013}. After 
 obtaining the aligned BAM files, one can map the reads to exons or genes of a 
-GTF annotation file using HT-seq. The resulting count table can then be loaded 
+GTF annotation file using HT-seq or by using \Rfunction{summarizedOverlaps} from
+\Biocpkg{GenomicAlignments}. The resulting count table can then be loaded 
 into the \outrider{} package as we will describe below.
 
 \section{A quick tour}
 
 Here we assume that we already have a count table and no additional 
-preprocessing needs to be done. Then we can start and obtain results with 
-3 commands. First, create an \ods{} from a count table. Second, run the full 
+preprocessing needs to be done. We can start and obtain results with 
+3 commands. First, create an \ods{} from a count table or a Summarized 
+Experiment object. Second, run the full 
 pipeline using the command \Rfunction{OUTRIDER}. In the third and last step the 
 results table is extracted from the \ods{} with the \Rfunction{results} 
 function. Furthermore, analysis plots that are described in section 
@@ -185,19 +198,31 @@ plotQQ(ods, res[1, geneID])
 
 \section{An \outrider{} analysis in detail}
 
-Additionally to the single wrapper function \Rfunction{OUTRIDER} to run the full 
-pipeline, the analysis can also be run step by step. The wrapper function does
-not include any preprocessing functions, discarding non expressed genes or 
+Apart from running the full pipeline using the single wrapper function 
+\Rfunction{OUTRIDER}, 
+the analysis can also be run step by step. The wrapper function does
+not include any preprocessing functions. Discarding non expressed genes or 
 samples failing quality measurements should be done manually before running the 
 \Rfunction{OUTRIDER} function or starting the analysis pipeline.
 
 In this section we will explain the analysis functions step by step.
 
 For this tutorial we will use the rare disease data set from Kremer 
-\textit{et al}.\cite{Kremer2017} For testing, this package contains also a small
-subset of it.
+\textit{et al}.\cite{Kremer2017}. For testing purposes, this package 
+contains a small subset of it.
+
+\subsection{OutriderDataSet}
+To use \outrider{} create an \ods, which derives from a 
+RangedSummarizedExperiment
+object. The \ods can be created by supplying a count matrix and optional sample 
+annotation matrices. Alternatively, an existing Summarized experiment object
+from other Biocnductor backages can be used.
 
 <<GetDataSet>>=
+# small testing data set
+odsSmall <- makeExampleOutriderDataSet(dataset="Kremer")
+
+# full data set from Kremer et al.
 URL <- paste0("https://media.nature.com/original/nature-assets/", 
         "ncomms/2017/170612/ncomms15824/extref/ncomms15824-s1.txt")
 ctsTable <- read.table(URL, sep="\t")
@@ -208,21 +233,26 @@ ods <- OutriderDataSet(countData=ctsTable)
 
 \subsection{Preprocessing}
 
-It is recommended to apply some data preprocessing before fitting. Our model 
-requires that for every gene at least one sample has one read (counts > 0) and 
-that we observe one read every 100 samples. Therefore, all genes that are not 
-expressed must be discarded.
+It is recommended to preprocess the data before fitting. Our model 
+requires that for every gene at least one sample has a non-zero count and 
+that we observe at least one read for every 100 samples. Therefore, 
+all genes that are not expressed must be discarded.
 
 We provide the function \Rfunction{filterExpression} to remove genes that have 
 low FPKM (Fragments Per Kilobase of transcript per Million mapped reads) 
 expression values. The needed annotation to estimate FPKM values 
 from the counts should be the same as for the counting. Here, we normalize 
 by the total exon length of a gene.
+To do so the joint lenght of all exons needs to be provided. When providing a 
+gtf, gff or TxDb object to the \Rfunction{filterExpression}, we extract this 
+information automatically. But therfore the geneID's of the count table and the 
+gtf need to match.
 
 By default the cutoff is set to an FPKM value of one and only the filtered
 \ods{} object is returned. If required, the FPKM values can be stored in the
 \ods{} object and the full object can be returned to visualize the 
 distribution of reads before and after filtering. 
+
 
 <<Preprocessing, fig.height=5>>=
 # get annotation
@@ -233,20 +263,21 @@ map <- select(org.Hs.eg.db, keys=keys(txdb, keytype = "GENEID"),
         keytype="ENTREZID", columns=c("SYMBOL"))
 @
 
-The \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only well annotated 
+However, the \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only 
+well annotated 
 genes. This annotation will miss a lot of genes captured by RNA-seq. To include 
 all predicted annotations as well as non-coding RNAs please download the txdb 
 object from our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
 or create it yourself from the UCSC website\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
 
-<<create txdb, eval=FALSE, cache=FALSE>>=
-library(RMySQL)
+<<create txdb, eval=FALSE>>=
+library(RMariaDB)
 library(AnnotationDbi)
 txdbUrl <- paste0("https://i12g-gagneurweb.in.tum.de/public/",
         "paper/mitoMultiOmics/ucsc.knownGenes.db")
 download.file(txdbUrl, "ucsc.knownGenes.db")
 txdb <- loadDb("ucsc.knownGenes.db")
-con <- dbConnect(MySQL(), host='genome-mysql.cse.ucsc.edu', 
+con <- dbConnect(MariaDB(), host='genome-mysql.cse.ucsc.edu', 
         dbname="hg19", user='genome')
 map <- dbGetQuery(con, 'select kgId AS TXNAME, geneSymbol from kgXref')
 
@@ -266,10 +297,12 @@ ods <- ods[mcols(ods)$passedFilter,]
 
 \subsection{Controlling for Confounders}
 
-A next step in any analysis workflow is to visualize the correlations
+The next step in any analysis workflow is to visualize the correlations
 between samples. In most RNA-seq experiments correlations between the samples 
-can be observed, which are often due to confounders: technical ones like the 
-sequencing batch or biological ones like sex. These confounders can harm the 
+can be observed. These are often due to technical confounders 
+(e.g. sequencing batch) 
+or biological confounders (e.g. sex, age). These confounders can adversely
+affect the 
 detection of aberrant features. Therefore, we provide options to control for 
 them.
 
@@ -285,10 +318,10 @@ We have different ways to control for confounders present in the data.
 The first and standard way is to calculate the \Rfunction{sizeFactors} 
 as done in \deseq{}\cite{Love2014}.
 
-Additionally, the \Rfunction{autoCorrect} function calls an 
+Additionally, the \Rfunction{controlForConfounders} function calls an 
 autoencoder that automatically controls for confounders present in the data.
 Therefore an encoding dimension $q$ needs to be set or the default value 20 is 
-used. The optimal value of $q$ can be determinde using the
+used. The optimal value of $q$ can be determined using the
 \Rfunction{findEncodingDim} function. 
 After controlling for confounders, the heatmap should be plotted again.
 If it worked, no batches should be present and the correlations between 
@@ -296,30 +329,95 @@ samples should be reduced and close to zero.
 
 <<controlling_for_confounders>>=
 
-# automatically control for confounders 
+# automatically control for confounders
+# we use only 5 iterations to make the vignette faster. The default is 15. 
 ods <- estimateSizeFactors(ods)
-ods <- autoCorrect(ods, q=13)
+ods <- controlForConfounders(ods, q=21, iterations=5)
 
 # Heatmap of the sample correlation after controlling
 ods <- plotCountCorHeatmap(ods, normalized=TRUE)
 
 @
 
-Alternatively, a \Rfunction{normalizationFactor} matrix can be provided. 
-It must be computed beforehand using any method. Its purpose is to normalize
-for technical effects or control for additional expression patterns.
+Alternatively, other methods can be used to control for confounders. In addition
+to the \textit{autoencoder}, we implemented a PCA based approach. The PCA 
+implementation can be utilized by setting \Robject{implementation="pca"}. 
+Also PEER can be used together with the OUTRIDER framework. A detailed 
+description on how to do this can be found in section \ref{sec:PEER}.
+Furthermore, any other method can be used by providing the 
+\Rfunction{normalizationFactor} matrix. 
+This matrix must be computed beforehand using the appropriate method. 
+Its purpose is to normalize for technical effects or control for additional
+expression patterns. 
+
+
+\subsection{Finding the right encoding dimension \textit{q}}
+
+In the previous section, we fixed the encoding dimension $q=21$. But having 
+the right encoding dimension is crucial in finding outliers in the data. 
+On the one hand, if \textit{q} is too big the autoencoder will learn the 
+identity matrix and will overfit the data. On the other hand, if \textit{q}
+is too small the autoencoder cannot learn the necessary covariates existing
+in the data. Therefore, it is recommended for any new dataset to estimate the
+optimal encoding dimension to gain the best performance. With the function 
+\Rfunction{findEncodingDim} one can find the optimal encoding dimension. 
+To this end, we artificially introduce corrupted counts randomly into the 
+dataset and monitor the performance calling those corrupted counts. The optimal
+dimension \textit{q} is then selected as the dimension maximizing the area under
+the precision-recall curve for identifying corrupted counts.
+
+<<findEncodingDim, eval=FALSE>>=
+# find the optimal encoding dimension q
+ods <- findEncodingDim(ods)
+
+# visualize the hyper parameter optimization
+plotEncDimSearch(ods)
+
+@
+
+Since this function runs a full OUTRIDER fit for a range of encoding dimensions,
+it is quite CPU intensive, but can increase the overall performance of the
+autoencoder and is recommended for any data set. If \textit{q} is not provided
+by the user, it will be estimated based on the number of samples.
+
+
+\subsubsection{Excluding samples from the autoencoder fit}
+
+Since OUTRIDER expects that each sample within the population is independent 
+of all others, replicates could mask effects specific to this sample. This is 
+also true if trios are present in the data, where the parents can be seen as
+biological replicates. Here, we recommend to exclude the sample of interest or 
+the replicates from the fitting. Later on, for all samples P-values 
+are calculated. 
+
+In this rare disease data set we know that two samples (MUC1344 and MUC1365)
+have the same defect. To exclude one or both of them, we can use
+the \Rfunction{sampleExclusionMask} function.
+
+<<maskSamples>>=
+
+# set exclusion mask
+sampleExclusionMask(ods) <- FALSE
+sampleExclusionMask(ods[,"MUC1365"]) <- TRUE
+
+# check which samples are excluded from the autoencoder fit
+sampleExclusionMask(ods)
+
+@
 
 \subsection{Fitting the negative binomial model}
 
+The fit of the negative binomial model is done during the autoencoder fitting.
+This step is only needed if alternative methods to control the data are used.
 To fit the dispersion and the mean, the \Rfunction{fit} function is applied
 to the \ods{}.
 
-<<fitting>>=
-# fit negative binomial distribution to each feature
-ods <- fit(ods)
+<<fitting, eval=FALSE>>=
 
-# plot dispersion versus mean counts 
-plotDispEsts(ods)
+# fit the model when alternative methods where used in the control step
+ods <- fit(ods)
+hist(theta(ods))
+
 @
 
 \subsection{P-value calculation}
@@ -359,7 +457,7 @@ The Z-scores are calculated using:
     z_{ij} = \frac{l_{ij} - \mu_j^l}{\sigma_j^l}
 \end{equation}
 \begin{equation*}
-    l_{ij} = \log_2{(\frac{k_{ij} + 1}{c_{ij}})},
+    l_{ij} = \log_2{(\frac{k_{ij} + 1}{c_{ij} + 1})},
 \end{equation*}
 
 where $\mu_j^l$ is the mean and $\sigma_j^l$ the 
@@ -419,9 +517,9 @@ plotAberrantPerSample(ods, padjCutoff=0.05)
 
 To view the distribution of P-values on a sample level, volcano plots can 
 be displayed. Most of the plots make use of the \CRANpkg{plotly} 
-framework to create interactive plots. For this vignette, we will always use 
-the basic R functionality from \CRANpkg{graphics} by setting the argument 
-\Rcode{basePlot} to \Rcode{TRUE}.
+framework to create interactive plots. To only use basic R functionality 
+from \CRANpkg{graphics} the \Rcode{basePlot} argument can be set to 
+\Rcode{TRUE}.
 
 <<volcano, fig.height=5>>=
 # MUC1344 is a diagnosed sample from Kremer et al.
@@ -456,7 +554,80 @@ plotQQ(ods, "TIMMDC1")
 @
 
 
-\section{Details}
+\section{Additional features}
+
+\subsection{Using PEER to control for confounders}
+\label{sec:PEER}
+
+PEER\cite{Stegle2012} is a well known tool to control for unknown effects in
+RNA-seq data. PEER is only available through the \Githubpkg{PMBio/peer} 
+GitHub repository. The R source code can be downloaded form here: 
+\url{https://github.com/downloads/PMBio/peer/R_peer_source_1.3.tgz}. The 
+installation of the package has to be done manually by the user. 
+After the installation one can use the following function to control for 
+confounders with PEER. 
+
+<<peer_function, eval=FALSE>>=
+#'
+#' PEER implementation
+#'
+peer <- function(ods, maxFactors=NA, maxItr=1000){
+    
+    # check for PEER
+    if(!require(peer)){
+        stop("Please install the 'peer' package from GitHub to use this ",
+                "functionality.")
+    }
+    
+    # default and recommendation by PEER: min(0.25*n, 100)
+    if(is.na(maxFactors)){
+        maxFactors <- min(as.integer(0.25* ncol(ods)), 100)
+    }
+    
+    # log counts
+    logCts <- log2(t(t(counts(ods)+1)/sizeFactors(ods)))
+    
+    # prepare PEER model
+    model <- PEER()
+    PEER_setNmax_iterations(model, maxItr)
+    PEER_setNk(model, maxFactors)
+    PEER_setPhenoMean(model, logCts)
+    PEER_setAdd_mean(model, TRUE)
+    
+    # run fullpeer pipeline
+    PEER_update(model)
+    
+    # extract PEER data
+    peerResiduals <- PEER_getResiduals(model)
+    peerMean <- t(t(2^(logCts - peerResiduals)) * sizeFactors(ods))
+    
+    # save model in object
+    normalizationFactors(ods) <- pmax(peerMean, 1E-8)
+    metadata(ods)[["PEER_model"]] <- list(
+            alpha     = PEER_getAlpha(model),
+            residuals = PEER_getResiduals(model),
+            W         = PEER_getW(model))
+    
+    return(ods)
+}
+@ 
+
+With the function above we can run the full OUTRIDER pipeline as follows:
+
+<<how to run peer, eval=FALSE>>=
+# Control for confounders with PEER
+ods <- estimateSizeFactors(ods)
+ods <- peer(ods)
+ods <- fit(ods)
+ods <- computeZscores(ods, peerResiduals=TRUE)
+ods <- computePvalues(ods)
+
+# Heatmap of the sample correlation after controlling
+ods <- plotCountCorHeatmap(ods, normalized=TRUE)
+@
+
+
+\subsection{Power anaylsis}
 
 We provide the \Rfunction{plotPowerAnalysis} function to show, what kind of 
 changes can be significant depending on the mean count.

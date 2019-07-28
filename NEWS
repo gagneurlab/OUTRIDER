@@ -1,3 +1,10 @@
+REVISED VERSION 0.99.29
+-----------------------------
+    o Major changes
+    o Improved autoencoder model.
+    o Updated API
+    o Improved default parameters.
+
 SECOND BIOCONDUCTOR SUBMISSION 0.99.10
 -----------------------------
     o Smaller and faster example data set

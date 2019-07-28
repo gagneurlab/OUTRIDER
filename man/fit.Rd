@@ -4,7 +4,6 @@
 \name{fit}
 \alias{fit}
 \alias{fit,OutriderDataSet-method}
-\alias{fit,OutriderDataSet-method}
 \title{Fit the negative binomial distribution}
 \usage{
 fit(object, ...)
@@ -20,11 +19,11 @@ fit(object, ...)
 }
 \value{
 An OutriderDataSet object with the fitted model. Accessible through:
-            \code{mcols(ods)[,c('mu', 'disp')]}.
+            \code{mcols(ods)[,c('mu', 'theta')]}.
 }
 \description{
 Fit a negative binomial (NB) distribution to the counts per gene
-over all samples using if available the precomputed control factors.
+over all samples using, if available, the precomputed control factors.
 If no normalization factors are provided only the sizeFactors are used.
 }
 \examples{
@@ -32,6 +31,6 @@ ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 ods <- fit(ods)
 
-mcols(ods)[1:10,c('mu', 'disp')]
+mcols(ods)[1:10,c('mu', 'theta')]
 
 }
