@@ -38,8 +38,6 @@
 #'          ggplot labs scale_x_log10 scale_fill_manual theme ylim ggtitle
 #'          geom_vline geom_text
 #' 
-#### TODO @importFrom ggpubr grids
-#'          
 #' @importFrom gplots barplot2 bluered heatmap.2
 #' 
 #' @importFrom graphics plot abline axis box grid legend lines mtext par points 
