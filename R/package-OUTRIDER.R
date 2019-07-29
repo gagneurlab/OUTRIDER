@@ -36,7 +36,7 @@
 #' 
 #' @importFrom ggplot2 aes geom_histogram geom_smooth geom_tile geom_point 
 #'          ggplot labs scale_x_log10 scale_fill_manual theme ylim ggtitle
-#'          geom_vline geom_text
+#'          geom_vline geom_text scale_linetype_manual
 #' 
 #' @importFrom gplots barplot2 bluered heatmap.2
 #' 
