@@ -236,12 +236,12 @@ computeExpressedGenes <- function(x, cutoff=1, percentile=0.95){
   
   # Get the genes that appear in at least 1 sample
   expGenesDt$intersectionExpressedGenes <- 
-    colSums(vapply(1:ncol(cumSumMatrix), 
+    colSums(vapply(seq_len(ncol(cumSumMatrix)), 
                    function(j) cumSumMatrix[,j] == j,
                    1L))
   
   expGenesDt$passedFilterGenes <- 
-    colSums(t(t(cumSumMatrix) / 1:ncol(cumSumMatrix)) >= 1-percentile)
+    colSums(t(t( cumSumMatrix) / seq_len(ncol(cumSumMatrix)) ) >= 1-percentile)
   
   # Rank for plotting
   expGenesDt[, expressedGenesRank := .I]
