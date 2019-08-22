@@ -15,6 +15,7 @@
 #'   \item plotDispEsts()
 #'   \item plotPowerAnalysis()
 #'   \item plotEncDimSearch()
+#'   \item plotExpressedGenes()
 #' }
 #' 
 #' For a detailed description of each plot function please see the details.
@@ -861,3 +862,30 @@ plotEncDimSearch <- function(ods){
                 y='Evaluation loss', col='Z score', shape='Best Q') + 
         grids(linetype='dotted')
 }
+
+#' @rdname plotFunctions
+#' @export
+plotExpressedGenes <- function(ods, main = 'Expressed Genes'){
+  
+  # validate input                 
+  if(!'expressedGenes' %in% names(colData(ods))){
+    stop('Compute expressed genes first by executing ods <- 
+         filterExpression(ods, addExpressedGenes=T)')
+  }
+  
+  exp_genes_cols <- c('expressedGenes','unionExpressedGenes', 
+                      'intersectionExpressedGenes', 'passedFilterGenes', 
+                      'expressedGenesRank')
+  dt <- as.data.table(colData(ods)[, c('sampleID', exp_genes_cols)])
+  setnames(dt, 'expressedGenesRank', 'Rank')
+  
+  melt_dt <- melt(dt, id.vars = c('sampleID', 'Rank'))
+  
+  ggplot(melt_dt, aes(Rank, value)) + 
+    geom_line(aes(col = variable)) +
+    theme_bw(base_size = 14) +
+    theme(legend.position = 'top', legend.title = element_blank()) +
+    labs(y = 'Number of genes', x = 'Sample rank', title = main)
+  
+}
+
