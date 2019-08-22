@@ -13,6 +13,7 @@
 \alias{plotPowerAnalysis}
 \alias{plotDispEsts,OutriderDataSet-method}
 \alias{plotEncDimSearch}
+\alias{plotExpressedGenes}
 \title{Visualization functions for OUTRIDER}
 \usage{
 plotVolcano(ods, sampleID, main, padjCutoff = 0.05, zScoreCutoff = 0,
@@ -47,6 +48,8 @@ plotFPKM(ods)
 plotPowerAnalysis(ods)
 
 plotEncDimSearch(ods)
+
+plotExpressedGenes(ods, main = "Expressed Genes")
 }
 \arguments{
 \item{ods, object}{An OutriderDataSet object.}
@@ -141,6 +144,7 @@ This is the list of all plotting function provided by OUTRIDER:
   \item plotDispEsts()
   \item plotPowerAnalysis()
   \item plotEncDimSearch()
+  \item plotExpressedGenes()
 }
 
 For a detailed description of each plot function please see the details.
