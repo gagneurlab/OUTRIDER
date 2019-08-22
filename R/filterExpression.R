@@ -42,8 +42,8 @@ setGeneric("filterExpression",
            function(x, ...) standardGeneric("filterExpression"))
 
 filterExpression.OUTRIDER <- function(x, gtfFile, fpkmCutoff=1, 
-                                      percentile=0.95, filterGenes=TRUE, savefpkm=FALSE, 
-                                      minCounts=FALSE, addExpressedGenes=FALSE, ...){
+                            percentile=0.95, filterGenes=TRUE, savefpkm=FALSE, 
+                            minCounts=FALSE, addExpressedGenes=FALSE, ...){
   x <- filterMinCounts(x, filterGenes=filterGenes)
   if(minCounts == TRUE){
     return(x)
@@ -72,7 +72,8 @@ filterExp <- function(ods, fpkmCutoff=1, percentile=0.95,
   mcols(ods)['passedFilter'] <- passed
   
   if(addExpressedGenes == TRUE){
-    dt <- computeExpressedGenes(fpkm, cutoff = fpkmCutoff, percentile = percentile)
+    dt <- computeExpressedGenes(fpkm, cutoff=fpkmCutoff, 
+                                percentile=percentile)
     colData(ods) <- merge(colData(ods), dt, sort = FALSE)
   }
   validObject(ods)
@@ -81,7 +82,7 @@ filterExp <- function(ods, fpkmCutoff=1, percentile=0.95,
     ods <- ods[passed == TRUE]
   }
   message(paste0(sum(!passed), ifelse(filterGenes, 
-                                      " genes are filtered out. ", " genes did not passed the filter. "), 
+          " genes are filtered out. ", " genes did not passed the filter. "),
                  "This is ", signif(sum(!passed)/length(passed)*100, 3), 
                  "% of the genes."))
   return(ods)
@@ -151,7 +152,7 @@ computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
   if(any(is.na(mcols(ods)['basepairs']))){
     missingNames <- rownames(ods)[is.na(mcols(ods)['basepairs'])]
     warning(paste0("Some genes (n=", length(missingNames), 
-                   ") are not found in the annotation. Setting 'basepairs' == 1. ",
+              ") are not found in the annotation. Setting 'basepairs' == 1. ",
                    "The first 6 names are:\n", 
                    paste(missingNames[seq_len(min(6, length(missingNames)))],
                          collapse=", ")))
@@ -198,7 +199,7 @@ filterMinCounts <- function(x, filterGenes=FALSE){
   mcols(x)['passedFilter'] <- passed
   
   message(paste0(sum(!passed), " genes did not passed the filter due to ", 
-                 "zero counts. This is ", signif(sum(!passed)/length(passed)*100, 3),
+          "zero counts. This is ", signif(sum(!passed)/length(passed)*100, 3),
                  "% of the genes."))
   
   if(isTRUE(filterGenes)){
@@ -215,30 +216,35 @@ filterMinCounts <- function(x, filterGenes=FALSE){
 computeExpressedGenes <- function(x, cutoff=1, percentile=0.95){
   
   # Get cells that passed cutoff
-  logic_mat <- x > cutoff
+  cutoffPassedMatrix <- x > cutoff
   
   # Remove rows where no genes passed the cutoff
-  logic_mat <- logic_mat[rowSums(logic_mat) > 0, ]
+  cutoffPassedMatrix <- cutoffPassedMatrix[rowSums(cutoffPassedMatrix) > 0, ]
   
   # Make a data.table with the expressed genes
-  dt <- data.table(sampleID = colnames(logic_mat), expressedGenes = colSums(logic_mat))
-  setorder(dt, expressedGenes)
+  expGenesDt <- data.table(sampleID = colnames(cutoffPassedMatrix), 
+                           expressedGenes = colSums(cutoffPassedMatrix))
+  setorder(expGenesDt, expressedGenes)
   
-  logic_mat <- logic_mat[, dt$sample]
+  cutoffPassedMatrix <- cutoffPassedMatrix[, expGenesDt$sample]
   
   # Get the cummulative sum of expressed genes
-  cum_sum_mat <- t(apply(logic_mat, 1, cumsum))
+  cumSumMatrix <- t(apply(cutoffPassedMatrix, 1, cumsum))
   
   # Get the genes common in all samples
-  dt$unionExpressedGenes <- colSums(cum_sum_mat > 0)
+  expGenesDt$unionExpressedGenes <- colSums(cumSumMatrix > 0)
   
   # Get the genes that appear in at least 1 sample
-  dt$intersectionExpressedGenes <- colSums(sapply(1:ncol(cum_sum_mat), function(j) cum_sum_mat[,j] == j))
+  expGenesDt$intersectionExpressedGenes <- 
+    colSums(vapply(1:ncol(cumSumMatrix), 
+                   function(j) cumSumMatrix[,j] == j,
+                   1L))
   
-  dt$passedFilterGenes <- colSums(t(t(cum_sum_mat) / 1:ncol(cum_sum_mat)) >= 1-percentile)
+  expGenesDt$passedFilterGenes <- 
+    colSums(t(t(cumSumMatrix) / 1:ncol(cumSumMatrix)) >= 1-percentile)
   
   # Rank for plotting
-  dt[, expressedGenesRank := .I]
+  expGenesDt[, expressedGenesRank := .I]
   
-  return(dt)
+  return(expGenesDt)
 }
