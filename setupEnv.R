@@ -3,16 +3,6 @@ print_log <- function(...){
     message(paste0("\n", hash_line, "\n### ", date(), ": ", ..., "\n", hash_line, "\n"))
 }
 
-if("windows" == .Platform$OS.type){
-    print_log("Install XML on windows ...")
-    Sys.setenv(LOCAL_CPPFLAGS = "-I/mingw$(WIN)/include/libxml2")
-    for(p in c("XML", "xml2")){
-        if(!requireNamespace(p, quietly=TRUE)){
-            install.packages(p)
-        }
-    }
-}
-
 # install Bioconductor dependent on the R version
 R_VERSION <- paste(R.Version()[c("major", "minor")], collapse=".")
 print_log("Current R version: ", R_VERSION)
@@ -32,10 +22,16 @@ if(0 < compareVersion("3.5.0", R_VERSION)){
     INSTALL <- BiocManager::install
 }
 
+# because of https://github.com/r-windows/rtools-installer/issues/3
+if("windows" == .Platform$OS.type){
+    print_log("Install XML on windows ...")
+    Sys.setenv(LOCAL_CPPFLAGS = "-I/mingw$(WIN)/include/libxml2")
+}
+
 # install needed packages
 # add testthat to pre installation dependencies due to: https://github.com/r-lib/pkgload/issues/89
-for(p in c("testthat", "devtools", "covr", "roxygen2", "BiocCheck", "R.utils", 
-            "GenomeInfoDbData", "rtracklayer", "hms", "XML")){
+for(p in c("XML", "xml2", "testthat", "devtools", "covr", "roxygen2", "BiocCheck", "R.utils", 
+            "GenomeInfoDbData", "rtracklayer", "hms")){
     if(!requireNamespace(p, quietly=TRUE)){
         print_log("Install ", p)
         INSTALL(p, Ncpus=6)
