@@ -35,9 +35,8 @@ environment:
     - R_VERSION: 3.5.1
       
 build_script:
-  - travis-tool.sh install_bioc BiocCheck
+  - travis-tool.sh install_bioc hms
   - Rscript setupEnv.R
-  - travis-tool.sh install_bioc_deps
 
 test_script:
   - R CMD build --no-build-vignettes .
