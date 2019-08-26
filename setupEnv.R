@@ -1,3 +1,5 @@
+BTYPE <- "both"
+
 print_log <- function(...){
     hash_line <- paste0(rep("#", 10), collapse="")
     message(paste0("\n", hash_line, "\n### ", date(), ": ", ..., "\n", hash_line, "\n"))
@@ -25,12 +27,12 @@ if(0 < compareVersion("3.5.0", R_VERSION)){
 # because of https://github.com/r-windows/rtools-installer/issues/3
 if("windows" == .Platform$OS.type){
     print_log("Install XML on windows ...")
-    INSTALL(c("XML"), type="binary")
+    INSTALL(c("XML", "xml2"), type="win.binary")
     
-    # "../inst/include", "../windows/libxml2-2.9.8/include/libxml2",  "/mingw32/", "C:/mingw64/", "C:/mingw32/include/libxml2/"
-    print_log(lapply(c("/", "/Windows", "/MinGW/include", "/MinGW/mingw32", "/mingw-w64/i686-5.3.0-posix-dwarf-rt_v4-rev0"), list.files, full.names=TRUE))
-    Sys.setenv(LOCAL_CPPFLAGS = "-I/MinGW/include/libxml2 -I/mingw$(WIN)/include/libxml2")
-    INSTALL("xml2")
+    print_log("Install source packages only for windows ...")
+    INSTALL(c("GenomeInfoDbData", "org.Hs.eg.db", "TxDb.Hsapiens.UCSC.hg19.knownGene"), type="both")
+    
+    BTYPE <- "win.binary"
 }
 
 # install needed packages
@@ -39,7 +41,7 @@ for(p in c("XML", "xml2", "testthat", "devtools", "covr", "roxygen2", "BiocCheck
             "GenomeInfoDbData", "rtracklayer", "hms")){
     if(!requireNamespace(p, quietly=TRUE)){
         print_log("Install ", p)
-        INSTALL(p, Ncpus=6)
+        INSTALL(p, type=BTYPE, Ncpus=6)
     }
 }
 
@@ -47,8 +49,8 @@ for(p in c("XML", "xml2", "testthat", "devtools", "covr", "roxygen2", "BiocCheck
 R.utils::withTimeout(timeout=2400, {
     try({
         print_log("Update packages")
-        INSTALL(ask=FALSE, Ncpus=6)
+        INSTALL(ask=FALSE, type=BTYPE, Ncpus=6)
     
         print_log("Install OUTRIDER")
-        devtools::install(".", ask=FALSE, dependencies=TRUE, upgrade=TRUE, Ncpus=6)
+        devtools::install(".", ask=FALSE, dependencies=TRUE, upgrade=TRUE, type=BTYPE, Ncpus=6)
 })})
