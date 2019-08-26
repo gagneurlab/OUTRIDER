@@ -14,15 +14,18 @@ cache:
 
 environment:
   BIOC_USE_DEVEL: FALSE
-  GCC_PATH: mingw_32
+  USE_RTOOLS: TRUE
+  GCC_PATH: mingw_64
+  R_ARCH: x64
+  
   matrix:
-    - R_VERSION: release
+    - R_VERSION: devel
       BIOC_USE_DEVEL: TRUE
       
-    - R_VERSION: release
+    - R_VERSION: devel
       BIOC_USE_DEVEL: TRUE
-      GCC_PATH: mingw_64
-      R_ARCH: x64
+      GCC_PATH: mingw_32
+      R_ARCH: i386    
       
     - R_VERSION: release
     - R_VERSION: 3.5.1
@@ -31,10 +34,11 @@ environment:
     - R_VERSION: 3.4.0
       
 build_script:
-  - travis-tool.sh install_deps
   - travis-tool.sh install_bioc_deps
-  - travis-tool.sh install_bioc BiocCheck DelayedArray roxygen2 GenomeInfoDbData org.Hs.eg.db TxDb.Hsapiens.UCSC.hg19.knownGene
+  - travis-tool.sh install_deps
+  - travis-tool.sh install_bioc BiocCheck devtools roxygen2
   - R -e "devtools::install(upgrade_dependencies=TRUE, dependencies=TRUE)"
+  - R -e "if(getRversion() >= '3.5.0'){ BiocManager::install(update=TRUE, ask=FALSE) } else { BiocInstaller::biocLite(ask=FALSE) }"
   
 test_script:
   - R CMD build --no-build-vignettes .
