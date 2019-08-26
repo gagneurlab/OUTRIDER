@@ -33,9 +33,10 @@ for(p in c("testthat", "devtools", "covr", "roxygen2", "BiocCheck", "R.utils")){
 
 # install OUTRIDER with its dependencies with a timeout due to travis 50 min
 R.utils::withTimeout(timeout=2400, {
-    print_log("Update packages")
-    INSTALL(ask=FALSE, Ncpus=6)
+    try({
+        print_log("Update packages")
+        INSTALL(ask=FALSE, Ncpus=6)
     
-    print_log("Install OUTRIDER")
-    devtools::install(".", ask=FALSE, dependencies=TRUE, upgrade=TRUE, Ncpus=6)
-})
+        print_log("Install OUTRIDER")
+        devtools::install(".", ask=FALSE, dependencies=TRUE, upgrade=TRUE, Ncpus=6)
+})})
