@@ -13,6 +13,7 @@ cache:
   - C:\RLibrary
 
 environment:
+  PKGTYPE: both
   BIOC_USE_DEVEL: FALSE
   USE_RTOOLS: TRUE
   GCC_PATH: mingw_64
