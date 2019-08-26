@@ -24,7 +24,8 @@ if(0 < compareVersion("3.5.0", R_VERSION)){
 
 # install needed packages
 # add testthat to pre installation dependencies due to: https://github.com/r-lib/pkgload/issues/89
-for(p in c("testthat", "devtools", "covr", "roxygen2", "BiocCheck", "R.utils")){
+for(p in c("testthat", "devtools", "covr", "roxygen2", "BiocCheck", "R.utils", 
+            "GenomeInfoDbData", "rtracklayer", "hms")){
     if(!requireNamespace(p, quietly=TRUE)){
         print_log("Install ", p)
         INSTALL(p, Ncpus=6)
