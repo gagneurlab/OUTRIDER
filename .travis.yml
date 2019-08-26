@@ -5,13 +5,7 @@ cache:
   - directories:
     - $HOME/R/Library
 
-matrix:
-  include:
-    - r: bioc-release
-#    - r: bioc-devel
-    - r: 3.5.0
-    - r: 3.4.4
-    - r: 3.4.2
+
 
 addons:
   apt:
@@ -20,29 +14,52 @@ addons:
       - tk-dev
       - libgit2-dev
 
+r:
+  - bioc-devel
+  - bioc-release
+  - 3.5.0
+  - 3.4.4
+  - 3.4.2
+
+stages:
+  - Setup Cache
+  - Test
+
+# setup cache first
+jobs:
+  include:
+    - stage: Setup Cache
+      r: bioc-devel
+      script: true
+    - stage: Setup Cache
+      r: bioc-release
+      script: true
+    - stage: Setup Cache
+      r: 3.5.0
+      script: true
+    - stage: Setup Cache
+      r: 3.4.4
+      script: true
+    - stage: Setup Cache
+      r: 3.4.2
+      script: true
+
+
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
 
 install:
   - R --version
-  - R -e "install.packages(c('devtools', 'covr', 'roxygen2'), Ncpus=6)"
-  - R -e "if(0 < compareVersion('3.5.0', paste(R.Version()[c('major', 'minor')], collapse='.'))){ 
-            source('https://bioconductor.org/biocLite.R');
-            biocLite(c('BiocInstaller', 'BiocCheck'), Ncpus=6);
-        } else {
-            install.packages('BiocManager', Ncpus=6);
-            BiocManager::install('BiocCheck', Ncpus=6);
-        }"
-  - R -e 'devtools::install_deps(dependencies=TRUE, Ncpus=6)'
-  - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, Ncpus=6)'
+  - Rscript setupEnv.R
+
 
 script:
   - R CMD build .
   - R CMD BiocCheck --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
-#  - R -e 'devtools::run_examples()'
-#  - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw"
-  
-after_success:
-  - Rscript -e 'covr::codecov()'
+  - R -e 'devtools::run_examples()'
+  - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
 
+
+after_success:
+  - test $TRAVIS_BUILD_STAGE_NAME = "Test" && Rscript -e 'covr::codecov()'
