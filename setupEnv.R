@@ -26,6 +26,9 @@ if(0 < compareVersion("3.5.0", R_VERSION)){
 if("windows" == .Platform$OS.type){
     print_log("Install XML on windows ...")
     Sys.setenv(LOCAL_CPPFLAGS = "-I/mingw$(WIN)/include/libxml2")
+    INSTALL("xml2")
+    
+    print_log(lapply(c("/", "/mingw32/", "C:/mingw64/", "C:/mingw32/include/libxml2/"), list.files))
 }
 
 # install needed packages
