@@ -3,6 +3,16 @@ print_log <- function(...){
     message(paste0("\n", hash_line, "\n### ", date(), ": ", ..., "\n", hash_line, "\n"))
 }
 
+if("windows" == .Platform$OS.type){
+    print_log("Install XML on windows ...")
+    Sys.setenv(LOCAL_CPPFLAGS = "-I/mingw$(WIN)/include/libxml2")
+    for(p in c("XML", "xml2")){
+        if(!requireNamespace(p, quietly=TRUE)){
+            install.packages(p)
+        }
+    }
+}
+
 # install Bioconductor dependent on the R version
 R_VERSION <- paste(R.Version()[c("major", "minor")], collapse=".")
 print_log("Current R version: ", R_VERSION)
