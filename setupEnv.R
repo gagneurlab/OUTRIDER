@@ -26,8 +26,8 @@ if(0 < compareVersion("3.5.0", R_VERSION)){
 if("windows" == .Platform$OS.type){
     print_log("Install XML on windows ...")
     # "../inst/include", "../windows/libxml2-2.9.8/include/libxml2",  "/mingw32/", "C:/mingw64/", "C:/mingw32/include/libxml2/"
-    print_log(lapply(c("/", "/Windows", "/MinGW", "/mingw-w64", "/mingw-w64/*"), list.files, full.names=TRUE))
-    Sys.setenv(LOCAL_CPPFLAGS = "-I/mingw$(WIN)/include/libxml2")
+    print_log(lapply(c("/", "/Windows", "/MinGW/include", "/MinGW/mingw32", "/mingw-w64/i686-5.3.0-posix-dwarf-rt_v4-rev0"), list.files, full.names=TRUE))
+    Sys.setenv(LOCAL_CPPFLAGS = "-I/MinGW/include -I/MinGW/include/libxml2 -I/mingw$(WIN)/include/libxml2")
     INSTALL("xml2")
 }
 
