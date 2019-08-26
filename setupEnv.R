@@ -31,7 +31,7 @@ if("windows" == .Platform$OS.type){
     
     print_log("Install source packages only for windows ...")
     INSTALL(c("RSQLite", "progress"), type="win.binary")
-    INSTALL("AnnotationDbi", type="win.binary")
+    INSTALL(c("AnnotationDbi", "BiocCheck"), type="win.binary")
     INSTALL(c("GenomeInfoDbData", "org.Hs.eg.db", "TxDb.Hsapiens.UCSC.hg19.knownGene"), type="both")
     
     BTYPE <- "win.binary"
