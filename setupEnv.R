@@ -28,7 +28,7 @@ if("windows" == .Platform$OS.type){
     Sys.setenv(LOCAL_CPPFLAGS = "-I/mingw$(WIN)/include/libxml2")
     INSTALL("xml2")
     # "../inst/include", "../windows/libxml2-2.9.8/include/libxml2",  "/mingw32/", "C:/mingw64/", "C:/mingw32/include/libxml2/"
-    print_log(lapply(c("/", "/Windows/", "../inst/include", "../windows/libxml2-2.9.8/include/libxml2"), list.files, full.names=TRUE))
+    print_log(lapply(c("/", "/Windows", "/MinGW", "/mingw-w64", "/mingw-w64/*"), list.files, full.names=TRUE))
 }
 
 # install needed packages
