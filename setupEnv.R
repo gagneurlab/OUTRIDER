@@ -25,10 +25,10 @@ if(0 < compareVersion("3.5.0", R_VERSION)){
 # because of https://github.com/r-windows/rtools-installer/issues/3
 if("windows" == .Platform$OS.type){
     print_log("Install XML on windows ...")
-    Sys.setenv(LOCAL_CPPFLAGS = "-I/mingw$(WIN)/include/libxml2")
-    INSTALL("xml2")
     # "../inst/include", "../windows/libxml2-2.9.8/include/libxml2",  "/mingw32/", "C:/mingw64/", "C:/mingw32/include/libxml2/"
     print_log(lapply(c("/", "/Windows", "/MinGW", "/mingw-w64", "/mingw-w64/*"), list.files, full.names=TRUE))
+    Sys.setenv(LOCAL_CPPFLAGS = "-I/mingw$(WIN)/include/libxml2")
+    INSTALL("xml2")
 }
 
 # install needed packages
