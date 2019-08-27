@@ -41,6 +41,8 @@ if("windows" == .Platform$OS.type){
     
     print_log("Install source packages only for windows ...")
     INSTALL(c("GenomeInfoDbData", "org.Hs.eg.db", "TxDb.Hsapiens.UCSC.hg19.knownGene"), type="both")
+} else {
+    BTYPE <- "source"
 }
 
 # Make sure BiocCheck is installed
