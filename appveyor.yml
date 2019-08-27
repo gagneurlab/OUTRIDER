@@ -28,11 +28,11 @@ environment:
 #      GCC_PATH: mingw_32
 #      R_ARCH: i386    
 #      
-    - R_VERSION: 3.4.4
     - R_VERSION: release
+    - R_VERSION: 3.5.1
+    - R_VERSION: 3.4.4
     - R_VERSION: 3.4.2
     - R_VERSION: 3.4.0
-    - R_VERSION: 3.5.1
       
 build_script:
   - travis-tool.sh install_bioc rlang
@@ -40,10 +40,9 @@ build_script:
 
 test_script:
   - R CMD build --no-build-vignettes .
-#  - R CMD check --install-args=--build --no-vignettes --no-manual --timings *tar.gz
+  - R CMD check --install-args=--build --no-vignettes --no-manual --timings *tar.gz
+  - R CMD BiocCheck --no-check-vignettes *tar.gz
 #  - R -e "devtools::run_examples()"
-#  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
-#  - R -e "BiocCheck::BiocCheck('.')"
 #  - R -e "date(); devtools::build_vignettes(); date()"
 
 on_failure:
