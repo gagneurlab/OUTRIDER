@@ -40,8 +40,7 @@ build_script:
 
 test_script:
   - R CMD build --no-build-vignettes .
-  - Set-Variable -Name "pkg" -Value *tar.gz
-  - R -e "BiocCheck::BiocCheck('$pkg', `no-check-vignettes`=TRUE)"
+  - R -e "BiocCheck::BiocCheck(list.files(path='.', pattern='.tar.gz'), `no-check-vignettes`=TRUE)"
   - R CMD check --install-args=--build --no-vignettes --no-manual --timings *tar.gz
 #  - R -e "devtools::run_examples()"
 #  - R -e "date(); devtools::build_vignettes(); date()"
