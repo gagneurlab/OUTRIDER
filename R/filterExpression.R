@@ -74,7 +74,10 @@ filterExp <- function(ods, fpkmCutoff=1, percentile=0.95,
   if(addExpressedGenes == TRUE){
     dt <- computeExpressedGenes(fpkm, cutoff=fpkmCutoff, 
                                 percentile=percentile)
-    colData(ods) <- merge(colData(ods), dt, sort = FALSE)
+    col_data <- DataFrame(merge(colData(ods), dt, by = 0, sort = FALSE))
+    rownames(col_data) <- col_data$Row.names
+    col_data$Row.names <- NULL
+    colData(ods) <- col_data
   }
   validObject(ods)
   
@@ -82,7 +85,7 @@ filterExp <- function(ods, fpkmCutoff=1, percentile=0.95,
     ods <- ods[passed == TRUE]
   }
   message(paste0(sum(!passed), ifelse(filterGenes, 
-          " genes are filtered out. ", " genes did not passed the filter. "),
+          " genes are filtered out. ", " genes did not pass the filter. "),
                  "This is ", signif(sum(!passed)/length(passed)*100, 3), 
                  "% of the genes."))
   return(ods)
@@ -198,7 +201,7 @@ filterMinCounts <- function(x, filterGenes=FALSE){
   passed <- !checkCountRequirements(x, test=TRUE)
   mcols(x)['passedFilter'] <- passed
   
-  message(paste0(sum(!passed), " genes did not passed the filter due to ", 
+  message(paste0(sum(!passed), " genes did not pass the filter due to ", 
           "zero counts. This is ", signif(sum(!passed)/length(passed)*100, 3),
                  "% of the genes."))
   
@@ -236,15 +239,20 @@ computeExpressedGenes <- function(x, cutoff=1, percentile=0.95){
   
   # Get the genes that appear in at least 1 sample
   expGenesDt$intersectionExpressedGenes <- 
-    colSums(vapply(seq_len(ncol(cumSumMatrix)), 
-                   function(j) cumSumMatrix[,j] == j,
-                   1L))
+    vapply(seq_len(ncol(cumSumMatrix)),
+           function(j) sum(cumSumMatrix[,j] == j),
+           1L)
   
   expGenesDt$passedFilterGenes <- 
     colSums(t(t( cumSumMatrix) / seq_len(ncol(cumSumMatrix)) ) >= 1-percentile)
   
   # Rank for plotting
   expGenesDt[, expressedGenesRank := .I]
+  
+  # Coerce to data.frame
+  expGenesDt = as.data.frame(expGenesDt)
+  rownames(expGenesDt) <- expGenesDt$sampleID
+  expGenesDt$sampleID = NULL
   
   return(expGenesDt)
 }
