@@ -45,9 +45,6 @@ if("windows" == .Platform$OS.type){
     BTYPE <- "source"
 }
 
-# Make sure BiocCheck is installed
-INSTALL("BiocCheck", type=BTYPE, Ncpus=NCPUS)
-
 # install needed packages
 # add testthat to pre installation dependencies due to: https://github.com/r-lib/pkgload/issues/89
 for(p in c("XML", "xml2", "testthat", "devtools", "covr", "roxygen2", "BiocCheck", "R.utils", 
