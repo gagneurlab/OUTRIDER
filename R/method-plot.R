@@ -886,10 +886,8 @@ plotExpressedGenes <- function(ods, main = 'Expressed Genes'){
   ggplot(melt_dt, aes(expressedGenesRank, value)) + 
     geom_point(aes(col = variable), size=1) +
     geom_line(aes(col = variable)) +
-    theme_cowplot() +
-    background_grid(colour.major = "grey70", colour.minor = "grey80") +
     ylim(c(0,NA)) +
-    #theme_bw(base_size = 14) +
+    theme_bw(base_size = 14) +
     theme(legend.position = 'top', legend.title = element_blank()) +
     labs(y = 'Number of genes', x = 'Sample rank', title = main) +
     scale_color_brewer(palette = 'Set1')

@@ -38,8 +38,6 @@
 #'          ggplot labs scale_x_log10 scale_fill_manual theme ylim ggtitle
 #'          geom_vline geom_text geom_line theme_bw element_blank
 #' 
-#' @importFrom cowplot theme_cowplot background_grid
-#' 
 #' @importFrom ggpubr grids
 #'          
 #' @importFrom gplots barplot2 bluered heatmap.2
