@@ -36,7 +36,7 @@
 #' 
 #' @importFrom ggplot2 aes geom_histogram geom_smooth geom_tile geom_point 
 #'          ggplot labs scale_x_log10 scale_fill_manual theme ylim ggtitle
-#'          geom_vline geom_text geom_line theme_bw element_blank
+#'          geom_vline geom_text geom_line theme_bw element_blank scale_color_brewer
 #' 
 #' @importFrom ggpubr grids
 #'          
