@@ -876,16 +876,23 @@ plotExpressedGenes <- function(ods, main = 'Expressed Genes'){
   exp_genes_cols <- c('expressedGenes','unionExpressedGenes', 
                       'intersectionExpressedGenes', 'passedFilterGenes', 
                       'expressedGenesRank')
-  dt <- as.data.table(colData(ods)[, c('sampleID', exp_genes_cols)])
-  setnames(dt, 'expressedGenesRank', 'Rank')
+  dt <- as.data.table(colData(ods)[, exp_genes_cols])
+  dt[, sampleID := colnames(ods)]
   
-  melt_dt <- melt(dt, id.vars = c('sampleID', 'Rank'))
+  suppressWarnings({
+    melt_dt <- melt(dt, id.vars = c('sampleID', 'expressedGenesRank'))
+    })
   
-  ggplot(melt_dt, aes(Rank, value)) + 
+  ggplot(melt_dt, aes(expressedGenesRank, value)) + 
+    geom_point(aes(col = variable), size=1) +
     geom_line(aes(col = variable)) +
-    theme_bw(base_size = 14) +
+    theme_cowplot() +
+    background_grid(colour.major = "grey70", colour.minor = "grey80") +
+    ylim(c(0,NA)) +
+    #theme_bw(base_size = 14) +
     theme(legend.position = 'top', legend.title = element_blank()) +
-    labs(y = 'Number of genes', x = 'Sample rank', title = main)
+    labs(y = 'Number of genes', x = 'Sample rank', title = main) +
+    scale_color_brewer(palette = 'Set1')
   
 }
 
