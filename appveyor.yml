@@ -7,7 +7,11 @@ init:
         Import-Module '..\appveyor-tool.ps1'
 
 install:
-  ps: Bootstrap
+  ps:
+    - Bootstrap
+    - choco install -y miktex
+    - choco install -y imagemagick
+  cmd:  refreshenv
 
 cache:
   - C:\RLibrary
