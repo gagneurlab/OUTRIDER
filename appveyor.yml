@@ -42,7 +42,7 @@ test_script:
   - R CMD build --no-build-vignettes .
   - R CMD check --install-args=--build --no-vignettes --no-manual --timings *tar.gz
   - R -e "BiocCheck::BiocCheck(list.files(path='.', pattern='.tar.gz'))"
-#  - R -e "date(); devtools::build_vignettes(); date()"
+  - R -e "date(); devtools::build_vignettes(); date()"
   - R -e "devtools::run_examples()"
 
 on_failure:
