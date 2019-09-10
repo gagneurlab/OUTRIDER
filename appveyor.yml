@@ -13,20 +13,21 @@ cache:
   - C:\RLibrary
 
 environment:
+  PKGTYPE: win.binary
   BIOC_USE_DEVEL: FALSE
   USE_RTOOLS: TRUE
   GCC_PATH: mingw_64
   R_ARCH: x64
   
   matrix:
-    - R_VERSION: devel
-      BIOC_USE_DEVEL: TRUE
-      
-    - R_VERSION: devel
-      BIOC_USE_DEVEL: TRUE
-      GCC_PATH: mingw_32
-      R_ARCH: i386    
-      
+#    - R_VERSION: devel
+#      BIOC_USE_DEVEL: TRUE
+#      
+#    - R_VERSION: devel
+#      BIOC_USE_DEVEL: TRUE
+#      GCC_PATH: mingw_32
+#      R_ARCH: i386    
+#      
     - R_VERSION: release
     - R_VERSION: 3.5.1
     - R_VERSION: 3.4.4
@@ -34,19 +35,15 @@ environment:
     - R_VERSION: 3.4.0
       
 build_script:
-  - travis-tool.sh install_bioc_deps
-  - travis-tool.sh install_deps
-  - travis-tool.sh install_bioc BiocCheck devtools roxygen2
-  - R -e "devtools::install(upgrade_dependencies=TRUE, dependencies=TRUE)"
-  - R -e "if(getRversion() >= '3.5.0'){ BiocManager::install(update=TRUE, ask=FALSE) } else { BiocInstaller::biocLite(ask=FALSE) }"
-  
+  - travis-tool.sh install_bioc rlang
+  - Rscript setupEnv.R
+
 test_script:
   - R CMD build --no-build-vignettes .
   - R CMD check --install-args=--build --no-vignettes --no-manual --timings *tar.gz
-#  - R -e "devtools::run_examples()"
-#  - R CMD BiocCheck --new-package --no-check-vignettes *tar.gz
-#  - R -e "BiocCheck::BiocCheck('.')"
+  - R -e "BiocCheck::BiocCheck(list.files(path='.', pattern='.tar.gz'))"
 #  - R -e "date(); devtools::build_vignettes(); date()"
+  - R -e "devtools::run_examples()"
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
