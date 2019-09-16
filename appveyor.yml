@@ -41,7 +41,7 @@ environment:
     - R_VERSION: 3.4.0
       
 build_script:
-  - travis-tool.sh install_bioc rlang
+  - travis-tool.sh install_bioc rlang S4Vectors
   - Rscript setupEnv.R
 
 test_script:
