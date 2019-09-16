@@ -9,19 +9,22 @@ init:
         Import-Module '..\appveyor-tool.ps1'
 
 install:
-  # install ImageMagick and set path correctly
-  - choco install -y -PackageParameters LegacySupport=true imagemagick
-  - set "PATH=%PATH%;C:\Program Files\ImageMagick-7.0.8-Q16"
   - ps: Bootstrap
   - ps: InstallMiktex
+  # install ImageMagick and set path correctly at first position
+  - choco install -y -PackageParameters LegacySupport=true imagemagick
+  - set "PATH=C:\Program Files\ImageMagick-7.0.8-Q16;%PATH%"
 
 cache:
   - C:\RLibrary
 
 environment:
+  # parameters to setup R environment
+  # https://github.com/krlmlr/r-appveyor/blob/master/README.md
   PKGTYPE: win.binary
   BIOC_USE_DEVEL: FALSE
   USE_RTOOLS: TRUE
+  KEEP_VIGNETTES: TRUE
   GCC_PATH: mingw_64
   R_ARCH: x64
   
