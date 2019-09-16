@@ -13,9 +13,9 @@ install:
   - ps: |
       InstallMiktex
       Bootstrap
-    #  - set "PATH=%PATH%;C:\Program Files\ImageMagick-7.0.8-Q16"
       ls "C:\Program Files\ImageMagick-7.0.8-Q16"
       ls "C:\Program Files\MiKTeX 2.9\bin\x64"
+    #  - set "PATH=%PATH%;C:\Program Files\ImageMagick-7.0.8-Q16"
   - pdflatex.exe --version
 
 cache:
