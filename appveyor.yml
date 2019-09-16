@@ -10,9 +10,12 @@ install:
   - choco install -y miktex
   - choco install -y imagemagick
   - ps: Bootstrap
-  - set "PATH=%PATH%;c:\Program Files\ImageMagick-7.0.8-Q16"
-  - set "PATH=%PATH%;c:\miktex\texmfs\install\miktex\bin"
+  - set "PATH=%PATH%;C:\Program Files\ImageMagick-7.0.8-Q16"
+  - set "PATH=%PATH%;C:\Program Files\MiKTeX 2.9\bin;C:\Program Files\MiKTeX 2.9;C:\miktex\texmfs\install\miktex\bin"
   - initexmf --set-config-value "[MPM]AutoInstall=1"
+  - ps: ls "C:\Program Files\MiKTeX 2.9"
+  - ps: ls "C:\Program Files\ImageMagick-7.0.8-Q16"
+  - ps: ls "C:\Program Files\MiKTeX 2.9\bin"
 
 cache:
   - C:\RLibrary
