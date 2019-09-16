@@ -10,6 +10,7 @@ install:
     #  - choco install -y miktex
     #  - choco install -y imagemagick
   - ps: |
+      Get-Command -Module "appveyor-tool"
       Exec "InstallMiktex"
       pdflatex.exe --version
       Bootstrap
