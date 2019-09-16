@@ -2,7 +2,7 @@
 # Download script file from GitHub
 init:
   ps: |
-        $ErrorActionPreference = "Stop"
+      #        $ErrorActionPreference = "Stop"
         Invoke-WebRequest https://raw.githubusercontent.com/rwinlib/base/master/scripts/appveyor-tool.ps1 -OutFile "..\appveyor-tool.ps1"
         #      Invoke-WebRequest http://raw.github.com/krlmlr/r-appveyor/master/scripts/appveyor-tool.ps1 -OutFile "..\appveyor-tool.ps1"
         Import-Module '..\appveyor-tool.ps1'
@@ -15,8 +15,9 @@ install:
       InstallMiktex
       Bootstrap
       ls "C:\Program Files\ImageMagick-7.0.8-Q16"
-      ls "C:\Program Files\MiKTeX 2.9\bin\x64"
+      ls "C:\Program Files\MiKTeX 2.9\miktex\bin\x64"
   - pdflatex.exe --version
+  - convert --version
 
 cache:
   - C:\RLibrary
