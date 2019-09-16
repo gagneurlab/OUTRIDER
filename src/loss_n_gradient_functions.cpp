@@ -38,7 +38,7 @@ arma::vec colMeans(arma::mat X){
 // [[Rcpp::export()]]
 double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
                     arma::vec exclusionMask, double theta, arma::vec thetaC){
-    double b, ll, c;
+    double b, ll;
     arma::vec d, y, t1, t2;
     
     arma::uvec idx = find(exclusionMask == 1);
@@ -65,7 +65,7 @@ double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
 // [[Rcpp::export()]]
 arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
                     arma::vec exclusionMask, double theta, arma::vec thetaC){
-    double b, c;
+    double b;
     arma::vec d, y, yexp, k1, kt, t1, t2, dd, db;
     
     arma::uvec idx = find(exclusionMask == 1);
