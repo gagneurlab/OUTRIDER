@@ -9,8 +9,8 @@ init:
 
 install:
     #  - choco install -y miktex
-    #  - choco install -y imagemagick
     #  - set "PATH=%PATH%;C:\Program Files\ImageMagick-7.0.8-Q16"
+  - choco install -y imagemagick
   - ps: |
       InstallMiktex
       Bootstrap
