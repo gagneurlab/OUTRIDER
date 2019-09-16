@@ -10,10 +10,9 @@ install:
     #  - choco install -y miktex
     #  - choco install -y imagemagick
   - ps: |
-      Import-Module '..\appveyor-tool.ps1'
-      Bootstrap
-      InstallMiktex
+      Exec InstallMiktex
       pdflatex.exe --version
+      Bootstrap
     #  - set "PATH=%PATH%;C:\Program Files\ImageMagick-7.0.8-Q16"
     #  - set "PATH=%PATH%;C:\Program Files\MiKTeX 2.9\bin;C:\Program Files\MiKTeX 2.9;C:\miktex\texmfs\install\miktex\bin"
     #  - initexmf --set-config-value "[MPM]AutoInstall=1"
