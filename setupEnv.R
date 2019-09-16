@@ -60,4 +60,5 @@ R.utils::withTimeout(timeout=2400, {
     
         print_log("Install OUTRIDER")
         devtools::install(".", dependencies=TRUE, upgrade=TRUE, type=BTYPE, threads=NCPUS)
-})})
+    })
+})
