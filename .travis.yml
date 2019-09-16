@@ -1,48 +1,65 @@
 language: r
 sudo: required
-dist: trusty
+dist: xenial
 cache:
   - directories:
     - $HOME/R/Library
 
-matrix:
-  include:
-    - r: bioc-release
-    - r: bioc-devel
-    - r: 3.5.0
-    - r: 3.4.4
-    - r: 3.4.2
+
 
 addons:
   apt:
     packages:
       - libxml2-dev
       - tk-dev
+      - libgit2-dev
+
+r:
+  - bioc-devel
+  - bioc-release
+  - 3.5.0
+  - 3.4.4
+  - 3.4.2
+
+stages:
+  - Setup Cache
+  - Test
+
+# setup cache first
+jobs:
+  include:
+    - stage: Setup Cache
+      r: bioc-devel
+      script: true
+    - stage: Setup Cache
+      r: bioc-release
+      script: true
+    - stage: Setup Cache
+      r: 3.5.0
+      script: true
+    - stage: Setup Cache
+      r: 3.4.4
+      script: true
+    - stage: Setup Cache
+      r: 3.4.2
+      script: true
+
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
 
 install:
   - R --version
-  - which R
-  - R -e "source('https://bioconductor.org/biocLite.R'); biocLite('BiocInstaller')"
-  - R -e "BiocInstaller::biocLite(c('BiocCheck', 'covr', 'devtools', 'roxygen2'), Ncpu=4)"
-  - R -e "message(BiocInstaller::isDevel())"
-  - R -e 'devtools::install_deps(dependencies=TRUE, threads=4)'
-  - R -e 'BiocParallel::multicoreWorkers()'
-  - R -e 'devtools::install(".", upgrade_dependencies=TRUE, dependencies=TRUE, threads=4)'
+  - Rscript setupEnv.R
+
 
 script:
-  - travis_wait 60 R CMD build .
+  - R CMD build .
   - R CMD BiocCheck --no-check-vignettes *tar.gz
   - R CMD check --no-vignettes --timings *tar.gz
-#  - R -e 'devtools::run_examples()'
-#  - cd vignettes && if [[ $TRAVIS_R_VERSION_STRING != "3.4.0" ]]; then
-#        travis_wait 60 R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw";
-#    else 
-#        travis_wait 60 R CMD Sweave --engine=knitr::knitr --pdf "OUTRIDER.Rnw" 2>&1 | tee /dev/tty | grep Error | exit `wc -l`;
-#    fi
-  
-after_success:
-  - Rscript -e 'covr::codecov()'
+  - R -e 'devtools::run_examples()'
+  - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
 
+
+after_success:
+  - test $TRAVIS_BUILD_STAGE_NAME = "Test" && Rscript -e 'covr::codecov()'
