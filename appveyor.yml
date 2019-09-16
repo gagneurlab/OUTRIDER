@@ -10,7 +10,7 @@ install:
     #  - choco install -y miktex
     #  - choco install -y imagemagick
   - ps: |
-      Exec InstallMiktex
+      Exec "InstallMiktex"
       pdflatex.exe --version
       Bootstrap
     #  - set "PATH=%PATH%;C:\Program Files\ImageMagick-7.0.8-Q16"
