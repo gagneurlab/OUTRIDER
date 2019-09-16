@@ -9,13 +9,12 @@ init:
 
 install:
     #  - choco install -y miktex
-    #  - set "PATH=%PATH%;C:\Program Files\ImageMagick-7.0.8-Q16"
-  - choco install -y imagemagick
+  - choco install -y -PackageParameters LegacySupport=true imagemagick
+  - set "PATH=%PATH%;C:\Program Files\ImageMagick-7.0.8-Q16"
   - ps: |
       InstallMiktex
       Bootstrap
       ls "C:\Program Files\ImageMagick-7.0.8-Q16"
-      ls "C:\Program Files\MiKTeX 2.9\miktex\bin\x64"
   - pdflatex.exe --version
   - convert --version
 
