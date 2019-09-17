@@ -36,10 +36,9 @@
 #' 
 #' @importFrom ggplot2 aes geom_histogram geom_smooth geom_tile geom_point 
 #'          ggplot labs scale_x_log10 scale_fill_manual theme ylim ggtitle
-#'          geom_vline geom_text geom_line theme_bw element_blank scale_color_brewer
+#'          geom_vline geom_text scale_linetype_manual geom_line theme_bw
+#'          element_blank scale_color_brewer
 #' 
-#' @importFrom ggpubr grids
-#'          
 #' @importFrom gplots barplot2 bluered heatmap.2
 #' 
 #' @importFrom graphics plot abline axis box grid legend lines mtext par points 

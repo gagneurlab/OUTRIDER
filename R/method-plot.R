@@ -850,17 +850,17 @@ plotEncDimSearch <- function(ods){
     dtPlot <- dt[,.(enc=encodingDimension, z=as.character(zScore), 
             eva=evaluationLoss, opt)]
     ggplot(dtPlot, aes(enc, eva, col=z)) +
-        geom_point() + 
+        geom_point() +
         scale_x_log10() + 
         geom_smooth(method='loess') +
         ggtitle('Search for best encoding dimension') + 
         geom_vline(data=dtPlot[opt == enc], 
-                aes(xintercept=enc, col=z, shape='Optimum'),
-                linetype='dotted', show.legend=TRUE) +
+                aes(xintercept=enc, col=z, linetype='Optimum'),
+                show.legend=TRUE) +
         geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) + 
         labs(x='Encoding dimensions',
-                y='Evaluation loss', col='Z score', shape='Best Q') + 
-        grids(linetype='dotted')
+                y='Evaluation loss', col='Z score', linetype='Best Q') +
+        scale_linetype_manual(values="dotted")
 }
 
 #' @rdname plotFunctions
