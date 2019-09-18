@@ -223,7 +223,7 @@ from other Biocnductor backages can be used.
 odsSmall <- makeExampleOutriderDataSet(dataset="Kremer")
 
 # full data set from Kremer et al.
-URL <- paste0("https://media.nature.com/original/nature-assets/", 
+URL <- paste0("http://media.nature.com/original/nature-assets/", 
         "ncomms/2017/170612/ncomms15824/extref/ncomms15824-s1.txt")
 ctsTable <- read.table(URL, sep="\t")
 
