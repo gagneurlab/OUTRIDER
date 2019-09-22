@@ -24,7 +24,7 @@
 #'          assayNames mcols mcols<- assay assay<-
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
-#'          isScalarValue chunk
+#'          isScalarValue chunk seq_col seq_row
 #' 
 #' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
 #' 
@@ -46,7 +46,7 @@
 #'
 #' @importFrom IRanges IRanges
 #' 
-#' @importFrom matrixStats rowSds rowMedians rowQuantiles rowMeans2
+#' @importFrom matrixStats rowSds rowMedians rowQuantiles rowMeans2 rowCumsums
 #' 
 #' @importFrom pcaMethods pca loadings
 #' 
@@ -82,6 +82,8 @@ NULL
 #' 
 #' TODO This is to get rid of the warnings of undefined variables
 #'     due to the nature of data.table and ggplot/plotly
+#' For reference:
+#' https://www.r-bloggers.com/no-visible-binding-for-global-variable/
 #' @noRd
 globalVariables(package="OUTRIDER", c(
         "color",
@@ -105,8 +107,10 @@ globalVariables(package="OUTRIDER", c(
         "obs",
         "onlyFull",
         "passedFilter",
+        "Rank",
         "sampleID",
         "value",
+        "variable",
         "V1",
         "Var1",
         "Var2",

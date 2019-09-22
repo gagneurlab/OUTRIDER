@@ -36,9 +36,8 @@ plotCountCorHeatmap(ods, normalized = TRUE, rowCentered = TRUE,
 
 plotAberrantPerSample(ods, main, padjCutoff = 0.05, zScoreCutoff = 0,
   outlierRatio = 0.001, col = brewer.pal(3, "Dark2")[c(1, 2)],
-  yadjust = c(1.2, 1.2), labLine = c(3.5, 3),
-  ylab = "#Aberrantly expressed genes", labCex = par()$cex,
-  ymax = NULL, ...)
+  yadjust = c(1.2, 1.2), labLine = c(3.5, 3), ymax = NULL,
+  ylab = "#Aberrantly expressed genes", labCex = par()$cex, ...)
 
 plotFPKM(ods)
 
@@ -49,7 +48,7 @@ plotPowerAnalysis(ods)
 
 plotEncDimSearch(ods)
 
-plotExpressedGenes(ods, main = "Expressed Genes")
+plotExpressedGenes(ods, main = "Statistics of expressed genes")
 }
 \arguments{
 \item{ods, object}{An OutriderDataSet object.}
@@ -115,11 +114,11 @@ returned OutriderDataSet.}
 
 \item{labLine}{Option to move axis labels}
 
+\item{ymax}{If set, ymax is the upper bound for the plot range on the y axis.}
+
 \item{ylab}{The y axis label}
 
 \item{labCex}{The label cex parameter}
-
-\item{ymax}{If set, ymax is the upper bound for the plot range on the y axis.}
 
 \item{compareDisp}{If TRUE, the default, and if the autoCorrect normalization
 was used it computes the dispersion without autoCorrect and 
@@ -196,7 +195,9 @@ implementation <- 'autoencoder'
     ods <- ods[400:410,60:70]
     implementation <- 'pca'
 }
-ods <- filterExpression(ods, minCounts=TRUE)
+
+mcols(ods)$basepairs <- 300 # assign pseudo gene length for filtering
+ods <- filterExpression(ods)
 ods <- OUTRIDER(ods, implementation=implementation)
 
 plotAberrantPerSample(ods)
@@ -229,5 +230,7 @@ plotPowerAnalysis(ods)
 ods <- findEncodingDim(ods)
 plotEncDimSearch(ods)
 }
+
+plotExpressedGenes(ods)
 
 }

@@ -1,9 +1,8 @@
 #' 
 #' Calculate P-values
 #' 
-#' This function computes the P-values based on the fitted negative binomial 
-#' model.
-#' It computes two matrices with the same dimension as the count matrix
+#' This function computes the P-values based on the fitted negative binomial
+#' model. It computes two matrices with the same dimension as the count matrix
 #' (samples x genes), which contain the corresponding P-values and 
 #' adjusted P-values of every count. 
 #' 

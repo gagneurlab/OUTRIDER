@@ -12,7 +12,7 @@
 #'             'gene' or not at all (default).
 #'
 #' @return The number of aberrent events by gene or sample or a TRUE/FALSE 
-#'         matrix of the size sample x gene of aberrent events.
+#'             matrix of the size sample x gene of aberrent events.
 #' 
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
