@@ -18,4 +18,16 @@ test_that("Expression filtering", {
     #expect_warning(filterExpression(ods, gtfFile=txdb, mapping=map, save=TRUE), 
     #        'Some genes \\(n=(17[72]|93|91)\\) are not found')
     
+    ods <- filterExpression(ods, gtfFile=txdb, addExpressedGenes=TRUE)
+    
+    expect_true(all(
+        c('expressedGenes', 'unionExpressedGenes', 'intersectionExpressedGenes',
+          'passedFilterGenes', 'expressedGenesRank', 'sampleID') 
+        %in% colnames(colData(ods))
+        )
+    )
+    # Test plotting
+    expect_is(plotExpressedGenes(ods), 'ggplot')    
+    
 })
+

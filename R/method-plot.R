@@ -881,10 +881,12 @@ plotExpressedGenes <- function(ods, main='Statistics of expressed genes'){
     melt_dt <- melt(dt, id.vars = c('sampleID', 'Rank'))
     
     ggplot(melt_dt, aes(Rank, value)) + 
+        geom_point(aes(col = variable), size=1) +
         geom_line(aes(col = variable)) +
         theme_bw(base_size = 14) +
-        ylim(0, max(max(melt_dt[,value]))) + 
+        ylim(0, NA) + 
         theme(legend.position = 'top', legend.title = element_blank()) +
-        labs(y = 'Number of genes', x = 'Sample rank', title = main)
+        labs(y = 'Number of genes', x = 'Sample rank', title = main) + 
+        scale_color_brewer(palette = 'Set1')
 }
 
