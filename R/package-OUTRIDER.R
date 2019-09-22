@@ -24,9 +24,10 @@
 #'          assayNames mcols mcols<- assay assay<-
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
-#'          isScalarValue chunk
+#'          isScalarValue chunk seq_col seq_row
 #' 
 #' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
+#'          bpRNGseed bpRNGseed<-
 #' 
 #' @importFrom compiler cmpfun
 #' 
@@ -46,7 +47,7 @@
 #'
 #' @importFrom IRanges IRanges
 #' 
-#' @importFrom matrixStats rowSds rowMedians rowQuantiles rowMeans2
+#' @importFrom matrixStats rowSds rowMedians rowQuantiles rowMeans2 rowCumsums
 #' 
 #' @importFrom pcaMethods pca loadings
 #' 

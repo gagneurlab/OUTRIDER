@@ -31,8 +31,9 @@ against the \code{fpkmCutoff}}
 \item{minCounts}{If TRUE, only genes with 0 counts in all samples are 
 filtered}
 
-\item{addExpressedGenes}{If TRUE, adds 5 columns to the \code{colData} with
-information regarding the number of expressed genes per sample}
+\item{addExpressedGenes}{If TRUE (default), adds 5 columns to the
+\code{colData} with information regarding the number of 
+expressed genes per sample}
 }
 \value{
 An OutriderDataSet containing the \code{passedFilter} column, which

@@ -17,9 +17,9 @@
 #' @param percentile a numeric indicating the percentile FPKM value to compare
 #'             against the \code{fpkmCutoff}
 #' @param savefpkm If TRUE, the FPKM values are saved as assay
-#' @param addExpressedGenes If TRUE, adds 5 columns to the \code{colData} with
-#'             information regarding the number of expressed genes per sample.
-#'             By default FALSE.
+#' @param addExpressedGenes If TRUE (default), adds 5 columns to the
+#'             \code{colData} with information regarding the number of 
+#'             expressed genes per sample
 #' @param ... Additional arguments passed to \code{computeGeneLength}
 #' @return An OutriderDataSet containing the \code{passedFilter} column, which
 #'             indicates if the given gene passed the filtering threshold. If
@@ -76,15 +76,16 @@ filterExp <- function(ods, fpkmCutoff=1, percentile=0.95,
                 percentile=percentile)
         colData(ods) <- merge(colData(ods), dt, sort=FALSE)
     }
-    validObject(ods)
     
-    if(filterGenes==TRUE){
-        ods <- ods[passed == TRUE]
-    }
     message(paste0(sum(!passed), ifelse(filterGenes,
             " genes are filtered out. ", " genes did not passed the filter. "),
             "This is ", signif(sum(!passed)/length(passed)*100, 3), 
             "% of the genes."))
+    if(filterGenes==TRUE){
+        ods <- ods[passed == TRUE,]
+    }
+    
+    validObject(ods)
     return(ods)
 }
 
