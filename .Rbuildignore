@@ -12,3 +12,5 @@ tmp
 ucsc.knownGenes.db
 ^codecov\.yml$
 ^appveyor\.yml$
+
+setupEnv.R
