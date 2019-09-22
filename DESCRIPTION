@@ -3,19 +3,17 @@ Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
 Version: 1.3.0
 Date: 2019-03-18
-Maintainer: Christian Mertes <mertes@in.tum.de>
 URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
 Authors@R: c(
-    person("Felix", "Brechtmann", role=c("aut", "cre"), 
+    person("Felix", "Brechtmann", role=c("aut"), 
             email="brechtma@in.tum.de"),
     person("Christian", "Mertes", role=c("aut", "cre"), 
             email="mertes@in.tum.de"),
     person("Agne", "Matuseviciute", role=c("aut")),
-    person("Vicente", "Yepez", role=c("aut")),
+    person(c("Michaela", "Fee"), "Müller", role=c("ctb")),
+    person("Vicente", "Yepez", role=c("aut"), email="yepez@in.tum.de"),
     person("Julien", "Gagneur", role=c("aut"), email="gagneur@in.tum.de"))
-Author: Felix Brechtmann [aut, cre], Christian Mertes [aut, cre], 
-    Ange Matuseviciute [aut, cre], Vicente Yepez [aut], Julien Gagneur [aut]
 Description: Identification of aberrant gene expression in RNA-seq data.
     Read count expectations are modeled by an autoencoder to control for
     confounders in the data. Given these expectations, the RNA-seq read counts
