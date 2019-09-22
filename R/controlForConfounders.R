@@ -51,7 +51,7 @@ controlForConfounders <- function(ods, q,
             q <- estimateBestQ(ods)
             message('Using estimated q with: ', q)
         } else {
-          message('Using provided q with: ', q)
+            message('Using provided q with: ', q)
         }
     }
     

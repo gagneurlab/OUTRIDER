@@ -119,7 +119,9 @@
 #'     ods <- ods[400:410,60:70]
 #'     implementation <- 'pca'
 #' }
-#' ods <- filterExpression(ods, minCounts=TRUE)
+#' 
+#' mcols(ods)$basepairs <- 300 # assign pseudo gene length for filtering
+#' ods <- filterExpression(ods)
 #' ods <- OUTRIDER(ods, implementation=implementation)
 #' 
 #' plotAberrantPerSample(ods)
@@ -152,6 +154,8 @@
 #' ods <- findEncodingDim(ods)
 #' plotEncDimSearch(ods)
 #' }
+#' 
+#' plotExpressedGenes(ods)
 #' 
 #' @rdname plotFunctions
 #' @aliases plotFunctions plotVolcano plotQQ plotExpressionRank 
@@ -210,7 +214,7 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
                 counts(ods, normalized=TRUE), 2, rank)[,sampleID],
         aberrant  = aberrant(ods, padjCutoff=padjCutoff,
                 zScoreCutoff=zScoreCutoff)[,sampleID],
-        color=col[1])
+        color     = col[1])
     dt[aberrant == TRUE, color:=col[2]]
     
     # remove the NAs from the zScores for plotting
@@ -250,9 +254,9 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
 #' @rdname plotFunctions
 #' @export
 plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05, 
-                zScoreCutoff=0, samplePoints=TRUE, 
-                legendPos="topleft", outlierRatio=0.001, conf.alpha=0.05, 
-                pch=16, xlim=NULL, ylim=NULL, col=NULL){
+                    zScoreCutoff=0, samplePoints=TRUE, 
+                    legendPos="topleft", outlierRatio=0.001, conf.alpha=0.05, 
+                    pch=16, xlim=NULL, ylim=NULL, col=NULL){
     if(!is(ods, 'OutriderDataSet')){
         stop('Please provide an OutriderDataSet')
     }
@@ -263,7 +267,7 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
     # Singel gene QQplot.
     if(isFALSE(global)){
         geneID <- getGeneIndex(geneID, ods)
-    
+        
         # Produce multiple qqplot if geneID is a vector.
         if(length(geneID)>1L){
             lapply(geneID, plotQQ, ods=ods, main=main, legendPos=legendPos,
@@ -285,7 +289,7 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
                 zScoreCutoff=zScoreCutoff, by='sample')
         df <- data.table(obs= -log10(pVal), pch=pch, subset=FALSE, 
                 col=ifelse(aberrantEvent, col[2], col[1]))
-    
+        
     # global QQplot
     } else {
         if(missing(main)){
@@ -307,8 +311,7 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
                     zScoreCutoff=zScoreCutoff) < outlierRatio*length(ods)]
             if(ncol(odssub) > 0){
                 pVal <- as.numeric(assay(odssub, 'pValue'))
-            
-                dfsub <- data.table(obs= -log10(pVal), col=col[2], pch=pch,
+                dfsub <- data.table(obs=-log10(pVal), col=col[2], pch=pch,
                         subset=TRUE)
                 df <- rbind(df, dfsub)
             }
@@ -476,9 +479,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
         y=~normcounts,
         type="scatter",
         mode="markers",
-        marker = list(
-            color=~color
-        ),
+        marker = list(color=~color),
         text=~paste0(
             "Gene ID: ", geneID,
             "<br>Sample ID: ", sampleID,
@@ -500,8 +501,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
             yaxis=list(type=ifelse(isTRUE(log), 'log', 'linear'), 
                     dtick=ifelse(isTRUE(log), "D1", 
                             signif(diff(range(dt[,normcounts]))/10, 1)), 
-                    exponentformat='power',
-                    title=ylab))
+                    exponentformat='power', title=ylab))
 }
 
 
@@ -514,11 +514,10 @@ plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
                     dendrogram='both', basePlot=TRUE,
                     names=c("both", "row", "col", "none"), ...){
     if(!isTRUE(basePlot)){
-        return(plotCountCorHeatmapPlotly(ods, normalized=normalized, 
-                rowCoFactor=rowCoFactor, rowColSet=rowColSet, 
-                rowCentered=rowCentered,
-                colCoFactor=colCoFactor, colColSet=colColSet, 
-                nCluster=nCluster, main=main, dendrogram=dendrogram, ...))
+        return(plotCountCorHeatmapPlotly(ods, normalized=normalized, main=main,
+                rowCoFactor=rowCoFactor, rowColSet=rowColSet, nCluster=nCluster,
+                rowCentered=rowCentered, colCoFactor=colCoFactor, 
+                colColSet=colColSet, dendrogram=dendrogram, ...))
     }
     
     colRows  <- NULL
@@ -604,10 +603,9 @@ plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
 
 
 plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
-                    rowCoFactor=NULL, 
-                    rowColSet="Set1", colCoFactor=NULL, colColSet="Set2",
-                    nCluster=4, main="Count correlation heatmap", 
-                    dendrogram='both', ...){
+                    rowCoFactor=NULL, rowColSet="Set1", colCoFactor=NULL,
+                    colColSet="Set2", nCluster=4, 
+                    main="Count correlation heatmap", dendrogram='both', ...){
     
     # correlation
     fcMat <- as.matrix(log2(counts(x, normalized=normalized) + 1))
@@ -660,10 +658,9 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' @rdname plotFunctions
 #' @export
 plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
-                    outlierRatio=0.001,
-                    col=brewer.pal(3, 'Dark2')[c(1,2)], yadjust=c(1.2, 1.2), 
-                    labLine=c(3.5, 3), ylab="#Aberrantly expressed genes", 
-                    labCex=par()$cex, ymax=NULL, ...){
+                    outlierRatio=0.001, col=brewer.pal(3, 'Dark2')[c(1,2)],
+                    yadjust=c(1.2, 1.2), labLine=c(3.5, 3), ymax=NULL, 
+                    ylab="#Aberrantly expressed genes", labCex=par()$cex, ...){
     
     if(missing(main)){
         main <- 'Aberrant Genes per Sample'
@@ -671,22 +668,22 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
     
     count_vector <- sort(aberrant(ods, by="sample", padjCutoff=padjCutoff, 
             zScoreCutoff=zScoreCutoff, ...))
-    ylim = c(0.4, max(1, count_vector)*1.1)
+    ylim <- c(0.4, max(1, count_vector)*1.1)
     if(!is.null(ymax)){
         ylim[2] <- ymax
     }
-    replace_zero_unknown = 0.5
-    ticks= c(replace_zero_unknown, signif(10^seq(
+    replace_zero_unknown <- 0.5
+    ticks <- c(replace_zero_unknown, signif(10^seq(
             from=0, to=round(log10(max(1, count_vector))), by=1/3), 1))
     
-    labels_for_ticks = sub(replace_zero_unknown, '0', as.character(ticks))
+    labels_for_ticks <- sub(replace_zero_unknown, '0', as.character(ticks))
     
     bp= barplot2(
-        replace(count_vector, count_vector==0, replace_zero_unknown),
-        log='y', ylim=ylim, names.arg='', xlab='', plot.grid=TRUE, 
-        grid.col='lightgray', ylab='', yaxt='n', border=NA, xpd=TRUE,
-        col=col[(!count_vector <= max(1, length(ods)*outlierRatio)) + 1],
-        main=main)
+            replace(count_vector, count_vector==0, replace_zero_unknown),
+            log='y', ylim=ylim, names.arg='', xlab='', plot.grid=TRUE, 
+            grid.col='lightgray', ylab='', yaxt='n', border=NA, xpd=TRUE,
+            col=col[(!count_vector <= max(1, length(ods)*outlierRatio)) + 1],
+            main=main)
     
     n_names <- floor(length(count_vector)/20)
     xnames= seq_len(n_names*20)
@@ -700,12 +697,12 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
     # legend and lines
     hlines = c(Median=ifelse(median(count_vector)==0, replace_zero_unknown,
             median(count_vector)) , Quantile90=quantile(
-                    count_vector,0.9, names=FALSE))
+                    count_vector, 0.9, names=FALSE))
     color_hline= c('black','black')
     abline(h= hlines, col=color_hline)
     text(x=c(1,1), y= hlines*yadjust, col=color_hline, adj=0,
             labels=c('Median', expression(90^th ~ 'percentile')))
-            
+    
     box()
 }
 
@@ -743,7 +740,7 @@ plotFPKM <- function(ods){
 
 
 plotDispEsts.OUTRIDER <- function(object, compareDisp, xlim, ylim, 
-            main="Dispersion estimates versus mean expression", ...){
+                    main="Dispersion estimates versus mean expression", ...){
     # validate input                 
     if(!'theta' %in% names(mcols(object))){
         stop('Fit OUTRIDER first by executing ods <- OUTRIDER(ods) ',
@@ -806,10 +803,9 @@ plotPowerAnalysis <- function(ods){
     d <- 1/dispfit$fit(m)
     dt<-rbindlist(lapply(c(0,0.1,0.2,0.3,0.5, 2,5,10), function(frac) 
         data.table(mean=m, disp=d, frac=frac, 
-            pVal=pmin(0.5, pnbinom(round(frac * m), mu = m, size=d),
-                1 - pnbinom(round(frac * m), mu = m, size=d) + 
-                    dnbinom(round(frac * m), mu = m, size=d)
-            )
+                pVal=pmin(0.5, pnbinom(round(frac * m), mu = m, size=d),
+                        1 - pnbinom(round(frac * m), mu = m, size=d) + 
+                                dnbinom(round(frac * m), mu = m, size=d))
         )))
     
     dt[,negLog10pVal:=-log10(pVal)]
@@ -819,7 +815,7 @@ plotPowerAnalysis <- function(ods){
         geom_smooth(method=lm, formula = y ~ bs(x, 10), se = FALSE) +
         scale_x_log10(breaks=c(1,5,10,50,100,500,1000,5000,10000)) + 
         labs(x="Mean", y='-log10(P-value)',color='Expression level', 
-            linetype='Expression type') + ylim(0,15) 
+                linetype='Expression type') + ylim(0,15) 
 }
 
 #' @rdname plotFunctions
@@ -835,8 +831,8 @@ plotEncDimSearch <- function(ods){
         q <- getBestQ(ods)
     } else {
         dt <- ods
-        dt <- dt[,
-                opt:=encodingDimension[which.max(evaluationLoss)[1]], by=zScore]
+        dt <- dt[, opt:=
+                encodingDimension[which.max(evaluationLoss)[1]], by=zScore]
         q <- dt[opt == encodingDimension, opt]
     }
     
@@ -854,9 +850,8 @@ plotEncDimSearch <- function(ods){
         scale_x_log10() + 
         geom_smooth(method='loess') +
         ggtitle('Search for best encoding dimension') + 
-        geom_vline(data=dtPlot[opt == enc], 
-                aes(xintercept=enc, col=z, linetype='Optimum'),
-                show.legend=TRUE) +
+        geom_vline(data=dtPlot[opt == enc], show.legend=TRUE, 
+                aes(xintercept=enc, col=z, linetype='Optimum')) +
         geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) + 
         labs(x='Encoding dimensions',
                 y='Evaluation loss', col='Z score', linetype='Best Q') +
@@ -865,27 +860,31 @@ plotEncDimSearch <- function(ods){
 
 #' @rdname plotFunctions
 #' @export
-plotExpressedGenes <- function(ods, main = 'Expressed Genes'){
-  
-  # validate input                 
-  if(!'expressedGenes' %in% names(colData(ods))){
-    stop('Compute expressed genes first by executing ods <- 
-         filterExpression(ods, addExpressedGenes=T)')
-  }
-  
-  exp_genes_cols <- c('expressedGenes','unionExpressedGenes', 
-                      'intersectionExpressedGenes', 'passedFilterGenes', 
-                      'expressedGenesRank')
-  dt <- as.data.table(colData(ods)[, c('sampleID', exp_genes_cols)])
-  setnames(dt, 'expressedGenesRank', 'Rank')
-  
-  melt_dt <- melt(dt, id.vars = c('sampleID', 'Rank'))
-  
-  ggplot(melt_dt, aes(Rank, value)) + 
-    geom_line(aes(col = variable)) +
-    theme_bw(base_size = 14) +
-    theme(legend.position = 'top', legend.title = element_blank()) +
-    labs(y = 'Number of genes', x = 'Sample rank', title = main)
-  
+plotExpressedGenes <- function(ods, main='Statistics of expressed genes'){
+    # labels and col names
+    exp_genes_cols <- c(
+        'sampleID'                        = 'sampleID',
+        'Expressed genes'                 = 'expressedGenes',
+        'Union of expressed genes'        = 'unionExpressedGenes', 
+        'Intersection of expressed genes' = 'intersectionExpressedGenes',
+        'Genes passed filtering'          = 'passedFilterGenes', 
+        'Rank'                            = 'expressedGenesRank')
+    
+    # validate input
+    if(!all(exp_genes_cols %in% names(colData(ods)))){
+        stop('Compute expressed genes first by executing \n\tods <- ', 
+                'filterExpression(ods, addExpressedGenes=TRUE)')
+    }
+    
+    dt <- as.data.table(colData(ods)[, exp_genes_cols])
+    colnames(dt) <- names(exp_genes_cols)
+    melt_dt <- melt(dt, id.vars = c('sampleID', 'Rank'))
+    
+    ggplot(melt_dt, aes(Rank, value)) + 
+        geom_line(aes(col = variable)) +
+        theme_bw(base_size = 14) +
+        ylim(0, max(max(melt_dt[,value]))) + 
+        theme(legend.position = 'top', legend.title = element_blank()) +
+        labs(y = 'Number of genes', x = 'Sample rank', title = main)
 }
 
