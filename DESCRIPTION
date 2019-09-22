@@ -1,7 +1,7 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.1.5
+Version: 1.3.0
 Date: 2019-03-18
 Maintainer: Christian Mertes <mertes@in.tum.de>
 URL: https://github.com/gagneurlab/OUTRIDER
@@ -45,7 +45,6 @@ Imports:
     DESeq2 (>= 1.16.1),
     GenomicRanges,
     ggplot2,
-    ggpubr,
     gplots,
     graphics,
     IRanges,

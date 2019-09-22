@@ -9,7 +9,8 @@
 filterExpression(x, ...)
 
 \S4method{filterExpression}{OutriderDataSet}(x, gtfFile, fpkmCutoff = 1,
-  filterGenes = TRUE, savefpkm = FALSE, minCounts = FALSE, ...)
+  percentile = 0.95, filterGenes = TRUE, savefpkm = FALSE,
+  minCounts = FALSE, addExpressedGenes = FALSE, ...)
 }
 \arguments{
 \item{x}{An OutriderDataSet object}
@@ -20,11 +21,18 @@ filterExpression(x, ...)
 
 \item{fpkmCutoff}{The threshold for filtering based on the FPKM value}
 
+\item{percentile}{a numeric indicating the percentile FPKM value to compare
+against the \code{fpkmCutoff}}
+
 \item{filterGenes}{If TRUE, the default, the object is subseted.}
 
-\item{savefpkm}{If TRUE the FPKM values are saved as assay}
+\item{savefpkm}{If TRUE, the FPKM values are saved as assay}
 
-\item{minCounts}{Filter for required read counts per gene}
+\item{minCounts}{If TRUE, only genes with 0 counts in all samples are 
+filtered}
+
+\item{addExpressedGenes}{If TRUE, adds 5 columns to the \code{colData} with
+information regarding the number of expressed genes per sample}
 }
 \value{
 An OutriderDataSet containing the \code{passedFilter} column, which
@@ -33,9 +41,10 @@ An OutriderDataSet containing the \code{passedFilter} column, which
 }
 \description{
 To filter out non expressed genes this method uses the FPKM values to 
-get a comparable value over genes. To calcute the FPKM values the user 
-needs to provide a GTF file or the basepair parameter as described in 
-\code{\link[DESeq2]{fpkm}}.
+get a comparable value over genes. For each gene, if the pth-
+\code{percentile} is greater than the \code{fpkmCutoff} value, it passes the
+filter. To calcute the FPKM values the user needs to provide a GTF file or 
+the basepair parameter as described in \code{\link[DESeq2]{fpkm}}.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
