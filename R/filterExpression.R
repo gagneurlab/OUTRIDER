@@ -40,11 +40,11 @@
 #' 
 #' @export
 setGeneric("filterExpression", 
-           function(x, ...) standardGeneric("filterExpression"))
+        function(x, ...) standardGeneric("filterExpression"))
 
 filterExpression.OUTRIDER <- function(x, gtfFile, fpkmCutoff=1, 
                     percentile=0.95, filterGenes=TRUE, savefpkm=FALSE, 
-                    minCounts=FALSE, addExpressedGenes=FALSE, ...){
+                    minCounts=FALSE, addExpressedGenes=TRUE, ...){
     x <- filterMinCounts(x, filterGenes=filterGenes)
     if(minCounts == TRUE){
         return(x)
@@ -61,9 +61,8 @@ filterExpression.OUTRIDER <- function(x, gtfFile, fpkmCutoff=1,
 #' @export
 setMethod("filterExpression", "OutriderDataSet", filterExpression.OUTRIDER)
 
-filterExp <- function(ods, fpkmCutoff=1, percentile=0.95,
-                    filterGenes=filterGenes, savefpkm=savefpkm, 
-                    addExpressedGenes=FALSE){
+filterExp <- function(ods, fpkmCutoff, percentile, filterGenes, savefpkm, 
+                    addExpressedGenes){
     fpkm <- fpkm(ods)
     if(savefpkm){
         assays(ods)[['fpkm']] <- fpkm
@@ -74,7 +73,8 @@ filterExp <- function(ods, fpkmCutoff=1, percentile=0.95,
     if(addExpressedGenes == TRUE){
         dt <- computeExpressedGenes(fpkm, cutoff=fpkmCutoff, 
                 percentile=percentile)
-        colData(ods) <- merge(colData(ods), dt, sort=FALSE)
+        colData(ods) <- DataFrame(row.names=colData(ods)$sampleID,
+                merge(colData(ods), dt, by="sampleID", sort=FALSE))
     }
     
     message(paste0(sum(!passed), ifelse(filterGenes,
@@ -219,14 +219,14 @@ computeExpressedGenes <- function(fpkm, cutoff=1, percentile=0.95){
     cutoffPassedMatrix <- fpkm > cutoff
     
     # Remove rows where no genes passed the cutoff
-    cutoffPassedMatrix <- cutoffPassedMatrix[rowSums(cutoffPassedMatrix) > 0, ]
+    cutoffPassedMatrix <- cutoffPassedMatrix[rowSums(cutoffPassedMatrix) > 0,]
     
     # Make a data.table with the expressed genes
     expGenesDt <- data.table(sampleID = colnames(cutoffPassedMatrix), 
-                             expressedGenes = colSums(cutoffPassedMatrix))
+            expressedGenes = colSums(cutoffPassedMatrix))
     
     # order by sample rank
-    setorder(expGenesDt, expressedGenes)
+    setorder(expGenesDt, "expressedGenes")
     cutoffPassedMatrix <- cutoffPassedMatrix[, expGenesDt$sample]
     
     # Get the cummulative sum of expressed genes
@@ -244,7 +244,7 @@ computeExpressedGenes <- function(fpkm, cutoff=1, percentile=0.95){
             t(t(cumSumMatrix)/seq_col(cumSumMatrix)) >= 1-percentile)
     
     # Rank for plotting
-    expGenesDt[, expressedGenesRank := .I]
+    expGenesDt[, c("expressedGenesRank"):=list(.I)]
     
     return(expGenesDt)
 }

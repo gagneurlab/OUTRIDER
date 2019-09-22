@@ -10,7 +10,7 @@ filterExpression(x, ...)
 
 \S4method{filterExpression}{OutriderDataSet}(x, gtfFile, fpkmCutoff = 1,
   percentile = 0.95, filterGenes = TRUE, savefpkm = FALSE,
-  minCounts = FALSE, addExpressedGenes = FALSE, ...)
+  minCounts = FALSE, addExpressedGenes = TRUE, ...)
 }
 \arguments{
 \item{x}{An OutriderDataSet object}
