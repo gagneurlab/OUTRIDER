@@ -27,7 +27,6 @@
 #'          isScalarValue chunk seq_col seq_row
 #' 
 #' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
-#'          bpRNGseed bpRNGseed<-
 #' 
 #' @importFrom compiler cmpfun
 #' 

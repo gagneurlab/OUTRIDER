@@ -108,7 +108,7 @@ findInjectZscore <- function(ods, freq=1E-2,
                     inj='both', ..., BPPARAM=bpparam()){
     encDimParams <- encDimParams[encDimParams < min(dim(ods), nrow(ods))]
     
-    FUN <- function(idx, grid, ods, RNDseed, ...){
+    FUN <- function(idx, grid, ods, RNGseed, ...){
         z <- grid[idx,"z"]
         enc <- grid[idx,"enc"]
         lnorm <- FALSE
@@ -119,16 +119,15 @@ findInjectZscore <- function(ods, freq=1E-2,
             z <- as.integer(z)
         }
         message(date(), ": run Z-score: ", z, " and enc: ", enc)
-        set.seed(RNDseed)
+        set.seed(RNGseed)
         findEncodingDim(ods, lnorm=lnorm, zScore=z, params=enc, 
                 BPPARAM=SerialParam(), ...)
     }
     
-    RNDseed <- .Random.seed
+    RNGseed <- .Random.seed
     parGrid <- expand.grid(z=zScoreParams, enc=encDimParams)
-    odsres <- bplapply(seq_len(nrow(parGrid)), FUN, 
-            ods=ods, freq=freq, inj=inj, RNDseed=RNDseed,
-            grid=parGrid, BPPARAM=BPPARAM)
+    odsres <- bplapply(seq_row(parGrid), FUN, ods=ods, freq=freq,
+            inj=inj, grid=parGrid, RNGseed=RNGseed, BPPARAM=BPPARAM)
     
     res <- rbindlist(lapply(seq_along(odsres), function(i){
             metadata(odsres[[i]])$encDimTable[,.(
