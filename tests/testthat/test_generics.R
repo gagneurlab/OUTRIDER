@@ -10,7 +10,8 @@ test_that("setter and getter function", {
 })
 
 test_that("sizefactor estimation", {
-    ord <- OutriderDataSet(countData=matrix(rep(c(1:10),4), nrow=10) + 1:40)
+    cts <- getCountDataWithNames(matrix(rep(c(1:10),4), nrow=10) + 1:40)
+    ord <- OutriderDataSet(countData=cts)
     exp_sf <- c(0.471, 0.905, 1.333, 1.763)
     sf <- sizeFactors(estimateSizeFactors(ord))
     
@@ -27,18 +28,23 @@ test_that("normalization function", {
     
     expect_equivalent(normF, normalizationFactors(ord))
     E <- t(apply(normF, 1, pmax, 0.5))
-    expect_equal(counts(ord)/E * exp(rowMeans(log(E))), counts(ord, normalized=TRUE))
+    expect_equal(counts(ord)/E * exp(rowMeans(log(E))), 
+            counts(ord, normalized=TRUE))
     
     normalizationFactors(ord) <- NULL
     expect_null(normalizationFactors(ord))
     
-    ord <- OutriderDataSet(countData = matrix(c(1,1,3,3), ncol = 2))
+    ord <- OutriderDataSet(countData=getCountDataWithNames(
+            matrix(c(1,1,3,3), ncol=2)))
     colData(ord)[['sizeFactor']] <- c(.5, 1.5)
-    expect_true(all(counts(ord, normalized = TRUE) == matrix(c(2,2,2,2), ncol = 2)))
+    expect_true(all(
+            counts(ord, normalized = TRUE) == matrix(c(2,2,2,2), ncol = 2)))
     
-    ord <- OutriderDataSet(countData = matrix(c(1,1,3,3), ncol = 2))
+    ord <- OutriderDataSet(countData=getCountDataWithNames(
+            matrix(c(1,1,3,3), ncol=2)))
     normalizationFactors(ord) <- matrix(c(.5, .5, 1.5, 1.5), ncol=2)
-    expect_true(all(round(counts(ord, normalized=TRUE), 4) == matrix(1.7321, ncol=2, nrow=2)))
+    expect_true(all(round(counts(ord, normalized=TRUE), 4) == 
+            matrix(1.7321, ncol=2, nrow=2)))
 })
 
 test_that("counts_function", {

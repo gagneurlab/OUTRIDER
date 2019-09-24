@@ -1,4 +1,3 @@
-
 #' 
 #' Accessor function for the 'results' object in an OutriderDataSet object. 
 #' 
@@ -46,7 +45,6 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     #
     # input check and parsing
     # 
-    
     checkOutriderDataSet(object)
     checkFullAnalysis(object)
     
@@ -96,7 +94,6 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     #
     # extract data
     # 
-    
     ans <- data.table(
         geneID           = rownames(object), 
         sampleID         = rep(colnames(object), each=nrow(object)),
@@ -115,7 +112,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         AberrantByGene   = aberrant(object, 
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene"),
         padj_rank        = c(apply(padj(object), 2, rank)))
-
+    
     # round columns if requested
     if(is.numeric(round)){
         devNull <- lapply(
@@ -141,3 +138,4 @@ setGeneric("results", function(object, ...) standardGeneric("results"))
 #' @rdname results
 #' @export
 setMethod("results", "OutriderDataSet", compileResults.OUTRIDER)
+

@@ -50,12 +50,16 @@ validateCounts <- function(object) {
 
 checkNames <- function(object){
     n <- rownames(object)
-    if(!is.null(n) && any(duplicated(n))){
-        return("Please provide unique rownames or no rownames at all.")
+    if(is.null(n) | any(duplicated(n))){
+        return("Please provide unique rownames.")
     }
     n <- colnames(object)
-    if(!is.null(n) && any(duplicated(n))){
-        return("Please provide unique colnames or no colnames at all.")
+    if(is.null(n) | any(duplicated(n))){
+        return("Please provide unique colnames.")
+    }
+    cold <- colData(object) 
+    if(!"sampleID" %in% colnames(cold) | any(duplicated(cold[,"sampleID"]))){
+        return("Please provide unique sampleIDs in colData.")
     }
 }
 
@@ -111,6 +115,17 @@ OutriderDataSet <- function(se, countData, colData, ...) {
     } else {
         stop("At least one of the se or countData argument has to be defined!")
     }
+    
+    # set sampleID and colnames 
+    if(!"sampleID" %in% colnames(se@colData)){
+        warning("No sampleID was specified. We will generate a generic one.")
+        if(!is.null(colnames(se)) && !any(duplicated(colnames(se)))){
+            se@colData[["sampleID"]] <- colnames(se)
+        } else {
+            se@colData[["sampleID"]] <- paste0("sample_", seq_col(se))
+        }
+    }
+    colnames(se) <- se@colData[["sampleID"]]
     
     obj <- new("OutriderDataSet", se)
     metadata(obj)[["version"]] <- packageVersion("OUTRIDER")
@@ -191,7 +206,10 @@ makeExampleOutriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     #
     # Create Outrider data set
     #
-    ods <- OutriderDataSet(countData=k)
+    countData <- DataFrame(k, row.names=paste0("feature_", seq_len(n)))
+    colnames(countData) <- paste0("sample_", seq_len(m))
+    ods <- OutriderDataSet(countData=countData)
+    
     assay(ods, "trueMean")            <- mu
     assay(ods, "trueSd")              <- matrix(true_sd, nrow=n, ncol=m)
     mcols(ods)[,"trueTheta"]          <- theta
