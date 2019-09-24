@@ -23,7 +23,7 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     
     # initial loss
     lossList <- c(init_pca=lossED(ods))
-    print(paste0('Initial PCA loss: ', lossList[1]))
+    print(paste0(date(), ': Initial PCA loss: ', lossList[1]))
     
     # initialize D 
     ods <- updateD(ods, control=control, BPPARAM=BPPARAM, verbose=verbose)
@@ -71,7 +71,8 @@ fitAutoencoder <- function(ods, q, thetaRange=c(1e-2, 1e3),
     bpstop(BPPARAM)
     print(Sys.time() - t1)
     
-    print(paste0(i, ' Final nb-AE loss: ', lossList[length(lossList)]))
+    print(paste0(date(), ': ', i, ' Final nb-AE loss: ', 
+            lossList[length(lossList)]))
     
     # add correction factors
     correctionFactors <- t(predictC(ods))

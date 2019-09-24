@@ -20,11 +20,11 @@
 #'          estimateSizeFactorsForMatrix replaceOutliers
 #'          dispersions
 #' 
-#' @importFrom SummarizedExperiment colData colData<- assays assays<-
-#'          assayNames mcols mcols<- assay assay<-
+#' @importFrom SummarizedExperiment colData colData<- rowData rowData<-
+#'          assays assays<- assayNames mcols mcols<- assay assay<-
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
-#'          isScalarValue chunk seq_col seq_row
+#'          isScalarValue isScalarNA chunk seq_col seq_row
 #' 
 #' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
 #' 
@@ -34,11 +34,18 @@
 #' 
 #' @importFrom GenomicRanges GRanges reduce width 
 #' 
-#' @importFrom ggplot2 aes geom_histogram geom_smooth geom_tile geom_point 
-#'          ggplot labs scale_x_log10 scale_fill_manual theme ylim ggtitle
-#'          geom_vline geom_text scale_linetype_manual geom_line theme_bw
-#'          element_blank scale_color_brewer
+#' @importFrom ggplot2 ggplot aes geom_histogram geom_smooth 
+#'          geom_point labs scale_x_log10 scale_y_log10 scale_fill_manual 
+#'          scale_color_manual scale_fill_brewer scale_color_brewer theme ylim
+#'          ggtitle geom_vline geom_text scale_linetype_manual geom_line 
+#'          geom_abline theme_bw element_blank
 #' 
+#' @importFrom grDevices colorRampPalette
+#' 
+#' @importFrom pheatmap pheatmap
+#' 
+#' @importFrom heatmaply heatmaply
+#'          
 #' @importFrom gplots barplot2 bluered heatmap.2
 #' 
 #' @importFrom graphics plot abline axis box grid legend lines mtext par points 
@@ -92,9 +99,12 @@ globalVariables(package="OUTRIDER", c(
         "eva",
         "evalMethod", 
         "evaluationLoss",
+        "expected",
         "ExprType", 
+        "feature_id",
         "frac",
         "Fraction",
+        "group",
         "lty", 
         "lwd", 
         "medianCts", 
@@ -105,9 +115,11 @@ globalVariables(package="OUTRIDER", c(
         "padj_rank", 
         "padjust", 
         "obs",
+        "observed",
         "onlyFull",
         "passedFilter",
         "Rank",
+        "rawcounts",
         "sampleID",
         "value",
         "variable",

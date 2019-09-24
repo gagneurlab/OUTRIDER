@@ -1,7 +1,12 @@
-REVISED VERSION 1.1.6
+CHANGES IN VERSION 1.3.1
 -----------------------------
-    o Added functions to plot the number of expressed genes.
-    
+    o Documentation
+    o New plot functionality
+        - plotExpectedVsObservedCounts()
+        - plotCountGeneSampleHeatmap()
+        - plotExpressedGenes()
+    o Minor bug fixes
+    o Linking to publication
     
 REVISED VERSION 0.99.29
 -----------------------------

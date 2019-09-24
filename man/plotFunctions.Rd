@@ -11,6 +11,8 @@
 \alias{plotFPKM}
 \alias{plotDispEsts}
 \alias{plotPowerAnalysis}
+\alias{plotExpectedVsObservedCounts}
+\alias{plotCountGeneSampleHeatmap}
 \alias{plotDispEsts,OutriderDataSet-method}
 \alias{plotEncDimSearch}
 \alias{plotExpressedGenes}
@@ -24,15 +26,26 @@ plotQQ(ods, geneID, main, global = FALSE, padjCutoff = 0.05,
   outlierRatio = 0.001, conf.alpha = 0.05, pch = 16, xlim = NULL,
   ylim = NULL, col = NULL)
 
+plotExpectedVsObservedCounts(ods, geneID, main, basePlot = FALSE,
+  log = TRUE, groups = c(), groupColSet = "Set1", ...)
+
 plotExpressionRank(ods, geneID, main, padjCutoff = 0.05,
   zScoreCutoff = 0, normalized = TRUE, basePlot = FALSE,
-  log = TRUE, col = c("gray", "firebrick"), ...)
+  log = TRUE, col = c("gray", "firebrick"), groups = c(),
+  groupColSet = "Accent")
 
 plotCountCorHeatmap(ods, normalized = TRUE, rowCentered = TRUE,
-  rowCoFactor = NULL, rowColSet = "Set1", colCoFactor = NULL,
-  colColSet = "Set2", nCluster = 4,
-  main = "Count correlation heatmap", dendrogram = "both",
-  basePlot = TRUE, names = c("both", "row", "col", "none"), ...)
+  rowGroups = NA, rowColSet = NA, colGroups = NA, colColSet = NA,
+  nRowCluster = 4, nColCluster = 4,
+  main = "Count correlation heatmap", basePlot = TRUE, nBreaks = 50,
+  show_names = c("none", "row", "col", "both"), ...)
+
+plotCountGeneSampleHeatmap(ods, normalized = TRUE, rowCentered = TRUE,
+  rowGroups = NA, rowColSet = NA, colGroups = NA, colColSet = NA,
+  nRowCluster = 4, nColCluster = 4,
+  main = "Count Gene vs Sample Heatmap", bcvQuantile = 0.9,
+  show_names = c("none", "col", "row", "both"), nGenes = 500,
+  nBreaks = 50, ...)
 
 plotAberrantPerSample(ods, main, padjCutoff = 0.05, zScoreCutoff = 0,
   outlierRatio = 0.001, col = brewer.pal(3, "Dark2")[c(1, 2)],
@@ -53,7 +66,7 @@ plotExpressedGenes(ods, main = "Statistics of expressed genes")
 \arguments{
 \item{ods, object}{An OutriderDataSet object.}
 
-\item{sampleID, geneID}{A sample or gene ID, which should be plotted. 
+\item{sampleID, geneID}{A sample or gene ID, which should be plotted.
 Can also be a vector. Integers are treated as indices.}
 
 \item{main}{Title for the plot, if missing a default title will be used.}
@@ -66,7 +79,7 @@ to mark outliers}
 \item{basePlot}{if \code{TRUE}, use the R base plot version, else use the
 plotly framework, which is the default}
 
-\item{col}{Set color for the points. If set, it must be a character vector 
+\item{col}{Set color for the points. If set, it must be a character vector
 of length 2. (1. normal point; 2. outlier point)}
 
 \item{global}{Flag to plot a global Q-Q plot, default FALSE}
@@ -79,36 +92,49 @@ of length 2. (1. normal point; 2. outlier point)}
 
 \item{conf.alpha}{If set, a confidence interval is plotted, defaults to 0.05}
 
-\item{xlim, ylim}{The x/y limits for the plot or NULL to use 
+\item{xlim, ylim}{The x/y limits for the plot or NULL to use
 the full data range}
 
-\item{normalized}{If TRUE, the normalized counts are used, the default,
-otherwise the raw counts}
-
 \item{log}{If TRUE, the default, counts are plotted in log10.}
+
+\item{groups}{A character vector containing either group assignments of
+samples or sample IDs. Is empty by default. If group assignments
+are given, the vector must have the same length as the number of
+samples. If sample IDs are provided the assignment will result
+in a binary group assignemt.}
+
+\item{groupColSet}{A color set from RColorBrewer or a manual vector of
+colors, which length must match the number of categories
+from groups.}
 
 \item{...}{Additional parameters passed to plot() or plot_ly() if not stated
 otherwise in the details for each plot function}
 
+\item{normalized}{If TRUE, the normalized counts are used, the default,
+otherwise the raw counts}
+
 \item{rowCentered}{If TRUE, the counts are row-wise (gene-wise) centered}
 
-\item{rowCoFactor}{A vector of co-factors for color coding the rows}
+\item{rowGroups, colGroups}{A vector of co-factors (colnames of colData)
+for color coding the rows. It also accepts a data.frame of
+dim = (#samples, #groups). Must have more than 2 groups.}
 
-\item{rowColSet}{A vector of colors or a color set from RColorBrewer}
+\item{rowColSet, colColSet}{A color set from RColorBrewer/colorRampPalette}
 
-\item{colCoFactor}{A vector of co-factors for color coding the columns}
+\item{nRowCluster, nColCluster}{Number of clusters to show in the row and
+column dendrograms. If this argument is set the resulting
+cluster assignments are added to the OutriderDataSet.}
 
-\item{colColSet}{A vector of colors or a color set from RColorBrewer}
+\item{nBreaks}{number of breaks for the heatmap color scheme. Default to 50.}
 
-\item{nCluster}{An integer to be used for cutting the dendrogram into groups.
-If this argument is set the resulting clusters are saved in the 
-returned OutriderDataSet.}
+\item{show_names}{character string indicating whether to show 'none', 'row',
+'col', or 'both' names on the heatmap axes.}
 
-\item{dendrogram}{A character string indicating whether to draw 
-'none', 'row', 'column' or 'both' dendrograms.}
+\item{bcvQuantile}{quantile for choosing the cutoff for the biological 
+coefficient of variation (BCV)}
 
-\item{names}{character string indicating whether to draw 
-'none', 'row', 'col', or 'both' names.}
+\item{nGenes}{upper limit of number of genes (defaults to 500). Subsets the
+top n genes based on the BCV.}
 
 \item{yadjust}{Option to adjust position of Median and 90 percentile labels.}
 
@@ -121,7 +147,7 @@ returned OutriderDataSet.}
 \item{labCex}{The label cex parameter}
 
 \item{compareDisp}{If TRUE, the default, and if the autoCorrect normalization
-was used it computes the dispersion without autoCorrect and 
+was used it computes the dispersion without autoCorrect and
 plots it for comparison.}
 }
 \value{
@@ -129,7 +155,7 @@ If base R graphics are used nothing is returned else the plotly or
             the gplot object is returned.
 }
 \description{
-The OUTRIDER package provides mutliple functions to visualize 
+The OUTRIDER package provides mutliple functions to visualize
 the data and the results of a full data set analysis.
 
 This is the list of all plotting function provided by OUTRIDER:
@@ -138,51 +164,53 @@ This is the list of all plotting function provided by OUTRIDER:
   \item plotVolcano()
   \item plotExpressionRank()
   \item plotQQ()
+  \item plotExpectedVsObservedCounts()
   \item plotCountCorHeatmap()
+  \item plotCountGeneSampleHeatmap()
   \item plotFPKM()
+  \item plotExpressedGenes()
   \item plotDispEsts()
   \item plotPowerAnalysis()
   \item plotEncDimSearch()
-  \item plotExpressedGenes()
 }
 
 For a detailed description of each plot function please see the details.
 Most of the functions share the same parameters.
 }
 \details{
-\code{plotAberrantPerSample}: The number of aberrant events per sample are 
-plotted sorted by rank. The ... parameters are passed on to the 
-\code{\link{aberrant}} function. 
+\code{plotAberrantPerSample}: The number of aberrant events per sample are
+plotted sorted by rank. The ... parameters are passed on to the
+\code{\link{aberrant}} function.
 
 \code{plotVolcano}: the volcano plot is sample-centric. It plots for a given
 sample the negative log10 nominal P-values against the Z-scores for all
 genes.
 
-\code{plotExpressionRank}: This function plots for a given gene the 
-expression level against the expression rank for all samples. This can 
+\code{plotExpressionRank}: This function plots for a given gene the
+expression level against the expression rank for all samples. This can
 be used with normalized and unnormalized expression values.
 
-\code{plotQQ}: the quantile-quantile plot for a given gene or if 
-\code{global} is set to \code{TRUE} over the full data set. Here the 
-observed P-values are plotted against the expected ones in the negative 
+\code{plotQQ}: the quantile-quantile plot for a given gene or if
+\code{global} is set to \code{TRUE} over the full data set. Here the
+observed P-values are plotted against the expected ones in the negative
 log10 space.
 
 \code{plotCountCorHeatmap}: The correlation heatmap of the count data
-of the full data set. Default the values are log transformed and 
-row centered. This function returns an OutriderDataSet with annotated 
-clusters if requested. The ... arguments are passed to the 
-\code{\link[gplots]{heatmap.2}} function.
+of the full data set. Default the values are log transformed and
+row centered. This function returns an OutriderDataSet with annotated
+clusters if requested. The ... arguments are passed to the
+\code{\link[pheatmap]{pheatmap}} function.
 
 \code{plotFPKM}: The distribution of FPKM values. If the OutriderDataSet
 object contains the \code{passedFilter} column, it will plot both FPKM
 distributions for the expressed genes and for the filtered genes.
 
-\code{plotDispEsts}: Plots the dispersion of the OutriderDataSet 
+\code{plotDispEsts}: Plots the dispersion of the OutriderDataSet
 model against the normalized mean count. If autoCorrect is used it will also
 estimate the dispersion without normalization for comparison.
 
 \code{plotPowerAnalysis}: The power analysis plot should give the user a
-ruff estimate of the events one can be detected with OUTRIDER. Based on 
+ruff estimate of the events one can be detected with OUTRIDER. Based on
 the dispersion of the provided OUTRIDER data set the theoretical P-value
 over the mean expression is plotted. This is done for different expression
 levels. The curves are smooths to make the reading of the plot easier.
@@ -192,7 +220,7 @@ ods <- makeExampleOutriderDataSet(dataset="Kremer")
 implementation <- 'autoencoder'
 \dontshow{
     # reduce the object size to speed up the calculations
-    ods <- ods[400:410,60:70]
+    ods <- ods[1:400,1:80]
     implementation <- 'pca'
 }
 
@@ -202,21 +230,30 @@ ods <- OUTRIDER(ods, implementation=implementation)
 
 plotAberrantPerSample(ods)
 
-plotVolcano(ods, 1)
-plotVolcano(ods, 'MUC1404', basePlot=TRUE)
+plotVolcano(ods, 49)
+plotVolcano(ods, 'MUC1365', basePlot=TRUE)
 
-plotExpressionRank(ods, 1)
-plotExpressionRank(ods, "FAAH", normalized=FALSE, 
+plotExpressionRank(ods, 35)
+plotExpressionRank(ods, "NDUFS5", normalized=FALSE,
     log=FALSE, main="Over expression outlier", basePlot=TRUE)
 
-plotQQ(ods, 1)
+plotQQ(ods, 149)
 plotQQ(ods, global=TRUE, outlierRatio=0.001)
 
+plotExpectedVsObservedCounts(ods, 149)
+plotExpectedVsObservedCounts(ods, "ATAD3C", basePlot=TRUE)
+
+plotExpressedGenes(ods)
+
 sex <- sample(c("female", "male"), dim(ods)[2], replace=TRUE)
-colData(ods)$sex <- sex
-ods <- plotCountCorHeatmap(ods, colCoFactor="sex", normalized=FALSE)
-ods <- plotCountCorHeatmap(ods, nCluster=4)
-head(colData(ods)$clusterNumber)
+colData(ods)$Sex <- sex
+ods <- plotCountCorHeatmap(ods, nCluster=4, normalized=FALSE)
+ods <- plotCountCorHeatmap(ods, colGroup="Sex", colColSet="Set1")
+table(colData(ods)$clusterNumber_4)
+
+plotCountGeneSampleHeatmap(ods, normalized=FALSE)
+plotCountGeneSampleHeatmap(ods, rowGroups="theta", 
+        rowColSet=list(c("white", "darkgreen")))
 
 mcols(ods)$basepairs <- 1
 mcols(ods)$passedFilter <- rowMeans(counts(ods)) > 10
@@ -230,7 +267,5 @@ plotPowerAnalysis(ods)
 ods <- findEncodingDim(ods)
 plotEncDimSearch(ods)
 }
-
-plotExpressedGenes(ods)
 
 }

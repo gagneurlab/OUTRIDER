@@ -36,9 +36,11 @@ opts_chunk$set(
 
 \author{
     Felix Brechtmann$^{1}$, Christian Mertes$^{1}$, Agne Matuseviciute$^{1}$, 
-        Vicente Yepez$^{1}$, Julien Gagneur$^{1}$ \\
-    \small{$^{1}$ Technische Universit\"at M\"unchen, Department of 
-        Informatics, Garching, Germany}
+        Vicente Yepez$^{1,2}$, Julien Gagneur$^{1,2}$ \\
+    \small{$^{1}$ Technical University Munich, Department of 
+        Informatics, Munich, Germany}\\
+    \small{$^{2}$ Quantitative Biosciences Munich, Gene Center, 
+        Ludwig-Maximilians Universit\"at M\"unchen, Munich, Germany}
 }
 
 \begin{document}
@@ -71,7 +73,8 @@ If you use \outrider{} in published research, please cite:  \\
 Brechtmann F*, Mertes C*, Matuseviciute A*, Yepez V, Avsec Z, Herzog M, \\
 Bader D M, Prokisch H, Gagneur J; \textbf{OUTRIDER: A statistical method} \\
 \textbf{for detecting aberrantly expressed genes in RNA sequencing data}; \\
-\emph{bioRxiv}; 2018 \\
+\emph{AJHG}; 2018; DOI: \url{https://doi.org/10.1016/j.ajhg.2018.10.025}
+\\
 \hline
 \end{tabular}
 \end{center}
@@ -223,12 +226,17 @@ from other Biocnductor backages can be used.
 odsSmall <- makeExampleOutriderDataSet(dataset="Kremer")
 
 # full data set from Kremer et al.
-URL <- paste0("http://media.nature.com/original/nature-assets/", 
+count_URL <- paste0("http://media.nature.com/original/nature-assets/", 
         "ncomms/2017/170612/ncomms15824/extref/ncomms15824-s1.txt")
-ctsTable <- read.table(URL, sep="\t")
+anno_URL <- paste0("http://media.nature.com/original/nature-assets/", 
+        "ncomms/2017/170612/ncomms15824/extref/ncomms15824-s8.txt")
+
+ctsTable <- read.table(count_URL, sep="\t")
+annoTable <- read.table(anno_URL, sep="\t", header=TRUE)
+annoTable$sampleID <- annoTable$RNA_ID
 
 # create OutriderDataSet object
-ods <- OutriderDataSet(countData=ctsTable)
+ods <- OutriderDataSet(countData=ctsTable, colData=annoTable)
 @
 
 \subsection{Preprocessing}
@@ -291,6 +299,9 @@ ods <- filterExpression(ods, txdb, mapping=map,
 # display the FPKM distribution of counts.
 plotFPKM(ods)
 
+# display gene filter summary statistics 
+plotExpressedGenes(ods)
+
 # do the actual subsetting based on the filtering labels
 ods <- ods[mcols(ods)$passedFilter,]
 @
@@ -310,7 +321,12 @@ them.
 
 # Heatmap of the sample correlation
 # it can also annotate the clusters resulting from the dendrogram
-ods <- plotCountCorHeatmap(ods, normalized=FALSE, nCluster=4)
+ods <- plotCountCorHeatmap(ods, colGroups=c("SEX", "RNA_HOX_GROUP"),
+        normalized=FALSE, nRowCluster=4)
+
+# Heatmap of the gene/sample expression
+ods <- plotCountGeneSampleHeatmap(ods, colGroups=c("SEX", "RNA_HOX_GROUP"),
+        normalized=FALSE, nRowCluster=4)
 
 @
 
@@ -330,12 +346,13 @@ samples should be reduced and close to zero.
 <<controlling_for_confounders>>=
 
 # automatically control for confounders
-# we use only 5 iterations to make the vignette faster. The default is 15. 
+# we use only 3 iterations to make the vignette faster. The default is 15. 
 ods <- estimateSizeFactors(ods)
-ods <- controlForConfounders(ods, q=21, iterations=5)
+ods <- controlForConfounders(ods, q=21, iterations=3)
 
 # Heatmap of the sample correlation after controlling
-ods <- plotCountCorHeatmap(ods, normalized=TRUE)
+ods <- plotCountCorHeatmap(ods, normalized=TRUE, 
+        colGroups=c("SEX", "RNA_HOX_GROUP"))
 
 @
 
@@ -553,6 +570,14 @@ P-values for the other points. Here is an example with two outliers:
 plotQQ(ods, "TIMMDC1")
 @
 
+Since we do test how fare the observed count is away from the exprected 
+expression level, it is also helpful to visualize the predictions against the 
+observed counts. 
+
+<<visualization4, fig.height=5>>=
+## Observed versus expected gene expression
+plotExpectedVsObservedCounts(ods, "TIMMDC1", basePlot=TRUE)
+@
 
 \section{Additional features}
 

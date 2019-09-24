@@ -65,8 +65,7 @@ get_test_outrider_dataset <- function(){
     ###
     ### SET DATA
     ###
-    ods <- OutriderDataSet(countData=cts)
-    rownames(ods) <- paste0('gene', seq_along(ods))
+    ods <- OutriderDataSet(countData=getCountDataWithNames(cts))
     
     sizeFactors(ods) <- sizeF_round3
     normalizationFactors(ods) <- normF_round3
@@ -77,4 +76,10 @@ get_test_outrider_dataset <- function(){
     assays(ods)[['zScore']] <- zscore_round4
     
     return(ods)
+}
+
+getCountDataWithNames <- function(cts){
+    colnames(cts) <- paste0('sample_', seq_col(cts))
+    rownames(cts) <- paste0('gene', seq_row(cts))
+    return(cts)
 }
