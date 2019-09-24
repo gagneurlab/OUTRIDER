@@ -99,7 +99,17 @@ getAnnoHeatmap <- function(x, matrix, groups, nClust, extractFun=colData){
     if(ncol(ans) == 0){
         return(NULL)
     }
+    
+    # due to not propagating rownames correctly in mcols/rowData in R < 3.5.0
+    # check if rownames is null and then retrive from object
     rownames(ans) <- rownames(extractFun(x))
+    if(is.null(rownames(extractFun(x)))){
+        if(ncol(x) == nrow(ans)){
+            rownames(ans) <- colnames(x)
+        } else {
+            rownames(ans) <- rownames(x)
+        }
+    }
     return(ans)
 }
 
