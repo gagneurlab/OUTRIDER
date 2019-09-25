@@ -53,9 +53,10 @@ test_that("plotting", {
             rowColSet=list(c("white", "darkgreen"))))
     
     pass <- mcols(ods)$passedFilter
-    mcols(ods)$passedFilter <- NULL
+    # don't use mcols(ods)$XXX <- NULL since this is broken in R < 3.5
+    mcols(ods) <- mcols(ods)[,!colnames(mcols(ods)) %in% "passedFilter"]
     expect_message(plotFPKM(ods), "To see the difference .*")
-    mcols(ods)$passedFilter <- pass
+    mcols(ods)[[,'passedFilter']] <- pass
     expect_is(plotFPKM(ods), 'ggplot')
     
     
