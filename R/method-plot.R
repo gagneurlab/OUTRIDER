@@ -749,7 +749,8 @@ plotCountGeneSampleHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
         bcv <- 1/sqrt(theta(ods))
     }
     rowData(ods)$BCV <- bcv
-    ods_sub <- ods[bcv > quantile(bcv, probs=c(bcvQuantile)),]
+    ods_sub <- ods[!is.na(bcv) & 
+            bcv > quantile(bcv, probs=bcvQuantile, na.rm=TRUE),]
 
     # take the top n genes if specified
     if(!is.null(nGenes)){
