@@ -108,13 +108,20 @@ fitNegBinom <- function(index, ctsData, normF, excludeMask){
     
     ##correct s factor
     par <- initialSizeMu(data, normF)
-    est <- tryCatch(
-            optim(par=par, fn=loglikelihood, gr=gradloglikelihood, 
-                    x=data, SizeF=normF, method="L-BFGS-B", lower=c(0.01,0.01)),
-            error = function(e){
-                    warning('Fit (', index, ') resulted in error using ', 
-                            'init values: ', e$message)
-                    list(par=par)})
+    est <- c(mu=NA_real_, size=NA_real_)
+    # try 3 times to find the optimum and change init values slightly each time
+    for(i in seq_len(3)){
+        est <- tryCatch(
+                optim(par=par, fn=loglikelihood, gr=gradloglikelihood, x=data,
+                        SizeF=normF, method="L-BFGS-B", lower=c(0.01,0.01)),
+                error = function(e){
+                        warning('Fit (', index, ') resulted in error using ', 
+                                'init values: ', e$message)})
+        if(!is.na(est$par$mu)){
+            break
+        }
+        par <- abs(par + rnorm(2, 0.2))
+    }
     if(is.na(est$par$mu)){
         # this is currently only happening on windows 32 bit. Probably due to
         # the lower precision compared to 64 bit.
