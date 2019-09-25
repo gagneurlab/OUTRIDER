@@ -247,7 +247,7 @@ plotExpressedGenes(ods)
 
 sex <- sample(c("female", "male"), dim(ods)[2], replace=TRUE)
 colData(ods)$Sex <- sex
-ods <- plotCountCorHeatmap(ods, nCluster=4, normalized=FALSE)
+ods <- plotCountCorHeatmap(ods, nColCluster=4, normalized=FALSE)
 ods <- plotCountCorHeatmap(ods, colGroup="Sex", colColSet="Set1")
 table(colData(ods)$clusterNumber_4)
 
@@ -264,7 +264,9 @@ plotDispEsts(ods, compareDisp=FALSE)
 plotPowerAnalysis(ods)
 
 \dontrun{
-ods <- findEncodingDim(ods)
+# for speed reasons we only search for 5 different dimensions
+ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50), 
+        implementation=implementation)
 plotEncDimSearch(ods)
 }
 

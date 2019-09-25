@@ -156,7 +156,7 @@
 #' 
 #' sex <- sample(c("female", "male"), dim(ods)[2], replace=TRUE)
 #' colData(ods)$Sex <- sex
-#' ods <- plotCountCorHeatmap(ods, nCluster=4, normalized=FALSE)
+#' ods <- plotCountCorHeatmap(ods, nColCluster=4, normalized=FALSE)
 #' ods <- plotCountCorHeatmap(ods, colGroup="Sex", colColSet="Set1")
 #' table(colData(ods)$clusterNumber_4)
 #' 
@@ -173,7 +173,9 @@
 #' plotPowerAnalysis(ods)
 #'
 #' \dontrun{
-#' ods <- findEncodingDim(ods)
+#' # for speed reasons we only search for 5 different dimensions
+#' ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50), 
+#'         implementation=implementation)
 #' plotEncDimSearch(ods)
 #' }
 #'
@@ -747,7 +749,8 @@ plotCountGeneSampleHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
         bcv <- 1/sqrt(theta(ods))
     }
     rowData(ods)$BCV <- bcv
-    ods_sub <- ods[bcv > quantile(bcv, probs=c(bcvQuantile)),]
+    ods_sub <- ods[!is.na(bcv) & 
+            bcv > quantile(bcv, probs=bcvQuantile, na.rm=TRUE),]
 
     # take the top n genes if specified
     if(!is.null(nGenes)){
