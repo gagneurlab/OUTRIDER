@@ -117,16 +117,17 @@ fitNegBinom <- function(index, ctsData, normF, excludeMask){
                 error = function(e){
                         warning('Fit (', index, ') resulted in error using ', 
                                 'init values: ', e$message)})
-        if(!is.na(est$par["mu"])){
-            break
+        if(is.character(est)){
+            par <- abs(par + rnorm(2, 0.2))
+            next
         }
-        par <- abs(par + rnorm(2, 0.2))
+        break
     }
-    if(is.na(est$par["mu"])){
+    if(is.character(est) | is.na(est$par["mu"])){
         # this is currently only happening on windows 32 bit. Probably due to
         # the lower precision compared to 64 bit.
         warning("Fit (", index, ") returned NA's. Using init values instead.")
-        return(par)
+        return(initialSizeMu(data, normF))
     }
     c(est$par["mu"], est$par["size"])
 }
