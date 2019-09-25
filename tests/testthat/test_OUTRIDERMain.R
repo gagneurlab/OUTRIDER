@@ -10,9 +10,13 @@ test_that("test main OUTRIDER function", {
     res <- results(ods, all=TRUE)
     expect_is(res, "data.table")
     
-    ods2 <- OUTRIDER(ods, iteration=maxIter)
+    ods2 <- OUTRIDER(ods, iteration=maxIter, implementation="autoenc")
+    ods3 <- OUTRIDER(ods, implementation="pca")
     res2 <- results(ods2, all=TRUE)
     
     expect_equal(ods, ods2)
     expect_equal(res, res2)
+    expect_is(ods3, "OutriderDataSet")
+    expect_is(pValue(ods3), "matrix")
+    expect_equal(dim(pValue(ods3)), dim(pValue(ods2)))
 })
