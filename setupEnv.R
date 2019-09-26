@@ -1,5 +1,6 @@
 BTYPE <- "both"
 NCPUS <- 6
+START_TIME <- Sys.time()
 
 print_log <- function(...){
     hash_line <- paste0(rep("#", 10), collapse="")
@@ -52,13 +53,16 @@ for(p in c("XML", "xml2", "testthat", "devtools", "covr", "roxygen2", "BiocCheck
     installIfReq(p=p, type=BTYPE, Ncpus=NCPUS)
 }
 
-# install OUTRIDER with its dependencies with a timeout due to travis 50 min
-R.utils::withTimeout(timeout=2400, {
+# install OUTRIDER with its dependencies with a timeout due to 
+# travis (50 min) and appveyor (60 min) set installation warmup to 30 min max
+maxTime <- max(30, (60*30 - difftime(Sys.time(), START_TIME, units="sec")))
+R.utils::withTimeout(timeout=maxTime, {
     try({
         print_log("Update packages")
         INSTALL(ask=FALSE, type=BTYPE, Ncpus=NCPUS)
     
         print_log("Install OUTRIDER")
-        devtools::install(".", dependencies=TRUE, upgrade=TRUE, type=BTYPE, Ncpus=NCPUS)
+        devtools::install(".", dependencies=TRUE, upgrade=TRUE, 
+                type=BTYPE, Ncpus=NCPUS)
     })
 })

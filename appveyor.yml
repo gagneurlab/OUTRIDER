@@ -28,6 +28,7 @@ environment:
   KEEP_VIGNETTES: TRUE
   GCC_PATH: mingw_64
   R_ARCH: x64
+  APPVEYOR_SAVE_CACHE_ON_ERROR: TRUE
   
   matrix:
 #    - R_VERSION: devel
