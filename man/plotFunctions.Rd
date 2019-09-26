@@ -195,15 +195,28 @@ be used with normalized and unnormalized expression values.
 observed P-values are plotted against the expected ones in the negative
 log10 space.
 
+\code{plotExpectedVsObservedCounts}: A scatter plot of the observed counts
+against the predicted expression for a given gene. 
+ 
 \code{plotCountCorHeatmap}: The correlation heatmap of the count data
 of the full data set. Default the values are log transformed and
 row centered. This function returns an OutriderDataSet with annotated
 clusters if requested. The ... arguments are passed to the
 \code{\link[pheatmap]{pheatmap}} function.
 
+\code{plotCountGeneSampleHeatmap}: A gene x sample heatmap of the raw or
+normalized counts. By default they are log transformed and row centered. Only 
+the top 500 viable genes based on the BCV (biological coefficient 
+of variation) is used by default. 
+
 \code{plotFPKM}: The distribution of FPKM values. If the OutriderDataSet
 object contains the \code{passedFilter} column, it will plot both FPKM
 distributions for the expressed genes and for the filtered genes.
+
+\code{plotExpressedGenes}: A summary statistic plot on the number of genes
+expressed within this dataset. It plots the sample rank (based on the 
+number of expressed genes) against the accumulated statistics up to the 
+given sample. 
 
 \code{plotDispEsts}: Plots the dispersion of the OutriderDataSet
 model against the normalized mean count. If autoCorrect is used it will also
@@ -214,6 +227,11 @@ ruff estimate of the events one can be detected with OUTRIDER. Based on
 the dispersion of the provided OUTRIDER data set the theoretical P-value
 over the mean expression is plotted. This is done for different expression
 levels. The curves are smooths to make the reading of the plot easier.
+
+\code{plotEncDimSearch}: Visualization of the hyperparameter optimization. 
+It plots the encoding dimension against the achieved loss (area under the 
+precision-recall curve). From this plot the optimum should be choosen for
+the \code{q} in fitting process.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="Kremer")

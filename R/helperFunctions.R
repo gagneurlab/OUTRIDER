@@ -113,6 +113,12 @@ getAnnoHeatmap <- function(x, matrix, groups, nClust, extractFun=colData){
     return(ans)
 }
 
+getNiceName <- function(x, maxChar=12){
+    stopifnot(maxChar > 2)
+    ifelse(nchar(x) > maxChar, 
+            paste0(substr(x, 0, maxChar - 2), ".."),
+            x)
+}
 
 #' 
 #' This function is used by the plotDispEsts function.

@@ -28,9 +28,9 @@ aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=0,
                     by=c("none", "sample", "gene")){
     checkFullAnalysis(ods)
     
-    aberrantEvents <- padj(ods) < padjCutoff
+    aberrantEvents <- padj(ods) <= padjCutoff
     if(isScalarNumeric(zScoreCutoff, na.ok=FALSE)){
-        aberrantEvents <- aberrantEvents & abs(zScore(ods)) > zScoreCutoff
+        aberrantEvents <- aberrantEvents & abs(zScore(ods)) >= zScoreCutoff
     }
     
     return(switch(match.arg(by),
