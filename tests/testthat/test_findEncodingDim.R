@@ -8,7 +8,7 @@ test_that("Test findEncodingDim", {
     ods <- filterExpression(ods, filterGenes=TRUE, minCounts=TRUE)
     countsbefore <- counts(ods)
     expect_equal(getBestQ(ods), NA_integer_)
-    ods <- findEncodingDim(ods, params=3:5, iteration=5)
+    ods <- findEncodingDim(ods, params=3:5, iteration=2)
     
     expect_equal(countsbefore, counts(ods))
     expect_is(ods, 'OutriderDataSet')

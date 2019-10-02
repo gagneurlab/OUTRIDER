@@ -229,9 +229,6 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
     if(length(sampleID) > 1){
         ans <- lapply(sampleID, plotVolcano, ods=ods, padjCutoff=padjCutoff,
                 zScoreCutoff=zScoreCutoff, basePlot=basePlot)
-        if(isTRUE(basePlot)){
-            return(invisible())
-        }
         return(ans)
     }
     if(missing(main)){
@@ -259,35 +256,28 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
     # remove the NAs from the zScores for plotting
     dt[is.na(zScore),zScore:=0]
 
-    if(isTRUE(basePlot)){
-        dt[,plot(zScore, -log10(pValue), col=color, pch=pch, cex=.7,
-                main=main, xlab='Z-score', ylab=expression(
-                        paste(-log[10], "(", italic(P), "-value)")))]
-        grid(equilogs=FALSE)
-        return(invisible())
+    p <- ggplot(dt, aes(zScore, -log10(pValue), color=color, text=paste0(
+                "Gene ID: ", GENE_ID,
+                "<br>Sample ID: ", sampleID,
+                "<br>Median normcount: ", round(medianCts, 2),
+                "<br>normcount: ", round(normCts, 2),
+                "<br>expression rank: ", as.integer(expRank),
+                "<br>nominal P-value: ", signif(pValue,3),
+                "<br>adj. P-value: ", signif(padjust,3),
+                "<br>Z-score: ", signif(zScore,2)))) + 
+        geom_point() + 
+        theme_bw() + 
+        xlab("Z-score") + 
+        ylab(expression(paste(-log[10], "(", italic(P), "-value)"))) + 
+        ggtitle(main) + 
+        scale_color_identity() + 
+        theme(legend.position = 'none')
+    
+    if(isFALSE(basePlot)){
+        p <- p + ylab(paste("-log<sub>10</sub>(<i>P</i>-value)"))
+        return(ggplotly(p, tooltip="text"))        
     }
-    plot_ly(
-        data=dt,
-        x=~zScore,
-        y=~-log10(pValue),
-        #y =~pValue,
-        type="scatter",
-        mode="markers",
-        marker = list(
-            color=~color
-        ),
-        text=~paste0(
-            "Gene ID: ", GENE_ID,
-            "<br>Sample ID: ", sampleID,
-            "<br>Median normcount: ", round(medianCts, 2),
-            "<br>normcount: ", round(normCts, 2),
-            "<br>expression rank: ", as.integer(expRank),
-            "<br>nominal P-value: ", signif(pValue,3),
-            "<br>adj. P-value: ", signif(padjust,3),
-            "<br>Z-score: ", signif(zScore,2)
-        )
-    ) %>% layout(title=main,
-            yaxis=list(title="-log<sub>10</sub>(<i>P</i>-value)"))
+    p
 }
 
 #' @rdname plotFunctions
@@ -452,7 +442,7 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
     }
     geneID <- getGeneIndex(geneID, ods)
     if (missing(main)) {
-        main <- geneID
+        main <- paste("Predicted expression plot:", geneID)
     }
 
     ods <- ods[geneID]
@@ -474,20 +464,22 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
     groups[is.na(groups)] <- 'NA'
     cnts[, group := groups]
 
-    g <- ggplot(cnts, aes(expected, observed)) +
+    g <- ggplot(cnts, aes(expected, observed, text=paste0(
+                "Gene ID: ", feature_id, "<br>", 
+                "Sample ID: ", sampleID, "<br>",
+                "Raw count: ", observed, "<br>",
+                "Expected count: ", round(expected, 2), "<br>"))) +
         theme_bw() +
         geom_abline(slope = 1, intercept = 0) +
         labs(title = main,
-                x=paste('Expected Counts', ifelse(isTRUE(log), '+ 1', '')),
-                y=paste('Raw Counts', ifelse(isTRUE(log), '+ 1', '')))
+                x=paste('Expected counts', ifelse(isTRUE(log), '+ 1', '')),
+                y=paste('Raw counts', ifelse(isTRUE(log), '+ 1', '')))
 
     if(isTRUE(log)) {
         g <- g + scale_x_log10() + scale_y_log10()
     }
 
-    point_mapping <- aes(text = paste0("Gene ID: ",
-            feature_id, "<br>Sample ID: ", sampleID))
-
+    point_mapping <- aes()
     # distinguish whether groups are given or not
     if(uniqueN(cnts$group) > 1 ) { # more than 1 group given
         # set color of groups
@@ -497,23 +489,18 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
             g <- g + scale_color_manual(values = groupColSet)
         }
         point_mapping$colour <- substitute(group)
-        ignoreAesTextWarning({
-            g <- g + geom_point(point_mapping)
-        })
+        g <- g + geom_point(point_mapping)
     } else { # no grouping given
         point_mapping$colour <- substitute(aberrant)
-        ignoreAesTextWarning({
-            g <- g + geom_point(point_mapping) +
-                scale_color_manual(values = c("gray", "firebrick")) +
-                theme(legend.position = 'none')
-        })
+        g <- g + geom_point(point_mapping) +
+            scale_color_manual(values = c("gray", "firebrick")) +
+            theme(legend.position = 'none')
     }
 
     if (isTRUE(basePlot)) {
         return(g)
     }
-
-    return(ggplotly(g))
+    ggplotly(g, tooltip="text")
 }
 
 
@@ -552,9 +539,6 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
         ans <- lapply(geneID, plotExpressionRank, ods=ods,
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff,
                 basePlot=basePlot, normalized=normalized)
-        if(isTRUE(basePlot)){
-            return(invisible())
-        }
         return(ans)
     }
     stopifnot(isScalarValue(geneID))
@@ -582,7 +566,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     ylab <- paste0(ifelse(isTRUE(normalized), "Normalized", "Raw"),
             " counts", ifelse(isTRUE(log), " + 1", ""))
     if(missing(main)){
-        main <- geneID
+        main <- paste("Expression rank plot:", geneID)
     }
 
     # create ggplot object
@@ -913,10 +897,12 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
 #' @export
 plotFPKM <- function(ods){
     fpkm <- fpkm(ods)
+    colors <- c("grey60","darkgreen")
     if(!'passedFilter' %in% colnames(mcols(ods))){
         message(paste0('To see the difference between the filtering ',
                 'run first the filterExpression() function.'))
         passed <- rep(TRUE, nrow(ods))
+        colors <- c("darkgreen")
     } else {
         passed <- mcols(ods)[['passedFilter']]
     }
@@ -933,10 +919,12 @@ plotFPKM <- function(ods){
 
     p <- ggplot(histdata, aes(fpkm, fill=passedFilter), alpha=0.5) +
         geom_histogram(bins=100, alpha=0.7, position="identity") +
-        scale_fill_manual(values = c("grey60","darkgreen")) +
+        scale_fill_manual(values=colors) + 
+        theme_bw() +
         theme(legend.position = c(0.1, 0.9)) +
         scale_x_log10(labels = trans_format("log10", math_format(10^.x))) +
-        labs(x='FPKM', y='Frequency')
+        labs(x='FPKM', y='Frequency') + 
+        ggtitle("FPKM distribution")
     p
 }
 
@@ -1067,9 +1055,9 @@ plotExpressedGenes <- function(ods, main='Statistics of expressed genes'){
     exp_genes_cols <- c(
         'sampleID'                         = 'sampleID',
         'Expressed\ngenes'                 = 'expressedGenes',
-        'Union\nof expressed genes'        = 'unionExpressedGenes',
-        'Intersection\nof expressed genes' = 'intersectionExpressedGenes',
-        'Genes\npassed filtering'          = 'passedFilterGenes',
+        'Union of\nexpressed genes'        = 'unionExpressedGenes',
+        'Intersection of\nexpressed genes' = 'intersectionExpressedGenes',
+        'Genes passed\nfiltering'          = 'passedFilterGenes',
         'Rank'                             = 'expressedGenesRank')
 
     # validate input
