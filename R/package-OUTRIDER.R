@@ -65,8 +65,6 @@
 #' 
 #' @importFrom Rcpp sourceCpp
 #' 
-#' @importFrom reticulate import py_get_attr
-#' 
 #' @importFrom S4Vectors DataFrame metadata metadata<-
 #' 
 #' @importFrom scales math_format trans_format

@@ -56,7 +56,6 @@ Imports:
     PRROC,
     RColorBrewer,
     Rcpp,
-    reticulate,
     S4Vectors,
     scales,
     splines,

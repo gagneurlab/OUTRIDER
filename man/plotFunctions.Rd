@@ -205,8 +205,8 @@ clusters if requested. The ... arguments are passed to the
 \code{\link[pheatmap]{pheatmap}} function.
 
 \code{plotCountGeneSampleHeatmap}: A gene x sample heatmap of the raw or
-normalized counts. By default they are log transformed and row centered. Only 
-the top 500 viable genes based on the BCV (biological coefficient 
+normalized counts. By default they are log transformed and row centered. 
+Only the top 500 viable genes based on the BCV (biological coefficient 
 of variation) is used by default. 
 
 \code{plotFPKM}: The distribution of FPKM values. If the OutriderDataSet
