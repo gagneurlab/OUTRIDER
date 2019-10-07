@@ -52,7 +52,7 @@ plotAberrantPerSample(ods, main, padjCutoff = 0.05, zScoreCutoff = 0,
   yadjust = c(1.2, 1.2), labLine = c(3.5, 3), ymax = NULL,
   ylab = "#Aberrantly expressed genes", labCex = par()$cex, ...)
 
-plotFPKM(ods)
+plotFPKM(ods, bins = 100)
 
 \S4method{plotDispEsts}{OutriderDataSet}(object, compareDisp, xlim, ylim,
   main = "Dispersion estimates versus mean expression", ...)
@@ -146,6 +146,8 @@ top n genes based on the BCV.}
 
 \item{labCex}{The label cex parameter}
 
+\item{bins}{Number of bins used in the histogram. Defaults to 100.}
+
 \item{compareDisp}{If TRUE, the default, and if the autoCorrect normalization
 was used it computes the dispersion without autoCorrect and
 plots it for comparison.}
@@ -205,7 +207,7 @@ clusters if requested. The ... arguments are passed to the
 \code{\link[pheatmap]{pheatmap}} function.
 
 \code{plotCountGeneSampleHeatmap}: A gene x sample heatmap of the raw or
-normalized counts. By default they are log transformed and row centered. 
+normalized counts. By default they are log transformed and row centered.
 Only the top 500 viable genes based on the BCV (biological coefficient 
 of variation) is used by default. 
 

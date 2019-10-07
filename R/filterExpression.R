@@ -73,8 +73,9 @@ filterExp <- function(ods, fpkmCutoff, percentile, filterGenes, savefpkm,
     if(addExpressedGenes == TRUE){
         dt <- computeExpressedGenes(fpkm, cutoff=fpkmCutoff, 
                 percentile=percentile)
+        goodCols <- !colnames(colData(ods)) %in% colnames(dt[,-1])
         colData(ods) <- DataFrame(row.names=colData(ods)$sampleID,
-                merge(colData(ods), dt, by="sampleID", sort=FALSE))
+                merge(colData(ods)[,goodCols], dt, by="sampleID", sort=FALSE))
     }
     
     message(paste0(sum(!passed), ifelse(filterGenes,

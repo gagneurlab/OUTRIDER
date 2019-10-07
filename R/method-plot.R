@@ -73,6 +73,7 @@
 #' @param nGenes upper limit of number of genes (defaults to 500). Subsets the
 #'             top n genes based on the BCV.
 #' @param nBreaks number of breaks for the heatmap color scheme. Default to 50.
+#' @param bins Number of bins used in the histogram. Defaults to 100.
 #' @param yadjust Option to adjust position of Median and 90 percentile labels.
 #' @param ylab The y axis label
 #' @param labCex The label cex parameter
@@ -111,7 +112,7 @@
 #' \code{\link[pheatmap]{pheatmap}} function.
 #'
 #' \code{plotCountGeneSampleHeatmap}: A gene x sample heatmap of the raw or
-#' normalized counts. By default they are log transformed and row centered. 
+#' normalized counts. By default they are log transformed and row centered.
 #' Only the top 500 viable genes based on the BCV (biological coefficient 
 #' of variation) is used by default. 
 #' 
@@ -895,7 +896,7 @@ plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
 
 #' @rdname plotFunctions
 #' @export
-plotFPKM <- function(ods){
+plotFPKM <- function(ods, bins=100){
     fpkm <- fpkm(ods)
     colors <- c("grey60","darkgreen")
     if(!'passedFilter' %in% colnames(mcols(ods))){
@@ -918,7 +919,7 @@ plotFPKM <- function(ods){
     }
 
     p <- ggplot(histdata, aes(fpkm, fill=passedFilter), alpha=0.5) +
-        geom_histogram(bins=100, alpha=0.7, position="identity") +
+        geom_histogram(bins=bins) +
         scale_fill_manual(values=colors) + 
         theme_bw() +
         theme(legend.position = c(0.1, 0.9)) +
