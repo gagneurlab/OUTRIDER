@@ -93,11 +93,6 @@ suppressPackageStartupMessages({
     library(OUTRIDER)
     library(beeswarm)
 })
-if(multicoreWorkers() >= 4){
-    register(MulticoreParam(min(6, multicoreWorkers())))
-} else {
-    register(MulticoreParam(2))
-}
 @
 
 \section{Introduction}
