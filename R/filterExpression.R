@@ -45,7 +45,7 @@ setGeneric("filterExpression",
 filterExpression.OUTRIDER <- function(x, gtfFile, fpkmCutoff=1, 
                     percentile=0.95, filterGenes=TRUE, savefpkm=FALSE, 
                     minCounts=FALSE, addExpressedGenes=TRUE, ...){
-    x <- filterMinCounts(x, filterGenes=filterGenes, verbose=!minCounts)
+    x <- filterMinCounts(x, filterGenes=filterGenes, verbose=minCounts)
     if(isTRUE(minCounts)){
         return(x)
     }
