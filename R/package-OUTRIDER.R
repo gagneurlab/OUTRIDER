@@ -5,7 +5,7 @@
 #' 
 #' @name OUTRIDER
 #'
-#' @import data.table
+#' @rawNamespace import(data.table, except=melt)
 #' 
 #' @importFrom methods as is new validObject
 #' 
@@ -64,6 +64,8 @@
 #' @importFrom RColorBrewer brewer.pal
 #' 
 #' @importFrom Rcpp sourceCpp
+#' 
+#' @importFrom reshape2 melt
 #' 
 #' @importFrom S4Vectors DataFrame metadata metadata<-
 #' 
