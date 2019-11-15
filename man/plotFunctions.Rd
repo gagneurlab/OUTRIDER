@@ -16,6 +16,7 @@
 \alias{plotDispEsts,OutriderDataSet-method}
 \alias{plotEncDimSearch}
 \alias{plotExpressedGenes}
+\alias{plotSizeFactors}
 \title{Visualization functions for OUTRIDER}
 \usage{
 plotVolcano(ods, sampleID, main, padjCutoff = 0.05, zScoreCutoff = 0,
@@ -62,6 +63,8 @@ plotPowerAnalysis(ods)
 plotEncDimSearch(ods)
 
 plotExpressedGenes(ods, main = "Statistics of expressed genes")
+
+plotSizeFactors(ods, basePlot = TRUE)
 }
 \arguments{
 \item{ods, object}{An OutriderDataSet object.}
@@ -167,6 +170,7 @@ This is the list of all plotting function provided by OUTRIDER:
   \item plotExpectedVsObservedCounts()
   \item plotCountCorHeatmap()
   \item plotCountGeneSampleHeatmap()
+  \item plotSizeFactors()
   \item plotFPKM()
   \item plotExpressedGenes()
   \item plotDispEsts()
@@ -208,6 +212,8 @@ clusters if requested. The ... arguments are passed to the
 normalized counts. By default they are log transformed and row centered. Only 
 the top 500 viable genes based on the BCV (biological coefficient 
 of variation) is used by default. 
+
+\code{plotSizeFactors}: The sizefactor distribution within the dataset. 
 
 \code{plotFPKM}: The distribution of FPKM values. If the OutriderDataSet
 object contains the \code{passedFilter} column, it will plot both FPKM
@@ -272,6 +278,8 @@ table(colData(ods)$clusterNumber_4)
 plotCountGeneSampleHeatmap(ods, normalized=FALSE)
 plotCountGeneSampleHeatmap(ods, rowGroups="theta", 
         rowColSet=list(c("white", "darkgreen")))
+
+plotSizeFactors(ods)
 
 mcols(ods)$basepairs <- 1
 mcols(ods)$passedFilter <- rowMeans(counts(ods)) > 10

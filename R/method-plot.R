@@ -13,6 +13,7 @@
 #'   \item plotExpectedVsObservedCounts()
 #'   \item plotCountCorHeatmap()
 #'   \item plotCountGeneSampleHeatmap()
+#'   \item plotSizeFactors()
 #'   \item plotFPKM()
 #'   \item plotExpressedGenes()
 #'   \item plotDispEsts()
@@ -115,6 +116,8 @@
 #' the top 500 viable genes based on the BCV (biological coefficient 
 #' of variation) is used by default. 
 #' 
+#' \code{plotSizeFactors}: The sizefactor distribution within the dataset. 
+#' 
 #' \code{plotFPKM}: The distribution of FPKM values. If the OutriderDataSet
 #' object contains the \code{passedFilter} column, it will plot both FPKM
 #' distributions for the expressed genes and for the filtered genes.
@@ -181,7 +184,9 @@
 #' plotCountGeneSampleHeatmap(ods, normalized=FALSE)
 #' plotCountGeneSampleHeatmap(ods, rowGroups="theta", 
 #'         rowColSet=list(c("white", "darkgreen")))
-#'
+#' 
+#' plotSizeFactors(ods)
+#' 
 #' mcols(ods)$basepairs <- 1
 #' mcols(ods)$passedFilter <- rowMeans(counts(ods)) > 10
 #' plotFPKM(ods)
@@ -1091,6 +1096,29 @@ plotExpressedGenes <- function(ods, main='Statistics of expressed genes'){
         labs(y = 'Number of genes', x = 'Sample rank', title = main) +
         scale_color_brewer(palette = 'Set1')
 }
+
+#' @rdname plotFunctions
+#' @export
+plotSizeFactors <- function(ods, basePlot=TRUE){
+    checkSizeFactors(ods)
+    plotdt <- data.table(sizeFactor=sizeFactors(ods),
+            sampleID=colnames(ods))[order(sizeFactor)][,.(
+                    sizeFactor, sampleID, rank=.I)]
+    g <- ggplot(plotdt, aes(rank, sizeFactor, text=paste0(
+        "SampleID: ", sampleID, "<br>",
+        "Sizefactor: ", round(sizeFactor, 3), "<br>",
+        "Rank: ", rank))) +
+        geom_point() +
+        theme_bw() +
+        xlab("Sample rank") + 
+        ggtitle("Size factor plot")
+    
+    if(isFALSE(basePlot)){
+        g <- ggplotly(g, tooltip="text")
+    }
+    g
+}
+
 
 checkDeprication <- function(names2check, ...){
     lnames <- names(list(...))
