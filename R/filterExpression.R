@@ -45,8 +45,8 @@ setGeneric("filterExpression",
 filterExpression.OUTRIDER <- function(x, gtfFile, fpkmCutoff=1, 
                     percentile=0.95, filterGenes=TRUE, savefpkm=FALSE, 
                     minCounts=FALSE, addExpressedGenes=TRUE, ...){
-    x <- filterMinCounts(x, filterGenes=filterGenes)
-    if(minCounts == TRUE){
+    x <- filterMinCounts(x, filterGenes=filterGenes, verbose=minCounts)
+    if(isTRUE(minCounts)){
         return(x)
     }
     if(!missing(gtfFile)){
@@ -73,12 +73,14 @@ filterExp <- function(ods, fpkmCutoff, percentile, filterGenes, savefpkm,
     if(addExpressedGenes == TRUE){
         dt <- computeExpressedGenes(fpkm, cutoff=fpkmCutoff, 
                 percentile=percentile)
+        goodCols <- !colnames(colData(ods)) %in% colnames(dt[,-1])
         colData(ods) <- DataFrame(row.names=colData(ods)$sampleID,
-                merge(colData(ods), dt, by="sampleID", sort=FALSE))
+                merge(colData(ods)[,goodCols, drop=FALSE], 
+                        dt, by="sampleID", sort=FALSE))
     }
     
     message(paste0(sum(!passed), ifelse(filterGenes,
-            " genes are filtered out. ", " genes did not passed the filter. "),
+            " genes are filtered out. ", " genes did not pass the filter. "),
             "This is ", signif(sum(!passed)/length(passed)*100, 3), 
             "% of the genes."))
     if(filterGenes==TRUE){
@@ -194,13 +196,15 @@ NULL
 #' Filter zero counts
 #' 
 #' @noRd
-filterMinCounts <- function(x, filterGenes=FALSE){
+filterMinCounts <- function(x, filterGenes=FALSE, verbose=TRUE){
     passed <- !checkCountRequirements(x, test=TRUE)
     mcols(x)['passedFilter'] <- passed
     
-    message(paste0(sum(!passed), " genes did not passed the filter due to ", 
-            "zero counts. This is ", signif(sum(!passed)/length(passed)*100, 3),
-            "% of the genes."))
+    if(isTRUE(verbose)){
+        message(paste0(sum(!passed), " genes did not pass the filter due to ", 
+                "zero counts. This is ", 
+                signif(sum(!passed)/length(passed)*100, 3), "% of the genes."))
+    }
     
     if(isTRUE(filterGenes)){
         x <- x[passed,]

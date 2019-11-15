@@ -5,7 +5,7 @@
 #' 
 #' @name OUTRIDER
 #'
-#' @import data.table
+#' @rawNamespace import(data.table, except=melt)
 #' 
 #' @importFrom methods as is new validObject
 #' 
@@ -38,7 +38,7 @@
 #'          geom_point labs scale_x_log10 scale_y_log10 scale_fill_manual 
 #'          scale_color_manual scale_fill_brewer scale_color_brewer theme ylim
 #'          ggtitle geom_vline geom_text scale_linetype_manual geom_line 
-#'          geom_abline theme_bw element_blank
+#'          geom_abline theme_bw element_blank xlab ylab scale_color_identity
 #' 
 #' @importFrom grDevices colorRampPalette
 #' 
@@ -65,7 +65,7 @@
 #' 
 #' @importFrom Rcpp sourceCpp
 #' 
-#' @importFrom reticulate import py_get_attr
+#' @importFrom reshape2 melt
 #' 
 #' @importFrom S4Vectors DataFrame metadata metadata<-
 #' 
@@ -100,16 +100,19 @@ globalVariables(package="OUTRIDER", c(
         "evalMethod", 
         "evaluationLoss",
         "expected",
+        "expRank",
         "ExprType", 
         "feature_id",
         "frac",
         "Fraction",
+        "GENE_ID",
         "group",
         "lty", 
         "lwd", 
         "medianCts", 
         "negLog10pVal",
         "normcounts",
+        "normCts",
         "norm_rank", 
         "opt",
         "padj_rank", 

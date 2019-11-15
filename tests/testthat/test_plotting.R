@@ -15,7 +15,7 @@ test_that("plotting", {
     
     
     expect_equal(class(plotVolcano(ods, 30)), c("plotly", "htmlwidget"))
-    expect_null(plotVolcano(ods, "sample_10", basePlot=TRUE))
+    expect_is(plotVolcano(ods, "sample_10", basePlot=TRUE), "ggplot")
     
     
     expect_equal(class(plotExpressionRank(ods, 23)), c("plotly", "htmlwidget"))
