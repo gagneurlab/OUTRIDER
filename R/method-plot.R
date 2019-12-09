@@ -49,7 +49,8 @@
 #'             from groups.
 #' @param pch Integer or character to be used for plotting the points
 #' @param col Set color for the points. If set, it must be a character vector
-#'             of length 2. (1. normal point; 2. outlier point)
+#'             of length 2. (1. normal point; 2. outlier point) or a single 
+#'             character referring to a color palette from \code{RColorBrewer}.
 #' @param basePlot if \code{TRUE}, use the R base plot version, else use the
 #'             plotly framework, which is the default
 #' @param legendPos Set legendpos, by default topleft.
@@ -57,7 +58,6 @@
 #' @param samplePoints Sample points for Q-Q plot, defaults to max 30k points
 #' @param xlim,ylim The x/y limits for the plot or NULL to use
 #'             the full data range
-#' @param ymax If set, ymax is the upper bound for the plot range on the y axis.
 #' @param log If TRUE, the default, counts are plotted in log10.
 #' @param rowCentered If TRUE, the counts are row-wise (gene-wise) centered
 #' @param rowGroups,colGroups A vector of co-factors (colnames of colData)
@@ -77,8 +77,6 @@
 #' @param bins Number of bins used in the histogram. Defaults to 100.
 #' @param yadjust Option to adjust position of Median and 90 percentile labels.
 #' @param ylab The y axis label
-#' @param labCex The label cex parameter
-#' @param labLine Option to move axis labels
 #'
 #### Additional ... parameter
 #' @param ... Additional parameters passed to plot() or plot_ly() if not stated
@@ -847,55 +845,41 @@ plotHeatmap <- function(ods, mtx, annotation_row=NULL, annotation_col=NULL,
     return(invisible(ods))
 }
 
+
 #' @rdname plotFunctions
 #' @export
-plotAberrantPerSample <- function(ods, main, padjCutoff=0.05, zScoreCutoff=0,
-                    outlierRatio=0.001, col=brewer.pal(3, 'Dark2')[c(1,2)],
-                    yadjust=c(1.2, 1.2), labLine=c(3.5, 3), ymax=NULL,
-                    ylab="#Aberrantly expressed genes", labCex=par()$cex, ...){
-
-    if(missing(main)){
-        main <- 'Aberrant Genes per Sample'
+plotAberrantPerSample <- function(ods, main='Aberrant Genes per Sample',
+                    outlierRatio=0.001, col='Dark2', yadjust=1.2,
+                    ylab="#Aberrantly expressed genes", ...){
+    oneOffset <- 0.8
+    count_vector <- sort(aberrant(ods, by="sample", ...))
+    hlines = quantile(count_vector, c(0.5, 0.9))
+    hlines[hlines == 0] <- oneOffset
+    
+    dt2p <- data.table(
+            x=seq_along(count_vector),
+            y=c(count_vector, c(1, oneOffset)[(count_vector != 0) + 1]),
+            fill=!count_vector <= max(1, length(ods)*outlierRatio))
+    
+    g <- ggplot(dt2p, aes(x=x, y=y, fill=fill)) + 
+        geom_bar(stat = "Identity") + 
+        theme_bw() + 
+        scale_y_log10(limits=c(oneOffset, NA)) + 
+        ylab(ylab) + 
+        xlab("Sample rank") + 
+        ggtitle(main) + 
+        theme(legend.position="none") + 
+        geom_hline(yintercept=hlines) + 
+        annotate("text", label=c("Median", "90^th ~ percentile"), 
+                x=1, y=hlines*yadjust, hjust=0, parse=TRUE)
+    
+    if(isScalarCharacter(col)){
+        g <- g + scale_fill_brewer(palette=col)
+    } else {
+        g <- g + scale_fill_manual(values=col)
     }
-
-    count_vector <- sort(aberrant(ods, by="sample", padjCutoff=padjCutoff,
-            zScoreCutoff=zScoreCutoff, ...))
-    ylim <- c(0.4, max(1, count_vector)*1.1)
-    if(!is.null(ymax)){
-        ylim[2] <- ymax
-    }
-    replace_zero_unknown <- 0.5
-    ticks <- c(replace_zero_unknown, signif(10^seq(
-            from=0, to=round(log10(max(1, count_vector))), by=1/3), 1))
-
-    labels_for_ticks <- sub(replace_zero_unknown, '0', as.character(ticks))
-
-    bp= barplot2(
-            replace(count_vector, count_vector==0, replace_zero_unknown),
-            log='y', ylim=ylim, names.arg='', xlab='', plot.grid=TRUE,
-            grid.col='lightgray', ylab='', yaxt='n', border=NA, xpd=TRUE,
-            col=col[(!count_vector <= max(1, length(ods)*outlierRatio)) + 1],
-            main=main)
-
-    n_names <- floor(length(count_vector)/20)
-    xnames= seq_len(n_names*20)
-    axis(side=1, at= c(0,bp[xnames,]), labels= c(0,xnames))
-    axis(side=2, at=ticks, labels= labels_for_ticks, ylog=TRUE, las=2)
-
-    # labels
-    mtext('Sample rank', side=1, line=labLine[1], cex=labCex)
-    mtext(ylab, side=2, line=labLine[2], cex=labCex)
-
-    # legend and lines
-    hlines = c(Median=ifelse(median(count_vector)==0, replace_zero_unknown,
-            median(count_vector)) , Quantile90=quantile(
-                    count_vector, 0.9, names=FALSE))
-    color_hline= c('black','black')
-    abline(h= hlines, col=color_hline)
-    text(x=c(1,1), y= hlines*yadjust, col=color_hline, adj=0,
-            labels=c('Median', expression(90^th ~ 'percentile')))
-
-    box()
+    
+    g
 }
 
 
