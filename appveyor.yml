@@ -54,7 +54,7 @@ test_script:
     - R CMD build --no-build-vignettes .
     - R CMD check --install-args=--build --no-vignettes --no-manual --timings *tar.gz
     - R -e "BiocCheck::BiocCheck(list.files(path='.', pattern='.tar.gz'))"
-    - R -e "devtools::run_examples()"
+    - R -e "devtools::run_examples(document=FALSE)"
     # runs currently into an error saying: "LaTeX Error: Missing \begin{document}."
     #    - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
 
