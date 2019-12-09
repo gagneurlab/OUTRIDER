@@ -4,8 +4,12 @@
 \alias{aberrant}
 \title{Number of aberrant events}
 \usage{
-aberrant(ods, padjCutoff = 0.05, zScoreCutoff = 0, by = c("none",
-  "sample", "gene"))
+aberrant(
+  ods,
+  padjCutoff = 0.05,
+  zScoreCutoff = 0,
+  by = c("none", "sample", "gene")
+)
 }
 \arguments{
 \item{ods}{An OutriderDataSet object}

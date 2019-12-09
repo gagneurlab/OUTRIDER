@@ -11,7 +11,7 @@ test_that("plotting", {
     colData(ods)$Sex <- sex
     
     
-    expect_null(plotAberrantPerSample(ods))
+    expect_is(plotAberrantPerSample(ods), "ggplot")
     
     
     expect_equal(class(plotVolcano(ods, 30)), c("plotly", "htmlwidget"))

@@ -8,8 +8,7 @@
 \usage{
 computeZscores(ods, ...)
 
-\S4method{computeZscores}{OutriderDataSet}(ods, peerResiduals = FALSE,
-  ...)
+\S4method{computeZscores}{OutriderDataSet}(ods, peerResiduals = FALSE, ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}

@@ -15,11 +15,9 @@ object.}
 
 \S4method{normalizationFactors}{OutriderDataSet,matrix}(object) <- value
 
+\S4method{normalizationFactors}{OutriderDataSet,DataFrame}(object) <- value
 
-  \S4method{normalizationFactors}{OutriderDataSet,DataFrame}(object) <- value
-
-
-  \S4method{normalizationFactors}{OutriderDataSet,data.frame}(object) <- value
+\S4method{normalizationFactors}{OutriderDataSet,data.frame}(object) <- value
 
 \S4method{normalizationFactors}{OutriderDataSet,`NULL`}(object) <- value
 }

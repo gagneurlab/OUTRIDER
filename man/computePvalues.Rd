@@ -8,9 +8,12 @@
 \usage{
 computePvalues(object, ...)
 
-\S4method{computePvalues}{OutriderDataSet}(object,
-  alternative = c("two.sided", "greater", "less"), method = "BY",
-  BPPARAM = bpparam())
+\S4method{computePvalues}{OutriderDataSet}(
+  object,
+  alternative = c("two.sided", "greater", "less"),
+  method = "BY",
+  BPPARAM = bpparam()
+)
 }
 \arguments{
 \item{object}{An OutriderDataSet}

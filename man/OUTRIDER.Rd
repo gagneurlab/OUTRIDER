@@ -4,8 +4,14 @@
 \alias{OUTRIDER}
 \title{OUTRIDER - Finding expression outlier events}
 \usage{
-OUTRIDER(ods, q, controlData = TRUE, implementation = "autoencoder",
-  BPPARAM = bpparam(), ...)
+OUTRIDER(
+  ods,
+  q,
+  controlData = TRUE,
+  implementation = "autoencoder",
+  BPPARAM = bpparam(),
+  ...
+)
 }
 \arguments{
 \item{ods}{An OutriderDataSet object}

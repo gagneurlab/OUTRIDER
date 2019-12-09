@@ -6,13 +6,27 @@
 \alias{findInjectZscore}
 \title{Find the optimal encoding dimension}
 \usage{
-findEncodingDim(ods, params = seq(2, min(100, ncol(ods) - 1, nrow(ods) -
-  1), 2), freq = 0.01, zScore = 3, sdlog = log(1.6), lnorm = TRUE,
-  inj = "both", ..., BPPARAM = bpparam())
+findEncodingDim(
+  ods,
+  params = seq(2, min(100, ncol(ods) - 1, nrow(ods) - 1), 2),
+  freq = 0.01,
+  zScore = 3,
+  sdlog = log(1.6),
+  lnorm = TRUE,
+  inj = "both",
+  ...,
+  BPPARAM = bpparam()
+)
 
-findInjectZscore(ods, freq = 0.01, zScoreParams = c(seq(1.5, 4, 0.5),
-  "lnorm"), encDimParams = c(seq(3, 40, 3), seq(45, 70, 5), 100, 130,
-  160), inj = "both", ..., BPPARAM = bpparam())
+findInjectZscore(
+  ods,
+  freq = 0.01,
+  zScoreParams = c(seq(1.5, 4, 0.5), "lnorm"),
+  encDimParams = c(seq(3, 40, 3), seq(45, 70, 5), 100, 130, 160),
+  inj = "both",
+  ...,
+  BPPARAM = bpparam()
+)
 }
 \arguments{
 \item{ods}{An OutriderDataSet}

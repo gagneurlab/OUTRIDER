@@ -10,8 +10,14 @@
 \usage{
 results(object, ...)
 
-\S4method{results}{OutriderDataSet}(object, padjCutoff = 0.05,
-  zScoreCutoff = 0, round = 2, all = FALSE, ...)
+\S4method{results}{OutriderDataSet}(
+  object,
+  padjCutoff = 0.05,
+  zScoreCutoff = 0,
+  round = 2,
+  all = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{An OutriderDataSet}
