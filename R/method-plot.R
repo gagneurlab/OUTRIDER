@@ -574,7 +574,18 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     }
 
     # create ggplot object
-    g <- ggplot(data=dt, aes(x = norm_rank, y = counts)) +
+    g <- ggplot(data=dt, aes(x = norm_rank, y = counts, text = paste0(
+        "Gene ID: ", geneID, "<br>",
+        "Sample ID: ", sampleID, "<br>",
+        ifelse(uniqueN(groups) == 1, "", paste0("Group: ", group, "<br>")),
+        "Median normcount: ", round(medianCts, digits = 1), "<br>", 
+        "rawcount: ", rawcounts, "<br>", 
+        "expression rank: ", round(norm_rank, digits = 1), "<br>",
+        if('padjust' %in% colnames(dt))
+             paste0("adj. P-value: ", sprintf("%1.1E", padjust), "<br>", 
+                    "nominal P-value: ", sprintf("%1.1E", pValue), "<br>",
+                    "Z-score: ", round(zScore, digits = 1), "<br>")
+    ))) +
         labs(title = main, x = 'Sample rank', y = ylab) +
         theme_bw()
 
@@ -583,20 +594,20 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     }
     
     point_mapping <- aes(col = aberrant)
-if(isFALSE(basePlot)){
-        point_mapping$text <- dt[,paste0(
-            "Gene ID: ", geneID,
-            "<br>Sample ID: ", sampleID,
-            ifelse(uniqueN(groups) == 1, "", paste0("<br>Group: ", group)),
-            "<br>Median normcount: ", round(medianCts, digits = 1),
-            "<br>rawcount: ", rawcounts,
-            "<br>expression rank: ", round(norm_rank, digits = 1),
-            ifelse(!'padjust' %in% colnames(dt), '',
-                paste0("<br>adj. P-value: ", sprintf("%1.1E", padjust),
-                    "<br>nominal P-value: ", sprintf("%1.1E", pValue),
-                    "<br>Z-score: ", round(zScore, digits = 1)))
-        )]
-    }
+#   if(isFALSE(basePlot)){
+    #     point_mapping$text <- dt[,paste0(
+    #         "Gene ID: ", geneID,
+    #         "<br>Sample ID: ", sampleID,
+    #         ifelse(uniqueN(groups) == 1, "", paste0("<br>Group: ", group)),
+    #         "<br>Median normcount: ", round(medianCts, digits = 1),
+    #         "<br>rawcount: ", rawcounts,
+    #         "<br>expression rank: ", round(norm_rank, digits = 1),
+    #         ifelse(!'padjust' %in% colnames(dt), '',
+    #             paste0("<br>adj. P-value: ", sprintf("%1.1E", padjust),
+    #                 "<br>nominal P-value: ", sprintf("%1.1E", pValue),
+    #                 "<br>Z-score: ", round(zScore, digits = 1)))
+    #     )]
+    # }
 
     # switch color mode
     if(uniqueN(groups) > 1){
