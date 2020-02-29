@@ -156,7 +156,7 @@ findInjectZscore <- function(ods, freq=1E-2,
 #' @noRd
 injectOutliers <- function(ods, freq, zScore, inj, lnorm, sdlog){
     # copy true counts to be able to acces them in the loss later
-    assays(ods)[['trueCounts']] <- counts(ods)
+    assays(ods, withDimnames=FALSE)[['trueCounts']] <- counts(ods)
     
     # generate index of injected counts
     size <- prod(dim(ods))
@@ -207,9 +207,9 @@ injectOutliers <- function(ods, freq, zScore, inj, lnorm, sdlog){
         }
     }
     # save coruppted counts and index of corruption into ods
-    assay(ods, 'counts') <- matrix(as.integer(counts),nrow(ods))
-    assay(ods, 'trueCorruptions') <- index
-    assay(ods, 'injectedZscore') <- zScore
+    assay(ods, 'counts', withDimnames=FALSE) <- matrix(as.integer(counts),nrow(ods))
+    assay(ods, 'trueCorruptions', withDimnames=FALSE) <- index
+    assay(ods, 'injectedZscore', withDimnames=FALSE) <- zScore
     return(ods)
 }
 

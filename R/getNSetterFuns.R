@@ -36,7 +36,7 @@ zScore <- function(ods){
 `zScore<-` <- function(ods, value){
     stopifnot(is.matrix(value))
     stopifnot(dim(ods) == dim(value))
-    assay(ods, 'zScore') <- value
+    assay(ods, 'zScore', withDimnames=FALSE) <- value
     return(ods)
 }
 
@@ -52,7 +52,7 @@ pValue <- function(ods){
 `pValue<-` <- function(ods, value){
     stopifnot(is.matrix(value))
     stopifnot(dim(ods) == dim(value))
-    assay(ods, 'pValue') <- value
+    assay(ods, 'pValue', withDimnames=FALSE) <- value
     return(ods)
 }
 
@@ -69,7 +69,7 @@ padj <- function(ods){
 `padj<-` <- function(ods, value){
     stopifnot(is.matrix(value))
     stopifnot(dim(ods) == dim(value))
-    assay(ods, 'padjust') <- value
+    assay(ods, 'padjust', withDimnames=FALSE) <- value
     return(ods)
 }
 

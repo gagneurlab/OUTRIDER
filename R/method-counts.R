@@ -1,7 +1,7 @@
 
 counts.replace.OutriderDataSet <- function(object, value){
     mode(value) <- "integer"
-    assays(object)[["counts"]] <- value
+    assays(object, withDimnames=FALSE)[["counts"]] <- value
     
     validObject(object)
     object
@@ -95,7 +95,7 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
     stopifnot(all(value > 0))
     
     # set the values and check the object
-    assays(object)[["normalizationFactors"]] <- value
+    assays(object, withDimnames=FALSE)[["normalizationFactors"]] <- value
     validObject(object)
     object
 }

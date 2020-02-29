@@ -71,9 +71,9 @@ get_test_outrider_dataset <- function(){
     normalizationFactors(ods) <- normF_round3
     mcols(ods)[['mu']] <- mu_round4
     mcols(ods)[['disp']] <- disp_round4
-    assays(ods)[['pValue']] <- pval_round4
-    assays(ods)[['padjust']] <- padj_round4
-    assays(ods)[['zScore']] <- zscore_round4
+    assays(ods, withDimnames=FALSE)[['pValue']] <- pval_round4
+    assays(ods, withDimnames=FALSE)[['padjust']] <- padj_round4
+    assays(ods, withDimnames=FALSE)[['zScore']] <- zscore_round4
     
     return(ods)
 }
