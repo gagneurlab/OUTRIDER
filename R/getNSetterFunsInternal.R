@@ -31,7 +31,7 @@ sampleExclusionMask <- function(ods, aeMatrix=FALSE){
     
     if(isTRUE(aeMatrix)){
         ans <- as.integer(vapply(ans, isFALSE, FALSE))
-        ans <- matrix(ans, ncol=ncol(ods), nrow=nrow(ods))
+        ans <- matrix(ans, ncol=ncol(ods), nrow=nrow(ods), byrow=TRUE)
         colnames(ans) <- colnames(ods)
         rownames(ans) <- rownames(ods)
     }
