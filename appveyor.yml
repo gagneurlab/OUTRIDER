@@ -31,20 +31,14 @@ environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: TRUE
   
   matrix:
-#    - R_VERSION: devel
-#      BIOC_USE_DEVEL: TRUE
-#      
+    - R_VERSION: devel
+      BIOC_USE_DEVEL: TRUE
 #    - R_VERSION: devel
 #      BIOC_USE_DEVEL: TRUE
 #      GCC_PATH: mingw_32
 #      R_ARCH: i386    
-#      
     - R_VERSION: release
-    - R_VERSION: 3.5.3
-    - R_VERSION: 3.5.0
-    - R_VERSION: 3.4.4
-    - R_VERSION: 3.4.2
-    - R_VERSION: 3.4.0
+    - R_VERSION: 3.6.0
       
 build_script:
   - travis-tool.sh install_bioc rlang S4Vectors

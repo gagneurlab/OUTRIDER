@@ -12,10 +12,10 @@ and available through [Bioconductor](http://bioconductor.org/packages/release/bi
 
 ## Installation
 
-`OUTRIDER` is an R software package requiring a running [R 3.4 version or higher](https://cran.r-project.org/).
+`OUTRIDER` is an R software package requiring a running [R 3.6 version or higher](https://cran.r-project.org/).
 
 We will use `BiocManager` to install the package and its dependencies. If you
-use an R version < 3.5.1 or Bioconductor version < 3.8, please install OUTRIDER
+want to install the devel version of `OUTRIDER`, please install it 
 with devtools from GitHub directly [(see below)](#OUTRIDER-development-installation).
 
 
@@ -30,7 +30,7 @@ at the Troubleshooting section or submit an issue on [GitHub](https://github.com
 
 ### OUTRIDER development installation
 
-If you use a Bioconductor version prio 3.8 or if you want to get the latest
+If you want to get the latest
 development version of `OUTRIDER`, you can install it from GitHub with
 `devtools`. For this, you need a working development environment to compile the
 C++ code (see for details: [Windows](https://cran.r-project.org/bin/windows/Rtools/)
@@ -42,7 +42,7 @@ install.packages('devtools')
 # latest development version
 devtools::install_github('gagneurlab/OUTRIDER', dependencies=TRUE)
 
-# installing specific version/tag of OUTRIDER
+# installing a specific version/tag of OUTRIDER
 devtools::install_github('gagneurlab/OUTRIDER@1.3.5', dependencies=TRUE)
 ```
 

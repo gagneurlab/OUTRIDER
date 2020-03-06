@@ -6,7 +6,6 @@ cache:
     - $HOME/R/Library
 
 
-
 addons:
   apt:
     packages:
@@ -17,9 +16,7 @@ addons:
 r:
   - bioc-devel
   - bioc-release
-  - 3.5.0
-  - 3.4.4
-  - 3.4.2
+  - 3.6.0
 
 stages:
   - Setup Cache
@@ -35,15 +32,8 @@ jobs:
       r: bioc-release
       script: true
     - stage: Setup Cache
-      r: 3.5.0
+      r: 3.6.0
       script: true
-    - stage: Setup Cache
-      r: 3.4.4
-      script: true
-    - stage: Setup Cache
-      r: 3.4.2
-      script: true
-
 
 before_install:
   - tlmgr install index marginfix bera nowidow parnotes
