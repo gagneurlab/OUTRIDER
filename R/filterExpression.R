@@ -177,9 +177,6 @@ computeGeneLength <- function(ods, gtfFile, format='gtf', mapping=NULL, ...){
 #' @aliases fpkm fpm
 #' @seealso \code{\link[DESeq2]{fpkm}} \code{\link[DESeq2]{fpm}}
 #' 
-#' @inheritParams DESeq2::fpm
-#' @inheritParams DESeq2::fpkm
-#' 
 #' @examples 
 #' ods <- makeExampleOutriderDataSet()
 #' mcols(ods)['basepairs'] <- round(rnorm(nrow(ods), 1000, 500))

@@ -10,6 +10,7 @@ test_that("create test data set", {
 test_that("constructur for OutriderDataSet", {
     se <- as(DESeq2::makeExampleDESeqDataSet(), "SummarizedExperiment")
     rownames(se) <- paste0("gene", seq_row(se))
+    colData(se)[["sampleID"]] <- colnames(se)
     expect_is(OutriderDataSet(se=se), "OutriderDataSet")
     expect_is(OutriderDataSet(countData=assay(se, 'counts')),
             "OutriderDataSet")
