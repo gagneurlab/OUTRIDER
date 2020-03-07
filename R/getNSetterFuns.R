@@ -4,7 +4,7 @@
 #' the values within the OUTRIDER model.
 #' 
 #' @param ods,object An OutriderDataSet object.
-#' @param ... Further arguments currently not in use.
+#' @param ... Further arguments passed on to the underlying assay function.
 #' @return A matrix or vector dependent on the type of data retrieved.
 #' 
 #' @name getter_setter_functions
@@ -33,10 +33,10 @@ zScore <- function(ods){
     assay(ods, 'zScore')
 }
 
-`zScore<-` <- function(ods, value){
+`zScore<-` <- function(ods, ..., value){
     stopifnot(is.matrix(value))
     stopifnot(dim(ods) == dim(value))
-    assay(ods, 'zScore') <- value
+    assay(ods, 'zScore', ...) <- value
     return(ods)
 }
 
@@ -49,10 +49,10 @@ pValue <- function(ods){
     assay(ods, 'pValue')
 }
 
-`pValue<-` <- function(ods, value){
+`pValue<-` <- function(ods, ..., value){
     stopifnot(is.matrix(value))
     stopifnot(dim(ods) == dim(value))
-    assay(ods, 'pValue') <- value
+    assay(ods, 'pValue', ...) <- value
     return(ods)
 }
 
@@ -66,10 +66,10 @@ padj <- function(ods){
     assay(ods, 'padjust')
 }
 
-`padj<-` <- function(ods, value){
+`padj<-` <- function(ods, ..., value){
     stopifnot(is.matrix(value))
     stopifnot(dim(ods) == dim(value))
-    assay(ods, 'padjust') <- value
+    assay(ods, 'padjust', ...) <- value
     return(ods)
 }
 

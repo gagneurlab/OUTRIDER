@@ -210,8 +210,8 @@ makeExampleOutriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     colnames(countData) <- paste0("sample_", seq_len(m))
     ods <- OutriderDataSet(countData=countData)
     
-    assay(ods, "trueMean")            <- mu
-    assay(ods, "trueSd")              <- matrix(true_sd, nrow=n, ncol=m)
+    assay(ods, "trueMean", withDimnames=FALSE) <- mu
+    assay(ods, "trueSd", withDimnames=FALSE) <- matrix(true_sd, nrow=n, ncol=m)
     mcols(ods)[,"trueTheta"]          <- theta
     colData(ods)[['trueSizeFactor']]  <- sf
     metadata(ods)[['optimalEncDim']]  <- q
@@ -254,9 +254,9 @@ makeExampleOutriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     }
     mode(k) <- "integer"
     
-    assay(ods, 'trueCounts') <- counts(ods)
-    counts(ods) <- k
-    assay(ods, "trueOutliers") <- indexOut
+    assay(ods, 'trueCounts', withDimnames=FALSE) <- counts(ods)
+    counts(ods, withDimnames=FALSE) <- k
+    assay(ods, "trueOutliers", withDimnames=FALSE) <- indexOut
     
     return(ods)
 }

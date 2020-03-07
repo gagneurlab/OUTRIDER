@@ -207,9 +207,10 @@ injectOutliers <- function(ods, freq, zScore, inj, lnorm, sdlog){
         }
     }
     # save coruppted counts and index of corruption into ods
-    assay(ods, 'counts') <- matrix(as.integer(counts),nrow(ods))
-    assay(ods, 'trueCorruptions') <- index
-    assay(ods, 'injectedZscore') <- zScore
+    assay(ods, 'counts', withDimnames=FALSE) <- matrix(as.integer(counts), 
+            nrow=nrow(ods))
+    assay(ods, 'trueCorruptions', withDimnames=FALSE) <- index
+    assay(ods, 'injectedZscore', withDimnames=FALSE) <- zScore
     return(ods)
 }
 

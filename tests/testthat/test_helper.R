@@ -9,10 +9,12 @@ test_that("check ODS object", {
     ods <- estimateSizeFactors(ods)
     
     expect_error(checkFullAnalysis(ods), "Please calculate the P-values before")
-    padj(ods) <- matrix(runif(ncol(ods)*nrow(ods)), ncol=ncol(ods))
+    padj(ods) <- matrix(runif(ncol(ods)*nrow(ods)), 
+            ncol=ncol(ods), dimnames=dimnames(ods))
     
     expect_error(checkFullAnalysis(ods), "Please calculate the Z-scores before")
-    zScore(ods) <- matrix(runif(ncol(ods)*nrow(ods)), ncol=ncol(ods))
+    zScore(ods) <- matrix(runif(ncol(ods)*nrow(ods)), 
+            ncol=ncol(ods), dimnames=dimnames(ods))
     
     expect_true(checkFullAnalysis(ods))
 })

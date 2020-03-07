@@ -30,7 +30,7 @@ theta(ods)
 \arguments{
 \item{ods, object}{An OutriderDataSet object.}
 
-\item{...}{Further arguments currently not in use.}
+\item{...}{Further arguments passed on to the underlying assay function.}
 }
 \value{
 A matrix or vector dependent on the type of data retrieved.

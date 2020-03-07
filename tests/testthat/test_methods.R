@@ -37,7 +37,7 @@ test_that("result method", {
 
 test_that("normalization method", {
     ods <- makeExampleOutriderDataSet(5, 5)
-    counts(ods) <- matrix(1:5, ncol=5, nrow=5)
+    counts(ods) <- matrix(1:5, ncol=5, nrow=5, dimnames=dimnames(ods))
     expect_null(normalizationFactors(ods))
     nMat <- matrix(6:10, ncol=5, nrow=5)
     normalizationFactors(ods) <- nMat
