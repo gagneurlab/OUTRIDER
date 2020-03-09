@@ -7,8 +7,8 @@
 #' @param value A logical vector of the length of the samples. If \code{TRUE},
 #'             the corresponding sample will be excluded from the autoencoder
 #'             fit.
-#' @param aeMatrix If \code{TRUE}, it returns a 0-1 matrix for the 
-#'             internal autoencoder functions
+#' @param aeMatrix If \code{TRUE}, it returns a 0/1 matrix for the 
+#'             internal autoencoder functions in the form of feature x sample
 #' @return The exclusion vector/matrix.
 #' 
 #' @name sampleExclusionMask
@@ -23,11 +23,12 @@
 #' 
 #' @export sampleExclusionMask
 sampleExclusionMask <- function(ods, aeMatrix=FALSE){
-    ans <- rep(FALSE, ncol(ods))
     if('exclude' %in% colnames(colData(ods))){
         ans <- colData(ods)[['exclude']]
-        names(ans) <- colnames(ods)
+    } else {
+        ans <- rep(FALSE, ncol(ods))
     }
+    names(ans) <- colnames(ods)
     
     if(isTRUE(aeMatrix)){
         ans <- as.integer(vapply(ans, isFALSE, FALSE))
