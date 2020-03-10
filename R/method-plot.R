@@ -205,9 +205,7 @@
 #' @aliases plotFunctions plotVolcano plotQQ plotExpressionRank
 #'             plotCountCorHeatmap plotAberrantPerSample plotFPKM
 #'             plotDispEsts plotPowerAnalysis
-#'
-
-#' @rdname plotFunctions
+#' 
 #' @export
 plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
                     pch=16, basePlot=FALSE, col=c("gray", "firebrick")){

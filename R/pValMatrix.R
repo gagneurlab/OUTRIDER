@@ -74,8 +74,8 @@ pValMatrix <- function(ods, alternative, BPPARAM){
     pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, theta=thetaMat,
             mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
     
-    pValMat <- 
-    pValue(ods) <- matrix(unlist(pValMat), nrow=length(ods), byrow=TRUE)
+    pValue(ods) <- matrix(unlist(pValMat), nrow=length(ods), 
+            byrow=TRUE, dimnames=dimnames(ods))
     validObject(ods)
     return(ods)
 }

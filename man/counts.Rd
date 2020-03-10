@@ -9,7 +9,7 @@
 \usage{
 \S4method{counts}{OutriderDataSet}(object, normalized = FALSE, minE = 0.5)
 
-\S4method{counts}{OutriderDataSet,matrix}(object) <- value
+\S4method{counts}{OutriderDataSet,matrix}(object, ...) <- value
 }
 \arguments{
 \item{object}{OutriderDataSet}
@@ -17,6 +17,8 @@
 \item{normalized}{TRUE/FALSE whether counts should be normalized}
 
 \item{minE}{minimal expected count.}
+
+\item{...}{Further arguments are passed on to the underlying assay function}
 
 \item{value}{An integer matrix containing the counts}
 }

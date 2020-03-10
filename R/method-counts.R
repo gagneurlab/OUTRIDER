@@ -1,7 +1,7 @@
 
-counts.replace.OutriderDataSet <- function(object, value){
+counts.replace.OutriderDataSet <- function(object, ..., value){
     mode(value) <- "integer"
-    assays(object)[["counts"]] <- value
+    assay(object, "counts", ...) <- value
     
     validObject(object)
     object
@@ -53,6 +53,7 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, minE=0.5){
 #' @param normalized TRUE/FALSE whether counts should be normalized
 #' @param value An integer matrix containing the counts
 #' @param minE minimal expected count.
+#' @param ... Further arguments are passed on to the underlying assay function
 #' @return A matrix containing the counts
 #' 
 #' @seealso \code{\link{sizeFactors}}, \code{\link{normalizationFactors}}
