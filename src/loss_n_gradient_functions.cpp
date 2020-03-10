@@ -5,10 +5,13 @@
 #include <Rcpp.h>
 
 const double MIN_EXP_VALUE = -700;
+const double MAX_EXP_VALUE = 700;
 
-arma::mat minValForExp(arma::mat y){
+arma::mat checkRangeForExp(arma::mat y){
     arma::uvec idx = find(y < MIN_EXP_VALUE);
     y.elem(idx).fill(MIN_EXP_VALUE);
+    arma::uvec idx2 = find(y > MAX_EXP_VALUE);
+    y.elem(idx2).fill(MAX_EXP_VALUE);
     return y;
 }
 
@@ -16,7 +19,7 @@ arma::mat minValForExp(arma::mat y){
 arma::mat predictMatY(arma::mat x, arma::mat E, arma::mat D, arma::vec b){
     arma::mat y = x * E * D.t();
     y.each_row() += b.t();
-    y = minValForExp(y);
+    y = checkRangeForExp(y);
     
     return y;
 }
@@ -52,7 +55,7 @@ double truncLogLiklihoodD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
     arma::vec thetaVec = theta * thetaC;
     
     y = H * d + b;
-    y = minValForExp(y);
+    y = checkRangeForExp(y);
     
     t1 = k % (arma::log(sf) + y);
     t2 = (k + thetaVec) % (arma::log(sf) + y + arma::log(1 + thetaVec / (sf % arma::exp(y))));
@@ -79,7 +82,7 @@ arma::vec gradientD(arma::vec par, arma::mat H, arma::vec k, arma::vec sf,
     arma::vec thetaVec = theta * thetaC;
     
     y = H * d + b;
-    y = minValForExp(y);
+    y = checkRangeForExp(y);
     yexp = arma::exp(y);
     
     t1 = colMeans(k % H.each_col());

@@ -38,3 +38,19 @@ test_that("check requirements", {
     counts(ods)[1,2] <- 1
     expect_true(!any(checkCountRequirements(ods)))
 })
+
+test_that("check sample exclusion", {
+    ods <- SummarizedExperiment(assays=SimpleList(
+            a=matrix(1, nrow=16, ncol=11)))
+    expect_false(all(sampleExclusionMask(ods)))
+    expect_equal(length(sampleExclusionMask(ods)), 11)
+    expect_is(sampleExclusionMask(ods, aeMatrix=TRUE), "matrix")
+    expect_equal(dim(sampleExclusionMask(ods, aeMatrix=TRUE)), c(16, 11))
+    
+    vec <- c(logical(5), TRUE, TRUE, logical(4))
+    mat <- do.call(rbind, rep(list((!vec) + 0), 16))
+    
+    sampleExclusionMask(ods) <- vec
+    expect_equal(sampleExclusionMask(ods), vec)
+    expect_equal(sampleExclusionMask(ods, aeMatrix=TRUE), mat)
+})

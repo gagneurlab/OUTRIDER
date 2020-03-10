@@ -244,7 +244,7 @@ evalAutoCorrection <- function(ods, encoding_dim, BPPARAM=bpparam(), ...){
     ods <- OUTRIDER(ods, controlData=TRUE,q=encoding_dim, BPPARAM=BPPARAM, ...)
     eloss <- evalAucPRLoss(ods)
     
-    print(paste0('Evaluation loss: ', eloss))
+    print(paste0('Evaluation loss: ', eloss,' for q=',encoding_dim))
     return(eloss)
 }
 
