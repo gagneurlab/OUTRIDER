@@ -212,10 +212,10 @@ makeExampleOutriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     
     assay(ods, "trueMean", withDimnames=FALSE) <- mu
     assay(ods, "trueSd", withDimnames=FALSE) <- matrix(true_sd, nrow=n, ncol=m)
-    mcols(ods)[,"trueTheta"]          <- theta
-    colData(ods)[['trueSizeFactor']]  <- sf
-    metadata(ods)[['optimalEncDim']]  <- q
-    metadata(ods)[['encDimTable']]    <- data.table(
+    mcols(ods)[,"trueTheta"]                 <- theta
+    colData(ods)[['trueSizeFactor']]         <- sf
+    metadata(ods)[['optimalEncDim']]         <- q
+    metadata(ods)[['encDimTable']]           <- data.table(
         encodingDimension=q, evaluationLoss=1, evalMethod='simulation')
     
     #

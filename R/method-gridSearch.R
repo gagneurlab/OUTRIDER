@@ -156,7 +156,7 @@ findInjectZscore <- function(ods, freq=1E-2,
 #' @noRd
 injectOutliers <- function(ods, freq, zScore, inj, lnorm, sdlog){
     # copy true counts to be able to acces them in the loss later
-    assays(ods)[['trueCounts']] <- counts(ods)
+    assay(ods, 'trueCounts', withDimnames=FALSE) <- counts(ods)
     
     # generate index of injected counts
     size <- prod(dim(ods))

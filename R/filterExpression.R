@@ -65,7 +65,7 @@ filterExp <- function(ods, fpkmCutoff, percentile, filterGenes, savefpkm,
                     addExpressedGenes){
     fpkm <- fpkm(ods)
     if(savefpkm){
-        assays(ods)[['fpkm']] <- fpkm
+        assay(ods, 'fpkm', withDimnames=FALSE) <- fpkm
     }
     passed <- rowQuantiles(fpkm, probs=percentile) > fpkmCutoff
     mcols(ods)['passedFilter'] <- passed

@@ -116,7 +116,7 @@ trueCounts <- function(ods){
 
 `trueCounts<-` <- function(ods, value){
     if(!'replacedTrueCounts' %in% assayNames(ods)){
-        assay(ods, 'replacedTrueCounts') <- value
+        assay(ods, 'replacedTrueCounts', withDimnames=FALSE) <- value
     }
     return(ods)
 }

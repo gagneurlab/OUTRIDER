@@ -2,7 +2,7 @@
 counts.replace.OutriderDataSet <- function(object, ..., value){
     mode(value) <- "integer"
     assay(object, "counts", ...) <- value
-    
+
     validObject(object)
     object
 }
@@ -80,7 +80,7 @@ normalizationFactors.OutriderDataSet <- function(object) {
     if (!"normalizationFactors" %in% assayNames(object)){
         return(NULL)
     }
-    assays(object)[["normalizationFactors"]]
+    assay(object, "normalizationFactors")
 }
 
 normFactors.replace.OutriderDataSet <- function(object, value) {
@@ -96,7 +96,7 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
     stopifnot(all(value > 0))
     
     # set the values and check the object
-    assays(object)[["normalizationFactors"]] <- value
+    assay(object, "normalizationFactors", withDimnames=FALSE) <- value
     validObject(object)
     object
 }
@@ -169,6 +169,6 @@ setReplaceMethod("normalizationFactors", signature(object="OutriderDataSet",
 #' @export "normalizationFactors<-"
 setReplaceMethod("normalizationFactors", signature(object="OutriderDataSet", 
         value="NULL"), function(object, value) {
-                assays(object)[["normalizationFactors"]] <- NULL
+                assay(object, "normalizationFactors") <- NULL
                 return(object)})
 

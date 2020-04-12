@@ -59,7 +59,7 @@ ZscoreMatrix <- function(ods, peerResiduals){
         Zscore <- (residuals - rowMeans(residuals)) / rowSds(residuals)
     }
     
-    assay(ods, "l2fc") <- log2fc
+    assay(ods, "l2fc", withDimnames=FALSE) <- log2fc
     zScore(ods) <- Zscore
     validObject(ods)
     return(ods)
