@@ -25,8 +25,6 @@ object.}
 \item{object}{An \code{OutriderDataSet} object.}
 
 \item{value}{The matrix of normalization factors}
-
-\item{...}{additional arguments}
 }
 \value{
 A numeric matrix containing the normalization factors or the 

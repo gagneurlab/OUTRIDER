@@ -121,7 +121,6 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
 #'         
 #' @param object An \code{OutriderDataSet} object.
 #' @param value The matrix of normalization factors
-#' @param ... additional arguments
 #' @return A numeric matrix containing the normalization factors or the 
 #'             OutriderDataSet object with an updated 
 #'             \code{normalizationFactors} assay.
