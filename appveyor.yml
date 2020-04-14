@@ -42,7 +42,7 @@ environment:
       
 build_script:
   - travis-tool.sh install_bioc BiocManager BiocCheck
-  - R -e 'BiocManager::install(Ncpus=5, ask=FALSE, upgrade=TRUE)'
+  - R -e "BiocManager::install(Ncpus=5, ask=FALSE, upgrade=TRUE)"
   - Rscript setupEnv.R
 
 test_script:
