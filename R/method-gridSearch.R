@@ -57,6 +57,7 @@ findEncodingDim <- function(ods,
     
     eval <- bplapply(X=params, ..., BPPARAM=BPPARAM, 
         FUN=function(i, ..., evalAucPRLoss=NA){
+            blas_set_num_threads(1L)
             evalAutoCorrection(ods, encoding_dim=i, BPPARAM=SerialParam(), ...)}
     )
     

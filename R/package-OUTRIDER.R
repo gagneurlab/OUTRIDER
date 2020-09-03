@@ -66,6 +66,8 @@
 #' 
 #' @importFrom Rcpp sourceCpp
 #' 
+#' @importFrom RhpcBLASctl blas_set_num_threads
+#' 
 #' @importFrom reshape2 melt
 #' 
 #' @importFrom S4Vectors DataFrame metadata metadata<-
