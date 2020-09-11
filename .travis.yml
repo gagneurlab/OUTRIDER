@@ -45,7 +45,7 @@ install:
 
 script:
   - R CMD build .
-  - R CMD BiocCheck --no-check-vignettes *tar.gz
+  - R -e 'BiocCheck::BiocCheck("." `no-check-vignettes`=TRUE)'
   - R CMD check --no-vignettes --timings *tar.gz
   - R -e 'devtools::run_examples()'
   - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
