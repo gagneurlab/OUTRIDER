@@ -39,17 +39,16 @@ before_install:
   - tlmgr install index marginfix bera nowidow parnotes
 
 install:
-  - R --version
   - Rscript setupEnv.R
-
+  - R --version
+  - R -e "BiocManager::version()"
 
 script:
   - R CMD build .
   - R -e 'BiocCheck::BiocCheck(".", `no-check-vignettes`=TRUE)'
   - R CMD check --no-vignettes --timings *tar.gz
-  - R -e 'devtools::run_examples()'
+  - R -e 'devtools::run_examples(run=TRUE, document=TRUE)'
   - cd vignettes && R CMD Sweave --engine=knitr::knitr --pdf OUTRIDER.Rnw
-
 
 after_success:
   - test $TRAVIS_BUILD_STAGE_NAME = "Test" && Rscript -e 'covr::codecov()'

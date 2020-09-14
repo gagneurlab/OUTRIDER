@@ -1,4 +1,4 @@
-BTYPE <- "both"
+BTYPE <- ifelse(.Platform$OS.type == 'unix', "source", "both")
 NCPUS <- 6
 START_TIME <- Sys.time()
 
