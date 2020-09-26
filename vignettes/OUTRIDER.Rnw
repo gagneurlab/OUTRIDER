@@ -270,7 +270,7 @@ However, the \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only
 well annotated 
 genes. This annotation will miss a lot of genes captured by RNA-seq. To include 
 all predicted annotations as well as non-coding RNAs please download the txdb 
-object from our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
+object from our homepage\footnote{\url{https://cmm.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
 or create it yourself from the UCSC website\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
 
 <<create txdb, eval=FALSE>>=
@@ -281,7 +281,7 @@ try({
             dbname="hg19", user='genome')
     map <- dbGetQuery(con, 'select kgId AS TXNAME, geneSymbol from kgXref')
     
-    txdbUrl <- paste0("https://i12g-gagneurweb.in.tum.de/public/",
+    txdbUrl <- paste0("https://cmm.in.tum.de/public/",
             "paper/mitoMultiOmics/ucsc.knownGenes.db")
     download.file(txdbUrl, "ucsc.knownGenes.db")
     txdb <- loadDb("ucsc.knownGenes.db")

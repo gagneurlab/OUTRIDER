@@ -1,15 +1,32 @@
+aberrant.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
+                    by=c("none", "sample", "gene")){
+    checkFullAnalysis(object)
+    
+    aberrantEvents <- padj(object) <= padjCutoff
+    if(isScalarNumeric(zScoreCutoff, na.ok=FALSE)){
+        aberrantEvents <- aberrantEvents & abs(zScore(object)) >= zScoreCutoff
+    }
+    
+    return(switch(match.arg(by),
+            none = aberrantEvents,
+            sample = colSums(aberrantEvents, na.rm=TRUE),
+            gene = rowSums(aberrantEvents, na.rm=TRUE)
+    ))
+}
+
 #' 
 #' Number of aberrant events
 #' 
 #' Identifies the aberrant events and returns the number of aberrant counts per
 #' gene or sample or returns a matrix indicating aberrant events.
 #' 
-#' @param ods An OutriderDataSet object
+#' @param object An OutriderDataSet object
 #' @param padjCutoff The padjust cutoff 
 #' @param zScoreCutoff The absolute Z-score cutoff, 
 #'             if NA or NULL no Z-score cutoff is used
 #' @param by if the results should be summarized by 'sample', 
 #'             'gene' or not at all (default).
+#' @param ... Currently not in use.
 #'
 #' @return The number of aberrent events by gene or sample or a TRUE/FALSE 
 #'             matrix of the size sample x gene of aberrent events.
@@ -24,19 +41,4 @@
 #' 
 #' @rdname aberrant
 #' @export
-aberrant <- function(ods, padjCutoff=0.05, zScoreCutoff=0, 
-                    by=c("none", "sample", "gene")){
-    checkFullAnalysis(ods)
-    
-    aberrantEvents <- padj(ods) <= padjCutoff
-    if(isScalarNumeric(zScoreCutoff, na.ok=FALSE)){
-        aberrantEvents <- aberrantEvents & abs(zScore(ods)) >= zScoreCutoff
-    }
-    
-    return(switch(match.arg(by),
-            none = aberrantEvents,
-            sample = colSums(aberrantEvents, na.rm=TRUE),
-            gene = rowSums(aberrantEvents, na.rm=TRUE)
-    ))
-}
-
+setMethod("aberrant", signature="OutriderDataSet", aberrant.OUTRIDER)

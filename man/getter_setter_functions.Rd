@@ -12,6 +12,7 @@
 \alias{pValue}
 \alias{padj}
 \alias{dispersions,OutriderDataSet-method}
+\alias{dispersions}
 \alias{theta}
 \title{Getter/Setter functions}
 \usage{
@@ -50,4 +51,7 @@ theta(ods)
 theta(ods) == 1/dispersions(ods)
 getBestQ(ods)
 
+}
+\seealso{
+\code{\link[DESeq2]{estimateDispersions}}
 }
