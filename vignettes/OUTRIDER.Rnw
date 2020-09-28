@@ -12,8 +12,8 @@ BiocStyle::latex()
 <<knitr, echo=FALSE, cache=FALSE, results="hide">>=
 library(knitr)
 opts_chunk$set(
-#    tidy=FALSE,
-#    dev="png",
+    tidy=FALSE,
+    dev="png",
     fig.width=7,
     fig.height=7,
     dpi=300,
