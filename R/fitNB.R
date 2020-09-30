@@ -7,7 +7,7 @@
 #' 
 #' @param object An OutriderDataSet
 #' @param BPPARAM by default bpparam()
-#' @param ... Currently not used,
+#' @param ... Currently not used.
 #' @return An OutriderDataSet object with the fitted model. Accessible through:
 #'             \code{mcols(ods)[,c('mu', 'theta')]}.
 #' 

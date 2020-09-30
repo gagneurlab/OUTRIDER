@@ -12,7 +12,7 @@
 
 \item{BPPARAM}{by default bpparam()}
 
-\item{...}{Currently not used,}
+\item{...}{Currently not used.}
 }
 \value{
 An OutriderDataSet object with the fitted model. Accessible through:
