@@ -16,8 +16,8 @@ install:
   #- choco install -y -PackageParameters LegacySupport=true imagemagick
   #- set "PATH=C:\Program Files\ImageMagick-7.0.8-Q16;%PATH%"
 
-cache:
-  - C:\RLibrary
+#cache:
+#  - C:\RLibrary
 
 environment:
   # parameters to setup R environment
@@ -28,7 +28,7 @@ environment:
   KEEP_VIGNETTES: TRUE
   GCC_PATH: mingw_64
   R_ARCH: x64
-  APPVEYOR_SAVE_CACHE_ON_ERROR: TRUE
+#  APPVEYOR_SAVE_CACHE_ON_ERROR: TRUE
   
   matrix:
     - R_VERSION: devel
