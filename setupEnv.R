@@ -66,5 +66,5 @@ R.utils::withTimeout(timeout=maxTime, {
 # https://github.com/Bioconductor/BiocStyle/issues/78
 if(R.version[['major']] == "3"){
     installIfReq(p="devtools", type=BTYPE, Ncpus=NCPUS)
-    devtools::install_version("knitr", version="1.29")
+    devtools::install_version("knitr", version="1.29", type="source")
 }
