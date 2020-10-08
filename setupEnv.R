@@ -65,6 +65,7 @@ R.utils::withTimeout(timeout=maxTime, {
 # fix knitr for 3.6 for more details see BiocStyle issue 78
 # https://github.com/Bioconductor/BiocStyle/issues/78
 if(R.version[['major']] == "3"){
+    options(repos=c(CRAN="http://cran.rstudio.com"))
     installIfReq(p="devtools", type=BTYPE, Ncpus=NCPUS)
     devtools::install_version("knitr", version="1.29", type="source")
 }
