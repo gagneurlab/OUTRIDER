@@ -11,18 +11,23 @@
 \title{Accessor functions for the normalization factors in an OutriderDataSet
 object.}
 \usage{
-\S4method{normalizationFactors}{OutriderDataSet}(object)
+\S4method{normalizationFactors}{OutriderDataSet}(object, ...)
 
-\S4method{normalizationFactors}{OutriderDataSet,matrix}(object) <- value
+\S4method{normalizationFactors}{OutriderDataSet,matrix}(object, minE = 0.5, ...) <- value
 
-\S4method{normalizationFactors}{OutriderDataSet,DataFrame}(object) <- value
+\S4method{normalizationFactors}{OutriderDataSet,DataFrame}(object, minE = 0.5, ...) <- value
 
-\S4method{normalizationFactors}{OutriderDataSet,data.frame}(object) <- value
+\S4method{normalizationFactors}{OutriderDataSet,data.frame}(object, minE = 0.5, ...) <- value
 
 \S4method{normalizationFactors}{OutriderDataSet,`NULL`}(object) <- value
 }
 \arguments{
-\item{object}{An \code{OutriderDataSet} object.}
+\item{object}{An \code{\link{OutriderDataSet}} object}
+
+\item{...}{Further arguments are passed on to the underlying assay function}
+
+\item{minE}{The minimal expected count, defaults to 0.5, to be used in 
+computing the expected log geom mean.}
 
 \item{value}{The matrix of normalization factors}
 }
@@ -57,7 +62,6 @@ all(normalizationFactors(ods) == t(sizeFactors(ods) * t(normFactors)))
 
 }
 \seealso{
-DESeq2::normalizationFactors
-
-\code{\link{sizeFactors}}
+\code{\link{sizeFactors}} 
+         \code{\link[DESeq2]{normalizationFactors}}
 }
