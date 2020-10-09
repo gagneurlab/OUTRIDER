@@ -1,7 +1,7 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.7.0
+Version: 1.7.1
 Date: 2020-04-13
 URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
@@ -27,7 +27,7 @@ biocViews: ImmunoOncology, RNASeq, Transcriptomics, Alignment, Sequencing,
 License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Depends:
     R (>= 3.6), 
     BiocParallel,
@@ -37,16 +37,14 @@ Depends:
     methods
 Imports:
     BBmisc,
-    Biobase,
     BiocGenerics,
-    compiler,
     DESeq2 (>= 1.16.1),
+    generics,
     GenomicRanges,
     ggplot2,
     grDevices,
     heatmaply,
     pheatmap,
-    gplots,
     graphics,
     IRanges,
     matrixStats,
@@ -79,6 +77,7 @@ LinkingTo:
 Collate:
     package-OUTRIDER.R
     class-OutriderDataSet.R
+    AllGenerics.R
     inputCheckerFunctions.R
     helperFunctions.R
     getNSetterFuns.R

@@ -7,14 +7,12 @@
 #' 
 #' @param object An OutriderDataSet
 #' @param BPPARAM by default bpparam()
-#' @param ... additional arguments, currently not used.
+#' @param ... Currently not used.
 #' @return An OutriderDataSet object with the fitted model. Accessible through:
 #'             \code{mcols(ods)[,c('mu', 'theta')]}.
 #' 
-#' @docType methods
 #' @name fit
 #' @rdname fit
-#' @aliases fit fit,OutriderDataSet-method
 #' 
 #' @examples 
 #' ods <- makeExampleOutriderDataSet()
@@ -23,13 +21,15 @@
 #' 
 #' mcols(ods)[1:10,c('mu', 'theta')]
 #' 
-#' @exportMethod fit 
-setGeneric("fit", function(object, ...) standardGeneric("fit"))
-
-#' @rdname fit
 #' @export
-setMethod("fit", "OutriderDataSet", function(object, BPPARAM=bpparam()){
-    fitTheta(object, BPPARAM=BPPARAM)})
+fit.OutriderDataSet <- function(object, BPPARAM=bpparam(), ...){
+    if(length(list(...))){
+        stop("... is currently not used. Please remove the ", 
+             "additional arguments: ", 
+             paste(names(list(...)), collapse=", "))
+    }
+    fitTheta(object, BPPARAM=BPPARAM)
+}
 
 fitTheta <- function(ods, BPPARAM){
     checkOutriderDataSet(ods)

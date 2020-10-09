@@ -1,3 +1,19 @@
+filterExpression.OUTRIDER <- function(object, gtfFile, fpkmCutoff=1, 
+                    percentile=0.95, filterGenes=TRUE, savefpkm=FALSE, 
+                    minCounts=FALSE, addExpressedGenes=TRUE, ...){
+    object <- filterMinCounts(object, filterGenes=filterGenes, 
+            verbose=minCounts)
+    if(isTRUE(minCounts)){
+        return(object)
+    }
+    if(!missing(gtfFile)){
+        object <- computeGeneLength(object, gtfFile=gtfFile, ...)
+    }
+    filterExp(object, fpkmCutoff=fpkmCutoff, percentile=percentile,
+            filterGenes=filterGenes, savefpkm=savefpkm, 
+            addExpressedGenes=addExpressedGenes)
+}
+
 #' 
 #' Filter expression
 #' 
@@ -8,7 +24,7 @@
 #' the basepair parameter as described in \code{\link[DESeq2]{fpkm}}.
 #' 
 #' @rdname filterExpression
-#' @param x An OutriderDataSet object
+#' @param object An OutriderDataSet object
 #' @param filterGenes If TRUE, the default, the object is subseted.
 #' @param minCounts If TRUE, only genes with 0 counts in all samples are 
 #'             filtered
@@ -38,26 +54,6 @@
 #' ods <- ods[mcols(ods)[['passedFilter']]]
 #' dim(ods)
 #' 
-#' @export
-setGeneric("filterExpression", 
-        function(x, ...) standardGeneric("filterExpression"))
-
-filterExpression.OUTRIDER <- function(x, gtfFile, fpkmCutoff=1, 
-                    percentile=0.95, filterGenes=TRUE, savefpkm=FALSE, 
-                    minCounts=FALSE, addExpressedGenes=TRUE, ...){
-    x <- filterMinCounts(x, filterGenes=filterGenes, verbose=minCounts)
-    if(isTRUE(minCounts)){
-        return(x)
-    }
-    if(!missing(gtfFile)){
-        x <- computeGeneLength(x, gtfFile=gtfFile, ...)
-    }
-    filterExp(x, fpkmCutoff=fpkmCutoff, percentile=percentile,
-            filterGenes=filterGenes, savefpkm=savefpkm, 
-            addExpressedGenes=addExpressedGenes)
-}
-
-#' @rdname filterExpression
 #' @export
 setMethod("filterExpression", "OutriderDataSet", filterExpression.OUTRIDER)
 

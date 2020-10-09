@@ -7,9 +7,7 @@
 #'
 #' @rawNamespace import(data.table, except=melt)
 #' 
-#' @importFrom methods as is new validObject
-#' 
-#' @importFrom Biobase rowMax
+#' @import methods
 #' 
 #' @importFrom BiocGenerics estimateSizeFactors plotDispEsts
 #' 
@@ -17,8 +15,7 @@
 #'          sizeFactors sizeFactors<- counts counts<-
 #'          DESeqDataSetFromMatrix DESeqDataSet
 #'          makeExampleDESeqDataSet show fpkm fpm
-#'          estimateSizeFactorsForMatrix replaceOutliers
-#'          dispersions
+#'          estimateSizeFactorsForMatrix replaceOutliers dispersions
 #' 
 #' @importFrom SummarizedExperiment colData colData<- rowData rowData<-
 #'          assays assays<- assayNames mcols mcols<- assay assay<-
@@ -27,8 +24,6 @@
 #'          isScalarValue isScalarNA chunk seq_col seq_row
 #' 
 #' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
-#' 
-#' @importFrom compiler cmpfun
 #' 
 #' @importFrom GenomicFeatures makeTxDbFromGFF exonsBy
 #' 
@@ -46,8 +41,6 @@
 #' @importFrom pheatmap pheatmap
 #' 
 #' @importFrom heatmaply heatmaply
-#'          
-#' @importFrom gplots barplot2 bluered heatmap.2
 #' 
 #' @importFrom graphics plot abline axis box grid legend lines mtext par points 
 #'          polygon text title
@@ -63,8 +56,6 @@
 #' @importFrom plyr .
 #' 
 #' @importFrom RColorBrewer brewer.pal
-#' 
-#' @importFrom Rcpp sourceCpp
 #' 
 #' @importFrom reshape2 melt
 #' 
@@ -104,6 +95,7 @@ globalVariables(package="OUTRIDER", c(
         "expRank",
         "ExprType", 
         "feature_id",
+        "fill",
         "frac",
         "Fraction",
         "GENE_ID",
@@ -125,11 +117,13 @@ globalVariables(package="OUTRIDER", c(
         "Rank",
         "rawcounts",
         "sampleID",
+        "sizeFactor",
         "value",
         "variable",
         "V1",
         "Var1",
         "Var2",
-        ".x", 
+        ".x",
+        "y",
         "z"))
 
