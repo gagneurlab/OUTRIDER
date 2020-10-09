@@ -7,16 +7,17 @@
 \alias{counts<-,OutriderDataSet,matrix-method}
 \title{Accessors for the 'counts' slot of an OutriderDataSet object.}
 \usage{
-\S4method{counts}{OutriderDataSet}(object, normalized = FALSE, minE = 0.5)
+\S4method{counts}{OutriderDataSet}(object, normalized = FALSE, minE = 0.5, ...)
 
 \S4method{counts}{OutriderDataSet,matrix}(object, ...) <- value
 }
 \arguments{
-\item{object}{OutriderDataSet}
+\item{object}{An \code{\link{OutriderDataSet}} object}
 
 \item{normalized}{TRUE/FALSE whether counts should be normalized}
 
-\item{minE}{minimal expected count.}
+\item{minE}{The minimal expected count, defaults to 0.5, to be used in 
+computing the expected log geom mean.}
 
 \item{...}{Further arguments are passed on to the underlying assay function}
 

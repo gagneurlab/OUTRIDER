@@ -7,8 +7,8 @@ counts.replace.OutriderDataSet <- function(object, ..., value){
     object
 }
 
-counts.OutriderDataSet <- function(object, normalized=FALSE, minE=0.5){
-    cnts <- assay(object, "counts")
+counts.OutriderDataSet <- function(object, normalized=FALSE, minE=0.5, ...){
+    cnts <- assay(object, "counts", ...)
     
     # raw counts
     if(!normalized) {
@@ -17,8 +17,16 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, minE=0.5){
     
     # normalized by normalization factors
     if(!is.null(normalizationFactors(object))) {
-        E <- t(apply(normalizationFactors(object), 1, pmax, minE))
-        return(cnts/E * exp(rowMeans(log(E))))
+        if(!"expectedLogGeomMean" %in% colnames(mcols(object))){
+            stop("The expectedLogGeomMean is missing in mcols(ods). ",
+                    "Did you set the normaliationFactors by hand? ",
+                    "Please use normalizationFactors(object) <- values.")
+        }
+        
+        # use cached expected log geom mean values
+        eMat <- pmax(normalizationFactors(object), minE)
+        eLGM <- mcols(object)[["expectedLogGeomMean"]]
+        return(cnts/eMat * eLGM)
     }
     
     # normalization by sizeFactors
@@ -49,10 +57,11 @@ counts.OutriderDataSet <- function(object, normalized=FALSE, minE=0.5){
 #' @aliases counts counts,OutriderDataSet-method 
 #'         counts<-,OutriderDataSet,matrix-method
 #'
-#' @param object OutriderDataSet
+#' @param object An \code{\link{OutriderDataSet}} object
 #' @param normalized TRUE/FALSE whether counts should be normalized
 #' @param value An integer matrix containing the counts
-#' @param minE minimal expected count.
+#' @param minE The minimal expected count, defaults to 0.5, to be used in 
+#'          computing the expected log geom mean.
 #' @param ... Further arguments are passed on to the underlying assay function
 #' @return A matrix containing the counts
 #' 
@@ -76,14 +85,14 @@ setReplaceMethod("counts", signature(object="OutriderDataSet", value="matrix"),
         counts.replace.OutriderDataSet)   
 
 
-normalizationFactors.OutriderDataSet <- function(object) {
+normalizationFactors.OutriderDataSet <- function(object, ...) {
     if (!"normalizationFactors" %in% assayNames(object)){
         return(NULL)
     }
-    assay(object, "normalizationFactors")
+    assay(object, "normalizationFactors", ...)
 }
 
-normFactors.replace.OutriderDataSet <- function(object, value) {
+normFactors.replace.OutriderDataSet <- function(object, minE=0.5, ..., value) {
     # enforce same dimnames and matrix type
     if(!is.matrix(value)){
         value <- as.matrix(value)
@@ -96,7 +105,13 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
     stopifnot(all(value > 0))
     
     # set the values and check the object
-    assay(object, "normalizationFactors", withDimnames=FALSE) <- value
+    assay(object, "normalizationFactors", ..., withDimnames=FALSE) <- value
+    
+    # compute the expected log geom mean values so we can cache them
+    mcols(object)[["expectedLogGeomMean"]] <- exp(
+            rowMeans2(log(pmax(value, minE))))
+    
+    # validate and return object
     validObject(object)
     object
 }
@@ -110,7 +125,6 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
 #' factors are stored within the OutriderDataset object. This normalization 
 #' factors are then used to compute the normalized counts.
 #'
-#' @seealso DESeq2::normalizationFactors
 #' @docType methods
 #' @name normalizationFactors
 #' @rdname normalizationFactors
@@ -118,14 +132,15 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
 #'         normalizationFactors<-,OutriderDataSet,matrix-method 
 #'         normalizationFactors<-,OutriderDataSet,DataFrame-method 
 #'         normalizationFactors<-,OutriderDataSet,NULL-method
-#'         
-#' @param object An \code{OutriderDataSet} object.
+#' 
+#' @inheritParams counts
 #' @param value The matrix of normalization factors
 #' @return A numeric matrix containing the normalization factors or the 
 #'             OutriderDataSet object with an updated 
 #'             \code{normalizationFactors} assay.
 #' 
-#' @seealso \code{\link{sizeFactors}}
+#' @seealso \code{\link{sizeFactors}} 
+#'          \code{\link[DESeq2]{normalizationFactors}}
 #' 
 #' @examples
 #'
