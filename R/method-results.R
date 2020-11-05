@@ -133,9 +133,105 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 
 #' @rdname results
 #' @export
-setGeneric("results", function(object, ...) standardGeneric("results"))
+setMethod("results", "OutriderDataSet", compileResults.OUTRIDER)
 
 #' @rdname results
 #' @export
-setMethod("results", "OutriderDataSet", compileResults.OUTRIDER)
+setMethod("results", "Outrider2DataSet", compileResults.OUTRIDER2)
+
+#' internal result function
+#' @noRd
+compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
+                                    round=2, all=FALSE, ...){
+    
+    #
+    # input check and parsing
+    # 
+    checkOutrider2DataSet(object)
+    checkFullAnalysis(object)
+    
+    if(is.null(rownames(object))){
+        rownames(object) <- paste('feature', seq_len(nrow(object)), sep='_')
+    }
+    
+    if(is.null(colnames(object))){
+        colnames(object) <- paste('sample', seq_len(ncol(object)), sep='_')
+    }
+    
+    if(isTRUE(round)){
+        round <- 2
+    }
+    
+    if(isFALSE(all)){
+        abByGene <- aberrant(object, 
+                             padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene")
+        abBySample <- aberrant(object, 
+                               padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")
+        object <- object[abByGene > 0, abBySample > 0]
+    }
+    
+    if(nrow(object) == 0){
+        if(isFALSE(all)){
+            warning('No significant events: use all=TRUE to print all events.')
+        } else {
+            warning('Please provide an object with at least one feature.')
+        }
+        return(data.table(
+            featureID=NA_character_,
+            sampleID=NA_character_,
+            pValue=NA_real_,
+            padjust=NA_real_,
+            zScore=NA_real_,
+            l2fc=NA_real_,
+            observed=NA_integer_,
+            normalized=NA_real_,
+            meanCorrected=NA_real_,
+            pvalDistribution=NA_real_,
+            additionalDistrParam=NA_real_,
+            aberrant=NA,
+            AberrantBySample=NA_integer_,
+            AberrantByGene=NA_integer_,
+            padj_rank=NA_real_)[0])
+    }
+    
+    #
+    # extract data
+    # 
+    ans <- data.table(
+        featureID        = rownames(object), 
+        sampleID         = rep(colnames(object), each=nrow(object)),
+        pValue           = c(pValue(object)),
+        padjust          = c(padj(object)),
+        zScore           = c(zScore(object)),
+        l2fc             = c(assay(object, "l2fc")),
+        observed         = c(observed(object)),
+        normalized       = c(observed(object, normalized=TRUE)),
+        meanCorrected    = rowMeans(observed(object, normalized=TRUE)),
+        pvalDistribution = modelParams(object, "distribution"),
+        additionalDistrParam = theta(object),
+        aberrant         = c(aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff)),
+        AberrantBySample = rep(each=nrow(object), aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")),
+        AberrantByGene   = aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene"),
+        padj_rank        = c(apply(padj(object), 2, rank)))
+    
+    # round columns if requested
+    if(is.numeric(round)){
+        devNull <- lapply(
+            c("normcounts", "zScore", "l2fc", "theta", "meanCorrected"),
+            function(x) ans[,c(x):=round(get(x), as.integer(round))] )
+    }
+    
+    # 
+    # keep only aberrent events and sort by padj value
+    # 
+    if(isFALSE(all)){
+        ans <- ans[aberrant == TRUE]
+    }
+    ans <- ans[order(padjust)]
+    
+    return(ans)
+}
 

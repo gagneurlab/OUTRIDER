@@ -34,15 +34,33 @@
 setGeneric("computeZscores", 
         function(ods, ...) standardGeneric("computeZscores"))
 
+#' #' @rdname computeZscores
+#' #' @export
+#' setMethod("computeZscores", "OutriderDataSet", 
+#'     function(ods, peerResiduals=FALSE, ...){ 
+#'         ZscoreMatrix(ods, peerResiduals=peerResiduals) })
+
 #' @rdname computeZscores
 #' @export
-setMethod("computeZscores", "OutriderDataSet", 
-    function(ods, peerResiduals=FALSE, ...){ 
-        ZscoreMatrix(ods, peerResiduals=peerResiduals) })
-
-ZscoreMatrix <- function(ods, peerResiduals){
+setMethod("computeZscores", "Outrider2DataSet", 
+          function(ods, peerResiduals=FALSE, ...){ 
+              
+    if(modelParams(ods, "distribution") == "Negative-Binomial"){
+        ods <- ZscoreMatrix.nb(ods, peerResiduals=peerResiduals) 
+    } else if(modelParams(ods, "distribution") == "Gaussian"){
+        ods <- ZscoreMatrix.gaussian(ods, peerResiduals=peerResiduals) 
+    } else{
+        stop("Z scores for distribution ", modelParams(ods, "distribution"),
+               " not yet implemented.")
+    }
+    return(ods)
+              
+})
+    
+ 
+ZscoreMatrix.nb <- function(ods, peerResiduals){
     if(length(normalizationFactors(ods)) == 0){
-        stop("Please fit the autoencoder first befor computing Z scores.")
+        stop("Please fit the autoencoder first before computing Z scores.")
     }
     
     # default Zscore calculation
@@ -67,6 +85,31 @@ ZscoreMatrix <- function(ods, peerResiduals){
 
 
 log2fc <- function(object){
-    log2(counts(object) + 1) - log2(normalizationFactors(object) + 1)
+    log2(raw(object) + 1) - log2(normalizationFactors(object) + 1)
 }
 
+
+ZscoreMatrix.gaussian <- function(ods, peerResiduals){
+    if(length(normalizationFactors(ods)) == 0){
+        stop("Please fit the autoencoder first before computing Z scores.")
+    }
+    
+    # default Zscore calculation
+    residuals <- preprocessed(ods) - normalizationFactors(ods)
+    Zscore <- (residuals - rowMeans(residuals)) / rowSds(residuals)
+    
+    # Use residuals from PEER if present
+    if(isTRUE(peerResiduals)){
+        if(!"PEER_model" %in% names(metadata(ods)) && 
+           !"residuals" %in% names(metadata(ods)[['PEER_model']])){
+            stop("Please fit the data with 'peer' first.")
+        }
+        residuals <- metadata(ods)[['PEER_model']][['residuals']]
+        Zscore <- (residuals - rowMeans(residuals)) / rowSds(residuals)
+    }
+    
+    assay(ods, "l2fc", withDimnames=FALSE) <- log2fc(ods)
+    zScore(ods) <- Zscore
+    validObject(ods)
+    return(ods)
+}

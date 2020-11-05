@@ -49,7 +49,7 @@ sizeFactors.OutriderDataSet <- function(object){
 
 #' @rdname sizeFactors
 #' @export sizeFactors
-setMethod("sizeFactors", signature(object="OutriderDataSet"), 
+setMethod("sizeFactors", signature(object="Outrider2DataSet"), 
         sizeFactors.OutriderDataSet)
 
 
@@ -68,13 +68,43 @@ sizeFactors.replace.OutriderDataSet <- function(object, value){
 
 #' @rdname sizeFactors
 #' @export "sizeFactors<-"
-setReplaceMethod("sizeFactors", signature(object="OutriderDataSet", 
+setReplaceMethod("sizeFactors", signature(object="Outrider2DataSet", 
         value="numeric"), sizeFactors.replace.OutriderDataSet)
 
 #' @rdname sizeFactors
 #' @export "sizeFactors<-"
-setReplaceMethod("sizeFactors", signature(object="OutriderDataSet", 
+setReplaceMethod("sizeFactors", signature(object="Outrider2DataSet", 
         value="NULL"), sizeFactors.replace.OutriderDataSet)
+
+
+#'
+#' OUTRIDER size Factor method which stores the log geom means.
+#' @noRd
+estimateSizeFactors.OUTRIDER2 <- function(object){
+    if(!'loggeomeans' %in% names(mcols(object))){
+        mcols(object)[['loggeomeans']] <- rowMeans(log(raw(object)))
+    }
+    loggeomeans <- mcols(object)[['loggeomeans']]
+    
+    if(all(is.infinite(loggeomeans))){
+        stop(paste("Every feature contains at least one zero,",
+                "cannot compute log geometric means"))
+    }
+    
+    sf <- apply(raw(object), 2, function(raw) {
+        exp(median((log(raw) - loggeomeans)[
+            is.finite(loggeomeans) & raw > 0])) # TODO check if this makes sense for general case
+    })
+    
+    sizeFactors(object) <- sf
+    validObject(object)
+    return(object)
+}
+
+#' @rdname sizeFactors
+#' @export estimateSizeFactors
+setMethod("estimateSizeFactors", "Outrider2DataSet", 
+        estimateSizeFactors.OUTRIDER2)
 
 
 #'
@@ -88,7 +118,7 @@ estimateSizeFactors.OUTRIDER <- function(object){
     
     if(all(is.infinite(loggeomeans))){
         stop(paste("Every gene contains at least one zero,",
-                "cannot compute log geometric means"))
+                   "cannot compute log geometric means"))
     }
     
     sf <- apply(counts(object), 2, function(cnts) {
@@ -104,5 +134,6 @@ estimateSizeFactors.OUTRIDER <- function(object){
 #' @rdname sizeFactors
 #' @export estimateSizeFactors
 setMethod("estimateSizeFactors", "OutriderDataSet", 
-        estimateSizeFactors.OUTRIDER)
+          estimateSizeFactors.OUTRIDER)
+
 

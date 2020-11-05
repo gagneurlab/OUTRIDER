@@ -38,7 +38,7 @@ checkOutriderDataSet <- function(ods){
 #' Checks that the object contains sizeFactors
 #' @noRd
 checkSizeFactors <- function(ods, funName=sys.calls()[[1]]){
-    checkOutriderDataSet(ods)
+    checkOutrider2DataSet(ods)
     if(is.null(sizeFactors(ods))){
         stop("Please calculate the size factors before calling the '", funName,
                 "' function. Please do: ods <- estimateSizeFactors(ods)")
@@ -75,6 +75,61 @@ checkThetaRange <- function(thetaRange){
     if(thetaRange[1] > thetaRange[2]){
         stop('The first element of the range has to be smaller', 
                 ' than the second one.')
+    }
+    return(invisible(TRUE))
+}
+
+#' 
+#' Checks general data requirements (for general Outrider2DataSet)
+#' @noRd
+checkDataRequirements <- function(ods, test=FALSE){
+    checkOutrider2DataSet(ods)
+    if(ncol(ods) == 0){
+        stop("Please provide at least one sample.")
+    }
+    if(nrow(ods) == 0){
+        stop("Please provide at least one feature.")
+    }
+    filterFeatures <- rowSums(is.na(raw(ods))) > 0
+    if(any(filterFeatures) & isFALSE(test)){
+        stop("There are features that contain NAs. Please filter first ",
+             "the data with: ods <- filterData(ods)")
+    }
+    return(invisible(filterFeatures))
+}
+
+checkPreprocessing <- function(ods){
+    if(modelParams(ods, "preprocessing") != "None"){
+        if(!("preprocessed" %in% assayNames(ods))){
+            stop("The ods needs to be preprocessed first. Please run first: ", 
+                 "ods <- preprocess(ods)")
+        }
+    }
+    if(is(ods, "OutriderDataSet")){
+        checkSizeFactors(ods, funName=sys.calls()[[1]])
+    }
+    return(invisible(TRUE))
+}
+
+#' 
+#' Checks that is is an Outride2rDataSet object
+#' @noRd
+checkOutrider2DataSet <- function(ods){
+    if(!is(ods, 'Outrider2DataSet')){
+        stop('Please provide an Outrider2DataSet.')
+    }
+    return(invisible(TRUE))
+}
+
+#' 
+#' Checks that is is an OutriderDataSet object
+#' @noRd
+checkFitInR <- function(ods, fitInR){
+    checkOutrider2DataSet(ods)
+    if(!is(ods, 'OutriderDataSet') & isTRUE(fitInR)){
+        stop('The fitting function in R works only for OutriderDataSet. ",
+             "For the more general Outrider2Dataset, please use the python "
+             "version by setting usePython=TRUE.')
     }
     return(invisible(TRUE))
 }

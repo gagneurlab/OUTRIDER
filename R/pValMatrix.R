@@ -40,14 +40,38 @@
 setGeneric("computePvalues", 
         function(object, ...) standardGeneric("computePvalues"))
 
+#' #' @rdname computePvalues
+#' #' @export
+#' setMethod("computePvalues", "OutriderDataSet", function(object, 
+#'             alternative=c("two.sided", "greater", "less"), method='BY', 
+#'             BPPARAM=bpparam()){
+#'     
+#'     alternative <- match.arg(alternative)
+#'     object <- pValMatrix.nb(object, alternative, BPPARAM=BPPARAM)
+#'     
+#'     if(method != 'None'){
+#'         object <- padjMatrix(object, method)
+#'     }
+#'     object
+#' })
+
+
 #' @rdname computePvalues
 #' @export
-setMethod("computePvalues", "OutriderDataSet", function(object, 
+setMethod("computePvalues", "Outrider2DataSet", function(object, 
             alternative=c("two.sided", "greater", "less"), method='BY', 
             BPPARAM=bpparam()){
     
     alternative <- match.arg(alternative)
-    object <- pValMatrix(object, alternative, BPPARAM=BPPARAM)
+    
+    if(modelParams(object, "distribution") == "Negative-Binomial"){
+        object <- pValMatrix.nb(object, alternative, BPPARAM=BPPARAM)
+    } else if(modelParams(object, "distribution") == "Gaussian"){
+        object <- pValMatrix.gaussian(object, alternative, BPPARAM=BPPARAM)
+    } else{
+        stop("P values for distribution ", modelParams(object, "distribution"),
+             " not yet implemented.")
+    }
     
     if(method != 'None'){
         object <- padjMatrix(object, method)
@@ -55,7 +79,7 @@ setMethod("computePvalues", "OutriderDataSet", function(object,
     object
 })
 
-pValMatrix <- function(ods, alternative, BPPARAM){ 
+pValMatrix.nb <- function(ods, alternative, BPPARAM){ 
     if(!all(c("theta") %in% colnames(mcols(ods)))){
         stop(paste("Please fit the models first to estimate theta and",
                 "mu by running:\n\tods <- fit(ods)"))
@@ -71,8 +95,9 @@ pValMatrix <- function(ods, alternative, BPPARAM){
     }
     thetaMat <- outer(theta(ods), thetaCorrection(ods))
     
-    pValMat <- bplapply(seq_along(ods), pVal, ctsData=ctsData, theta=thetaMat,
-            mu=mu, normF=normF, alternative=alternative, BPPARAM=BPPARAM)
+    pValMat <- bplapply(seq_along(ods), pVal.nb, ctsData=ctsData, 
+            theta=thetaMat, mu=mu, normF=normF, alternative=alternative, 
+            BPPARAM=BPPARAM)
     
     pValue(ods) <- matrix(unlist(pValMat), nrow=length(ods), 
             byrow=TRUE, dimnames=dimnames(ods))
@@ -82,7 +107,7 @@ pValMatrix <- function(ods, alternative, BPPARAM){
 
 
 #' 
-#' Internal P-value calculation
+#' Internal NB P-value calculation
 #' 
 #' Since the distribution has an integer support one needs to take care of 
 #' summing over the x bin on both sides. Further need to take care, that 
@@ -103,7 +128,7 @@ pValMatrix <- function(ods, alternative, BPPARAM){
 #'
 #' @return p Value
 #' @noRd
-pVal <- function(index, ctsData, theta, mu, normFact, alternative){
+pVal.nb <- function(index, ctsData, theta, mu, normFact, alternative){
     x    <- ctsData[index,]
     mu   <- mu[index]
     
@@ -126,6 +151,33 @@ pVal <- function(index, ctsData, theta, mu, normFact, alternative){
     return(2 * pmin(0.5, pless, 1 - pless + dval))
 }
 
+#' Gaussian P value calculation
+#' 
+pValMatrix.gaussian <- function(ods, alternative, BPPARAM){ 
+    
+    inputData <- preprocessed(ods)
+    predicted <- normalizationFactors(ods)
+    residuals <- inputData - predicted
+    
+    sd <- rowSds(residuals, na.rm = T)
+    pval <- pnorm(inputData, mean=predicted, 
+        sd=matrix(sd, nrow=nrow(inputData), ncol=ncol(inputData), byrow=F))
+    
+    if(alternative == "less"){
+        pValue(ods) <- pval
+    }
+    if(alternative == "greater"){
+        pValue(ods) <- 1 - pval
+    } 
+    else{
+        pval <- 2 * pmin(pval, 1 - pval)
+        pValue(ods) <- pval
+        
+    }
+    
+    validObject(ods)
+    return(ods)
+}
 
 #' 
 #' FDR correction

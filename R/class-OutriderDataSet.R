@@ -34,7 +34,13 @@
 #' ods <- makeExampleOutriderDataSet(dataset="Kremer")
 #' ods
 #'    
-setClass("OutriderDataSet", contains="RangedSummarizedExperiment")
+setClass("OutriderDataSet", contains="Outrider2DataSet",
+         prototype = list(
+             distribution    = "Negative-Binomial",
+             preprocessing   = "None",
+             transformation  = "sf-log",
+             fitModel             = "Autoencoder"
+         ))
 
 #' check sample annotation within the colData slot of the SE object
 #' @noRd
@@ -45,22 +51,10 @@ validateCounts <- function(object) {
     if(!is.integer(assay(object, "counts"))){
         return("Please provide an integer count table.")
     }
+    if(min(assay(object, "counts")) < 0){
+        return("Please provide a count table with non-negative integers.")
+    }
     NULL
-}
-
-checkNames <- function(object){
-    n <- rownames(object)
-    if(is.null(n) | any(duplicated(n))){
-        return("Please provide unique rownames.")
-    }
-    n <- colnames(object)
-    if(is.null(n) | any(duplicated(n))){
-        return("Please provide unique colnames.")
-    }
-    cold <- colData(object) 
-    if(!"sampleID" %in% colnames(cold) | any(duplicated(cold[,"sampleID"]))){
-        return("Please provide unique sampleIDs in colData.")
-    }
 }
 
 
@@ -69,7 +63,8 @@ checkNames <- function(object){
 validateOutriderDataSet <- function(object) {
     c(
         checkNames(object),
-        validateCounts(object)
+        validateCounts(object),
+        validateModelParameters(object)
     )
 }
 setValidity("OutriderDataSet", validateOutriderDataSet)
@@ -79,7 +74,8 @@ setValidity("OutriderDataSet", validateOutriderDataSet)
 #' @noRd
 showOutriderDataSet <- function(object) {
     cat("class: OutriderDataSet\n")
-    show(as(object, "RangedSummarizedExperiment"))
+    # show(as(object, "RangedSummarizedExperiment"))
+    show(as(object, "Outrider2DataSet"))
 }
 
 setMethod("show", "OutriderDataSet", function(object) {

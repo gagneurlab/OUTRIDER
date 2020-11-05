@@ -76,7 +76,7 @@ setReplaceMethod("counts", signature(object="OutriderDataSet", value="matrix"),
         counts.replace.OutriderDataSet)   
 
 
-normalizationFactors.OutriderDataSet <- function(object) {
+normalizationFactors.Outrider2DataSet <- function(object) {
     if (!"normalizationFactors" %in% assayNames(object)){
         return(NULL)
     }
@@ -94,6 +94,25 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
     stopifnot(!any(is.na(value)))
     stopifnot(all(is.finite(value)))
     stopifnot(all(value > 0))
+    
+    # set the values and check the object
+    assay(object, "normalizationFactors", withDimnames=FALSE) <- value
+    
+    validObject(object)
+    object
+}
+
+
+normFactors.replace.Outrider2DataSet <- function(object, value) {
+    # enforce same dimnames and matrix type
+    if(!is.matrix(value)){
+        value <- as.matrix(value)
+    }
+    dimnames(value) <- dimnames(object)
+    
+    # sanity checks
+    stopifnot(!any(is.na(value)))
+    stopifnot(all(is.finite(value)))
     
     # set the values and check the object
     assay(object, "normalizationFactors", withDimnames=FALSE) <- value
@@ -147,27 +166,42 @@ normFactors.replace.OutriderDataSet <- function(object, value) {
 #' all(normalizationFactors(ods) == t(sizeFactors(ods) * t(normFactors)))
 #' 
 #' @export normalizationFactors
-setMethod("normalizationFactors", signature(object="OutriderDataSet"),
-        normalizationFactors.OutriderDataSet)
+setMethod("normalizationFactors", signature(object="Outrider2DataSet"),
+        normalizationFactors.Outrider2DataSet)
 
 #' @rdname normalizationFactors
 #' @export "normalizationFactors<-"
 setReplaceMethod("normalizationFactors", signature(object="OutriderDataSet", 
-        value="matrix"), normFactors.replace.OutriderDataSet)
+                                                   value="matrix"), normFactors.replace.OutriderDataSet)
 
 #' @rdname normalizationFactors
 #' @export "normalizationFactors<-"
 setReplaceMethod("normalizationFactors", signature(object="OutriderDataSet", 
-        value="DataFrame"), normFactors.replace.OutriderDataSet)
+                                                   value="DataFrame"), normFactors.replace.OutriderDataSet)
 
 #' @rdname normalizationFactors
 #' @export "normalizationFactors<-"
 setReplaceMethod("normalizationFactors", signature(object="OutriderDataSet", 
-        value="data.frame"), normFactors.replace.OutriderDataSet)
+                                                   value="data.frame"), normFactors.replace.OutriderDataSet)
 
 #' @rdname normalizationFactors
 #' @export "normalizationFactors<-"
-setReplaceMethod("normalizationFactors", signature(object="OutriderDataSet", 
+setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
+        value="matrix"), normFactors.replace.Outrider2DataSet)
+
+#' @rdname normalizationFactors
+#' @export "normalizationFactors<-"
+setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
+        value="DataFrame"), normFactors.replace.Outrider2DataSet)
+
+#' @rdname normalizationFactors
+#' @export "normalizationFactors<-"
+setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
+        value="data.frame"), normFactors.replace.Outrider2DataSet)
+
+#' @rdname normalizationFactors
+#' @export "normalizationFactors<-"
+setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
         value="NULL"), function(object, value) {
                 assay(object, "normalizationFactors") <- NULL
                 return(object)})

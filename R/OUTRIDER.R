@@ -75,3 +75,55 @@ OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder',
     return(ods)
 }
 
+OUTRIDER2 <- function(ods, q, controlData=TRUE, implementation='autoencoder', 
+                     usePython=TRUE, BPPARAM=bpparam(), ...){
+    checkOutrider2DataSet(ods)
+    implementation <- tolower(implementation)
+    
+    message(date(), ": Preprocessing ...")
+    ods <- preprocess(ods)
+    
+    if(isTRUE(controlData)){
+        message(date(), ": Controlling for confounders ...")
+        ods <- controlForConfounders2(ods, q=q, implementation=implementation, 
+                                        usePython=usePython, BPPARAM=BPPARAM, 
+                                        ...)
+    }
+    
+    if(isFALSE(controlData) | grepl("^(peer|pca)$", implementation)){
+        message(date(), ": Fitting the data ...")
+        ods <- fit(ods, BPPARAM=BPPARAM)
+    }
+    
+    message(date(), ": P-value calculation ...")
+    ods <- computePvalues(ods, BPPARAM=BPPARAM)
+    
+    message(date(), ": Zscore and fold-change calculation ...")
+    ods <- computeZscores(ods,
+                          peerResiduals=grepl('^peer$', implementation))
+    
+    validObject(ods)
+    return(ods)
+}
+
+#' @noRd
+preprocess <- function(ods){
+    prepro <- modelParams(ods, "preprocessing")
+    if(prepro == "None"){
+        # OutriderDataSet with gene counts (NB) -> size factor estimation
+        if(is(ods, "OutriderDataSet")){
+            message("\t", date(), ": SizeFactor estimation ...")
+            ods <- estimateSizeFactors(ods)
+        }
+    } 
+    if(prepro == "sf-log"){
+        message("\t", date(), ": SizeFactor estimation ...")
+        ods <- estimateSizeFactors(ods)
+        sf <- sizeFactors(ods)
+        
+        message("\t", date(), ":  Taking the log2 of the data ...")
+        preprocessed(ods) <- log((raw(ods) + 1) /  sf)
+    }
+    return(ods)
+}
+
