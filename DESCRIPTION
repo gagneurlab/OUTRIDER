@@ -1,8 +1,8 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.5.1
-Date: 2020-03-06
+Version: 1.7.2
+Date: 2020-10-20
 URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
 Authors@R: c(
@@ -37,16 +37,14 @@ Depends:
     methods
 Imports:
     BBmisc,
-    Biobase,
     BiocGenerics,
-    compiler,
     DESeq2 (>= 1.16.1),
+    generics,
     GenomicRanges,
     ggplot2,
     grDevices,
     heatmaply,
     pheatmap,
-    gplots,
     graphics,
     IRanges,
     matrixStats,
@@ -80,10 +78,9 @@ LinkingTo:
     RcppArmadillo
 Collate:
     package-OUTRIDER.R
-    AllClasses.R
-    AllGenerics.R
+    class-Outrider2DataSet.R
     class-OutriderDataSet.R
-    class-ProtriderDataSet.R
+    AllGenerics.R
     inputCheckerFunctions.R
     helperFunctions.R
     getNSetterFuns.R

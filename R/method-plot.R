@@ -1,6 +1,8 @@
 #'
 #' @title Visualization functions for OUTRIDER
-#'
+#' 
+#' @name plotFunction
+#' 
 #' @description The OUTRIDER package provides mutliple functions to visualize
 #' the data and the results of a full data set analysis.
 #'
@@ -202,34 +204,39 @@
 #' }
 #'
 #' @rdname plotFunctions
-#' @aliases plotFunctions plotVolcano plotQQ plotExpressionRank
-#'             plotCountCorHeatmap plotAberrantPerSample plotFPKM
-#'             plotDispEsts plotPowerAnalysis
-#' 
-#' @export
-plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
+#' @aliases plotFunctions plotVolcano plotQQ plotExpectedVsObservedCounts 
+#'       plotExpressionRank plotCountCorHeatmap plotCountGeneSampleHeatmap
+#'       plotAberrantPerSample plotFPKM plotDispEsts plotPowerAnalysis
+#'       plotEncDimSearch plotExpressedGenes plotSizeFactors
+#'
+NULL
+
+
+plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
+                    zScoreCutoff=0,
                     pch=16, basePlot=FALSE, col=c("gray", "firebrick")){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
     }
-    if(!all(c('padjust', 'zScore') %in% assayNames(ods))){
+    if(!all(c('padjust', 'zScore') %in% assayNames(object))){
         stop('Calculate Z-scores and P-values first.')
     }
     if(is.logical(sampleID)){
         sampleID <- which(sampleID)
     }
     if(is.numeric(sampleID)){
-        if(!(is.numeric(sampleID) && max(sampleID) <= ncol(ods))){
+        if(!(is.numeric(sampleID) && max(sampleID) <= ncol(object))){
             stop('Sample index is out of bounds:',
                     paste(sampleID, collapse=", "))
         }
-        sampleID <- colnames(ods)[sampleID]
+        sampleID <- colnames(object)[sampleID]
     }
-    if(!all(sampleID %in% colnames(ods))){
+    if(!all(sampleID %in% colnames(object))){
         stop("Sample ID is not in the data set.")
     }
     if(length(sampleID) > 1){
-        ans <- lapply(sampleID, plotVolcano, ods=ods, padjCutoff=padjCutoff,
+        ans <- lapply(sampleID, plotVolcano, object=object, 
+                padjCutoff=padjCutoff,
                 zScoreCutoff=zScoreCutoff, basePlot=basePlot)
         return(ans)
     }
@@ -237,20 +244,20 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
         main <- paste0("Volcano plot: ", sampleID)
     }
 
-    if(is.null(rownames(ods))){
-        rownames(ods) <- paste("feature", seq_len(nrow(ods)), sep="_")
+    if(is.null(rownames(object))){
+        rownames(object) <- paste("feature", seq_len(nrow(object)), sep="_")
     }
 
     dt <- data.table(
-        GENE_ID   = rownames(ods),
-        pValue    = pValue(ods)[,sampleID],
-        padjust   = padj(ods)[,sampleID],
-        zScore    = zScore(ods)[,sampleID],
-        normCts   = counts(ods, normalized=TRUE)[,sampleID],
-        medianCts = rowMedians(counts(ods, normalized=TRUE)),
+        GENE_ID   = rownames(object),
+        pValue    = pValue(object)[,sampleID],
+        padjust   = padj(object)[,sampleID],
+        zScore    = zScore(object)[,sampleID],
+        normCts   = counts(object, normalized=TRUE)[,sampleID],
+        medianCts = rowMedians(counts(object, normalized=TRUE)),
         expRank   = apply(
-                counts(ods, normalized=TRUE), 2, rank)[,sampleID],
-        aberrant  = aberrant(ods, padjCutoff=padjCutoff,
+                counts(object, normalized=TRUE), 2, rank)[,sampleID],
+        aberrant  = aberrant(object, padjCutoff=padjCutoff,
                 zScoreCutoff=zScoreCutoff)[,sampleID],
         color     = col[1])
     dt[aberrant == TRUE, color:=col[2]]
@@ -284,23 +291,27 @@ plotVolcano <- function(ods, sampleID, main, padjCutoff=0.05, zScoreCutoff=0,
 
 #' @rdname plotFunctions
 #' @export
-plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
+setMethod("plotVolcano", signature(object="OutriderDataSet"),
+        plotVolcano.OUTRIDER)
+
+
+plotQQ.OUTRIDER <- function(object, geneID, main, global=FALSE, padjCutoff=0.05,
                     zScoreCutoff=0, samplePoints=TRUE, legendPos="topleft",
                     outlierRatio=0.001, conf.alpha=0.05,
                     pch=16, xlim=NULL, ylim=NULL, col=NULL){
-    checkOutriderDataSet(ods)
+    checkOutriderDataSet(object)
     stopifnot(isScalarLogical(global))
     if(missing(geneID) & isFALSE(global)){
         stop('Please provide a geneID or set global to TRUE')
     }
     # Singel gene QQplot.
     if(isFALSE(global)){
-        geneID <- getGeneIndex(geneID, ods)
+        geneID <- getGeneIndex(geneID, object)
 
         # Produce multiple qqplot if geneID is a vector.
         if(length(geneID)>1L){
-            lapply(geneID, plotQQ, ods=ods, main=main, legendPos=legendPos,
-                    col=col, global=FALSE)
+            lapply(geneID, plotQQ, object=object, main=main, 
+                    legendPos=legendPos, col=col, global=FALSE)
             return(invisible())
         }
         #Plot QQplot for single gene.
@@ -310,11 +321,11 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
         if(is.null(col)){
             col <- c('black', 'firebrick')
         }
-        pVal <- as.numeric(assay(ods[geneID,], 'pValue'))
+        pVal <- as.numeric(assay(object[geneID,], 'pValue'))
         #plot all points with cex=1 for single gene.
         pointCex <- 1
         #data table with expected and observerd log10(pValues)
-        aberrantEvent <- aberrant(ods[geneID,], padjCutoff=padjCutoff,
+        aberrantEvent <- aberrant(object[geneID,], padjCutoff=padjCutoff,
                 zScoreCutoff=zScoreCutoff, by='sample')
         df <- data.table(obs= -log10(pVal), pch=pch, subset=FALSE,
                 col=ifelse(aberrantEvent, col[2], col[1]))
@@ -327,7 +338,7 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
         if(is.null(col)){
             col <- c('#d95f02', '#1b9e77')
         }
-        pVal <- as.numeric(assay(ods, 'pValue'))
+        pVal <- as.numeric(assay(object, 'pValue'))
 
         # Reducing Point size for global QQplot.
         pointCex <- .5
@@ -336,8 +347,8 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
         df <- data.table(obs= -log10(pVal), col=col[1], pch=pch, subset=FALSE)
 
         if(!is.null(outlierRatio)){
-            odssub <- ods[,aberrant(ods, by='s', padjCutoff=padjCutoff,
-                    zScoreCutoff=zScoreCutoff) < outlierRatio*length(ods)]
+            odssub <- object[,aberrant(object, by='s', padjCutoff=padjCutoff,
+                    zScoreCutoff=zScoreCutoff) < outlierRatio*length(object)]
             if(ncol(odssub) > 0){
                 pVal <- as.numeric(assay(odssub, 'pValue'))
                 dfsub <- data.table(obs=-log10(pVal), col=col[2], pch=pch,
@@ -428,6 +439,12 @@ plotQQ <- function(ods, geneID, main, global=FALSE, padjCutoff=0.05,
 
     return(invisible())
 }
+
+
+#' @rdname plotFunctions
+#' @export
+setMethod("plotQQ", signature(object="OutriderDataSet"), plotQQ.OUTRIDER)
+
 
 #' @rdname plotFunctions
 #' @export
@@ -616,10 +633,9 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     return(ggplotly(g))
 }
 
-#' @rdname plotFunctions
-#' @export
-plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
-                    rowGroups=NA, rowColSet=NA, colGroups=NA,
+
+plotCountCorHeatmap.OUTRIDER <- function(object, normalized=TRUE,
+                    rowCentered=TRUE, rowGroups=NA, rowColSet=NA, colGroups=NA,
                     colColSet=NA, nRowCluster=4, nColCluster=4,
                     main="Count correlation heatmap", basePlot=TRUE, nBreaks=50,
                     show_names=c("none", "row", "col", "both"), ...) {
@@ -630,7 +646,7 @@ plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
     
     if(!isTRUE(basePlot)){
         return(plotCountCorHeatmapPlotly(
-            ods, normalized=normalized, rowCentered=rowCentered,
+            object, normalized=normalized, rowCentered=rowCentered,
             rowGroups=rowGroups, rowColSet=rowColSet,
             colGroups=colGroups, colColSet=colColSet,
             nRowCluster=nRowCluster, nColCluster=nColCluster,
@@ -638,30 +654,30 @@ plotCountCorHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
     }
 
     # correlation
-    fcMat <- as.matrix(log2(counts(ods, normalized=normalized) + 1))
+    fcMat <- as.matrix(log2(counts(object, normalized=normalized) + 1))
     if(isTRUE(rowCentered)){
         fcMat <- fcMat - rowMeans(fcMat)
     }
     ctscor <- cor(fcMat, method="spearman")
 
     # extract annotation and set clustering if requested
-    annotation_row <- getAnnoHeatmap(x=ods, matrix=ctscor, groups=rowGroups,
+    annotation_row <- getAnnoHeatmap(x=object, matrix=ctscor, groups=rowGroups,
             nClust=nRowCluster, extractFun=colData)
-    annotation_col <- getAnnoHeatmap(x=ods, matrix=ctscor, groups=colGroups,
+    annotation_col <- getAnnoHeatmap(x=object, matrix=ctscor, groups=colGroups,
             nClust=nColCluster, extractFun=colData)
     if(!is.null(annotation_row) & "nClust" %in% colnames(annotation_row)){
-        colData(ods)[[paste0('clusterNumber_', nRowCluster)]] <- 
+        colData(object)[[paste0('clusterNumber_', nRowCluster)]] <- 
                 annotation_row[,'nClust']
     }
     if(!is.null(annotation_col) & "nClust" %in% colnames(annotation_col)){
-        colData(ods)[[paste0('clusterNumber_', nColCluster)]] <- 
+        colData(object)[[paste0('clusterNumber_', nColCluster)]] <- 
             annotation_col[,'nClust']
     }
     
     show_names <- match.arg(show_names, several.ok=FALSE)
 
     plotHeatmap(
-        ods, ctscor,
+        object, ctscor,
         annotation_row = annotation_row,
         annotation_col = annotation_col,
         rowColSet = rowColSet,
@@ -716,6 +732,11 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
     
     return(p)
 }
+
+#' @rdname plotFunctions
+#' @export
+setMethod("plotCountCorHeatmap", signature="OutriderDataSet", 
+        plotCountCorHeatmap.OUTRIDER)
 
 
 ##### plotCountGeneSampleHeatmap #####
@@ -824,7 +845,7 @@ plotHeatmap <- function(ods, mtx, annotation_row=NULL, annotation_col=NULL,
     print(pheatmap(
         mat = mtx,
         breaks = breaks,
-        color = bluered(length(breaks)),
+        color = colorRampPalette(c("blue", "white", "red"))(length(breaks)),
         main = main,
         border_color = NA,
         show_rownames = (show_names == 'row' | show_names == 'both'),
@@ -841,20 +862,19 @@ plotHeatmap <- function(ods, mtx, annotation_row=NULL, annotation_col=NULL,
 }
 
 
-#' @rdname plotFunctions
-#' @export
-plotAberrantPerSample <- function(ods, main='Aberrant Genes per Sample',
+plotAberrantPerSample.OUTRIDER <- function(object, 
+                    main='Aberrant Genes per Sample',
                     outlierRatio=0.001, col='Dark2', yadjust=1.2,
                     ylab="#Aberrantly expressed genes", ...){
     oneOffset <- 0.8
-    count_vector <- sort(aberrant(ods, by="sample", ...))
+    count_vector <- sort(aberrant(object, by="sample", ...))
     hlines = quantile(count_vector, c(0.5, 0.9))
     hlines[hlines == 0] <- oneOffset
     
     dt2p <- data.table(
             x=seq_along(count_vector),
             y=c(count_vector, c(1, oneOffset)[(count_vector != 0) + 1]),
-            fill=!count_vector <= max(1, length(ods)*outlierRatio))
+            fill=!count_vector <= max(1, length(object)*outlierRatio))
     
     g <- ggplot(dt2p, aes(x=x, y=y, fill=fill)) + 
         geom_bar(stat = "Identity") + 
@@ -876,6 +896,11 @@ plotAberrantPerSample <- function(ods, main='Aberrant Genes per Sample',
     
     g
 }
+
+#' @rdname plotFunctions
+#' @export
+setMethod("plotAberrantPerSample", signature="OutriderDataSet", 
+        plotAberrantPerSample.OUTRIDER)
 
 
 #' @rdname plotFunctions
@@ -965,7 +990,7 @@ plotDispEsts.OUTRIDER <- function(object, compareDisp, xlim, ylim,
 
 
 #' @rdname plotFunctions
-#' @exportMethod plotDispEsts
+#' @export
 setMethod("plotDispEsts", signature(object="OutriderDataSet"),
         plotDispEsts.OUTRIDER)
 
@@ -993,19 +1018,18 @@ plotPowerAnalysis <- function(ods){
                 linetype='Expression type') + ylim(0,15)
 }
 
-#' @rdname plotFunctions
-#' @export
-plotEncDimSearch <- function(ods){
-    if(is(ods, 'OutriderDataSet')){
-        if(!'encDimTable' %in% colnames(metadata(ods)) &
-                !is(metadata(ods)$encDimTable, 'data.table')){
+
+plotEncDimSearch.OUTRIDER <- function(object){
+    if(is(object, 'OutriderDataSet')){
+        if(!'encDimTable' %in% colnames(metadata(object)) &
+                !is(metadata(object)$encDimTable, 'data.table')){
             stop('Please run first the findEncodingDim before ',
                     'plotting the results of it.')
         }
-        dt <- metadata(ods)$encDimTable
-        q <- getBestQ(ods)
+        dt <- metadata(object)$encDimTable
+        q <- getBestQ(object)
     } else {
-        dt <- ods
+        dt <- object
         dt <- dt[, opt:=
                 encodingDimension[which.max(evaluationLoss)[1]], by=zScore]
         q <- dt[opt == encodingDimension, opt]
@@ -1032,6 +1056,11 @@ plotEncDimSearch <- function(ods){
                 y='Evaluation loss', col='Z score', linetype='Best Q') +
         scale_linetype_manual(values="dotted")
 }
+
+#' @rdname plotFunctions
+#' @export
+setMethod("plotEncDimSearch", signature="OutriderDataSet",
+        plotEncDimSearch.OUTRIDER)
 
 #' @rdname plotFunctions
 #' @export

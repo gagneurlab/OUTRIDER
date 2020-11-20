@@ -73,10 +73,14 @@ padj <- function(ods){
     return(ods)
 }
 
+
 #' @rdname getter_setter_functions
-#' @export dispersions
-setMethod("dispersions", signature(object="OutriderDataSet"), 
+#' @aliases dispersions dispersions,OutriderDataSet-method
+#' @seealso \code{\link[DESeq2]{estimateDispersions}}
+#' @export
+setMethod("dispersions", signature(object="OutriderDataSet"),
     function(object, ...){ 1/theta(object) })
+
 
 #' @rdname getter_setter_functions
 #' @export theta

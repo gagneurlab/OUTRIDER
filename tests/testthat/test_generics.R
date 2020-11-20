@@ -31,6 +31,10 @@ test_that("normalization function", {
     expect_equal(counts(ord)/E * exp(rowMeans(log(E))), 
             counts(ord, normalized=TRUE))
     
+    # check if subsetting affects the computation of the log geom mean
+    expect_equal((counts(ord)/E * exp(rowMeans(log(E))))[1:10,1:3], 
+            counts(ord[1:10,1:3], normalized=TRUE))
+    
     normalizationFactors(ord) <- NULL
     expect_null(normalizationFactors(ord))
     

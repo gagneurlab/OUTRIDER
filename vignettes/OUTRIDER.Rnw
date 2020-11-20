@@ -93,6 +93,11 @@ suppressPackageStartupMessages({
     library(OUTRIDER)
     library(beeswarm)
 })
+if(!is(bpparam(), "SerialParam")){
+    bp <- bpparam()
+    bpworkers(bp) <- min(4, bpworkers(bp))
+    register(bp)
+}
 @
 
 \section{Introduction}
@@ -221,10 +226,10 @@ from other Biocnductor backages can be used.
 odsSmall <- makeExampleOutriderDataSet(dataset="Kremer")
 
 # full data set from Kremer et al.
-count_URL <- paste0("http://media.nature.com/original/nature-assets/", 
-        "ncomms/2017/170612/ncomms15824/extref/ncomms15824-s1.txt")
-anno_URL <- paste0("http://media.nature.com/original/nature-assets/", 
-        "ncomms/2017/170612/ncomms15824/extref/ncomms15824-s8.txt")
+baseURL <- paste0("https://static-content.springer.com/esm/", 
+        "art%3A10.1038%2Fncomms15824/MediaObjects/")
+count_URL <- paste0(baseURL, "41467_2017_BFncomms15824_MOESM390_ESM.txt")
+anno_URL  <- paste0(baseURL, "41467_2017_BFncomms15824_MOESM397_ESM.txt")
 
 ctsTable <- read.table(count_URL, sep="\t")
 annoTable <- read.table(anno_URL, sep="\t", header=TRUE)
@@ -270,7 +275,7 @@ However, the \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only
 well annotated 
 genes. This annotation will miss a lot of genes captured by RNA-seq. To include 
 all predicted annotations as well as non-coding RNAs please download the txdb 
-object from our homepage\footnote{\url{https://i12g-gagneurweb.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
+object from our homepage\footnote{\url{https://cmm.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
 or create it yourself from the UCSC website\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
 
 <<create txdb, eval=FALSE>>=
@@ -281,7 +286,7 @@ try({
             dbname="hg19", user='genome')
     map <- dbGetQuery(con, 'select kgId AS TXNAME, geneSymbol from kgXref')
     
-    txdbUrl <- paste0("https://i12g-gagneurweb.in.tum.de/public/",
+    txdbUrl <- paste0("https://cmm.in.tum.de/public/",
             "paper/mitoMultiOmics/ucsc.knownGenes.db")
     download.file(txdbUrl, "ucsc.knownGenes.db")
     txdb <- loadDb("ucsc.knownGenes.db")
