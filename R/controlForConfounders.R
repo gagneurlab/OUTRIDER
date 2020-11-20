@@ -33,55 +33,55 @@
 #' plotCountCorHeatmap(ods, normalized=TRUE)
 #' 
 #' @export
-controlForConfounders <- function(ods, q,
-                    implementation=c('autoencoder', 'pca'), 
-                    BPPARAM=bpparam(), ...){
-    
-    # error checking
-    checkOutriderDataSet(ods)
-    checkCountRequirements(ods)
-    checkSizeFactors(ods)
-    
-    if(!missing(q)){
-        if(!(is.numeric(q) & q > 1 & q <= min(dim(ods)))){
-            stop("Please provide for q an integer greater than 1 and smaller ", 
-                    "than number of samples or genes.")
-        }
-    } else {
-        q <- getBestQ(ods)
-        if(is.na(q)){
-            q <- estimateBestQ(ods)
-            message('Using estimated q with: ', q)
-        } else {
-            message('Using provided q with: ', q)
-        }
-    }
-    
-    # pass on to the approriate implementation
-    implementation <- tolower(implementation)
-    implementation <- match.arg(implementation)
-    aeFun <- switch(implementation,
-        autoencoder = { 
-            function(ods, q, ...){ fitAutoencoder(ods, q, ...) } },
-        pca         = { 
-            function(ods, q, BPPARAM, ...){ autoCorrectPCA(ods, q, ...) } },
-        stop("Requested control implementation is unknown.")
-    )
-    
-    message(date(), ": Using the ", implementation, 
-            " implementation for controlling.")
-    ans <- aeFun(ods=ods, q=q, BPPARAM=BPPARAM, ...)
-    message(date(), ": Used the ", implementation, 
-            " implementation for controlling.")
-    
-    return(ans)
-}
+# controlForConfounders <- function(ods, q,
+#                     implementation=c('autoencoder', 'pca'), 
+#                     BPPARAM=bpparam(), ...){
+#     
+#     # error checking
+#     checkOutriderDataSet(ods)
+#     checkCountRequirements(ods)
+#     checkSizeFactors(ods)
+#     
+#     if(!missing(q)){
+#         if(!(is.numeric(q) & q > 1 & q <= min(dim(ods)))){
+#             stop("Please provide for q an integer greater than 1 and smaller ", 
+#                     "than number of samples or genes.")
+#         }
+#     } else {
+#         q <- getBestQ(ods)
+#         if(is.na(q)){
+#             q <- estimateBestQ(ods)
+#             message('Using estimated q with: ', q)
+#         } else {
+#             message('Using provided q with: ', q)
+#         }
+#     }
+#     
+#     # pass on to the approriate implementation
+#     implementation <- tolower(implementation)
+#     implementation <- match.arg(implementation)
+#     aeFun <- switch(implementation,
+#         autoencoder = { 
+#             function(ods, q, ...){ fitAutoencoder(ods, q, ...) } },
+#         pca         = { 
+#             function(ods, q, BPPARAM, ...){ autoCorrectPCA(ods, q, ...) } },
+#         stop("Requested control implementation is unknown.")
+#     )
+#     
+#     message(date(), ": Using the ", implementation, 
+#             " implementation for controlling.")
+#     ans <- aeFun(ods=ods, q=q, BPPARAM=BPPARAM, ...)
+#     message(date(), ": Used the ", implementation, 
+#             " implementation for controlling.")
+#     
+#     return(ans)
+# }
 
 #' OUTRIDER2 function for controlling for confounders, including option to 
 #' fit in python.
 #' 
 #' @export
-controlForConfounders2 <- function(ods, q,
+controlForConfounders <- function(ods, q,
                             implementation=c('autoencoder', 'pca'), 
                             usePython=FALSE, BPPARAM=bpparam(), ...){
     
@@ -89,18 +89,22 @@ controlForConfounders2 <- function(ods, q,
     checkOutrider2DataSet(ods)
     checkDataRequirements(ods)
     checkPreprocessing(ods)
-    checkFitInR(ods, !usePython)
     
-    if(!missing(q)){
+    if(!missing(q) && !is.null(q)){
         if(!(is.numeric(q) & q > 1 & q <= min(dim(ods)))){
             stop("Please provide for q an integer greater than 1 and smaller ", 
                  "than number of samples or genes.")
         }
+        message('Using specified q = ', q)
     } else {
         q <- getBestQ(ods)
         if(is.na(q)){
-            q <- estimateBestQ(ods)
-            message('Using estimated q with: ', q)
+            if(isTRUE(usePython)){
+                message("Estimating q with the python implementation")
+            } else{
+                q <- estimateBestQ(ods)
+                message('Using estimated q with: ', q)
+            }
         } else {
             message('Using provided q with: ', q)
         }
@@ -109,10 +113,12 @@ controlForConfounders2 <- function(ods, q,
     # pass on to the approriate implementation
     implementation <- tolower(implementation)
     implementation <- match.arg(implementation)
+    metadata(ods)[["fitModel"]] <- implementation
     if(isTRUE(usePython)){
-        aeFun <- function(ods, q, ...){ runPyCorrection(ods, q, 
+        aeFun <- function(ods, q, ...){ runPyCorrection(ods, q, implementation,
                                             ncpus=bpnworkers(BPPARAM), ...) }
     } else{
+        checkFitInR(ods)
         aeFun <- switch(implementation,
             autoencoder = { 
                 function(ods, q, ...){ fitAutoencoder(ods, q, ...) } },
@@ -126,7 +132,7 @@ controlForConfounders2 <- function(ods, q,
     message(date(), ": Using the ", progLang, " ", implementation, 
             " implementation for controlling.")
     ans <- aeFun(ods=ods, q=q, BPPARAM=BPPARAM, ...)
-    message(date(), ": Used the ", implementation, 
+    message(date(), ": Used the ", progLang, " ", implementation, 
             " implementation for controlling.")
     
     return(ans)
@@ -153,7 +159,7 @@ controlForConfounders2 <- function(ods, q,
 #' 
 #' @export
 computeLatentSpace <- function(ods){
-    stopifnot(is(ods, 'OutriderDataSet'))
+    stopifnot(is(ods, 'Outrider2DataSet'))
     if(is.null(D(ods)) | is.null(E(ods))){
         stop('The D or E weights are not computed yet. Please fit the ',
                 'autoencoder before extracting the latent space.')
@@ -181,29 +187,48 @@ computeLatentSpace <- function(ods){
 #' @return An ods object including the control factors 
 #' 
 #' @noRd
-runPyCorrection <- function(ods, q, covariates=NULL, 
-                            ncpus=bpnworkers(bpparam()), ...){
+runPyCorrection <- function(ods, q=NA, implementation=c("autoencoder", "pca"), 
+                            covariates=NULL, ncpus=bpnworkers(bpparam()), ...){
     
-    ### create args_param needed for py_outrider
-    if(is(ods, "OutriderDataSet")){
-        argsParam <- c("-p=outrider")
+    ### create parameter list needed for py_outrider run
+    if(implementation == "autoencoder"){
+        argsParam <- c("-p=outrider")    
+    } else if(implementation == "pca"){
+        argsParam <- c("-p=pca")    
+    } else{
+        stop("Unknown latent space fitting implementation: ", implementation)
     }
-    else if(is(ods, "ProtriderDataSet")){
-        argsParam <- c("-p=protrider")
-    }
-    else{
-        
-        argsParam <- c(paste0("-dis=", modelParams(ods, "distribution")),
-                        paste0("-dt=", modelParams(ods, "transformation")),
-                        paste0("-pre=", modelParams(ods, "preprocessing")))    
+
+    distr <- switch(modelParams(ods, "distribution"),
+                    "negative binomial"="neg_bin",
+                    "gaussian"="gaus")
+    sf_norm <- modelParams(ods, "sf_norm")        
+    trans <- switch(modelParams(ods, "transformation"),
+                    "log"  = ifelse(sf_norm, "sf", "log"),
+                    "none" = "none")
+    prepro <- switch(modelParams(ods, "preprocessing"),
+                     "none" = "none",
+                     "log"  = "sf_log",
+                     "vst"  = "none")
+    argsParam <- c(argsParam, paste0("-dis=", distr), paste0("-ld=", distr),
+                    paste0("-dt=", trans),
+                    paste0("-pre=", prepro))    
+    
+    # set encoding dim. if q=NA, hyperParOpt in python code will be used
+    if(!is.na(q)){
+        argsParam <- c(argsParam, paste0("-q=", q), paste0("--num_cpus=", ncpus))
+        extractHyperParOptResults <- FALSE
+    } else{
+        extractHyperParOptResults <- TRUE
     }
     
-    argsParam <- c(argsParam, paste0("-q=", q), paste0("-cpu=", ncpus))
-    
+    # set covariates to include in fit
     if(!is.null(covariates)){
-        argsParam <- c(argsParam,  paste0("-cov=", covariates))
+        argsParam <- c(argsParam,  "-cov", covariates)
+        covariates(ods) <- covariates
     }
     
+    # set optional additional parameters
     dots <- list(...)
     if(length(dots) > 0){
         if("iterations" %in% names(dots)){
@@ -215,19 +240,26 @@ runPyCorrection <- function(ods, q, covariates=NULL,
         if("seed" %in% names(dots)){
             argsParam <- c(argsParam,  paste0("-s=", dots$seed))
         }
-        # if("loss_distribution" %in% names(dots)){
-        #     argsParam <- c(argsParam,  paste0("-ld=", dots$loss_distribution))
-        # }
+        if("loss_distribution" %in% names(dots)){
+            argsParam <- c(argsParam,  paste0("-ld=", dots$loss_distribution))
+        }
+    }
+    
+    ### set correct input matrix
+    if(modelParams(ods, "preprocessing") == "vst"){
+        inputMatrix <- as.data.frame(t(preprocessed(ods)))
+    } else{
+        inputMatrix <- as.data.frame(t(observed(ods, normalized=FALSE)))
     }
     
     ### run python backend
-    pyRes <- py_outrider$main$run_from_R_OUTRIDER(as.data.frame(t(raw(ods))), 
-                                                  as.data.frame(colData(ods)), 
-                                                  argsParam)
-    # return(pyRes)
+    pyRes <- py_outrider$main$run_from_R_OUTRIDER(
+        inputMatrix, 
+        as.data.frame(colData(ods)), 
+        argsParam)
     
     ### add information from fit back to ods
-    ods <- addPyFitResults(ods, pyRes)
+    ods <- addPyFitResults(ods, pyRes, extractHyperParOptResults)
 
     # return ods
     return(ods)
@@ -236,25 +268,41 @@ runPyCorrection <- function(ods, q, covariates=NULL,
 
 #' Annotates ods object with informations from python fit
 #' @noRd
-addPyFitResults <- function(ods, pyRes){
+addPyFitResults <- function(ods, pyRes, extractHyperParOptResults=FALSE){
     
     # add fit information from python result back to ods
     normalizationFactors(ods) <- t(extract_pyRes(pyRes, "X_pred"))
-    theta(ods) <- extract_pyRes(pyRes, "par_meas")
+    
+    # add theta for neg bin fits
+    if(modelParams(ods, "distribution") == "negative binomial"){
+        theta(ods) <- extract_pyRes(pyRes, "par_meas")
+    }
+    
+    if(isTRUE(extractHyperParOptResults)){
+        encDimTable <- rbindlist(lapply(pyRes[["hyperpar_table"]], 
+                                        function(x){ as.data.table(x)}))
+        setnames(encDimTable, "encod_dim", "encodingDimension")
+        setnames(encDimTable, "prec_rec", "evaluationLoss")
+        setnames(encDimTable, "loss", "fitLoss")
+        encDimTable[,evalMethod:='aucPR']
+        metadata(ods)["encDimTable"] <- encDimTable
+        metadata(ods)[['optimalEncDim']] <- NULL
+        metadata(ods)[['optimalEncDim']] <- getBestQ(ods)
+    }
     
     # extract encoding dim (possibly with covariates)
     # q_with_cov <- extract_pyRes(pyRes, "encod_dim_cov")
-    # 
-    # # add encoder and decoder weights
-    # E(ods) <- extract_pyRes(pyRes, "encoder_weights")
-    # D(ods) <- extract_pyRes(pyRes, "decoder_weights")
-    # b(ods) <- extract_pyRes(pyRes, "decoder_bias")
+     
+    # add encoder and decoder weights
+    E(ods) <- extract_pyRes(pyRes, "encoder_weights")
+    D(ods) <- extract_pyRes(pyRes, "decoder_weights")
+    b(ods) <- extract_pyRes(pyRes, "decoder_bias")
     
     # return ods 
     return(ods)
 }
 
-#' Function to extract a matrix or vector from the python result (xarray)
+#' Function to extract a matrix or vector from the py_outrider result (xarray)
 #' @noRd
 extract_pyRes <- function(pyRes, aname){
     assay_xr <- pyRes[[aname]]

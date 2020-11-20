@@ -15,7 +15,8 @@
 #'          sizeFactors sizeFactors<- counts counts<-
 #'          DESeqDataSetFromMatrix DESeqDataSet
 #'          makeExampleDESeqDataSet show fpkm fpm
-#'          estimateSizeFactorsForMatrix replaceOutliers dispersions
+#'          estimateSizeFactorsForMatrix replaceOutliers dispersions 
+#'          varianceStabilizingTransformation
 #' 
 #' @importFrom SummarizedExperiment colData colData<- rowData rowData<-
 #'          assays assays<- assayNames mcols mcols<- assay assay<-
@@ -32,7 +33,7 @@
 #' @importFrom ggplot2 ggplot aes annotate geom_bar geom_histogram 
 #'          geom_hline geom_smooth geom_point labs scale_x_log10 
 #'          scale_y_log10 scale_fill_manual scale_color_manual 
-#'          scale_fill_brewer scale_color_brewer theme ylim 
+#'          scale_fill_brewer scale_color_brewer theme ylim guides 
 #'          ggtitle geom_vline geom_text scale_linetype_manual geom_line 
 #'          geom_abline theme_bw element_blank xlab ylab scale_color_identity
 #' 

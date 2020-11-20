@@ -45,9 +45,9 @@ setGeneric("computeZscores",
 setMethod("computeZscores", "Outrider2DataSet", 
           function(ods, peerResiduals=FALSE, ...){ 
               
-    if(modelParams(ods, "distribution") == "Negative-Binomial"){
+    if(modelParams(ods, "distribution") == "negative binomial"){
         ods <- ZscoreMatrix.nb(ods, peerResiduals=peerResiduals) 
-    } else if(modelParams(ods, "distribution") == "Gaussian"){
+    } else if(modelParams(ods, "distribution") == "gaussian"){
         ods <- ZscoreMatrix.gaussian(ods, peerResiduals=peerResiduals) 
     } else{
         stop("Z scores for distribution ", modelParams(ods, "distribution"),
@@ -85,7 +85,22 @@ ZscoreMatrix.nb <- function(ods, peerResiduals){
 
 
 log2fc <- function(object){
-    log2(raw(object) + 1) - log2(normalizationFactors(object) + 1)
+    log2(preprocessed(object) + 1) - 
+        log2(normalizationFactors(object) + 1)
+}
+
+delta <- function(object){
+    preprocessed(object) - normalizationFactors(object)
+}
+
+effect <- function(object){
+    distr <- modelParams(object)$distribution
+    
+    if(distr == "gaussian"){
+        return(delta(object))
+    } else{
+        return(log2fc(object))
+    }
 }
 
 
@@ -108,7 +123,7 @@ ZscoreMatrix.gaussian <- function(ods, peerResiduals){
         Zscore <- (residuals - rowMeans(residuals)) / rowSds(residuals)
     }
     
-    assay(ods, "l2fc", withDimnames=FALSE) <- log2fc(ods)
+    assay(ods, "delta", withDimnames=FALSE) <- residuals
     zScore(ods) <- Zscore
     validObject(ods)
     return(ods)

@@ -64,9 +64,9 @@ setMethod("computePvalues", "Outrider2DataSet", function(object,
     
     alternative <- match.arg(alternative)
     
-    if(modelParams(object, "distribution") == "Negative-Binomial"){
+    if(modelParams(object, "distribution") == "negative binomial"){
         object <- pValMatrix.nb(object, alternative, BPPARAM=BPPARAM)
-    } else if(modelParams(object, "distribution") == "Gaussian"){
+    } else if(modelParams(object, "distribution") == "gaussian"){
         object <- pValMatrix.gaussian(object, alternative, BPPARAM=BPPARAM)
     } else{
         stop("P values for distribution ", modelParams(object, "distribution"),

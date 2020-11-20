@@ -36,10 +36,10 @@
 #'    
 setClass("OutriderDataSet", contains="Outrider2DataSet",
          prototype = list(
-             distribution    = "Negative-Binomial",
-             preprocessing   = "None",
-             transformation  = "sf-log",
-             fitModel             = "Autoencoder"
+             distribution    = "negative binomial",
+             preprocessing   = "none",
+             transformation  = "log",
+             sf_norm         = TRUE
          ))
 
 #' check sample annotation within the colData slot of the SE object
@@ -81,6 +81,23 @@ showOutriderDataSet <- function(object) {
 setMethod("show", "OutriderDataSet", function(object) {
     showOutriderDataSet(object)
 })
+
+#' @exportMethods coerce
+setAs("Outrider2DataSet", "OutriderDataSet", function(from) {
+
+    anames <- assayNames(from)
+    if("observed" %in% anames){
+        message("converting counts to integer mode")
+        mode(observed(from)) <- "integer"
+        anames[which(anames == "observed")] <- "counts"
+        assayNames(from) <- anames
+    }
+    new("OutriderDataSet", from,
+          distribution=modelParams(from)$distribution,
+          transformation=modelParams(from)$transformation,
+          preprocessing=modelParams(from)$preprocessing)
+})
+
 
 #' @rdname OutriderDataSet-class
 #' @export

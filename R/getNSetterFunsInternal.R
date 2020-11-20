@@ -50,20 +50,42 @@ sampleExclusionMask <- function(ods, aeMatrix=FALSE){
     return(ods)
 }
 
+# x <- function(ods){
+#     k <- t(observed(ods, normalized=FALSE))
+#     s <- sizeFactors(ods)
+#     
+#     # compute log of per gene centered counts (per feature centered values)
+#     x0 <- log((1+k)/s)
+#     b <- colMeans(x0)
+#     x <- t(t(x0) - b)
+#     
+#     return(x)
+# }
+
 x <- function(ods){
-    k <- t(counts(ods, normalized=FALSE))
-    s <- sizeFactors(ods)
+    x0 <- transformed(ods)
     
-    # compute log of per gene centered counts 
-    x0 <- log((1+k)/s)
-    b <- colMeans(x0)
-    x <- t(t(x0) - b)
+    # compute per feature centered values
+    b <- rowMeans(x0)
+    x <- t(x0 - b)
+    
+    # add covariates as one-hot-encoded if requested
+    if(!is.null(covariates(ods))){
+        cov <- getCovariatesOneHotEncoded(ods)
+        x <- cbind(x, cov)
+    }
     
     return(x)
 }
 
 H <- function(ods){
-    x(ods) %*% E(ods)
+    H <- x(ods) %*% E(ods)
+    
+    if(!is.null(covariates(ods))){
+        H <- cbind(H, getCovariatesOneHotEncoded(ods))
+    }
+    
+    return(H)
 }
 
 `D<-` <- function(ods, value){
@@ -137,5 +159,54 @@ thetaCorrection <- function(ods){
     }
     colData(ods)[['thetaCorrection']] <- value
     return(ods)
+}
+
+transformed <- function(ods, normalized=FALSE){
+    checkOutrider2DataSet(ods)
+    trans <- modelParams(ods, "transformation")
+    sf_norm <- modelParams(ods, "sf_norm")
+    
+    if(trans == "none"){
+        transformed <- preprocessed(ods, normalized=normalized)
+    }
+    else if(trans == "log"){
+        if(isTRUE(sf_norm)){
+            # checkSizeFactors(ods)
+            k <- t(preprocessed(ods))
+            s <- sizeFactors(ods)
+            if(is.null(s)){
+                s <- estimateSizeFactorsForMatrix(t(k))
+            }
+            transformed <- t(log((1+k)/s))
+        } else{
+            transformed <- log1p(preprocessed(ods))
+        }
+    }
+    else{
+        stop("Unknown transformation ", trans, ".")
+    }
+    
+    return(transformed)
+}
+
+covariates <- function(ods){
+    return(metadata(ods)[['covariates']])
+}
+
+`covariates<-` <- function(ods, value){
+    if(!all(value %in% colnames(colData(ods)))){
+        stop("covariate has to be a column in colData(ods).")
+    }
+    metadata(ods)[['covariates']] <- value
+    return(ods)
+}
+
+variability <- function(ods){
+    if(modelParams(ods, "distribution") == "negative binomial"){
+        return(theta(ods))
+    }
+    else{
+        return(rowSds(preprocessed(ods)))
+    }
 }
 

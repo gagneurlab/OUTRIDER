@@ -10,6 +10,6 @@ py_outrider <- NULL
 .onLoad <- function(libname, pkgname){
     path <- system.file("python", package = packageName())
     py_outrider <<- reticulate::import_from_path(module="py_outrider",
-                                                path=path, delay_load=TRUE)
+                                                path=path) #, delay_load=TRUE)
     # py_outrider <<- reticulate::import("py_outrider", delay_load=TRUE)
 }

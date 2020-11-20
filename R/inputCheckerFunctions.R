@@ -50,16 +50,30 @@ checkSizeFactors <- function(ods, funName=sys.calls()[[1]]){
 #' Checks if the final padjust and zscore values are present
 #' @noRd
 checkFullAnalysis <- function(ods, funName=sys.calls()[[1]]){
-    checkSizeFactors(ods)
-    if(!'padjust' %in% assayNames(ods)){
-        stop("Please calculate the P-values before calling the '", funName,
-                "' function. Please do: ods <- computePvalues(ods)")
+    if(is(ods, "OutriderDataSet")){
+        checkSizeFactors(ods)
+        if(!'padjust' %in% assayNames(ods)){
+            stop("Please calculate the P-values before calling the '", funName,
+                    "' function. Please do: ods <- computePvalues(ods)")
+        }
+        if(!'zScore' %in% assayNames(ods)){
+            stop("Please calculate the Z-scores before calling the '", funName,
+                    "' function. Please do: ods <- computeZscores(ods)")
+        }
+        return(invisible(TRUE))
     }
-    if(!'zScore' %in% assayNames(ods)){
-        stop("Please calculate the Z-scores before calling the '", funName,
-                "' function. Please do: ods <- computeZscores(ods)")
+    else{
+        checkOutrider2DataSet(ods)
+        if(!'padjust' %in% assayNames(ods)){
+            stop("Please calculate the P-values before calling the '", funName,
+                 "' function. Please do: ods <- computePvalues(ods)")
+        }
+        if(!'zScore' %in% assayNames(ods)){
+            stop("Please calculate the Z-scores before calling the '", funName,
+                 "' function. Please do: ods <- computeZscores(ods)")
+        }
+        return(invisible(TRUE))
     }
-    return(invisible(TRUE))
 }
 
 #' 
@@ -90,7 +104,7 @@ checkDataRequirements <- function(ods, test=FALSE){
     if(nrow(ods) == 0){
         stop("Please provide at least one feature.")
     }
-    filterFeatures <- rowSums(is.na(raw(ods))) > 0
+    filterFeatures <- rowSums(is.na(observed(ods, normalized=FALSE))) > 0
     if(any(filterFeatures) & isFALSE(test)){
         stop("There are features that contain NAs. Please filter first ",
              "the data with: ods <- filterData(ods)")
@@ -99,7 +113,7 @@ checkDataRequirements <- function(ods, test=FALSE){
 }
 
 checkPreprocessing <- function(ods){
-    if(modelParams(ods, "preprocessing") != "None"){
+    if(modelParams(ods, "preprocessing") != "none"){
         if(!("preprocessed" %in% assayNames(ods))){
             stop("The ods needs to be preprocessed first. Please run first: ", 
                  "ods <- preprocess(ods)")
@@ -124,12 +138,23 @@ checkOutrider2DataSet <- function(ods){
 #' 
 #' Checks that is is an OutriderDataSet object
 #' @noRd
-checkFitInR <- function(ods, fitInR){
+checkFitInR <- function(ods){
     checkOutrider2DataSet(ods)
-    if(!is(ods, 'OutriderDataSet') & isTRUE(fitInR)){
-        stop('The fitting function in R works only for OutriderDataSet. ",
-             "For the more general Outrider2Dataset, please use the python "
-             "version by setting usePython=TRUE.')
+    if(modelParams(ods)$distribution !=  "negative binomial"){
+        stop("The fitting function in R works only for the negative binomial ", 
+             "distribution. For other distributions, please use the python ",
+             "version by setting usePython=TRUE.")
+    }
+    if(modelParams(ods)$preprocessing !=  "none"){
+        stop("The fitting function in R does not support preprocessing. ", 
+             "To use preprocessing, please use the python version by setting ",
+             "usePython=TRUE.")
+    }
+    if(isFALSE(modelParams(ods)$sf_norm) || 
+       modelParams(ods)$transformation !=  "log"){
+        stop("The fitting function in R works only for the log transformation ", 
+             "with sizefactor normalization. For other combinations, please ",
+             "use the python version by setting usePython=TRUE.")
     }
     return(invisible(TRUE))
 }

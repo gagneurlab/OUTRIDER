@@ -81,10 +81,24 @@ padj <- function(ods){
 setMethod("dispersions", signature(object="OutriderDataSet"),
     function(object, ...){ 1/theta(object) })
 
+setMethod("dispersions", signature(object="Outrider2DataSet"),
+          function(object, ...){ 
+                if(modelParams(object, "distribution") != "negative binomial"){
+                      stop("Dispersion is only defined for negative binomial, ", 
+                           "not for ", modelParams(object, "distribution"))
+                } else{
+                    1/theta(object) 
+                }
+})
+
 
 #' @rdname getter_setter_functions
 #' @export theta
 theta <- function(ods){
+    if(modelParams(ods, "distribution") != "negative binomial"){
+        stop("theta is only defined for negative- binomial distribution, ", 
+             "not for ", modelParams(object, "distribution"))
+    }
     if(!'theta' %in% colnames(mcols(ods))){
         stop('Please fit first the autoencoder before retrieving thetas.')
     }
@@ -100,14 +114,17 @@ theta <- function(ods){
 #' @rdname getter_setter_functions
 #' @export
 setMethod("modelParams", "Outrider2DataSet", function(object, paramName) {
-    # modelParams <- list(distribution = slot(object, "distribution"),
-    #                     transformation = slot(object, "transformation"),
-    #                     preprocessing = slot(object, "preprocessing"),
-    #                     fitModel = slot(object, "fitModel"))
-    if(!(paramName %in% c("distribution", "transformation", "preprocessing", 
-                          "fitModel"))){
-        stop("Argument paramName needs to be one of distribution, ", 
-             "transformation, preprocessing or fitModel.")
+    if(missing(paramName)){
+        modelParams <- list(distribution = slot(object, "distribution"),
+                            preprocessing = slot(object, "preprocessing"),
+                            transformation = slot(object, "transformation"),
+                            sf_norm = slot(object, "sf_norm"))
+        return(modelParams)
+    
+    } else if(!(paramName %in% c("distribution", "transformation", 
+                                    "preprocessing", "sf_norm"))){
+        stop("Argument paramName needs to be one of distribution, sf_norm, ", 
+             "transformation or preprocessing.")
     }
     modelParam <- slot(object, paramName)
     return(modelParam)
@@ -115,21 +132,38 @@ setMethod("modelParams", "Outrider2DataSet", function(object, paramName) {
 
 #' @rdname getter_setter_functions
 #' @export
-setReplaceMethod("modelParams", "Outrider2DataSet", function(object, paramName, value) {
-    slot(object, paramName) <- value
+setReplaceMethod("modelParams", "Outrider2DataSet", 
+        function(object, value, paramName) {
+    params <- c("distribution", "preprocessing", "transformation", "sf_norm")
+    if(!missing(paramName)){
+        slot(object, paramName) <- value
+    } else if(any(params %in% names(value))){
+        for(param in params[params %in% names(value)]){
+            slot(object, param) <- value[[param]] 
+        }
+    } else{
+        stop("Either specify the parameter name that shall be replaced or ", 
+             "provide a named list with the parameters to replace.")
+    }
     validObject(object)
     return(object)
 })
 
-#' @rdname getter_setter_functions
-#' @export
-setMethod("observed", "Outrider2DataSet", function(object, normalized=FALSE, 
-                                                    minE=0) {
+observed.OUTRIDER2 <- function(object, normalized=FALSE, minE=0.5, ...){
+    
+    if(modelParams(object, "distribution") != "negative binomial"){
+        minE=-Inf
+    }
     
     if(!("observed" %in% assayNames(object))){
-        stop("Assay 'observed' does not exist.")
+        if(!("counts" %in% assayNames(object))){
+            stop("Assay 'observed' does not exist.")
+        } else{
+            obs <- assay(object, "counts")
+        }
+    } else{
+        obs <- assay(object, "observed")
     }
-    obs <- assay(object, "observed")
     
     if(isFALSE(normalized)){
         return(obs)
@@ -146,7 +180,24 @@ setMethod("observed", "Outrider2DataSet", function(object, normalized=FALSE,
             # use cached expected log geom mean values
             eMat <- pmax(normalizationFactors(object), minE)
             eLGM <- mcols(object)[["expectedLogGeomMean"]]
-            return(obs/eMat * eLGM)
+            
+            # use preprocessed observations
+            obs <- preprocessed(object)
+            
+            # normalize
+            if(modelParams(object, "distribution") == "negative binomial"){
+                return(obs/eMat * eLGM)
+            } else{
+                norm <- (obs - eMat) + eLGM
+                if(modelParams(object, "transformation") == "log" ||
+                   modelParams(object, "preprocessing") == "log"){
+                    norm[norm < 0] <- 0
+                }
+                return(norm)
+                
+            }
+            
+            
         }
         
         # normalization by sizeFactors
@@ -156,59 +207,74 @@ setMethod("observed", "Outrider2DataSet", function(object, normalized=FALSE,
         }
         return(t(t(obs) / sizeFactors(object)))
     }
-})
+}
 
 #' @rdname getter_setter_functions
 #' @export
-setMethod("observed", "OutriderDataSet", function(object, normalized=FALSE) {
-    return(counts(object, normalized=normalized))
-})
+setMethod("observed", "Outrider2DataSet", observed.OUTRIDER2)
+
+#' #' @rdname getter_setter_functions
+#' #' @export
+#' setMethod("observed", "OutriderDataSet",
+#'     function(object, normalized=FALSE, minE=0.5, ...) {
+#'         observed.OUTRIDER2(object, normalized=normalized, minE=minE, ...)
+#' })
 
 #' @rdname getter_setter_functions
 #' @export
-setMethod("observed", "ProtriderDataSet", function(object, normalized=FALSE) {
-    return(assay(object, "intensities"))
-})
-
-#' @rdname getter_setter_functions
-#' @export
-setReplaceMethod("observed", "Outrider2DataSet", function(object, value) {
-    assay(object, "observed") <- value
+setReplaceMethod("observed", "Outrider2DataSet", function(object, value, ...) {
+    assay(object, "observed", ...) <- value
     validObject(object)
     return(object)
 })
 
 #' @rdname getter_setter_functions
 #' @export
-setReplaceMethod("observed", "OutriderDataSet", function(object, value) {
-    counts(object, normalized=FALSE) <- value
-    return(object)
-})
-
-#' @rdname getter_setter_functions
-#' @export
-setReplaceMethod("observed", "ProtriderDataSet", function(object, value) {
-    assay(object, "intensities") <- value
-    validObject(object)
+setReplaceMethod("observed", "OutriderDataSet", function(object, value, ...) {
+    counts(object, ...) <- value
     return(object)
 })
 
 
 #' @rdname getter_setter_functions
 #' @export
-setMethod("preprocessed", "Outrider2DataSet", function(object) {
-    if(!("preprocessed" %in% assayNames(object))){
-        return(raw(ods))
+setMethod("preprocessed", "Outrider2DataSet", 
+        function(object, normalized=FALSE) {
+    if(!("preprocessed" %in% assayNames(object)) || 
+       modelParams(object, "preprocessing") == "none"){
+        return(observed(object, normalized=normalized))
     }
+            
+    if(isTRUE(normalized)){
+        object <- preprocess(object, normalized=TRUE)
+    } 
     return(assay(object, "preprocessed"))
+    
 })
 
 #' @rdname getter_setter_functions
 #' @export
-setReplaceMethod("preprocessed", "Outrider2DataSet", function(object, value) {
-    assay(object, "preprocessed") <- value
+setReplaceMethod("preprocessed", "Outrider2DataSet", function(object, value, ...) {
+    assay(object, "preprocessed", ...) <- value
     validObject(object)
     return(object)
 })
 
+
+#' @rdname getter_setter_functions
+#' @export
+setMethod("expected", "Outrider2DataSet", function(object, ...) {
+    if(!("normalizationFactors" %in% assayNames(object))){
+        stop("Expected values have not yet been computed.")
+    }
+    return(normalizationFactors(object))
+})
+
+#' @rdname getter_setter_functions
+#' @export
+setReplaceMethod("expected", "Outrider2DataSet", function(object, value, ...) {
+    normalizationFactors(object) <- value
+    validObject(object)
+    return(object)
+})
 

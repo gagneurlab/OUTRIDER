@@ -82,7 +82,8 @@ setReplaceMethod("sizeFactors", signature(object="Outrider2DataSet",
 #' @noRd
 estimateSizeFactors.OUTRIDER2 <- function(object){
     if(!'loggeomeans' %in% names(mcols(object))){
-        mcols(object)[['loggeomeans']] <- rowMeans(log(raw(object)))
+        mcols(object)[['loggeomeans']] <- rowMeans(
+            log(observed(object, normalized=FALSE)))
     }
     loggeomeans <- mcols(object)[['loggeomeans']]
     
@@ -91,9 +92,9 @@ estimateSizeFactors.OUTRIDER2 <- function(object){
                 "cannot compute log geometric means"))
     }
     
-    sf <- apply(raw(object), 2, function(raw) {
-        exp(median((log(raw) - loggeomeans)[
-            is.finite(loggeomeans) & raw > 0])) # TODO check if this makes sense for general case
+    sf <- apply(observed(object, normalized=FALSE), 2, function(obs) {
+        exp(median((log(obs) - loggeomeans)[
+            is.finite(loggeomeans) & obs > 0])) # TODO check if this makes sense for general case
     })
     
     sizeFactors(object) <- sf

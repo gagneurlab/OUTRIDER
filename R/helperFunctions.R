@@ -216,6 +216,32 @@ getGeneIndex <- function(geneIdx, ods){
     return(geneIdx)
 }
 
+#'
+#' Get the feature name or index 
+#' 
+#' @noRd
+getFeatureIndex <- function(featureIdx, ods){
+    if(is.null(featureIdx)){
+        stop('Please provide a featureID')
+    }
+    if(is.logical(featureIdx)){
+        featureIdx <- which(featureIdx)
+    }
+    if(is.numeric(featureIdx)){
+        if(!(is.numeric(featureIdx) && max(featureIdx) <= nrow(ods))){
+            stop('Feature index is out of bounds:', 
+                paste(featureIdx, collapse=", "))
+        }
+        if(!is.null(rownames(ods))){
+            featureIdx <- rownames(ods)[featureIdx]
+        }
+    }
+    if(is.character(featureIdx) & any(!featureIdx %in% rownames(ods))){
+        stop("Feature ID is not in the data set.")
+    }
+    return(featureIdx)
+}
+
 #' @rdname getter_setter_functions
 #' @export
 getBestQ <- function(ods){
@@ -260,3 +286,43 @@ getBestQDT <- function(dt, usedEvalMethod='aucPR', digits=10){
 estimateBestQ <- function(ods){
     round(max(2, min(500, 3.7 + 0.16*ncol(ods))))
 }
+
+#' Get one hot encoding for specified covariates
+getCovariatesOneHotEncoded <- function(ods){
+    
+    # retrieve covariates to use
+    covariates <- covariates(ods)
+    
+    # fail if none specified
+    if(is.null(covariates)){
+        stop("No covariates specified. Set them first using covariates(ods) <-")
+    }
+    
+    # transform to one hot encoding
+    one_hot_list = lapply(covariates, function(x){
+        
+        cov <- factor(colData(ods)[[x]])
+        
+        if(ncol(ods) > 10 && nlevels(cov) > ncol(ods)*0.9){
+            warning("It looks like a continuous variable was provided as a ",
+                    "covariate. This usually is not useful.")
+        }
+        
+        cov_oneh <- model.matrix(~ 0 + cov)
+        colnames(cov_oneh) = paste0(x, "_", levels(cov))
+        
+        if(length(levels(cov)) == 2) { 
+            cov_oneh <- cov_oneh[, 1, drop=FALSE]
+        }
+        
+        return(cov_oneh)
+    })
+    
+    # bind to one matrix
+    oneh = as.matrix(do.call(cbind, one_hot_list))
+    rownames(oneh) <- rownames(colData(ods))
+    
+    return(oneh)
+}
+
+

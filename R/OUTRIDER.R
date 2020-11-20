@@ -45,38 +45,39 @@
 #' plotVolcano(ods, 1)
 #' 
 #' @export
+# OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder', 
+#                     BPPARAM=bpparam(), ...){
+#     checkOutriderDataSet(ods)
+#     implementation <- tolower(implementation)
+#     
+#     message(date(), ": SizeFactor estimation ...")
+#     ods <- estimateSizeFactors(ods)
+#     
+#     if(isTRUE(controlData)){
+#         message(date(), ": Controlling for confounders ...")
+#         ods <- controlForConfounders(ods, q=q, 
+#                 implementation=implementation, BPPARAM=BPPARAM, ...)
+#     }
+#     
+#     if(isFALSE(controlData) | grepl("^(peer|pca)$", implementation)){
+#         message(date(), ": Fitting the data ...")
+#         ods <- fit(ods, BPPARAM=BPPARAM)
+#     }
+#     
+#     message(date(), ": P-value calculation ...")
+#     ods <- computePvalues(ods, BPPARAM=BPPARAM)
+#     
+#     message(date(), ": Zscore calculation ...")
+#     ods <- computeZscores(ods, 
+#             peerResiduals=grepl('^peer$', implementation))
+#     
+#     validObject(ods)
+#     return(ods)
+# }
+# 
 OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder', 
-                    BPPARAM=bpparam(), ...){
-    checkOutriderDataSet(ods)
-    implementation <- tolower(implementation)
-    
-    message(date(), ": SizeFactor estimation ...")
-    ods <- estimateSizeFactors(ods)
-    
-    if(isTRUE(controlData)){
-        message(date(), ": Controlling for confounders ...")
-        ods <- controlForConfounders(ods, q=q, 
-                implementation=implementation, BPPARAM=BPPARAM, ...)
-    }
-    
-    if(isFALSE(controlData) | grepl("^(peer|pca)$", implementation)){
-        message(date(), ": Fitting the data ...")
-        ods <- fit(ods, BPPARAM=BPPARAM)
-    }
-    
-    message(date(), ": P-value calculation ...")
-    ods <- computePvalues(ods, BPPARAM=BPPARAM)
-    
-    message(date(), ": Zscore calculation ...")
-    ods <- computeZscores(ods, 
-            peerResiduals=grepl('^peer$', implementation))
-    
-    validObject(ods)
-    return(ods)
-}
-
-OUTRIDER2 <- function(ods, q, controlData=TRUE, implementation='autoencoder', 
-                     usePython=TRUE, BPPARAM=bpparam(), ...){
+                        usePython=ifelse(ncol(ods) < 500, FALSE, TRUE), 
+                        BPPARAM=bpparam(), ...){
     checkOutrider2DataSet(ods)
     implementation <- tolower(implementation)
     
@@ -85,13 +86,15 @@ OUTRIDER2 <- function(ods, q, controlData=TRUE, implementation='autoencoder',
     
     if(isTRUE(controlData)){
         message(date(), ": Controlling for confounders ...")
-        ods <- controlForConfounders2(ods, q=q, implementation=implementation, 
+        ods <- controlForConfounders(ods, q=q, implementation=implementation, 
                                         usePython=usePython, BPPARAM=BPPARAM, 
                                         ...)
     }
     
-    if(isFALSE(controlData) | grepl("^(peer|pca)$", implementation)){
-        message(date(), ": Fitting the data ...")
+    if(modelParams(ods)$distribution == "negative binomial" && 
+       (isFALSE(controlData) | grepl("^(peer|pca)$", implementation))){
+        message(date(), ": Fitting NB to the data ...")
+        ods <- as(ods, "OutriderDataSet")
         ods <- fit(ods, BPPARAM=BPPARAM)
     }
     
@@ -107,23 +110,35 @@ OUTRIDER2 <- function(ods, q, controlData=TRUE, implementation='autoencoder',
 }
 
 #' @noRd
-preprocess <- function(ods){
+preprocess <- function(ods, normalized=FALSE){
     prepro <- modelParams(ods, "preprocessing")
-    if(prepro == "None"){
-        # OutriderDataSet with gene counts (NB) -> size factor estimation
-        if(is(ods, "OutriderDataSet")){
-            message("\t", date(), ": SizeFactor estimation ...")
-            ods <- estimateSizeFactors(ods)
-        }
-    } 
-    if(prepro == "sf-log"){
+    trans <- modelParams(ods, "transformation")
+    sf_norm <- modelParams(ods, "sf_norm")
+        
+    # calculate sizefactors if needed
+    if(isTRUE(sf_norm) || prepro == "vst"){
         message("\t", date(), ": SizeFactor estimation ...")
         ods <- estimateSizeFactors(ods)
-        sf <- sizeFactors(ods)
-        
-        message("\t", date(), ":  Taking the log2 of the data ...")
-        preprocessed(ods) <- log((raw(ods) + 1) /  sf)
     }
+    
+    # apply specified preprocessing
+    if(prepro == "log"){
+        message("\t", date(), ":  Taking the log of the data ...")
+        if(sf_norm){
+            sf <- sizeFactors(ods)
+        } else{
+            sf <- rep(1, ncol(ods))
+        }
+        preprocessed(ods) <- 
+            log((observed(ods, normalized=normalized) + 1) /  sf)
+    }
+    if(prepro == "vst"){
+        message("\t", date(), ":  Variance stabilizing using DESeq2 ...")
+        preprocessed(ods) <- 
+            DESeq2::varianceStabilizingTransformation(
+                observed(ods, normalized=normalized))
+    }
+    
     return(ods)
 }
 
