@@ -98,50 +98,11 @@
 #     return(ans)
 # }
 
-#' 
-#' Accessor function for the 'results' object in an OutriderDataSet object. 
-#' 
-#' This function assembles a results table of significant outlier events based
-#' on the given filter criteria. The table contains various information 
-#' accumulated over the analysis pipeline. 
-#' 
-#' @param object An OutriderDataSet object
-#' @param padjCutoff The significant threshold to be applied
-#' @param zScoreCutoff If provided additionally a z score threshold is applied
-#' @param round Can be TRUE, defaults to 2, or an integer used for rounding
-#'             with \code{\link[base]{round}} to make the output
-#'             more user friendly
-#' @param all By default FALSE, only significant read counts are listed in the 
-#'             results. If TRUE all results are assembled resulting in a 
-#'             data.table of length samples x genes
-#' @param ... Additional arguments, currently not used
-#' 
-#' @return A data.table where each row is an outlier event and the columns
-#'             contain additional information about this event. Eg padj, l2fc
-#' 
-#' @examples
-#' 
-#' ods <- makeExampleOutriderDataSet()
-#' \dontshow{
-#'     ods <- ods[1:10,1:10]
-#' }
-#' ods <- OUTRIDER(ods)
-#' 
-#' res <- results(ods, all=TRUE)
-#' res
-#' 
-#' @name results
-#' @rdname results
-#' @aliases results results,OutriderDataSet-method
-#' 
-#' @export
-# setMethod("results", "OutriderDataSet", compileResults.OUTRIDER)
-
 
 #' internal result function
 #' @noRd
 compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
-                                    round=2, all=FALSE, ...){
+                                     round=2, all=FALSE, ...){
     
     #
     # input check and parsing
@@ -163,9 +124,9 @@ compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     
     if(isFALSE(all)){
         abByFeature <- aberrant(object, 
-                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="feature")
+                                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="feature")
         abBySample <- aberrant(object, 
-                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")
+                               padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")
         object <- object[abByFeature > 0, abBySample > 0]
     }
     
@@ -213,11 +174,11 @@ compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         sd               = variability(object),
         pvalDistribution = modelParams(object, "distribution"),
         aberrant         = c(aberrant(object, 
-                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff)),
+                                      padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff)),
         AberrantBySample = rep(each=nrow(object), aberrant(object, 
-                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")),
+                                                           padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")),
         AberrantByFeature   = aberrant(object, 
-                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="feature"),
+                                       padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="feature"),
         padj_rank        = c(apply(padj(object), 2, rank)))
     
     # round columns if requested
@@ -261,9 +222,48 @@ compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     return(ans)
 }
 
+#' 
+#' Accessor function for the 'results' object in an OutriderDataSet object. 
+#' 
+#' This function assembles a results table of significant outlier events based
+#' on the given filter criteria. The table contains various information 
+#' accumulated over the analysis pipeline. 
+#' 
+#' @param object An OutriderDataSet object
+#' @param padjCutoff The significant threshold to be applied
+#' @param zScoreCutoff If provided additionally a z score threshold is applied
+#' @param round Can be TRUE, defaults to 2, or an integer used for rounding
+#'             with \code{\link[base]{round}} to make the output
+#'             more user friendly
+#' @param all By default FALSE, only significant read counts are listed in the 
+#'             results. If TRUE all results are assembled resulting in a 
+#'             data.table of length samples x genes
+#' @param ... Additional arguments, currently not used
+#' 
+#' @return A data.table where each row is an outlier event and the columns
+#'             contain additional information about this event. Eg padj, l2fc
+#' 
+#' @examples
+#' 
+#' ods <- makeExampleOutriderDataSet()
+#' \dontshow{
+#'     ods <- ods[1:10,1:10]
+#' }
+#' ods <- OUTRIDER(ods)
+#' 
+#' res <- results(ods, all=TRUE)
+#' res
+#' 
 #' @name results
 #' @rdname results
 #' @aliases results results,Outrider2DataSet-method
 #' 
 #' @export
 setMethod("results", "Outrider2DataSet", compileResults.OUTRIDER2)
+# #' @name results
+# #' @rdname results
+# #' @aliases results results,OutriderDataSet-method
+# #' 
+# #' @export
+# setMethod("results", "OutriderDataSet", compileResults.OUTRIDER)
+

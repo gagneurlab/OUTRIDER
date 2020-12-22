@@ -9,6 +9,8 @@ OUTRIDER(
   q,
   controlData = TRUE,
   implementation = "autoencoder",
+  covariates = NULL,
+  usePython = checkUsePython(ods, covariates),
   BPPARAM = bpparam(),
   ...
 )
@@ -24,6 +26,9 @@ for confounders by the autoencoder}
 \item{implementation}{"autoencoder", the default, will use the autoencoder
 implementation. Also 'pca' and 'peer' can be used to control
 for confounding effects}
+
+\item{usePython}{Indicates whether the python or the R implementation of the
+given confounding method should be used.}
 
 \item{BPPARAM}{A 
 \code{\link[BiocParallel:BiocParallelParam-class]{BiocParallelParam}}

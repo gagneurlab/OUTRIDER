@@ -158,3 +158,20 @@ checkFitInR <- function(ods){
     }
     return(invisible(TRUE))
 }
+
+#'
+#' Checks if ods object is recommended to be fitted in python
+#' @noRd
+checkUsePython <- function(ods, covariates){
+    
+    if(!is.null(covariates)){
+        return(TRUE) # inclusion of known cov only supported by python backend
+    }
+    
+    canBeFittedInR <- try(checkFitInR(ods), silent=TRUE)
+    if(isScalarLogical(canBeFittedInR) && isTRUE(canBeFittedInR)){
+        return( ifelse(ncol(ods) < 1000, FALSE, TRUE) )
+    } else{
+        return(TRUE)
+    }
+}

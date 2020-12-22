@@ -57,9 +57,6 @@ aberrant.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #' 
 #' @rdname aberrant
 #' @export
-# setMethod("aberrant", signature="OutriderDataSet", aberrant.OUTRIDER)
-
-#' @rdname aberrant
-#' @export
 setMethod("aberrant", signature="Outrider2DataSet", aberrant.OUTRIDER2)
+# setMethod("aberrant", signature="OutriderDataSet", aberrant.OUTRIDER)
 

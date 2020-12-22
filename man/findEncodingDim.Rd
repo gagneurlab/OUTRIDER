@@ -8,7 +8,7 @@
 \usage{
 findEncodingDim(
   ods,
-  params = seq(2, min(100, ncol(ods) - 1, nrow(ods) - 1), 2),
+  params = getParamsToTest(ods),
   freq = 0.01,
   zScore = 3,
   sdlog = log(1.6),

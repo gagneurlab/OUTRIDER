@@ -2,12 +2,12 @@
 % Please edit documentation in R/AllGenerics.R, R/method-results.R
 \name{results}
 \alias{results}
-\alias{results,OutriderDataSet-method}
+\alias{results,Outrider2DataSet-method}
 \title{Accessor function for the 'results' object in an OutriderDataSet object.}
 \usage{
 results(object, ...)
 
-\S4method{results}{OutriderDataSet}(
+\S4method{results}{Outrider2DataSet}(
   object,
   padjCutoff = 0.05,
   zScoreCutoff = 0,

@@ -2,16 +2,16 @@
 % Please edit documentation in R/AllGenerics.R, R/method-evaluation.R
 \name{aberrant}
 \alias{aberrant}
-\alias{aberrant,OutriderDataSet-method}
+\alias{aberrant,Outrider2DataSet-method}
 \title{Number of aberrant events}
 \usage{
 aberrant(object, ...)
 
-\S4method{aberrant}{OutriderDataSet}(
+\S4method{aberrant}{Outrider2DataSet}(
   object,
   padjCutoff = 0.05,
   zScoreCutoff = 0,
-  by = c("none", "sample", "gene")
+  by = c("none", "sample", "feature")
 )
 }
 \arguments{
@@ -25,15 +25,15 @@ aberrant(object, ...)
 if NA or NULL no Z-score cutoff is used}
 
 \item{by}{if the results should be summarized by 'sample', 
-'gene' or not at all (default).}
+'feature' or not at all (default).}
 }
 \value{
-The number of aberrent events by gene or sample or a TRUE/FALSE 
-            matrix of the size sample x gene of aberrent events.
+The number of aberrant events by feature (e.g. gene) or sample or 
+            a TRUE/FALSE matrix of the size sample x gene of aberrant events.
 }
 \description{
 Identifies the aberrant events and returns the number of aberrant counts per
-gene or sample or returns a matrix indicating aberrant events.
+feature (e.g. gene) or sample or returns a matrix indicating aberrant events.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()
@@ -41,6 +41,6 @@ ods <- OUTRIDER(ods, implementation='pca')
 
 aberrant(ods)[1:10,1:10]
 tail(sort(aberrant(ods, by="sample")))
-tail(sort(aberrant(ods, by="gene")))
+tail(sort(aberrant(ods, by="feature")))
 
 }

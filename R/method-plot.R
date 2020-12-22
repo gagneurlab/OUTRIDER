@@ -902,7 +902,8 @@ plotCountCorHeatmap.OUTRIDER2 <- function(object, normalized=TRUE,
                     rowCentered=TRUE, rowGroups=NA, rowColSet=NA, colGroups=NA,
                     colColSet=NA, nRowCluster=4, nColCluster=4,
                     main="Sample correlation heatmap", basePlot=TRUE, nBreaks=50,
-                    show_names=c("none", "row", "col", "both"), ...) {
+                    show_names=c("none", "row", "col", "both"), 
+                    returnPlot=FALSE, ...) {
     
     checkDeprication(names2check=c("rowGroups"="rowCoFactor", 
             "colGroups"="colCoFactor", "nRow/nCol-Cluster"="nCluster", 
@@ -950,6 +951,7 @@ plotCountCorHeatmap.OUTRIDER2 <- function(object, normalized=TRUE,
         main = main,
         show_names = show_names,
         breaks=seq(-1, 1, length.out = nBreaks),
+        returnPlot=returnPlot,
         ...
     )
 }
@@ -958,14 +960,15 @@ plotCountCorHeatmap.OUTRIDER <- function(object, normalized=TRUE,
             rowCentered=TRUE, rowGroups=NA, rowColSet=NA, colGroups=NA,
             colColSet=NA, nRowCluster=4, nColCluster=4,
             main="Count correlation heatmap", basePlot=TRUE, nBreaks=50,
-            show_names=c("none", "row", "col", "both"), ...) {
+            show_names=c("none", "row", "col", "both"), 
+            returnPlot=FALSE, ...) {
     
     plotCountCorHeatmap.OUTRIDER2(
         object=object, normalized=normalized, rowCentered=rowCentered, 
         rowGroups=rowGroups, rowColSet=rowColSet, colGroups=colGroups,
         colColSet=colColSet, nRowCluster=nRowCluster, nColCluster=nColCluster,
         main=main, basePlot=basePlot, nBreaks=nBreaks, show_names=show_names, 
-        ...
+        returnPlot=returnPlot, ...
     )
         
 }
@@ -1100,7 +1103,7 @@ plotCountGeneSampleHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
 plotHeatmap <- function(ods, mtx, annotation_row=NULL, annotation_col=NULL,
                     rowColSet=NA, colColSet=NA, main = "Heatmap",
                     show_names = c("none", "col", "row", "both"),
-                    annotation_colors=NA, breaks=NA, ...){
+                    annotation_colors=NA, breaks=NA, returnPlot=FALSE, ...){
 
     if (is.null(rownames(ods))) {
         message("Missing row names, using row numbers.")
@@ -1131,7 +1134,7 @@ plotHeatmap <- function(ods, mtx, annotation_row=NULL, annotation_col=NULL,
     # option to show names in heatmap
     show_names <- match.arg(show_names, several.ok=FALSE)
 
-    print(pheatmap(
+    p <- pheatmap(
         mat = mtx,
         breaks = breaks,
         color = colorRampPalette(c("blue", "white", "red"))(length(breaks)),
@@ -1145,8 +1148,13 @@ plotHeatmap <- function(ods, mtx, annotation_row=NULL, annotation_col=NULL,
         labels_row = getNiceName(rownames(mtx), 12),
         labels_col = getNiceName(colnames(mtx), 12),
         ...
-    ))
-
+    )
+    
+    if(isTRUE(returnPlot)){
+        return(p)    
+    }
+    
+    print(p)
     return(invisible(ods))
 }
 
@@ -1484,6 +1492,39 @@ plotExpressedGenes <- function(ods, main='Statistics of expressed genes'){
     colnames(dt) <- names(exp_genes_cols)
     melt_dt <- melt(dt, id.vars = c('sampleID', 'Rank'))
 
+    ggplot(melt_dt, aes(Rank, value)) +
+        geom_point(aes(col = variable), size=1) +
+        geom_line(aes(col = variable)) +
+        theme_bw(base_size = 14) +
+        ylim(0, NA) +
+        theme(legend.position = 'top', legend.title = element_blank()) +
+        labs(y = 'Number of genes', x = 'Sample rank', title = main) +
+        scale_color_brewer(palette = 'Set1')
+}
+
+#' @rdname plotFunctions
+#' @export
+plotExpressedFeatures <- function(ods, main='Statistics of expressed features'){
+    checkOutrider2DataSet(ods)
+    # labels and col names
+    exp_genes_cols <- c(
+        'sampleID'                            = 'sampleID',
+        'Expressed\nfeatures'                 = 'expressedFeatures',
+        'Union of\nexpressed features'        = 'unionExpressedFeatures',
+        'Intersection of\nexpressed features' = 'intersectionExpressedFeatures',
+        'Features passed\nfiltering'          = 'passedFilterFeatures',
+        'Rank'                                = 'expressedFeaturesRank')
+    
+    # validate input
+    if(!all(exp_genes_cols %in% names(colData(ods)))){
+        stop('Compute expressed features first by executing \n\tods <- ',
+             'filterExpression(ods, addExpressedFeatures=TRUE)')
+    }
+    
+    dt <- as.data.table(colData(ods)[, exp_genes_cols])
+    colnames(dt) <- names(exp_genes_cols)
+    melt_dt <- melt(dt, id.vars = c('sampleID', 'Rank'))
+    
     ggplot(melt_dt, aes(Rank, value)) +
         geom_point(aes(col = variable), size=1) +
         geom_line(aes(col = variable)) +

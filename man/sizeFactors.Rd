@@ -8,14 +8,19 @@
 \alias{sizeFactors<-,OutriderDataSet,numeric-method}
 \alias{estimateSizeFactors}
 \alias{estimateSizeFactors,OutriderDataSet-method}
-\alias{sizeFactors<-,OutriderDataSet,NULL-method}
+\alias{sizeFactors,Outrider2DataSet-method}
+\alias{sizeFactors<-,Outrider2DataSet,numeric-method}
+\alias{sizeFactors<-,Outrider2DataSet,NULL-method}
+\alias{estimateSizeFactors,Outrider2DataSet-method}
 \title{SizeFactors accessor and estimation function}
 \usage{
-\S4method{sizeFactors}{OutriderDataSet}(object)
+\S4method{sizeFactors}{Outrider2DataSet}(object)
 
-\S4method{sizeFactors}{OutriderDataSet,numeric}(object) <- value
+\S4method{sizeFactors}{Outrider2DataSet,numeric}(object) <- value
 
-\S4method{sizeFactors}{OutriderDataSet,`NULL`}(object) <- value
+\S4method{sizeFactors}{Outrider2DataSet,`NULL`}(object) <- value
+
+\S4method{estimateSizeFactors}{Outrider2DataSet}(object)
 
 \S4method{estimateSizeFactors}{OutriderDataSet}(object)
 }

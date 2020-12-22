@@ -4,11 +4,12 @@
 \name{computePvalues}
 \alias{computePvalues}
 \alias{computePvalues,OutriderDataSet-method}
+\alias{computePvalues,Outrider2DataSet-method}
 \title{Calculate P-values}
 \usage{
 computePvalues(object, ...)
 
-\S4method{computePvalues}{OutriderDataSet}(
+\S4method{computePvalues}{Outrider2DataSet}(
   object,
   alternative = c("two.sided", "greater", "less"),
   method = "BY",

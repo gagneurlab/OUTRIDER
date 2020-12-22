@@ -17,11 +17,20 @@
 \alias{plotExpressedGenes}
 \alias{plotSizeFactors}
 \alias{plotVolcano,OutriderDataSet-method}
+\alias{plotVolcano,Outrider2DataSet-method}
+\alias{plotQQ,Outrider2DataSet-method}
 \alias{plotQQ,OutriderDataSet-method}
+\alias{plotExpectedVsObserved}
+\alias{plotExpressionRank2}
 \alias{plotCountCorHeatmap,OutriderDataSet-method}
+\alias{plotCountCorHeatmap,Outrider2DataSet-method}
+\alias{plotFeatureSampleHeatmap}
+\alias{plotAberrantPerSample,Outrider2DataSet-method}
 \alias{plotAberrantPerSample,OutriderDataSet-method}
 \alias{plotDispEsts,OutriderDataSet-method}
 \alias{plotEncDimSearch,OutriderDataSet-method}
+\alias{plotEncDimSearch,Outrider2DataSet-method}
+\alias{plotExpressedFeatures}
 \title{Visualization functions for OUTRIDER}
 \usage{
 plotAberrantPerSample(object, ...)
@@ -43,6 +52,34 @@ plotVolcano(object, ...)
   pch = 16,
   basePlot = FALSE,
   col = c("gray", "firebrick")
+)
+
+\S4method{plotVolcano}{Outrider2DataSet}(
+  object,
+  sampleID,
+  main,
+  padjCutoff = 0.05,
+  zScoreCutoff = 0,
+  pch = 16,
+  basePlot = FALSE,
+  col = c("gray", "firebrick")
+)
+
+\S4method{plotQQ}{Outrider2DataSet}(
+  object,
+  featureID,
+  main,
+  global = FALSE,
+  padjCutoff = 0.05,
+  zScoreCutoff = 0,
+  samplePoints = TRUE,
+  legendPos = "topleft",
+  outlierRatio = 0.001,
+  conf.alpha = 0.05,
+  pch = 16,
+  xlim = NULL,
+  ylim = NULL,
+  col = NULL
 )
 
 \S4method{plotQQ}{OutriderDataSet}(
@@ -73,6 +110,18 @@ plotExpectedVsObservedCounts(
   ...
 )
 
+plotExpectedVsObserved(
+  ods,
+  featureID,
+  main,
+  basePlot = FALSE,
+  log = FALSE,
+  groups = c(),
+  groupColSet = "Set1",
+  dataAxisName = "values",
+  ...
+)
+
 plotExpressionRank(
   ods,
   geneID,
@@ -82,6 +131,20 @@ plotExpressionRank(
   normalized = TRUE,
   basePlot = FALSE,
   log = TRUE,
+  col = c("gray", "firebrick"),
+  groups = c(),
+  groupColSet = "Accent"
+)
+
+plotExpressionRank2(
+  ods,
+  featureID,
+  main,
+  padjCutoff = 0.05,
+  zScoreCutoff = 0,
+  normalized = TRUE,
+  basePlot = FALSE,
+  log = FALSE,
   col = c("gray", "firebrick"),
   groups = c(),
   groupColSet = "Accent"
@@ -101,6 +164,25 @@ plotExpressionRank(
   basePlot = TRUE,
   nBreaks = 50,
   show_names = c("none", "row", "col", "both"),
+  returnPlot = FALSE,
+  ...
+)
+
+\S4method{plotCountCorHeatmap}{Outrider2DataSet}(
+  object,
+  normalized = TRUE,
+  rowCentered = TRUE,
+  rowGroups = NA,
+  rowColSet = NA,
+  colGroups = NA,
+  colColSet = NA,
+  nRowCluster = 4,
+  nColCluster = 4,
+  main = "Sample correlation heatmap",
+  basePlot = TRUE,
+  nBreaks = 50,
+  show_names = c("none", "row", "col", "both"),
+  returnPlot = FALSE,
   ...
 )
 
@@ -119,6 +201,34 @@ plotCountGeneSampleHeatmap(
   show_names = c("none", "col", "row", "both"),
   nGenes = 500,
   nBreaks = 50,
+  ...
+)
+
+plotFeatureSampleHeatmap(
+  ods,
+  normalized = TRUE,
+  rowCentered = TRUE,
+  rowGroups = NA,
+  rowColSet = NA,
+  colGroups = NA,
+  colColSet = NA,
+  nRowCluster = 4,
+  nColCluster = 4,
+  main = "Feature vs Sample Heatmap",
+  varQuantile = 0.9,
+  show_names = c("none", "col", "row", "both"),
+  nFeatures = 500,
+  nBreaks = 50,
+  ...
+)
+
+\S4method{plotAberrantPerSample}{Outrider2DataSet}(
+  object,
+  main = "Aberrant Features per Sample",
+  outlierRatio = 0.001,
+  col = "Dark2",
+  yadjust = 1.2,
+  ylab = "#Aberrant features",
   ...
 )
 
@@ -147,7 +257,11 @@ plotPowerAnalysis(ods)
 
 \S4method{plotEncDimSearch}{OutriderDataSet}(object)
 
+\S4method{plotEncDimSearch}{Outrider2DataSet}(object)
+
 plotExpressedGenes(ods, main = "Statistics of expressed genes")
+
+plotExpressedFeatures(ods, main = "Statistics of expressed features")
 
 plotSizeFactors(ods, basePlot = TRUE)
 }

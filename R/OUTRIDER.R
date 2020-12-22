@@ -76,8 +76,8 @@
 # }
 # 
 OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder', 
-                        usePython=ifelse(ncol(ods) < 500, FALSE, TRUE), 
-                        BPPARAM=bpparam(), ...){
+                    covariates=NULL, usePython=checkUsePython(ods, covariates), 
+                    BPPARAM=bpparam(), ...){
     checkOutrider2DataSet(ods)
     implementation <- tolower(implementation)
     
@@ -88,7 +88,7 @@ OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder',
         message(date(), ": Controlling for confounders ...")
         ods <- controlForConfounders(ods, q=q, implementation=implementation, 
                                         usePython=usePython, BPPARAM=BPPARAM, 
-                                        ...)
+                                        covariates=covariates, ...)
     }
     
     if(modelParams(ods)$distribution == "negative binomial" && 

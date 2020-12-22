@@ -143,7 +143,7 @@ setMethod("show", "Outrider2DataSet", function(object) {
     showOutrider2DataSet(object)
 })
 
-#' @rdname OutriderModelDataSet-class
+#' @rdname Outrider2DataSet-class
 #' @export
 Outrider2DataSet <- function(se, inputData, colData, 
             distribution=c("gaussian", "negative binomial"), 

@@ -3,12 +3,12 @@
 \docType{methods}
 \name{computeZscores}
 \alias{computeZscores}
-\alias{computeZscores,OutriderDataSet-method}
+\alias{computeZscores,Outrider2DataSet-method}
 \title{Z score computation}
 \usage{
 computeZscores(ods, ...)
 
-\S4method{computeZscores}{OutriderDataSet}(ods, peerResiduals = FALSE, ...)
+\S4method{computeZscores}{Outrider2DataSet}(ods, peerResiduals = FALSE, ...)
 }
 \arguments{
 \item{ods}{OutriderDataSet}

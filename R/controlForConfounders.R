@@ -32,7 +32,7 @@
 #' plotCountCorHeatmap(ods, normalized=FALSE)
 #' plotCountCorHeatmap(ods, normalized=TRUE)
 #' 
-#' @export
+# #' @export
 # controlForConfounders <- function(ods, q,
 #                     implementation=c('autoencoder', 'pca'), 
 #                     BPPARAM=bpparam(), ...){
@@ -83,12 +83,23 @@
 #' @export
 controlForConfounders <- function(ods, q,
                             implementation=c('autoencoder', 'pca'), 
-                            usePython=FALSE, BPPARAM=bpparam(), ...){
+                            covariates=NULL, 
+                            usePython=checkUsePython(ods, covariates),
+                            BPPARAM=bpparam(), ...){
     
     # error checking
     checkOutrider2DataSet(ods)
     checkDataRequirements(ods)
     checkPreprocessing(ods)
+    
+    # check covariates argument
+    if(!is.null(covariates) && isFALSE(usePython)){
+        warning("Known covariates can only be included in the python ",
+                "implementation. Setting usePython=TRUE.\n",
+                "If you would like to use the R implementation, set ",
+                "'covariates=NULL' in the function call.")
+        usePython=TRUE
+    }
     
     if(!missing(q) && !is.null(q)){
         if(!(is.numeric(q) & q > 1 & q <= min(dim(ods)))){
@@ -116,6 +127,7 @@ controlForConfounders <- function(ods, q,
     metadata(ods)[["fitModel"]] <- implementation
     if(isTRUE(usePython)){
         aeFun <- function(ods, q, ...){ runPyCorrection(ods, q, implementation,
+                                            covariates=covariates,
                                             ncpus=bpnworkers(BPPARAM), ...) }
     } else{
         checkFitInR(ods)
@@ -285,7 +297,7 @@ addPyFitResults <- function(ods, pyRes, extractHyperParOptResults=FALSE){
         setnames(encDimTable, "prec_rec", "evaluationLoss")
         setnames(encDimTable, "loss", "fitLoss")
         encDimTable[,evalMethod:='aucPR']
-        metadata(ods)["encDimTable"] <- encDimTable
+        metadata(ods)[["encDimTable"]] <- encDimTable
         metadata(ods)[['optimalEncDim']] <- NULL
         metadata(ods)[['optimalEncDim']] <- getBestQ(ods)
     }

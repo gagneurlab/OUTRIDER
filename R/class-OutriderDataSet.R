@@ -82,7 +82,8 @@ setMethod("show", "OutriderDataSet", function(object) {
     showOutriderDataSet(object)
 })
 
-#' @exportMethods coerce
+# #' @exportMethods coerce
+#' @noRd
 setAs("Outrider2DataSet", "OutriderDataSet", function(from) {
 
     anames <- assayNames(from)
@@ -197,8 +198,8 @@ makeExampleOutriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     
     theta <- rlnorm(n, meanlog=log(180), sdlog=2)  # dispersion
     logMean <- 5                                   # log offset for mean expres
-    sdVec <- rep(0.5, m)                           # sd for H matrix
-    
+    # sdVec <- rep(0.5, m)                          # sd for H matrix
+    sdVec <- rep(0.73-0.206*log10(q), m)            # sd for H matrix
     #
     # Simulate covariates.
     #
@@ -214,6 +215,7 @@ makeExampleOutriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     # Simulate count Matrix with specified means.
     #
     k <- matrix(rnbinom(m*n, mu=mu, size=theta), nrow=n, ncol=m)
+    k[k > .Machine$integer.max] <- .Machine$integer.max
     mode(k) <- 'integer'
     
     #

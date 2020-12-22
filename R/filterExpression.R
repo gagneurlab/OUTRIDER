@@ -14,6 +14,21 @@ filterExpression.OUTRIDER <- function(object, gtfFile, fpkmCutoff=1,
             addExpressedGenes=addExpressedGenes)
 }
 
+filterExpression.OUTRIDER2 <- function(object, minCutoff=0, percentile=0.95, 
+                    max_na_percentage=0.3, filterFeatures=TRUE, 
+                    onlyVariability=FALSE, addExpressedFeatures=TRUE, ...){
+    object <- filterNonVariable(object, filterFeatures=filterFeatures,
+                              verbose=onlyVariability)
+    if(isTRUE(onlyVariability)){
+        return(object)
+    }
+    filterExp.OUTRIDER2(object, minCutoff=minCutoff, percentile=percentile,
+            filterFeatures=filterFeatures, max_na_percentage=max_na_percentage,
+            addExpressedFeatures=addExpressedFeatures)
+}
+
+
+
 #' 
 #' Filter expression
 #' 
@@ -80,6 +95,42 @@ filterExp <- function(ods, fpkmCutoff, percentile, filterGenes, savefpkm,
             "This is ", signif(sum(!passed)/length(passed)*100, 3), 
             "% of the genes."))
     if(filterGenes==TRUE){
+        ods <- ods[passed == TRUE,]
+    }
+    
+    validObject(ods)
+    return(ods)
+}
+
+#' 
+#' @export
+setMethod("filterExpression", "Outrider2DataSet", filterExpression.OUTRIDER2)
+
+filterExp.OUTRIDER2 <- function(ods, minCutoff, percentile, filterFeatures, 
+                                max_na_percentage, addExpressedFeatures){
+    X <- observed(ods, normalized=FALSE)
+    passed_percentile <- rowQuantiles(X, probs=percentile) > minCutoff
+    mcols(ods)['passedPercentileFilter'] <- passed_percentile
+    passed_na <- ( rowSums(is.na(X)) / ncol(ods) ) <= max_na_percentage
+    mcols(ods)['passedNAFilter'] <- passed_na
+    passed <- passed_percentile & passed_na
+    mcols(ods)['passedFilter'] <- passed
+    
+    if(addExpressedFeatures == TRUE){
+        dt <- computeExpressedFeatures(X, cutoff=minCutoff, 
+                    percentile=percentile, max_na_percentage=max_na_percentage)
+        goodCols <- !colnames(colData(ods)) %in% colnames(dt[,-1])
+        colData(ods) <- DataFrame(row.names=colData(ods)$sampleID,
+                                  merge(colData(ods)[,goodCols, drop=FALSE], 
+                                        dt, by="sampleID", sort=FALSE))
+    }
+    
+    message(paste0(sum(!passed), ifelse(filterFeatures,
+            " features are filtered out. ", 
+            " features did not pass the filter. "),
+            "This is ", signif(sum(!passed)/length(passed)*100, 3), 
+            "% of the features."))
+    if(filterFeatures==TRUE){
         ods <- ods[passed == TRUE,]
     }
     
@@ -205,6 +256,32 @@ filterMinCounts <- function(x, filterGenes=FALSE, verbose=TRUE){
     return(x)
 }
 
+#'
+#' Filter features with no variability (all samples same value)
+#' 
+#' @noRd
+filterNonVariable <- function(x, filterFeatures=FALSE, verbose=TRUE){
+    x_in <- observed(x, normalized=FALSE)
+    # passed_variable <- rowSums(is.na(passed_variable)) == ncol(x)
+    passed_variable <- rowMins(x_in, na.rm=TRUE) != rowMaxs(x_in, na.rm=TRUE) 
+    passed_variable <- passed_variable | (rowSums(is.na(x_in)) == ncol(x))
+    mcols(x)['passedFilter'] <- passed_variable
+    mcols(x)['passedVariableFeatureFilter'] <- passed_variable
+    
+    if(isTRUE(verbose)){
+        message(paste0(sum(!passed_variable), 
+                " features did not pass the filter due to no variability",
+                " across samples. This is ", 
+                signif(sum(!passed_variable)/length(passed_variable)*100, 3), 
+                "% of the features"))
+    }
+    
+    if(isTRUE(filterFeatures)){
+        x <- x[passed_variable,]
+    }
+    return(x)
+}
+
 
 #'
 #' Returns a data.table with summary statistics per sample on number of genes
@@ -244,4 +321,50 @@ computeExpressedGenes <- function(fpkm, cutoff=1, percentile=0.95){
     expGenesDt[, c("expressedGenesRank"):=list(.I)]
     
     return(expGenesDt)
+}
+
+#'
+#' Returns a data.table with summary statistics per sample on number of features
+#' 
+#' @noRd
+computeExpressedFeatures <- function(x, cutoff=1, percentile=0.95, 
+                                        max_na_percentage=0.3){
+    
+    # Get cells that passed cutoff
+    naPassedMatrix <- !(is.na(x))
+    cutoffPassedMatrix <- (x > cutoff) & naPassedMatrix
+    
+    # Remove rows where no genes passed the cutoff
+    naPassedMatrix <- naPassedMatrix[rowSums(cutoffPassedMatrix) > 0,]
+    cutoffPassedMatrix <- cutoffPassedMatrix[rowSums(cutoffPassedMatrix) > 0,]
+    
+    # Make a data.table with the expressed genes
+    expFeaturesDt <- data.table(sampleID = colnames(cutoffPassedMatrix), 
+                             expressedFeatures = colSums(cutoffPassedMatrix))
+    
+    # order by sample rank
+    setorder(expFeaturesDt, "expressedFeatures")
+    cutoffPassedMatrix <- cutoffPassedMatrix[, expFeaturesDt$sample]
+    naPassedMatrix <- naPassedMatrix[, expFeaturesDt$sample]
+    
+    # Get the cumulative sum of expressed genes
+    cumSumMatrix <- rowCumsums(cutoffPassedMatrix + 0)
+    naCumSumMatrix <- rowCumsums(naPassedMatrix + 0)
+    
+    # Get the genes that appear in at least 1 sample
+    expFeaturesDt$unionExpressedFeatures <- colSums(cumSumMatrix > 0)
+    
+    # Get the genes common in all samples
+    expFeaturesDt$intersectionExpressedFeatures <- rowSums(
+        t(cumSumMatrix) == seq_col(cumSumMatrix))
+    
+    # Get number of genes passing the filtering
+    expFeaturesDt$passedFilterFeatures <- colSums(
+        (t(t(cumSumMatrix)/seq_col(cumSumMatrix)) >= 1-percentile) &
+        (t(t(naCumSumMatrix)/seq_col(naCumSumMatrix)) >= 1-max_na_percentage) )
+    
+    # Rank for plotting
+    expFeaturesDt[, c("expressedFeaturesRank"):=list(.I)]
+    
+    return(expFeaturesDt)
 }

@@ -293,15 +293,18 @@ injectOutliers.OUTRIDER2 <- function(ods, freq, zScore, inj, lnorm, sdlog){
         
         #multiply size factor again
         art_out <- sf[idxCol] * revtransFUN(clcount)
-        if(modelParams(ods, "distribution") == "negative binomial"){
+        if(modelParams(ods, "distribution") == "negative binomial" ||
+           modelParams(ods, "preprocessing") == "vst"){
             art_out <- round(art_out)
         }
         
         # only insert outliers if they are different from before 
         # and not too large and ensure values are >= 0 if logging shall be 
         # used as trans or prepro
-        if(art_out < max_out & values[idxRow, idxCol] != art_out &
-           !(art_out < 0 && any(grepl("log", unlist(modelParams(ods))))) ){
+        if(art_out < max_out & art_out < 1000 * max(values[idxRow,]) & 
+           values[idxRow, idxCol] != art_out &
+           !(art_out < 0 && (any(grepl("log", unlist(modelParams(ods)))) || 
+                             modelParams(ods, "preprocessing") == "vst")) ){
             values[idxRow, idxCol] <- art_out
         }else{
             index[idxRow, idxCol] <- 0

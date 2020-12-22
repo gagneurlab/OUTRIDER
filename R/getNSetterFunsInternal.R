@@ -172,14 +172,14 @@ transformed <- function(ods, normalized=FALSE){
     else if(trans == "log"){
         if(isTRUE(sf_norm)){
             # checkSizeFactors(ods)
-            k <- t(preprocessed(ods))
+            k <- t(preprocessed(ods, normalized=normalized))
             s <- sizeFactors(ods)
             if(is.null(s)){
                 s <- estimateSizeFactorsForMatrix(t(k))
             }
             transformed <- t(log((1+k)/s))
         } else{
-            transformed <- log1p(preprocessed(ods))
+            transformed <- log1p(preprocessed(ods, normalized=normalized))
         }
     }
     else{
