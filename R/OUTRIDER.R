@@ -130,7 +130,7 @@ preprocess <- function(ods, normalized=FALSE){
             sf <- rep(1, ncol(ods))
         }
         preprocessed(ods) <- 
-            log((observed(ods, normalized=normalized) + 1) /  sf)
+            t(log(t(observed(ods, normalized=normalized) + 1) /  sf))
     }
     if(prepro == "vst"){
         message("\t", date(), ":  Variance stabilizing using DESeq2 ...")

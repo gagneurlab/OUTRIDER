@@ -18,7 +18,7 @@ filterExpression.OUTRIDER2 <- function(object, minCutoff=0, percentile=0.95,
                     max_na_percentage=0.3, filterFeatures=TRUE, 
                     onlyVariability=FALSE, addExpressedFeatures=TRUE, ...){
     object <- filterNonVariable(object, filterFeatures=filterFeatures,
-                              verbose=onlyVariability)
+                              verbose=filterFeatures)
     if(isTRUE(onlyVariability)){
         return(object)
     }
@@ -109,7 +109,8 @@ setMethod("filterExpression", "Outrider2DataSet", filterExpression.OUTRIDER2)
 filterExp.OUTRIDER2 <- function(ods, minCutoff, percentile, filterFeatures, 
                                 max_na_percentage, addExpressedFeatures){
     X <- observed(ods, normalized=FALSE)
-    passed_percentile <- rowQuantiles(X, probs=percentile) > minCutoff
+    passed_percentile <- 
+        rowQuantiles(X, probs=percentile, na.rm=TRUE) > minCutoff
     mcols(ods)['passedPercentileFilter'] <- passed_percentile
     passed_na <- ( rowSums(is.na(X)) / ncol(ods) ) <= max_na_percentage
     mcols(ods)['passedNAFilter'] <- passed_na
@@ -262,9 +263,8 @@ filterMinCounts <- function(x, filterGenes=FALSE, verbose=TRUE){
 #' @noRd
 filterNonVariable <- function(x, filterFeatures=FALSE, verbose=TRUE){
     x_in <- observed(x, normalized=FALSE)
-    # passed_variable <- rowSums(is.na(passed_variable)) == ncol(x)
     passed_variable <- rowMins(x_in, na.rm=TRUE) != rowMaxs(x_in, na.rm=TRUE) 
-    passed_variable <- passed_variable | (rowSums(is.na(x_in)) == ncol(x))
+    passed_variable <- passed_variable & (rowSums(is.na(x_in)) != ncol(x_in))
     mcols(x)['passedFilter'] <- passed_variable
     mcols(x)['passedVariableFeatureFilter'] <- passed_variable
     
@@ -273,7 +273,7 @@ filterNonVariable <- function(x, filterFeatures=FALSE, verbose=TRUE){
                 " features did not pass the filter due to no variability",
                 " across samples. This is ", 
                 signif(sum(!passed_variable)/length(passed_variable)*100, 3), 
-                "% of the features"))
+                "% of the features."))
     }
     
     if(isTRUE(filterFeatures)){

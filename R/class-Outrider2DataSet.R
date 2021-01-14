@@ -259,6 +259,8 @@ makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     # Create Outrider data set
     #
     intensityData <- exp(k)
+    intensityData[sample(1:length(intensityData), 
+                         round(length(intensityData)*0.05))] <- NA # add NAs
     row.names(intensityData) <- paste0("feature_", seq_len(n))
     colnames(intensityData) <- paste0("sample_", seq_len(m))
     ods <- Outrider2DataSet(inputData=intensityData, distribution="gaussian", 

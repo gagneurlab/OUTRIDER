@@ -104,14 +104,18 @@ checkDataRequirements <- function(ods, test=FALSE){
     if(nrow(ods) == 0){
         stop("Please provide at least one feature.")
     }
-    filterFeatures <- rowSums(is.na(observed(ods, normalized=FALSE))) > 0
+    filterFeatures <- 
+        rowSums(is.na(observed(ods, normalized=FALSE))) == ncol(ods)
     if(any(filterFeatures) & isFALSE(test)){
-        stop("There are features that contain NAs. Please filter first ",
-             "the data with: ods <- filterData(ods)")
+        stop("There are features that contain only NAs. Please filter first ",
+             "the data with: ods <- filterExpression(ods)")
     }
     return(invisible(filterFeatures))
 }
 
+#' 
+#' Checks if preprocessing has been done (for general Outrider2DataSet)
+#' @noRd
 checkPreprocessing <- function(ods){
     if(modelParams(ods, "preprocessing") != "none"){
         if(!("preprocessed" %in% assayNames(ods))){
@@ -136,7 +140,7 @@ checkOutrider2DataSet <- function(ods){
 }
 
 #' 
-#' Checks that is is an OutriderDataSet object
+#' Checks that this Outrider2DataSet object can be fitted with the R functions
 #' @noRd
 checkFitInR <- function(ods){
     checkOutrider2DataSet(ods)

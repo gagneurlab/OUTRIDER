@@ -206,7 +206,7 @@ variability <- function(ods){
         return(theta(ods))
     }
     else{
-        return(rowSds(preprocessed(ods)))
+        return(rowSds(preprocessed(ods), na.rm=TRUE))
     }
 }
 

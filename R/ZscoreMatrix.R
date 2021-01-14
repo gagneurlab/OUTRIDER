@@ -111,7 +111,8 @@ ZscoreMatrix.gaussian <- function(ods, peerResiduals){
     
     # default Zscore calculation
     residuals <- preprocessed(ods) - normalizationFactors(ods)
-    Zscore <- (residuals - rowMeans(residuals)) / rowSds(residuals)
+    Zscore <- (residuals - rowMeans(residuals, na.rm=TRUE)) / rowSds(residuals, 
+                                                                na.rm=TRUE)
     
     # Use residuals from PEER if present
     if(isTRUE(peerResiduals)){
@@ -120,7 +121,8 @@ ZscoreMatrix.gaussian <- function(ods, peerResiduals){
             stop("Please fit the data with 'peer' first.")
         }
         residuals <- metadata(ods)[['PEER_model']][['residuals']]
-        Zscore <- (residuals - rowMeans(residuals)) / rowSds(residuals)
+        Zscore <- (residuals - rowMeans(residuals, na.rm=TRUE)) / 
+            rowSds(residuals, na.rm=TRUE)
     }
     
     assay(ods, "delta", withDimnames=FALSE) <- residuals
