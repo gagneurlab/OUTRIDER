@@ -87,8 +87,8 @@ estimateSizeFactors.OUTRIDER2 <- function(object){
     }
     loggeomeans <- mcols(object)[['loggeomeans']]
     
-    if(all(is.infinite(loggeomeans))){
-        stop(paste("Every feature contains at least one zero,",
+    if(all(is.infinite(loggeomeans) | is.na(loggeomeans))){
+        stop(paste("Every feature contains at least one value <= 0 or NA,",
                 "cannot compute log geometric means"))
     }
     

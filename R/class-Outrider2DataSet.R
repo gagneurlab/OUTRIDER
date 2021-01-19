@@ -224,9 +224,10 @@ Outrider2DataSet <- function(se, inputData, colData,
 #' @param inj Determines whether outliers are injected with the strategy 
 #'            ('both', 'low', 'high'), default is 'both'.
 #' @param sf Artificial Size Factors
-#' @param q number of simulated latend variables.
+#' @param q number of simulated latent variables.
 #' 
-#' @return An ProtriderDataSet containing an example dataset
+#' @return An Outrider2DataSet containing an example dataset for protein 
+#'         intensities
 #' 
 #' @examples
 #' # A generic dataset 
@@ -236,7 +237,8 @@ Outrider2DataSet <- function(se, inputData, colData,
 #' @export
 makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
                                         inj=c('both', 'low', 'high'), 
-                                        sf=rnorm(m, mean=1, sd=0.1)){
+                                        sf=rnorm(m, mean=1, sd=0.1),
+                                        na_percentage=0.05){
     # make example data set 
     logSd <- rlnorm(n, meanlog=log(0.1), sdlog=0.5)  # log sd
     logMean <- 1                                   # log offset for mean expres
@@ -259,8 +261,6 @@ makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     # Create Outrider data set
     #
     intensityData <- exp(k)
-    intensityData[sample(1:length(intensityData), 
-                         round(length(intensityData)*0.05))] <- NA # add NAs
     row.names(intensityData) <- paste0("feature_", seq_len(n))
     colnames(intensityData) <- paste0("sample_", seq_len(m))
     ods <- Outrider2DataSet(inputData=intensityData, distribution="gaussian", 
@@ -310,9 +310,122 @@ makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
         }
     }
     
+    # add some NAs
+    k[sample(1:length(k), round(length(k)*na_percentage))] <- NA
+    
+    # save assays and outlier information
     assay(ods, 'trueObservations', withDimnames=FALSE) <- assay(ods, 
                                                                "observed")
     assay(ods, 'observed', withDimnames=FALSE) <- exp(k)
+    assay(ods, "trueOutliers", withDimnames=FALSE) <- indexOut
+    
+    return(ods)
+}
+
+#' 
+#' Create example data sets for OUTRIDER 2.0 with gaussian values
+#' 
+#' Creates an example data set by simulating a data set based 
+#' on random values following a normal distribution with injected
+#' outliers with a fixed z score away from the mean of the gene.
+#' 
+#' @param n Number of simulated features
+#' @param m Number of simulated samples
+#' @param freq Frequency of in-silico outliers
+#' @param zScore Absolute z score of in-silico outliers (default 6).
+#' @param inj Determines whether outliers are injected with the strategy 
+#'            ('both', 'low', 'high'), default is 'both'.
+#' @param sf Artificial Size Factors
+#' @param q number of simulated latent variables.
+#' 
+#' @return An Outrider2DataSet containing an example dataset
+#' 
+#' @examples
+#' # A generic dataset 
+#' ods <- makeExampleOutrider2DataSet()
+#' ods
+#' 
+#' @export
+makeExampleOutrider2DataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
+                                        inj=c('both', 'low', 'high'), 
+                                        sf=rnorm(m, mean=1, sd=0.1),
+                                        na_percentage=0.05){
+    # make example data set 
+    sdVec <- rep(0.5, m)                           # sd for H matrix
+    
+    #
+    # Simulate covariates.
+    #
+    H_true <- matrix(rnorm(m*q), nrow=m, ncol=q)
+    D_true <- matrix(rnorm(n*q, sd=sdVec), nrow=n, ncol=q)
+    y_true <- D_true %*% t(cbind(H_true))
+    mu     <- t(t(rnorm(n) + y_true)*sf)
+    
+    #
+    # Simulate intensity Matrix with specified means.
+    #
+    featureSd <- rlnorm(n, meanlog=log(0.1), sdlog=0.5)  # log sd
+    k <- matrix(rnorm(m*n, mean=mu, sd=featureSd), nrow=n, ncol=m)
+    
+    #
+    # Create Outrider data set
+    #
+    row.names(k) <- paste0("feature_", seq_len(n))
+    colnames(k) <- paste0("sample_", seq_len(m))
+    ods <- Outrider2DataSet(inputData=k, distribution="gaussian", 
+                            sf_norm=FALSE, preprocessing="none", 
+                            transformation="none")
+    
+    assay(ods, "trueMean", withDimnames=FALSE) <- mu
+    assay(ods, "trueSd", withDimnames=FALSE) <- matrix(featureSd, nrow=n, 
+                                                        ncol=m)
+    colData(ods)[['trueSizeFactor']]         <- sf
+    metadata(ods)[['optimalEncDim']]         <- q
+    metadata(ods)[['encDimTable']]           <- data.table(
+        encodingDimension=q, evaluationLoss=1, evalMethod='simulation')
+    
+    #
+    # inject outliers
+    #
+    indexOut <- matrix(nrow=n, ncol=m,
+                       sample(c(-1,1,0), m*n, replace=TRUE, 
+                              prob=c(freq/2, freq/2, 1-freq)))
+    indexOut <- switch(match.arg(inj),
+                       low  = -abs(indexOut),
+                       high =  abs(indexOut),
+                       indexOut
+    )
+    datasd <- assay(ods, "trueSd")
+    normtable <- t(t(k)/sf)
+    
+    # inject outliers
+    max_out <- 1E2 * min(max(k), .Machine$double.xmax/1E3)
+    n_rejected <- 0
+    list_index <- which(indexOut != 0, arr.ind = TRUE)
+    for(i in seq_len(nrow(list_index))){
+        row <- list_index[i,'row']
+        col <- list_index[i,'col']
+        fc <- zScore * datasd[row,col]
+        corK <- indexOut[row,col] * fc + normtable[row,col]
+        
+        #multiply size factor again
+        art_out <- sf[col]*corK
+        if(art_out < max_out){
+            k[row,col] <- art_out
+        }else{
+            #remove super large outliers
+            indexOut[row,col] <- 0 
+            n_rejected <- n_rejected + 1
+        }
+    }
+    
+    # add some NAs
+    k[sample(1:length(k), round(length(k)*na_percentage))] <- NA
+    
+    # save assays and outlier information
+    assay(ods, 'trueObservations', withDimnames=FALSE) <- assay(ods, 
+                                                                "observed")
+    assay(ods, 'observed', withDimnames=FALSE) <- k
     assay(ods, "trueOutliers", withDimnames=FALSE) <- indexOut
     
     return(ods)

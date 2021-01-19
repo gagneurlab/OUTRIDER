@@ -165,7 +165,7 @@ OutriderDataSet <- function(se, countData, colData, ...) {
 #' @param inj Determines whether counts are injected with the strategy 
 #'            ('both', 'low', 'high'), default is 'both'.
 #' @param sf Artificial Size Factors
-#' @param q number of simulated latend variables.
+#' @param q number of simulated latent variables.
 #' 
 #' @return An OutriderDataSet containing an example dataset. Depending on the
 #'            parameters it is based on a real data set or it is simulated
