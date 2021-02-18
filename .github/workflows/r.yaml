@@ -73,11 +73,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages(c('BiocManager', 'rcmdcheck', 'devtools'))
+          install.packages('BiocManager')
           BiocManager::install(ask=FALSE, update=TRUE)
+          BiocManager::install(c('BiocCheck', 'rcmdcheck', 'devtools'))
           
           library(remotes)
-          toInstall <- remotes::dev_package_deps(dependencies = TRUE)
+          toInstall <- remotes::dev_package_deps(dependencies=TRUE)
           update(toInstall)
           
           # source(".github/helperScripts/setupEnv.R")
