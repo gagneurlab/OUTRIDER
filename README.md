@@ -70,7 +70,7 @@ To install those packages, please run as administrator:
 
 For Ubuntu or debian based systems:
 ```
-sudo apt-get install build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev zlib1g-dev libmysqld-dev
+sudo apt-get install build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev zlib1g-dev libmariadbd-dev
 ```
 
 For centOS or RHEL based systems:
