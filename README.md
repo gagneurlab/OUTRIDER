@@ -1,13 +1,17 @@
 # OUTRIDER #
+[![Build](https://github.com/gagneurlab/OUTRIDER/workflows/Build/badge.svg)](https://github.com/gagneurlab/OUTRIDER/actions)
+[![Version](https://img.shields.io/github/v/release/gagneurlab/OUTRIDER)](https://github.com/gagneurlab/OUTRIDER/releases)
+[![Coverage status](https://codecov.io/gh/gagneurlab/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/gagneurlab/OUTRIDER?branch=master)
+[![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/gagneurlab/OUTRIDER/blob/master/LICENSE)
+
 OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
 The method is published in the [AJHG](https://doi.org/10.1016/j.ajhg.2018.10.025)
 and available through [Bioconductor](http://bioconductor.org/packages/release/bioc/html/OUTRIDER.html).
 It is also part of the [DROP pipeline](https://github.com/gagneurlab/drop), which is described in [Nature protocols](https://www.nature.com/articles/s41596-020-00462-5).
 
-[![Pipeline status](https://github.com/gagneurlab/OUTRIDER/workflows/Build/badge.svg)](https://github.com/gagneurlab/OUTRIDER/actions)
-[![Version](https://img.shields.io/github/v/release/gagneurlab/OUTRIDER)](https://github.com/gagneurlab/OUTRIDER/releases)
-[![Coverage status](https://codecov.io/gh/gagneurlab/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/gagneurlab/OUTRIDER?branch=master)
-[![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/gagneurlab/OUTRIDER/blob/master/LICENSE)
+Please cite our method paper if you use it in a publication:
+
+> Brechtmann F, Mertes C, Matusevičiūtė A, *et al.* OUTRIDER: A Statistical Method for Detecting Aberrantly Expressed Genes in RNA Sequencing Data. *Am J Hum Genet. 2018;103(6):907-917*. https://doi.org/10.1016/j.ajhg.2018.10.025
 
 
 ## Installation
