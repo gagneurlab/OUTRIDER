@@ -73,7 +73,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages(c('BiocManager', 'rcmdcheck'))
+          install.packages(c('BiocManager', 'rcmdcheck', 'devtools'))
           BiocManager::install(ask=FALSE, update=TRUE)
           
           library(remotes)
