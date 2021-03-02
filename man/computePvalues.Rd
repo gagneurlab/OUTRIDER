@@ -11,6 +11,15 @@ computePvalues(object, ...)
 
 \S4method{computePvalues}{Outrider2DataSet}(
   object,
+  distribution = c("nb", "gaussian"),
+  alternative = c("two.sided", "greater", "less"),
+  method = "BY",
+  BPPARAM = bpparam()
+)
+
+\S4method{computePvalues}{OutriderDataSet}(
+  object,
+  distribution = c("nb", "gaussian"),
   alternative = c("two.sided", "greater", "less"),
   method = "BY",
   BPPARAM = bpparam()
@@ -21,11 +30,15 @@ computePvalues(object, ...)
 
 \item{...}{additional params, currently not used.}
 
+\item{distribution}{The distribution with which p values will be computed.
+Either 'nb' (for negative binomial) or 'gaussian'.}
+
 \item{alternative}{Can be one of "two.sided", "greater" or "less" to specify
 the alternative hypothesis used to calculate the P-values,
 defaults to "two.sided"}
 
-\item{method}{Method used for multiple testing}
+\item{method}{Method used for multiple testing. Set to \code{NULL} to 
+not run multiple testing correction.}
 
 \item{BPPARAM}{Can be used to parallelize the computation, defaults to
 bpparam()}

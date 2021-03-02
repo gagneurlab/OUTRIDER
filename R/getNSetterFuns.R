@@ -78,27 +78,13 @@ padj <- function(ods){
 #' @aliases dispersions dispersions,OutriderDataSet-method
 #' @seealso \code{\link[DESeq2]{estimateDispersions}}
 #' @export
-setMethod("dispersions", signature(object="OutriderDataSet"),
-    function(object, ...){ 1/theta(object) })
-
-setMethod("dispersions", signature(object="Outrider2DataSet"),
-          function(object, ...){ 
-                if(modelParams(object, "distribution") != "negative binomial"){
-                      stop("Dispersion is only defined for negative binomial, ", 
-                           "not for ", modelParams(object, "distribution"))
-                } else{
-                    1/theta(object) 
-                }
-})
+setMethod("dispersions", "Outrider2DataSet",
+            function(object, ...){ 1/theta(object) })
 
 
 #' @rdname getter_setter_functions
 #' @export theta
 theta <- function(ods){
-    if(modelParams(ods, "distribution") != "negative binomial"){
-        stop("theta is only defined for negative- binomial distribution, ", 
-             "not for ", modelParams(object, "distribution"))
-    }
     if(!'theta' %in% colnames(mcols(ods))){
         stop('Please fit first the autoencoder before retrieving thetas.')
     }
@@ -111,114 +97,25 @@ theta <- function(ods){
 }
 
 
-#' @rdname getter_setter_functions
-#' @export
-setMethod("modelParams", "Outrider2DataSet", function(object, paramName) {
-    if(missing(paramName)){
-        modelParams <- list(distribution = slot(object, "distribution"),
-                            preprocessing = slot(object, "preprocessing"),
-                            transformation = slot(object, "transformation"),
-                            sf_norm = slot(object, "sf_norm"))
-        return(modelParams)
-    
-    } else if(!(paramName %in% c("distribution", "transformation", 
-                                    "preprocessing", "sf_norm"))){
-        stop("Argument paramName needs to be one of distribution, sf_norm, ", 
-             "transformation or preprocessing.")
-    }
-    modelParam <- slot(object, paramName)
-    return(modelParam)
-})
-
-#' @rdname getter_setter_functions
-#' @export
-setReplaceMethod("modelParams", "Outrider2DataSet", 
-        function(object, value, paramName) {
-    params <- c("distribution", "preprocessing", "transformation", "sf_norm")
-    if(!missing(paramName)){
-        slot(object, paramName) <- value
-    } else if(any(params %in% names(value))){
-        for(param in params[params %in% names(value)]){
-            slot(object, param) <- value[[param]] 
-        }
-    } else{
-        stop("Either specify the parameter name that shall be replaced or ", 
-             "provide a named list with the parameters to replace.")
-    }
-    validObject(object)
-    return(object)
-})
-
-observed.OUTRIDER2 <- function(object, normalized=FALSE, minE=0.5, ...){
-    
-    if(modelParams(object, "distribution") != "negative binomial"){
-        minE=-Inf
-    }
+observed.OUTRIDER2 <- function(object, ...){
     
     if(!("observed" %in% assayNames(object))){
         if(!("counts" %in% assayNames(object))){
             stop("Assay 'observed' does not exist.")
         } else{
-            obs <- assay(object, "counts")
+            obs <- assay(object, "counts", ...)
         }
     } else{
-        obs <- assay(object, "observed")
+        obs <- assay(object, "observed", ...)
     }
     
-    if(isFALSE(normalized)){
-        return(obs)
-    }
-    else{
-        # normalized by normalization factors
-        if(!is.null(normalizationFactors(object))) {
-            if(!"expectedLogGeomMean" %in% colnames(mcols(object))){
-                stop("The expectedLogGeomMean is missing in mcols(ods). ",
-                     "Did you set the normaliationFactors by hand? ",
-                     "Please use normalizationFactors(object) <- values.")
-            }
-            
-            # use cached expected log geom mean values
-            eMat <- pmax(normalizationFactors(object), minE)
-            eLGM <- mcols(object)[["expectedLogGeomMean"]]
-            
-            # use preprocessed observations
-            obs <- preprocessed(object)
-            
-            # normalize
-            if(modelParams(object, "distribution") == "negative binomial"){
-                return(obs/eMat * eLGM)
-            } else{
-                norm <- (obs - eMat) + eLGM
-                if(modelParams(object, "transformation") == "log" ||
-                   modelParams(object, "preprocessing") == "log"){
-                    norm[norm < 0] <- 0
-                }
-                return(norm)
-                
-            }
-            
-            
-        }
-        
-        # normalization by sizeFactors
-        if(is.null(sizeFactors(object)) || any(is.na(sizeFactors(object)))) {
-            stop(paste("first calculate size factors, add normalizationFactors,",
-                       "or set normalized=FALSE"))
-        }
-        return(t(t(obs) / sizeFactors(object)))
-    }
+    return(obs)
+
 }
 
 #' @rdname getter_setter_functions
 #' @export
 setMethod("observed", "Outrider2DataSet", observed.OUTRIDER2)
-
-#' #' @rdname getter_setter_functions
-#' #' @export
-#' setMethod("observed", "OutriderDataSet",
-#'     function(object, normalized=FALSE, minE=0.5, ...) {
-#'         observed.OUTRIDER2(object, normalized=normalized, minE=minE, ...)
-#' })
 
 #' @rdname getter_setter_functions
 #' @export
@@ -239,25 +136,59 @@ setReplaceMethod("observed", "OutriderDataSet", function(object, value, ...) {
 #' @rdname getter_setter_functions
 #' @export
 setMethod("preprocessed", "Outrider2DataSet", 
-        function(object, normalized=FALSE) {
-    if(!("preprocessed" %in% assayNames(object)) || 
-       modelParams(object, "preprocessing") == "none"){
-        return(observed(object, normalized=normalized))
+        function(object, normalized=FALSE, minE=0.5) {
+    if(!("preprocessed" %in% assayNames(object)) ){
+        stop("Calculate preprocessed data first with ods <- preprocess(ods)")
     }
             
-    if(isTRUE(normalized)){
-        object <- preprocess(object, normalized=TRUE)
-    } 
-    return(assay(object, "preprocessed"))
+    prepro   <- assay(object, "preprocessed")
+    if(!normalized){
+        return(prepro)    
+    }
+            
+    if(!is.null(normalizationFactors(object))){
+        if(all(prepro >= 0, na.rm=TRUE) && 
+                !("expectedMean" %in% colnames(mcols(object)))){
+            if(!"expectedLogGeomMean" %in% colnames(mcols(object))){
+                stop("The expectedLogGeomMean is missing in mcols(ods). ",
+                    "Did you set the normaliationFactors by hand? ",
+                    "Please use normalizationFactors(object) <- values.")
+            }
+            
+            # use cached expected log geom mean values
+            eMat <- pmax(normalizationFactors(object), minE)
+            eLGM <- mcols(object)[["expectedLogGeomMean"]]
+            return(prepro/eMat * eLGM)
+        } else{
+            # if negative values in matrix
+            if(!"expectedMean" %in% colnames(mcols(object))){
+                stop("The expectedMean is missing in mcols(ods). ",
+                    "Did you set the normaliationFactors by hand? ",
+                    "Please use normalizationFactors(object) <- values.")
+            }
+            eMat <- normalizationFactors(object)
+            eLGM <- mcols(object)[["expectedMean"]] 
+            return((prepro - eMat) + eLGM)
+        }
+    }
+    
+    # normalization by sizeFactors
+    if(is.null(sizeFactors(object)) || any(is.na(sizeFactors(object)))) {
+        stop(paste("first calculate size factors, add normalizationFactors,",
+                    "or set normalized=FALSE"))
+    }
+    return(t(t(prepro) / sizeFactors(object)))
+        
     
 })
 
 #' @rdname getter_setter_functions
 #' @export
-setReplaceMethod("preprocessed", "Outrider2DataSet", function(object, value, ...) {
-    assay(object, "preprocessed", ...) <- value
-    validObject(object)
-    return(object)
+setReplaceMethod("preprocessed", "Outrider2DataSet", 
+    function(object, value, ...) {
+        assay(object, "preprocessed", ...) <- value
+        validObject(object)
+        return(object)
 })
 
 
@@ -277,4 +208,102 @@ setReplaceMethod("expected", "Outrider2DataSet", function(object, value, ...) {
     validObject(object)
     return(object)
 })
+
+#' @rdname getter_setter_functions
+#' @export
+profile <- function(ods){
+    return(slot(ods, "profile"))
+}
+
+#' @rdname getter_setter_functions
+#' @export
+`profile<-` <- function(ods, ..., value){
+    stopifnot(value %in% c("outrider", "protrider", "other"))
+    slot(ods, "profile") <- value
+    return(ods)
+}
+
+#' Default paramenter getter functions
+#' 
+#' This is a collection of functions for easy access to the default parameter 
+#' settings within the OUTRIDER2 model based on the profile specifed in the 
+#' Outrider2DataSet. If needed, the user can adapt the parameters and pass 
+#' them on to the OUTRIDER function.
+#' 
+#' @param ods An OutriderDataSet object.
+#' @param ... Further arguments passed on to the underlying assay function.
+#' @return A list of parameters. 
+#' 
+#' @name default_param_getters
+#' @rdname default_param_getters
+#' @aliases getDefaultPreproParams, getDefaultPvalueParams
+#' 
+#' @examples 
+#' ods <- makeExampleOutriderDataSet(10, 10)
+#' getDefaultPreproParams()
+#' getDefaultPvalueParams()
+#' 
+#' 
+NULL
+
+#' @rdname default_param_getters
+#' @export
+getDefaultPreproParams <- function(ods){
+    
+    profile <- profile(ods) # profile=c("outrider", "protrider", "other")
+    params <- list()
+    
+    # preprocessing options
+    params[["sf_norm"]] <- TRUE
+    params[["noise_factor"]] <- 0.0 # only for python implementation
+    
+    if(profile == "outrider"){
+        params[["data_trans"]] <- "log1p"
+        params[["reverse_data_trans"]] <- "exp"
+        params[["distribution"]] <- "nb"
+    } else{
+        params[["data_trans"]] <- NULL
+        params[["reverse_data_trans"]] <- NULL
+        params[["distribution"]] <- "gaussian"
+    } 
+    
+    if(profile == "protrider"){
+        params[["prepro_func"]] <- "log"
+    } else{
+        params[["prepro_func"]] <- NULL 
+    }
+    
+    if(profile == "other"){
+        params[["sf_norm"]] <- FALSE
+        # for vst: prepro_func <- DESeq2::varianceStabilizingTransformation    
+    }
+    
+    return(params)
+}
+
+#' @rdname default_param_getters
+#' @export
+getDefaultPvalueParams <- function(ods){
+    
+    profile <- profile(ods) # profile=c("outrider", "protrider", "other")
+    
+    params <- list()
+    
+    # options for pvalue calculation
+    params[["fdr_method"]] <- "BY"
+    params[["pvalue_alternative"]] <- "two.sided"
+    
+    if(profile == "outrider"){
+        params[["distribution"]] <- "nb"
+        params[["effect_types"]] <- c("fold_change", "zscores")
+    } else if(profile == "protrider"){
+        params[["distribution"]] <- "gaussian"
+        params[["effect_types"]] <- c("fold_change", "zscores")
+    } else{
+        params[["distribution"]] <- "gaussian"
+        params[["effect_types"]] <- c("zscores", "delta")
+    }
+    
+    return(params)
+}
 

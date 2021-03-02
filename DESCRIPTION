@@ -29,6 +29,7 @@ License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
 RoxygenNote: 7.1.1
+StagedInstall: no
 Depends:
     R (>= 3.6), 
     BiocParallel,
@@ -37,6 +38,7 @@ Depends:
     data.table,
     methods
 Imports:
+    basilisk,
     BBmisc,
     BiocGenerics,
     DESeq2 (>= 1.16.1),
@@ -72,8 +74,7 @@ Suggests:
     RMariaDB,
     AnnotationDbi,
     beeswarm,
-    covr,
-    reticulate
+    covr
 LinkingTo:
     Rcpp,
     RcppArmadillo
@@ -106,4 +107,4 @@ Collate:
     thetaMethodOfMoments.R
     controlForConfounders.R
     lossNGradientRVersion.R
-    zzz.R
+    basilisk.R

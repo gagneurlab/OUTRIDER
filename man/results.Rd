@@ -10,7 +10,9 @@ results(object, ...)
 \S4method{results}{Outrider2DataSet}(
   object,
   padjCutoff = 0.05,
-  zScoreCutoff = 0,
+  zScoreCutoff = NULL,
+  l2fcCutoff = NULL,
+  deltaCutoff = NULL,
   round = 2,
   all = FALSE,
   ...
@@ -24,6 +26,11 @@ results(object, ...)
 \item{padjCutoff}{The significant threshold to be applied}
 
 \item{zScoreCutoff}{If provided additionally a z score threshold is applied}
+
+\item{l2fcCutoff}{If provided additionally a threshold on the log2 fold 
+change is applied}
+
+\item{deltaCutoff}{If provided additionally a threshold on delta is applied}
 
 \item{round}{Can be TRUE, defaults to 2, or an integer used for rounding
 with \code{\link[base]{round}} to make the output

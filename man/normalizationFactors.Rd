@@ -7,29 +7,13 @@
 \alias{normalizationFactors<-,OutriderDataSet,matrix-method}
 \alias{normalizationFactors<-,OutriderDataSet,DataFrame-method}
 \alias{normalizationFactors<-,OutriderDataSet,NULL-method}
-\alias{normalizationFactors<-,OutriderDataSet,data.frame-method}
 \alias{normalizationFactors<-,Outrider2DataSet,matrix-method}
-\alias{normalizationFactors<-,Outrider2DataSet,DataFrame-method}
-\alias{normalizationFactors<-,Outrider2DataSet,data.frame-method}
-\alias{normalizationFactors<-,Outrider2DataSet,NULL-method}
 \title{Accessor functions for the normalization factors in an OutriderDataSet
 object.}
 \usage{
 \S4method{normalizationFactors}{Outrider2DataSet}(object, ...)
 
-\S4method{normalizationFactors}{OutriderDataSet,matrix}(object, minE = 0.5, ...) <- value
-
-\S4method{normalizationFactors}{OutriderDataSet,DataFrame}(object, minE = 0.5, ...) <- value
-
-\S4method{normalizationFactors}{OutriderDataSet,data.frame}(object, minE = 0.5, ...) <- value
-
 \S4method{normalizationFactors}{Outrider2DataSet,matrix}(object, minE = 0.5, ...) <- value
-
-\S4method{normalizationFactors}{Outrider2DataSet,DataFrame}(object, minE = 0.5, ...) <- value
-
-\S4method{normalizationFactors}{Outrider2DataSet,data.frame}(object, minE = 0.5, ...) <- value
-
-\S4method{normalizationFactors}{Outrider2DataSet,`NULL`}(object) <- value
 }
 \arguments{
 \item{object}{An \code{\link{OutriderDataSet}} object}

@@ -92,7 +92,13 @@ normalizationFactors.Outrider2DataSet <- function(object, ...) {
     assay(object, "normalizationFactors", ...)
 }
 
-normFactors.replace.OutriderDataSet <- function(object, minE=0.5, ..., value) {
+normFactors.replace.Outrider2DataSet <- function(object, minE=0.5, ..., value) {
+    #
+    if(is.null(value)){
+        assay(object, "normalizationFactors") <- NULL
+        return(object)
+    }
+    
     # enforce same dimnames and matrix type
     if(!is.matrix(value)){
         value <- as.matrix(value)
@@ -100,7 +106,7 @@ normFactors.replace.OutriderDataSet <- function(object, minE=0.5, ..., value) {
     dimnames(value) <- dimnames(object)
     
     # sanity checks
-    if(modelParams(object)$distribution == "negative binomial"){
+    if(profile(object) == "outrider"){
         stopifnot(!any(is.na(value)))
         stopifnot(all(is.finite(value)))
         stopifnot(all(value > 0))
@@ -110,8 +116,12 @@ normFactors.replace.OutriderDataSet <- function(object, minE=0.5, ..., value) {
     assay(object, "normalizationFactors", ..., withDimnames=FALSE) <- value
     
     # compute the expected log geom mean values so we can cache them
-    mcols(object)[["expectedLogGeomMean"]] <- exp(
-        rowMeans2(log(pmax(value, minE)), na.rm=TRUE))
+    if(all(value >= 0, na.rm=TRUE)){
+        mcols(object)[["expectedLogGeomMean"]] <- exp(
+            rowMeans2(log(pmax(value, minE)), na.rm=TRUE))
+    } else{
+        mcols(object)[["expectedMean"]] <- rowMeans2(value, na.rm=TRUE)
+    }
     
     # validate and return object
     validObject(object)
@@ -163,44 +173,11 @@ normFactors.replace.OutriderDataSet <- function(object, minE=0.5, ..., value) {
 #' normalizationFactors(ods) <- normFactors
 #' all(normalizationFactors(ods) == t(sizeFactors(ods) * t(normFactors)))
 #' 
-#' @export normalizationFactors
-setMethod("normalizationFactors", signature(object="Outrider2DataSet"),
+#' @export
+setMethod("normalizationFactors", "Outrider2DataSet",
         normalizationFactors.Outrider2DataSet)
 
 #' @rdname normalizationFactors
 #' @export "normalizationFactors<-"
-setReplaceMethod("normalizationFactors", signature(object="OutriderDataSet", 
-        value="matrix"), normFactors.replace.OutriderDataSet)
-
-#' @rdname normalizationFactors
-#' @export "normalizationFactors<-"
-setReplaceMethod("normalizationFactors", signature(object="OutriderDataSet", 
-        value="DataFrame"), normFactors.replace.OutriderDataSet)
-
-#' @rdname normalizationFactors
-#' @export "normalizationFactors<-"
-setReplaceMethod("normalizationFactors", signature(object="OutriderDataSet", 
-        value="data.frame"), normFactors.replace.OutriderDataSet)
-
-#' @rdname normalizationFactors
-#' @export "normalizationFactors<-"
 setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
-        value="matrix"), normFactors.replace.OutriderDataSet)
-
-#' @rdname normalizationFactors
-#' @export "normalizationFactors<-"
-setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
-        value="DataFrame"), normFactors.replace.OutriderDataSet)
-
-#' @rdname normalizationFactors
-#' @export "normalizationFactors<-"
-setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
-        value="data.frame"), normFactors.replace.OutriderDataSet)
-
-#' @rdname normalizationFactors
-#' @export "normalizationFactors<-"
-setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
-        value="NULL"), function(object, value) {
-                assay(object, "normalizationFactors") <- NULL
-                return(object)})
-
+        value="matrix"), normFactors.replace.Outrider2DataSet)

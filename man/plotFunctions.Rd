@@ -21,13 +21,14 @@
 \alias{plotQQ,Outrider2DataSet-method}
 \alias{plotQQ,OutriderDataSet-method}
 \alias{plotExpectedVsObserved}
-\alias{plotExpressionRank2}
+\alias{plotFeatureRank}
 \alias{plotCountCorHeatmap,OutriderDataSet-method}
 \alias{plotCountCorHeatmap,Outrider2DataSet-method}
 \alias{plotFeatureSampleHeatmap}
 \alias{plotAberrantPerSample,Outrider2DataSet-method}
 \alias{plotAberrantPerSample,OutriderDataSet-method}
 \alias{plotDispEsts,OutriderDataSet-method}
+\alias{plotDispEsts,Outrider2DataSet-method}
 \alias{plotEncDimSearch,OutriderDataSet-method}
 \alias{plotEncDimSearch,Outrider2DataSet-method}
 \alias{plotExpressedFeatures}
@@ -59,10 +60,11 @@ plotVolcano(object, ...)
   sampleID,
   main,
   padjCutoff = 0.05,
-  zScoreCutoff = 0,
+  effect = c("zscores", "log2fc", "delta"),
   pch = 16,
   basePlot = FALSE,
-  col = c("gray", "firebrick")
+  col = c("gray", "firebrick"),
+  ...
 )
 
 \S4method{plotQQ}{Outrider2DataSet}(
@@ -136,7 +138,7 @@ plotExpressionRank(
   groupColSet = "Accent"
 )
 
-plotExpressionRank2(
+plotFeatureRank(
   ods,
   featureID,
   main,
@@ -171,6 +173,7 @@ plotExpressionRank2(
 \S4method{plotCountCorHeatmap}{Outrider2DataSet}(
   object,
   normalized = TRUE,
+  transform_fun = metadata(object)$prepro_options$data_trans,
   rowCentered = TRUE,
   rowGroups = NA,
   rowColSet = NA,
@@ -208,6 +211,7 @@ plotFeatureSampleHeatmap(
   ods,
   normalized = TRUE,
   rowCentered = TRUE,
+  transform_fun = metadata(ods)$prepro_options$data_trans,
   rowGroups = NA,
   rowColSet = NA,
   colGroups = NA,
@@ -245,6 +249,15 @@ plotFeatureSampleHeatmap(
 plotFPKM(ods, bins = 100)
 
 \S4method{plotDispEsts}{OutriderDataSet}(
+  object,
+  compareDisp,
+  xlim,
+  ylim,
+  main = "Dispersion estimates versus mean expression",
+  ...
+)
+
+\S4method{plotDispEsts}{Outrider2DataSet}(
   object,
   compareDisp,
   xlim,

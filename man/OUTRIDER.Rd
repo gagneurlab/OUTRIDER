@@ -8,9 +8,14 @@ OUTRIDER(
   ods,
   q,
   controlData = TRUE,
-  implementation = "autoencoder",
+  latent_space_model = c("autoencoder", "pca"),
+  decoder_model = c("autoencoder", "pca"),
   covariates = NULL,
   usePython = checkUsePython(ods, covariates),
+  prepro_options = getDefaultPreproParams(ods),
+  pvalue_options = getDefaultPvalueParams(ods),
+  useBasilisk = FALSE,
+  implementation = "autoencoder",
   BPPARAM = bpparam(),
   ...
 )
@@ -23,12 +28,40 @@ OUTRIDER(
 \item{controlData}{If TRUE, the default, the raw counts are controled 
 for confounders by the autoencoder}
 
-\item{implementation}{"autoencoder", the default, will use the autoencoder
-implementation. Also 'pca' and 'peer' can be used to control
+\item{latent_space_model}{Specifies which latent space fitting model to use.
+"autoencoder", the default, will use the autoencoder
+implementation. Also 'pca' can be used to control
 for confounding effects}
+
+\item{decoder_model}{Specifies which decoder fitting model to use.
+"autoencoder", the default, will use the autoencoder
+implementation. Also 'pca' can be used to control
+for confounding effects.}
+
+\item{covariates}{Character vector indicating the known covariates that 
+should be considered explicitly in the fit. Defaults to NULL, 
+meaning no known covariates are used. Covariates given here must 
+be columns in \code{colData(ods)}. Only considered if 
+\code{usePython=TRUE}.}
 
 \item{usePython}{Indicates whether the python or the R implementation of the
 given confounding method should be used.}
+
+\item{prepro_options}{A list specifying the preprocessing options that 
+should be used. If the user wants to change some options, please 
+obtain the default list using \code{getDefaultPreproParams(ods)} 
+and adapt.}
+
+\item{useBasilisk}{Specifies whether a conda environment installed with 
+basilik should be used to run the python code. If FALSE, 
+it is assumed that py_outrider is installed and the correct python 
+binary is specified using either 
+reticulate::use_python(..., force=TRUE) or 
+reticulate::use_condaenv(..., force=TRUE), so that py_outrider can 
+be loaded with reticulate::import("py_outrider").}
+
+\item{implementation}{Deprecated. Use latent_space_model and decoder_model 
+instead.}
 
 \item{BPPARAM}{A 
 \code{\link[BiocParallel:BiocParallelParam-class]{BiocParallelParam}}

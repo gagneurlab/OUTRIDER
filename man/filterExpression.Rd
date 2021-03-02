@@ -3,6 +3,7 @@
 \name{filterExpression}
 \alias{filterExpression}
 \alias{filterExpression,OutriderDataSet-method}
+\alias{filterExpression,Outrider2DataSet-method}
 \title{Filter expression}
 \usage{
 filterExpression(object, ...)
@@ -18,6 +19,8 @@ filterExpression(object, ...)
   addExpressedGenes = TRUE,
   ...
 )
+
+\S4method{filterExpression}{Outrider2DataSet}(object, ...)
 }
 \arguments{
 \item{object}{An OutriderDataSet object}

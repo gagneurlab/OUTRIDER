@@ -35,18 +35,12 @@
 #' ods
 #'    
 setClass("Outrider2DataSet", contains="RangedSummarizedExperiment",
-         slots = list(
-             distribution    = "character",
-             preprocessing   = "character",
-             transformation  = "character",
-             sf_norm = "logical"
-         ),
-         prototype = list(
-             distribution    = "gaussian",
-             preprocessing   = "log",
-             transformation  = "none",
-             sf_norm = TRUE
-         )
+        slots = list(
+            profile = "character"
+        ),
+        prototype = list(
+            profile = "outrider"
+        )
 )
 
 #' check sample annotation within the colData slot of the SE object
@@ -55,7 +49,8 @@ validateAssays <- function(object) {
     if(length(assayNames(object)) > 1){
         if(any(duplicated(assayNames(object)))){
             return(
-                "OUTRIDER enforces unique assay names! Please provide such names."
+                paste0("OUTRIDER enforces unique assay names! ",
+                        "Please provide such names.")
             )
         }
     }
@@ -77,34 +72,14 @@ checkNames <- function(object){
     }
 }
 
-validateModelParameters <- function(object){
-    # check distribution parameter
-    if(!isScalarCharacter(object@distribution)){
-        return("The distribution parameter should be a scalar character.")
+validateProfile <- function(object){
+    # check profile parameter
+    if(!isScalarCharacter(object@profile)){
+        return("The profile parameter should be a scalar character.")
     }
-    if(!(object@distribution %in% c("negative binomial", "gaussian"))){
-        return("Distribution should be one of 'negative binomial' and  
-                'gaussian'. Other distributions are not yet implemented.")
-    }
-    # check transformation parameter
-    if(!isScalarCharacter(object@transformation)){
-        return("The transformation parameter should be a scalar character.")
-    }
-    if(!(object@transformation %in% c("log", "none"))){
-        return("Transformation should be one of 'log' or 'none'. 
-               Other transformations are not yet implemented.")
-    }
-    # check preprocessing parameter
-    if(!isScalarCharacter(object@preprocessing)){
-        return("The preprocessing parameter should be a scalar character.")
-    }
-    if(!(object@preprocessing %in% c("log", "vst", "none"))){
-        return("Preprocessing should be one of 'log', 'vst' and 'none'. 
-               Other preprocessing schemes are not yet implemented.")
-    }
-    # check sizefactor normalization yes/no
-    if(!isScalarLogical(object@sf_norm)){
-        return("The sf_norm parameter should be a scalar logical.")
+    if(!(object@profile %in% c("outrider", "protrider", "other"))){
+        return("profile should be one of 'outrider', 'protrider' and  
+                'other'.")
     }
     NULL
 }
@@ -116,8 +91,7 @@ validateOutrider2DataSet <- function(object) {
     c(
         checkNames(object),
         validateAssays(object),
-        validateModelParameters(object)
-    )
+        validateProfile(object))
 }
 setValidity("Outrider2DataSet", validateOutrider2DataSet)
 
@@ -128,14 +102,10 @@ showOutrider2DataSet <- function(object) {
     cat("class: Outrider2DataSet\n")
     show(as(object, "RangedSummarizedExperiment"))
     cat("------------------- Model parameters -------------------\n")
-    cat(paste0("Distribution:               ", 
-               modelParams(object, "distribution")), "\n")
-    cat(paste0("Sizefactor normalization:   ", 
-               modelParams(object, "sf_norm")), "\n")
-    cat(paste0("Preprocessing:              ", 
-               modelParams(object, "preprocessing")), "\n")
-    cat(paste0("Transformation:             ", 
-               modelParams(object, "transformation")), "\n")
+    cat(paste0("Profile:                   ", 
+                profile(object)), "\n")
+    cat(paste0("Default distribution:      ", 
+                getDefaultPvalueParams(object)$distribution), "\n")
     cat("\n")
 }
 
@@ -146,20 +116,11 @@ setMethod("show", "Outrider2DataSet", function(object) {
 #' @rdname Outrider2DataSet-class
 #' @export
 Outrider2DataSet <- function(se, inputData, colData, 
-            distribution=c("gaussian", "negative binomial"), 
-            sf_norm=TRUE, preprocessing=c("log", "vst", "none"), 
-            transformation=c("none", "log"), ...){ 
+            profile=c("outrider", "protrider", "other"), ...){ 
     
     # check input
-    distribution   <- tolower(distribution)
-    distribution   <- match.arg(distribution)
-    transformation <- tolower(transformation)
-    transformation <- match.arg(transformation)
-    preprocessing  <- tolower(preprocessing)
-    preprocessing  <- match.arg(preprocessing)
-    if(!isScalarLogical(sf_norm)){
-        stop("sf_norm should be either TRUE or FALSE")
-    }
+    profile   <- tolower(profile)
+    profile   <- match.arg(profile)
     
     # use SummarizedExperiment object
     if(!missing(se)){
@@ -201,9 +162,7 @@ Outrider2DataSet <- function(se, inputData, colData,
     colnames(se) <- se@colData[["sampleID"]]
     se <- as(se, "RangedSummarizedExperiment")
     
-    obj <- new("Outrider2DataSet", se, 
-               distribution=distribution, transformation=transformation, 
-               preprocessing=preprocessing, sf_norm=sf_norm)
+    obj <- new("Outrider2DataSet", se, profile=profile)
     metadata(obj)[["version"]] <- packageVersion("OUTRIDER")
     validObject(obj)
     
@@ -234,15 +193,16 @@ Outrider2DataSet <- function(se, inputData, colData,
 #' pds <- makeExampleProtriderDataSet()
 #' pds
 #' 
+#' @rdname makeExampleDataSets
 #' @export
-makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
+makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=2,
                                         inj=c('both', 'low', 'high'), 
                                         sf=rnorm(m, mean=1, sd=0.1),
                                         na_percentage=0.05){
     # make example data set 
-    logSd <- rlnorm(n, meanlog=log(0.1), sdlog=0.5)  # log sd
-    logMean <- 1                                   # log offset for mean expres
-    sdVec <- rep(0.5, m)                           # sd for H matrix
+    logSd <- 0.15         # log sd
+    logMean <- 13         # log offset for mean expres
+    sdVec <- rep(0.5, m)  # sd for H matrix
     
     #
     # Simulate covariates.
@@ -250,25 +210,28 @@ makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     H_true <- matrix(rnorm(m*q), nrow=m, ncol=q)
     D_true <- matrix(rnorm(n*q, sd=sdVec), nrow=n, ncol=q)
     y_true <- D_true %*% t(cbind(H_true))
-    mu     <- t(t(rlnorm(n, logMean, logSd) + y_true)*sf)
+    mu     <- t(t(exp(rnorm(n, logMean, logSd) + y_true))*sf)
     
     #
     # Simulate intensity Matrix with specified means.
     #
-    k <- matrix(rnorm(m*n, mean=mu, sd=logSd), nrow=n, ncol=m)
+    sd <- 1e2
+    intensityData <- matrix(rnorm(m*n, mean=mu, sd=sd), nrow=n, ncol=m)
+    intensityData[intensityData <= 0] <- mu[intensityData <= 0]
     
     #
     # Create Outrider data set
     #
-    intensityData <- exp(k)
     row.names(intensityData) <- paste0("feature_", seq_len(n))
     colnames(intensityData) <- paste0("sample_", seq_len(m))
-    ods <- Outrider2DataSet(inputData=intensityData, distribution="gaussian", 
-                            sf_norm=TRUE, preprocessing="log", 
-                            transformation="none")
+    batch <- as.numeric(cut(H_true[,1], breaks = c(-3, -0.5, 0, 0.5, 3), 
+                            include.lowest = T))
+    colDt <- data.frame(sampleID=colnames(intensityData), batch=batch)
+    ods <- Outrider2DataSet(inputData=intensityData, 
+                            colData=colDt,
+                            profile="protrider")
     
-    assay(ods, "trueMeanLog", withDimnames=FALSE) <- mu
-    assay(ods, "trueSdLog", withDimnames=FALSE) <- matrix(logSd, nrow=n, ncol=m)
+    assay(ods, "trueMeanLog", withDimnames=FALSE) <- log(mu)
     colData(ods)[['trueSizeFactor']]         <- sf
     metadata(ods)[['optimalEncDim']]         <- q
     metadata(ods)[['encDimTable']]           <- data.table(
@@ -278,31 +241,28 @@ makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     # inject outliers
     #
     indexOut <- matrix(nrow=n, ncol=m,
-                       sample(c(-1,1,0), m*n, replace=TRUE, 
-                              prob=c(freq/2, freq/2, 1-freq)))
+                        sample(c(-1,1,0), m*n, replace=TRUE, 
+                                prob=c(freq/2, freq/2, 1-freq)))
     indexOut <- switch(match.arg(inj),
-                       low  = -abs(indexOut),
-                       high =  abs(indexOut),
-                       indexOut
+                        low  = -abs(indexOut),
+                        high =  abs(indexOut),
+                        indexOut
     )
-    # normtable <- t(t(k)/sf)
-    datasd <- assay(ods, "trueSdLog")
     lmu <- assay(ods, "trueMeanLog")
     
     # inject outliers
-    max_out <- 1E2 * min(max(k), .Machine$double.xmax/1E3)
+    max_out <- 1E2 * min(max(intensityData), .Machine$double.xmax/1E3)
     n_rejected <- 0
     list_index <- which(indexOut != 0, arr.ind = TRUE)
     for(i in seq_len(nrow(list_index))){
         row <- list_index[i,'row']
         col <- list_index[i,'col']
-        fc <- zScore * datasd[row,col]
+        fc <- zScore * sd(lmu[row,])
         corK <- indexOut[row,col] * fc + lmu[row,col]
         
-        #multiply size factor again
-        art_out <- sf[col]*corK
+        art_out <- exp(corK)
         if(art_out < max_out){
-            k[row,col] <- art_out
+            intensityData[row,col] <- art_out
         }else{
             #remove super large outliers
             indexOut[row,col] <- 0 
@@ -311,12 +271,13 @@ makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     }
     
     # add some NAs
-    k[sample(1:length(k), round(length(k)*na_percentage))] <- NA
+    intensityData[sample(seq_along(intensityData), 
+                        round(length(intensityData)*na_percentage))] <- NA
     
     # save assays and outlier information
     assay(ods, 'trueObservations', withDimnames=FALSE) <- assay(ods, 
-                                                               "observed")
-    assay(ods, 'observed', withDimnames=FALSE) <- exp(k)
+                                                                "observed")
+    assay(ods, 'observed', withDimnames=FALSE) <- intensityData
     assay(ods, "trueOutliers", withDimnames=FALSE) <- indexOut
     
     return(ods)
@@ -345,13 +306,14 @@ makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
 #' ods <- makeExampleOutrider2DataSet()
 #' ods
 #' 
+#' @rdname makeExampleDataSets
 #' @export
 makeExampleOutrider2DataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
                                         inj=c('both', 'low', 'high'), 
                                         sf=rnorm(m, mean=1, sd=0.1),
                                         na_percentage=0.05){
     # make example data set 
-    sdVec <- rep(0.5, m)                           # sd for H matrix
+    sdVec <- rep(0.25, m)                           # sd for H matrix
     
     #
     # Simulate covariates.
@@ -372,9 +334,7 @@ makeExampleOutrider2DataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     #
     row.names(k) <- paste0("feature_", seq_len(n))
     colnames(k) <- paste0("sample_", seq_len(m))
-    ods <- Outrider2DataSet(inputData=k, distribution="gaussian", 
-                            sf_norm=FALSE, preprocessing="none", 
-                            transformation="none")
+    ods <- Outrider2DataSet(inputData=k, profile="other")
     
     assay(ods, "trueMean", withDimnames=FALSE) <- mu
     assay(ods, "trueSd", withDimnames=FALSE) <- matrix(featureSd, nrow=n, 
@@ -388,12 +348,12 @@ makeExampleOutrider2DataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     # inject outliers
     #
     indexOut <- matrix(nrow=n, ncol=m,
-                       sample(c(-1,1,0), m*n, replace=TRUE, 
-                              prob=c(freq/2, freq/2, 1-freq)))
+                        sample(c(-1,1,0), m*n, replace=TRUE, 
+                                prob=c(freq/2, freq/2, 1-freq)))
     indexOut <- switch(match.arg(inj),
-                       low  = -abs(indexOut),
-                       high =  abs(indexOut),
-                       indexOut
+                        low  = -abs(indexOut),
+                        high =  abs(indexOut),
+                        indexOut
     )
     datasd <- assay(ods, "trueSd")
     normtable <- t(t(k)/sf)
@@ -420,11 +380,11 @@ makeExampleOutrider2DataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     }
     
     # add some NAs
-    k[sample(1:length(k), round(length(k)*na_percentage))] <- NA
+    k[sample(seq_along(k), round(length(k)*na_percentage))] <- NA
     
     # save assays and outlier information
     assay(ods, 'trueObservations', withDimnames=FALSE) <- assay(ods, 
-                                                                "observed")
+                                                                    "observed")
     assay(ods, 'observed', withDimnames=FALSE) <- k
     assay(ods, "trueOutliers", withDimnames=FALSE) <- indexOut
     

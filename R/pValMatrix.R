@@ -7,10 +7,13 @@
 #' adjusted P-values of every count. 
 #' 
 #' @param object An OutriderDataSet
+#' @param distribution The distribution with which p values will be computed.
+#'             Either 'nb' (for negative binomial) or 'gaussian'.
 #' @param alternative Can be one of "two.sided", "greater" or "less" to specify
 #'             the alternative hypothesis used to calculate the P-values,
 #'             defaults to "two.sided"
-#' @param method Method used for multiple testing
+#' @param method Method used for multiple testing. Set to \code{NULL} to 
+#'             not run multiple testing correction.
 #' @param BPPARAM Can be used to parallelize the computation, defaults to
 #'             bpparam()
 #' @param ... additional params, currently not used.
@@ -40,51 +43,45 @@
 setGeneric("computePvalues", 
         function(object, ...) standardGeneric("computePvalues"))
 
-#' #' @rdname computePvalues
-#' #' @export
-#' setMethod("computePvalues", "OutriderDataSet", function(object, 
-#'             alternative=c("two.sided", "greater", "less"), method='BY', 
-#'             BPPARAM=bpparam()){
-#'     
-#'     alternative <- match.arg(alternative)
-#'     object <- pValMatrix.nb(object, alternative, BPPARAM=BPPARAM)
-#'     
-#'     if(method != 'None'){
-#'         object <- padjMatrix(object, method)
-#'     }
-#'     object
-#' })
-
-
-#' @rdname computePvalues
-#' @export
-setMethod("computePvalues", "Outrider2DataSet", function(object, 
-            alternative=c("two.sided", "greater", "less"), method='BY', 
-            BPPARAM=bpparam()){
+pValMatrix <- function(object, 
+                        distribution=c("nb", "gaussian"), 
+                        alternative=c("two.sided", "greater", "less"), 
+                        method='BY', BPPARAM=bpparam()){
     
     alternative <- match.arg(alternative)
+    distribution <- tolower(distribution)
+    distribution <- match.arg(distribution)
     
-    if(modelParams(object, "distribution") == "negative binomial"){
+    if(distribution == "nb"){
         object <- pValMatrix.nb(object, alternative, BPPARAM=BPPARAM)
-    } else if(modelParams(object, "distribution") == "gaussian"){
+    } else if(distribution == "gaussian"){
         object <- pValMatrix.gaussian(object, alternative, BPPARAM=BPPARAM)
     } else{
-        stop("P values for distribution ", modelParams(object, "distribution"),
-             " not yet implemented.")
+        stop("P value calculation for distribution ", distribution,
+            " not implemented.")
     }
+    metadata(object)$pvalDistribution <- distribution
     
-    if(method != 'None'){
+    if(!is.null(method)){
         object <- padjMatrix(object, method)
     }
     object
-})
+}
+
+#' @rdname computePvalues
+#' @export
+setMethod("computePvalues", "Outrider2DataSet", pValMatrix)
+
+#' @rdname computePvalues
+#' @export
+setMethod("computePvalues", "OutriderDataSet", pValMatrix)
 
 pValMatrix.nb <- function(ods, alternative, BPPARAM){ 
     if(!all(c("theta") %in% colnames(mcols(ods)))){
         stop(paste("Please fit the models first to estimate theta and",
                 "mu by running:\n\tods <- fit(ods)"))
     }
-    ctsData <- counts(ods)
+    ctsData <- preprocessed(ods) # preprocessed == observed counts for outrider
     mu <- rep(1, nrow(ods))
     if('mu' %in% names(mcols(ods))){
         mu <- mcols(ods)[,"mu"]
@@ -152,16 +149,16 @@ pVal.nb <- function(index, ctsData, theta, mu, normFact, alternative){
 }
 
 #' Gaussian P value calculation
-#' 
+#' @noRd
 pValMatrix.gaussian <- function(ods, alternative, BPPARAM){ 
     
     inputData <- preprocessed(ods)
     predicted <- normalizationFactors(ods)
     residuals <- inputData - predicted
     
-    sd <- rowSds(residuals, na.rm = T)
+    sd <- rowSds(residuals, na.rm=TRUE)
     pval <- pnorm(inputData, mean=predicted, 
-        sd=matrix(sd, nrow=nrow(inputData), ncol=ncol(inputData), byrow=F))
+        sd=matrix(sd, nrow=nrow(inputData), ncol=ncol(inputData), byrow=FALSE))
     
     if(alternative == "less"){
         pValue(ods) <- pval

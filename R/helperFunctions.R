@@ -288,6 +288,7 @@ estimateBestQ <- function(ods){
 }
 
 #' Get one hot encoding for specified covariates
+#' @noRd
 getCovariatesOneHotEncoded <- function(ods){
     
     # retrieve covariates to use

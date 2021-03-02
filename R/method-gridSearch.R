@@ -42,30 +42,32 @@
 #' @rdname findEncodingDim
 #' @aliases findEncodingDim, findInjectZscore
 #' @export
-findEncodingDim <- function(ods, 
+findEncodingDim <- function(ods, prepro_options=getDefaultPreproParams(ods),
                     params=getParamsToTest(ods),
                     freq=1E-2, zScore=3, sdlog=log(1.6), lnorm=TRUE,
                     inj='both', ..., BPPARAM=bpparam()){
     
     # compute auto Correction
-    # ods <- estimateSizeFactors(ods)
+    ods <- preprocess(ods, prepro_options)
     ods <- injectOutliers.OUTRIDER2(ods, freq=freq, zScore=zScore, inj=inj, 
                                     lnorm=lnorm, sdlog=sdlog)
-    
-    # TODO Please check if this is still correct
-    # ods <- getLossBounderyCases(ods)
+    # no preprocessing after injecting outliers as outiers are already injected
+    # into preprocessed values
+    prepro_options$prepro_func <- NULL 
     
     dot_args <- list(...)
     if("usePython" %in% names(dot_args) & isTRUE(dot_args[["usePython"]]) ){
         eval <- bplapply(X=params, ..., BPPARAM=SerialParam(), 
-                         FUN=function(i, ..., evalAucPRLoss=NA){
-                             evalAutoCorrection(ods, encoding_dim=i, 
-                                                BPPARAM=BPPARAM, ...)}
+                        FUN=function(i, ..., evalAucPRLoss=NA){
+                            evalAutoCorrection(ods, encoding_dim=i, 
+                                            prepro_options=prepro_options, 
+                                            BPPARAM=BPPARAM, ...)}
         )
     } else{
         eval <- bplapply(X=params, ..., BPPARAM=BPPARAM, 
             FUN=function(i, ..., evalAucPRLoss=NA){
                 evalAutoCorrection(ods, encoding_dim=i, 
+                                    prepro_options=prepro_options, 
                                     BPPARAM=SerialParam(), ...)}
         )
     }
@@ -77,36 +79,8 @@ findEncodingDim <- function(ods,
     metadata(ods)[['optimalEncDim']] <- NULL
     metadata(ods)[['optimalEncDim']] <- getBestQ(ods)
     
-    observed(ods) <- assay(ods, 'trueObservations')
+    preprocessed(ods) <- assay(ods, 'trueObservations') # TODO check 
     validateOutrider2DataSet(ods)
-    return(ods)
-}
-
-getLossBounderyCases <- function(ods){
-    
-    ## Check limits of loss:
-    # Check min and max of loss by substituting
-    # counts and true Counts for the normalization Factors.
-    
-    # Max overfitting loss:
-    normalizationFactors(ods) <- pmax(counts(ods), 1E-9)
-    overfit <- evalLoss(ods)
-    
-    # Best possible loss:
-    normalizationFactors(ods) <- pmax(assay(ods, 'trueObservations'), 1E-9)
-    bestloss <- evalLoss(ods)
-    
-    # Max underfitting loss (only taking the means of the data):
-    normalizationFactors(ods) <- matrix(
-                rep(pmax(rowMeans(counts(ods)), 1E-9), ncol(ods)),
-            ncol=ncol(ods))
-    underfit <- evalLoss(ods)
-    
-    metadata(ods)[['boundaryCases']] = c(
-            'Best possible loss (c=k)' = bestloss,
-            'Max overfitting loss (c=kcorr)' = overfit,
-            'Max underfitting loss (c=colMeans(kcorr)' = underfit)
-    
     return(ods)
 }
 
@@ -153,7 +127,6 @@ findInjectZscore <- function(ods, freq=1E-2,
 }
 
 ## Helper functions called within SearchEncDim ##
-
 
 #' injectOutliers
 #'
@@ -235,6 +208,8 @@ injectOutliers <- function(ods, freq, zScore, inj, lnorm, sdlog){
 #' @noRd
 injectOutliers.OUTRIDER2 <- function(ods, freq, zScore, inj, lnorm, sdlog){
     checkOutrider2DataSet(ods)
+    checkPreprocessing(ods)
+    
     # copy true values to be able to acces them in the loss later
     assay(ods, 'trueObservations', withDimnames=FALSE) <- observed(ods)
     
@@ -244,8 +219,8 @@ injectOutliers.OUTRIDER2 <- function(ods, freq, zScore, inj, lnorm, sdlog){
                     replace = TRUE)
     index <- matrix(index, nrow = nrow(ods))
     switch(inj,
-           low = { index <- -abs(index) },
-           high = { index <- abs(index) }
+            low = { index <- -abs(index) },
+            high = { index <- abs(index) }
     )
     
     tmpzScore <- matrix(0, ncol=ncol(ods), nrow=nrow(ods))
@@ -257,54 +232,47 @@ injectOutliers.OUTRIDER2 <- function(ods, freq, zScore, inj, lnorm, sdlog){
     zScore <- tmpzScore
     
     #inject values
-    if(is.integer(observed(ods))){
+    if(is.integer(preprocessed(ods))){
         max_out <- min(10*max(observed(ods), na.rm=TRUE), .Machine$integer.max)
     } else{
         max_out <- min(10*max(observed(ods), na.rm=TRUE), .Machine$double.xmax)
     }
     
-    if(isTRUE(modelParams(ods, "sf_norm"))){
-        # compute size factor normalized counts.
-        # don't use it on the ods to not influence the later calculation.
-        sf <- estimateSizeFactorsForMatrix(observed(ods))
-    } else{
-        sf <- rep(1, ncol(ods))
-    }
-    if(modelParams(ods, "transformation") == "log"){
-        normtable   <- t(t(observed(ods))/sf)
-        transFUN    <- function(x) log2(1 + x)
-        revtransFUN <- function(x) 2^x
-    } else{
-        normtable   <- observed(ods)
-        transFUN    <- identity
+    sf <- sizeFactors(ods) # equal to 1 if not requested
+    normtable   <- transformed(ods) # already sf normalized (if requested)
+    revtransFUN <- metadata(ods)$prepro_options$reverse_data_trans
+    if(is.null(revtransFUN)){
         revtransFUN <- identity
+    } else{
+        revtransFUN <- match.fun(revtransFUN)
     }
     
-    values <- observed(ods)
+    values <- preprocessed(ods)
     
     list_index <- which(index != 0, arr.ind = TRUE)
     for(i in seq_len(nrow(list_index))){
         idxCol <- list_index[i,'col']
         idxRow <- list_index[i,'row']
         
-        cts <- as.numeric(normtable[idxRow,])
-        fc <- zScore[idxRow, idxCol] * sd(transFUN(cts))
-        clcount <- index[idxRow, idxCol] * fc + transFUN(cts[idxCol])
+        x_trans <- as.numeric(normtable[idxRow,])
+        fc <- zScore[idxRow, idxCol] * sd(x_trans, na.rm=TRUE)
+        x_inj <- index[idxRow, idxCol] * fc + x_trans[idxCol]
         
         #multiply size factor again
-        art_out <- sf[idxCol] * revtransFUN(clcount)
-        if(modelParams(ods, "distribution") == "negative binomial" ||
-           modelParams(ods, "preprocessing") == "vst"){
+        art_out <- getReverseTransformed(x_trans=x_inj, sf=sf[idxCol], 
+                                            revtransFUN=revtransFUN)
+        if(profile(ods) == "outrider"){
             art_out <- round(art_out)
         }
         
         # only insert outliers if they are different from before 
-        # and not too large and ensure values are >= 0 if logging shall be 
-        # used as trans or prepro
-        if(art_out < max_out & art_out < 1000 * max(values[idxRow,]) & 
-           values[idxRow, idxCol] != art_out &
-           !(art_out < 0 && (any(grepl("log", unlist(modelParams(ods)))) || 
-                             modelParams(ods, "preprocessing") == "vst")) ){
+        # and not too large and ensure values are >= 0 if profile is outrider 
+        # or protrider
+        if(!is.na(values[idxRow, idxCol]) & 
+                values[idxRow, idxCol] != art_out &
+                art_out < max_out & 
+                art_out < 1000 * max(values[idxRow,], na.rm=TRUE) & 
+                !(art_out < 0 && (profile(ods) != "other")) ){
             values[idxRow, idxCol] <- art_out
         }else{
             index[idxRow, idxCol] <- 0
@@ -312,7 +280,7 @@ injectOutliers.OUTRIDER2 <- function(ods, freq, zScore, inj, lnorm, sdlog){
         }
     }
     
-    if(modelParams(ods, "distribution") == "negative binomial"){
+    if(profile(ods) == "outrider"){
         values <- as.integer(values)
     }
     
@@ -320,21 +288,10 @@ injectOutliers.OUTRIDER2 <- function(ods, freq, zScore, inj, lnorm, sdlog){
     observed(ods, withDimnames=FALSE) <- matrix(values, nrow=nrow(ods))
     assay(ods, 'trueCorruptions', withDimnames=FALSE) <- index
     assay(ods, 'injectedZscore', withDimnames=FALSE) <- zScore
+    metadata(ods)$prepro_options$prepro_func <- NULL
     return(ods)
 }
 
-
-#' 
-#' evaluate loss = 1/n * Sum(log-likelihood(k | c))
-#' 
-#' @noRd
-evalLoss <- function(ods, theta=25){
-    N_corrupted <- sum(abs(assay(ods, 'trueCorruptions')))
-    kTrue <- assay(ods, 'trueObservations')[assay(ods, 'trueCorruptions')!=0]
-    c <- assay(ods, 'normalizationFactors')[assay(ods, 'trueCorruptions')!=0]
-    eval <- sum(-dnbinom(kTrue, mu=c , size=theta, log=TRUE))/N_corrupted
-    return(eval)
-}
 
 evalAucPRLoss <- function(ods){
     scores <- -as.vector(assay(ods, 'pValue'))

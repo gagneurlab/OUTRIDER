@@ -11,10 +11,12 @@
 #' mean and standard deviation for gene j, respectively.
 #' 
 #' @param ods OutriderDataSet
-#' @param ... Further arguments passed on to \code{ZscoreMatrix}.
+#' @param distribution The distribution of the data. Used to determine in 
+#'     which way to compute zscores. Either 'nb' or 'gaussian'.
 #' @param peerResiduals If TRUE, PEER residuals are used to compute Z scores
-#' @return An OutriderDataSet containing the Z score matrix "zScore" and
-#'     the log2 fold changes "l2fc" as asasys.
+#' @param ... Currently not used.
+#' @return An OutriderDataSet containing the Z score matrix "zScore" as an 
+#'     asasy.
 #' 
 #' @docType methods
 #' @name computeZscores
@@ -25,7 +27,7 @@
 #' ods <- estimateSizeFactors(ods)
 #' 
 #' ods <- controlForConfounders(ods, implementation="pca")
-#' ods <- computeZscores(ods)
+#' ods <- computeEffectSizes(ods, effect_types=c("fold_change", "zscores"))
 #' 
 #' zScore(ods)[1:10,1:10]
 #' assay(ods, "l2fc")[1:10,1:10]
@@ -42,91 +44,85 @@ setGeneric("computeZscores",
 
 #' @rdname computeZscores
 #' @export
-setMethod("computeZscores", "Outrider2DataSet", 
-          function(ods, peerResiduals=FALSE, ...){ 
-              
-    if(modelParams(ods, "distribution") == "negative binomial"){
-        ods <- ZscoreMatrix.nb(ods, peerResiduals=peerResiduals) 
-    } else if(modelParams(ods, "distribution") == "gaussian"){
-        ods <- ZscoreMatrix.gaussian(ods, peerResiduals=peerResiduals) 
-    } else{
-        stop("Z scores for distribution ", modelParams(ods, "distribution"),
-               " not yet implemented.")
-    }
-    return(ods)
-              
-})
+ZscoreMatrix <- function(ods, distribution=c("nb", "gaussian"), 
+                        peerResiduals=FALSE, ...){ 
     
- 
-ZscoreMatrix.nb <- function(ods, peerResiduals){
     if(length(normalizationFactors(ods)) == 0){
         stop("Please fit the autoencoder first before computing Z scores.")
     }
     
-    # default Zscore calculation
-    log2fc <- log2fc(ods)
-    Zscore <- (log2fc - rowMeans(log2fc)) / rowSds(log2fc)
+    distribution <- tolower(distribution)
+    distribution <- match.arg(distribution)
+    if(distribution == "nb"){
+        residuals <- log2fc(ods)
+    } else {
+        residuals <- preprocessed(ods) - normalizationFactors(ods)
+    }
     
     # Use residuals from PEER if present
     if(isTRUE(peerResiduals)){
         if(!"PEER_model" %in% names(metadata(ods)) && 
-                    !"residuals" %in% names(metadata(ods)[['PEER_model']])){
+                !"residuals" %in% names(metadata(ods)[['PEER_model']])){
             stop("Please fit the data with 'peer' first.")
         }
         residuals <- metadata(ods)[['PEER_model']][['residuals']]
-        Zscore <- (residuals - rowMeans(residuals)) / rowSds(residuals)
-    }
-    
-    assay(ods, "l2fc", withDimnames=FALSE) <- log2fc
-    zScore(ods) <- Zscore
-    validObject(ods)
-    return(ods)
-}
-
-
-log2fc <- function(object){
-    log2(preprocessed(object) + 1) - 
-        log2(normalizationFactors(object) + 1)
-}
-
-delta <- function(object){
-    preprocessed(object) - normalizationFactors(object)
-}
-
-effect <- function(object){
-    distr <- modelParams(object)$distribution
-    
-    if(distr == "gaussian"){
-        return(delta(object))
-    } else{
-        return(log2fc(object))
-    }
-}
-
-
-ZscoreMatrix.gaussian <- function(ods, peerResiduals){
-    if(length(normalizationFactors(ods)) == 0){
-        stop("Please fit the autoencoder first before computing Z scores.")
     }
     
     # default Zscore calculation
-    residuals <- preprocessed(ods) - normalizationFactors(ods)
     Zscore <- (residuals - rowMeans(residuals, na.rm=TRUE)) / rowSds(residuals, 
-                                                                na.rm=TRUE)
-    
-    # Use residuals from PEER if present
-    if(isTRUE(peerResiduals)){
-        if(!"PEER_model" %in% names(metadata(ods)) && 
-           !"residuals" %in% names(metadata(ods)[['PEER_model']])){
-            stop("Please fit the data with 'peer' first.")
-        }
-        residuals <- metadata(ods)[['PEER_model']][['residuals']]
-        Zscore <- (residuals - rowMeans(residuals, na.rm=TRUE)) / 
-            rowSds(residuals, na.rm=TRUE)
-    }
-    
-    assay(ods, "delta", withDimnames=FALSE) <- residuals
+                                                                    na.rm=TRUE)
     zScore(ods) <- Zscore
     validObject(ods)
     return(ods)
+}
+
+#' @rdname computeZscores
+#' @export
+setMethod("computeZscores", "Outrider2DataSet", ZscoreMatrix)
+    
+#' @param effect_types The types of effects to compute. Possible options are
+#'     "fold_change" for log2 fold-changes, "zscores" for z scores, and 
+#'     "delta" for the difference between observed and expected values.
+#' @return An OutriderDataSet containing the requested effects as assays.
+#'     Z score matrix in "zScore", the log2 fold changes in "l2fc", and/or 
+#'     delta values in "delta".
+#' 
+#' @rdname computeZscores
+#' @export
+computeEffectSizes <- function(ods, distribution=c("nb", "gaussian"),
+                        effect_types=c("fold_change", "zscores", "delta"), 
+                        peerResiduals=FALSE){
+    effect_types <- match.arg(effect_types, several.ok=TRUE)    
+    distribution <- tolower(distribution)
+    distribution <- match.arg(distribution)
+    
+    if("fold_change" %in% effect_types){
+        if(any(preprocessed(ods) < 0, na.rm=TRUE)){
+            warning("fold change calculation not meaninful for negative ",
+                    "values, therefore computation is skipped. Use zscores ",
+                    "and/or delta values instead.")
+        } else{
+            pc <- ifelse(distribution == "nb", 1, 0.01)
+            assay(ods, "l2fc", withDimnames=FALSE) <- 
+                log2fc(ods, pseudocount=pc)
+        }
+    }
+    
+    if("zscores" %in% effect_types){
+        ods <- computeZscores(ods, distribution=distribution, 
+                                    peerResiduals=peerResiduals)
+    }
+    
+    if("delta" %in% effect_types){
+        delta <- preprocessed(ods) - expected(ods)
+        assay(ods, "delta", withDimnames=FALSE) <- delta
+    }
+    
+    return(ods)
+}
+
+
+log2fc <- function(object, pseudocount=1){
+    log2(preprocessed(object) + pseudocount) - 
+        log2(normalizationFactors(object) + pseudocount)
 }

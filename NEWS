@@ -3,9 +3,12 @@ CHANGES IN VERSION 2.0.0
     o major extension of OUTRIDER functionality to more general applications
         - introduction of new, general class Outrider2DataSet
         - support of any input data, also continuous data
-        - fitting and testing with gaussian distribution
+        - allows fitting and testing with gaussian distribution
         - different options for preprocessing and data transformation
-    o integration of python backend for model fitting
+        - adaption of plotting functionality
+    o integration of a python backend for model fitting ('py_outrider' package)
+        - allows inclusion of known covariates into the fit
+        - more AE fitting options
 
 CHANGES IN VERSION 1.7.1
 -----------------------------

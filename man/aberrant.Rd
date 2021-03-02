@@ -10,8 +10,10 @@ aberrant(object, ...)
 \S4method{aberrant}{Outrider2DataSet}(
   object,
   padjCutoff = 0.05,
-  zScoreCutoff = 0,
-  by = c("none", "sample", "feature")
+  zScoreCutoff = NULL,
+  l2fcCutoff = NULL,
+  deltaCutoff = NULL,
+  by = c("none", "sample", "feature", "gene")
 )
 }
 \arguments{
@@ -25,7 +27,7 @@ aberrant(object, ...)
 if NA or NULL no Z-score cutoff is used}
 
 \item{by}{if the results should be summarized by 'sample', 
-'feature' or not at all (default).}
+'feature' (can also be called 'gene') or not at all (default).}
 }
 \value{
 The number of aberrant events by feature (e.g. gene) or sample or 

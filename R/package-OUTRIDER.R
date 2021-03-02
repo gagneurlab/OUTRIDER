@@ -19,12 +19,14 @@
 #'          varianceStabilizingTransformation
 #' 
 #' @importFrom SummarizedExperiment colData colData<- rowData rowData<-
-#'          assays assays<- assayNames mcols mcols<- assay assay<-
+#'          assays assays<- assayNames mcols mcols<- assay assay<- 
+#'          SummarizedExperiment
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
 #'          isScalarValue isScalarNA chunk seq_col seq_row
 #' 
-#' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
+#' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop 
+#'          bpnworkers
 #' 
 #' @importFrom GenomicFeatures makeTxDbFromGFF exonsBy
 #' 
@@ -48,7 +50,8 @@
 #'
 #' @importFrom IRanges IRanges
 #' 
-#' @importFrom matrixStats rowSds rowMedians rowQuantiles rowMeans2 rowCumsums
+#' @importFrom matrixStats rowSds rowMedians rowQuantiles rowMeans2 rowCumsums 
+#'          rowMins rowMaxs
 #' 
 #' @importFrom pcaMethods pca loadings
 #' 
@@ -58,9 +61,11 @@
 #' 
 #' @importFrom RColorBrewer brewer.pal
 #' 
+#' @importFrom reticulate import import_builtins import_from_path
+#' 
 #' @importFrom reshape2 melt
 #' 
-#' @importFrom S4Vectors DataFrame metadata metadata<-
+#' @importFrom S4Vectors DataFrame metadata metadata<- SimpleList
 #' 
 #' @importFrom scales math_format trans_format
 #' 
@@ -69,11 +74,14 @@
 #' @importFrom stats cor coefficients cutree dist dnbinom hclust p.adjust 
 #'          setNames sd optimize rlnorm
 #'          quantile optim var pnbinom  median ppoints qbeta runif 
-#'            lm predict rnorm glm Gamma rnbinom
+#'          lm predict rnorm glm Gamma rnbinom model.matrix pnorm
 #' 
 #' @importFrom utils read.table head compareVersion packageVersion
 #' 
 #' @importFrom PRROC pr.curve
+#' 
+#' @importFrom basilisk BasiliskEnvironment basiliskStart basiliskRun 
+#'          basiliskStop
 #' 
 #' @useDynLib OUTRIDER
 #' 
@@ -87,6 +95,7 @@ NULL
 #' @noRd
 globalVariables(package="OUTRIDER", c(
         "color",
+        "effectCutoff",
         "enc",
         "encodingDimension", 
         "eva",
@@ -96,6 +105,7 @@ globalVariables(package="OUTRIDER", c(
         "expRank",
         "ExprType", 
         "feature_id",
+        "FEATURE_ID",
         "fill",
         "frac",
         "Fraction",
@@ -103,22 +113,30 @@ globalVariables(package="OUTRIDER", c(
         "group",
         "lty", 
         "lwd", 
-        "medianCts", 
+        "medianCts",
+        "medianNormalized",
         "negLog10pVal",
+        "normalized",
         "normcounts",
         "normCts",
         "norm_rank", 
         "opt",
         "padj_rank", 
         "padjust", 
+        "pVal",
         "obs",
         "observed",
         "onlyFull",
         "passedFilter",
+        "preprocessed_raw",
         "Rank",
         "rawcounts",
+        "raw_input",
+        "rawinput",
+        "rawvalue",
         "sampleID",
         "sizeFactor",
+        "sizefactor",
         "value",
         "variable",
         "V1",

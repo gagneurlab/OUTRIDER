@@ -8,6 +8,7 @@
 \usage{
 findEncodingDim(
   ods,
+  prepro_options = getDefaultPreproParams(ods),
   params = getParamsToTest(ods),
   freq = 0.01,
   zScore = 3,

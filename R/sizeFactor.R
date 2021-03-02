@@ -94,7 +94,8 @@ estimateSizeFactors.OUTRIDER2 <- function(object){
     
     sf <- apply(observed(object, normalized=FALSE), 2, function(obs) {
         exp(median((log(obs) - loggeomeans)[
-            is.finite(loggeomeans) & obs > 0])) # TODO check if this makes sense for general case
+            # TODO adapt sf calculation for general case (with values < 0)
+            is.finite(loggeomeans) & obs > 0])) 
     })
     
     sizeFactors(object) <- sf
@@ -119,7 +120,7 @@ estimateSizeFactors.OUTRIDER <- function(object){
     
     if(all(is.infinite(loggeomeans))){
         stop(paste("Every gene contains at least one zero,",
-                   "cannot compute log geometric means"))
+                    "cannot compute log geometric means"))
     }
     
     sf <- apply(counts(object), 2, function(cnts) {
@@ -135,6 +136,6 @@ estimateSizeFactors.OUTRIDER <- function(object){
 #' @rdname sizeFactors
 #' @export estimateSizeFactors
 setMethod("estimateSizeFactors", "OutriderDataSet", 
-          estimateSizeFactors.OUTRIDER)
+        estimateSizeFactors.OUTRIDER)
 
 

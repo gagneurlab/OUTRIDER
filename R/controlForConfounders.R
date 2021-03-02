@@ -2,16 +2,38 @@
 #' Autoencoder function to correct for confounders.
 #' 
 #' This is the wrapper function for the autoencoder implementation. 
-#' It can be used to call the standard R implementation or the experimental
-#' Python implementation.
+#' It can be used to call the standard R or the python implementation.
 #'
 #' @param ods An OutriderDataSet object
 #' @param q The encoding dimensions
-#' @param implementation "autoencoder", the default, will use the autoencoder
-#'             implementation. Also 'pca' and 'peer' can be used to control
+#' @param prepro_options A list specifying the preprocessing options that 
+#'          should be used. If the user wants to change some options, please 
+#'          obtain the default list using \code{getDefaultPreproParams(ods)} 
+#'          and adapt.
+#' @param latent_space_model Specifies which latent space fitting model to use.
+#'             "autoencoder", the default, will use the autoencoder
+#'             implementation. Also 'pca' can be used to control
 #'             for confounding effects
+#' @param decoder_model Specifies which decoder fitting model to use.
+#'             "autoencoder", the default, will use the autoencoder
+#'             implementation. Also 'pca' can be used to control
+#'             for confounding effects.
+#' @param implementation Deprecated. Use latent_space_model and decoder_model 
+#'             instead.
+#' @param covariates Character vector indicating the known covariates that 
+#'          should be considered explicitly in the fit. Defaults to NULL, 
+#'          meaning no known covariates are used. Covariates given here must 
+#'          be columns in \code{colData(ods)}. Only considered if 
+#'          \code{usePython=TRUE}.
 #' @param usePython Indicates whether the python or the R implementation of the
 #'             given confounding method should be used. 
+#' @param useBasilisk Specifies whether a conda environment installed with 
+#'         basilik should be used to run the python code. If FALSE, 
+#'         it is assumed that py_outrider is installed and the correct python 
+#'         binary is specified using either 
+#'         reticulate::use_python(..., force=TRUE) or 
+#'         reticulate::use_condaenv(..., force=TRUE), so that py_outrider can 
+#'         be loaded with reticulate::import("py_outrider").
 #' @param BPPARAM A 
 #'     \code{\link[BiocParallel:BiocParallelParam-class]{BiocParallelParam}}
 #'             instance to be used for parallel computing.
@@ -32,59 +54,15 @@
 #' plotCountCorHeatmap(ods, normalized=FALSE)
 #' plotCountCorHeatmap(ods, normalized=TRUE)
 #' 
-# #' @export
-# controlForConfounders <- function(ods, q,
-#                     implementation=c('autoencoder', 'pca'), 
-#                     BPPARAM=bpparam(), ...){
-#     
-#     # error checking
-#     checkOutriderDataSet(ods)
-#     checkCountRequirements(ods)
-#     checkSizeFactors(ods)
-#     
-#     if(!missing(q)){
-#         if(!(is.numeric(q) & q > 1 & q <= min(dim(ods)))){
-#             stop("Please provide for q an integer greater than 1 and smaller ", 
-#                     "than number of samples or genes.")
-#         }
-#     } else {
-#         q <- getBestQ(ods)
-#         if(is.na(q)){
-#             q <- estimateBestQ(ods)
-#             message('Using estimated q with: ', q)
-#         } else {
-#             message('Using provided q with: ', q)
-#         }
-#     }
-#     
-#     # pass on to the approriate implementation
-#     implementation <- tolower(implementation)
-#     implementation <- match.arg(implementation)
-#     aeFun <- switch(implementation,
-#         autoencoder = { 
-#             function(ods, q, ...){ fitAutoencoder(ods, q, ...) } },
-#         pca         = { 
-#             function(ods, q, BPPARAM, ...){ autoCorrectPCA(ods, q, ...) } },
-#         stop("Requested control implementation is unknown.")
-#     )
-#     
-#     message(date(), ": Using the ", implementation, 
-#             " implementation for controlling.")
-#     ans <- aeFun(ods=ods, q=q, BPPARAM=BPPARAM, ...)
-#     message(date(), ": Used the ", implementation, 
-#             " implementation for controlling.")
-#     
-#     return(ans)
-# }
-
-#' OUTRIDER2 function for controlling for confounders, including option to 
-#' fit in python.
-#' 
 #' @export
-controlForConfounders <- function(ods, q,
-                            implementation=c('autoencoder', 'pca'), 
+controlForConfounders <- function(ods, q, 
+                            prepro_options=getDefaultPreproParams(ods),
+                            latent_space_model=c("autoencoder", "pca"), 
+                            decoder_model=c("autoencoder", "pca"),
                             covariates=NULL, 
                             usePython=checkUsePython(ods, covariates),
+                            useBasilisk=FALSE, 
+                            implementation=latent_space_model, 
                             BPPARAM=bpparam(), ...){
     
     # error checking
@@ -104,7 +82,7 @@ controlForConfounders <- function(ods, q,
     if(!missing(q) && !is.null(q)){
         if(!(is.numeric(q) & q > 1 & q <= min(dim(ods)))){
             stop("Please provide for q an integer greater than 1 and smaller ", 
-                 "than number of samples or genes.")
+                "than number of samples or genes.")
         }
         message('Using specified q = ', q)
     } else {
@@ -122,16 +100,36 @@ controlForConfounders <- function(ods, q,
     }
     
     # pass on to the approriate implementation
-    implementation <- tolower(implementation)
-    implementation <- match.arg(implementation)
-    metadata(ods)[["fitModel"]] <- implementation
+    if(!missing(implementation)){
+        warning("Using implementation argument is deprecated. Use 
+                latent_space_model and decoder_model instead.")
+        latent_space_model <- implementation
+        decoder_model <- latent_space_model
+    }
+    latent_space_model <- tolower(latent_space_model)
+    latent_space_model <- match.arg(latent_space_model)
+    metadata(ods)[["latent_space_model"]] <- latent_space_model
+    decoder_model <- tolower(decoder_model)
+    decoder_model <- match.arg(decoder_model)
+    metadata(ods)[["decoder_model"]] <- decoder_model
     if(isTRUE(usePython)){
-        aeFun <- function(ods, q, ...){ runPyCorrection(ods, q, implementation,
-                                            covariates=covariates,
-                                            ncpus=bpnworkers(BPPARAM), ...) }
+        aeFun <- function(ods, q, ...){ 
+            runPyCorrection(ods, q, prepro_options,
+                            latent_space_model=latent_space_model,
+                            decoder_model=decoder_model, 
+                            covariates=covariates,
+                            useBasilisk=useBasilisk,
+                            ncpus=bpnworkers(BPPARAM), ...) }
     } else{
-        checkFitInR(ods)
-        aeFun <- switch(implementation,
+        checkFitInR(ods, ...)
+        if(latent_space_model != decoder_model){
+            warning("The R implementation does not support different models\n",
+            "for fitting the latent space and the decoder. Use the\n",
+            "python version if you want do this. Running the R fit with\n",
+            "latent_space_model = decoder_model = ", latent_space_model)
+        }
+        decoder_model <- latent_space_model
+        aeFun <- switch(latent_space_model,
             autoencoder = { 
                 function(ods, q, ...){ fitAutoencoder(ods, q, ...) } },
             pca         = { 
@@ -140,11 +138,13 @@ controlForConfounders <- function(ods, q,
         )
     }
     
+    implementation_string <- 
+        paste(unique(c(latent_space_model, decoder_model)), collapse = " + ")
     progLang <- ifelse(isTRUE(usePython), "python", "R")
-    message(date(), ": Using the ", progLang, " ", implementation, 
+    message(date(), ": Using the ", progLang, " ", implementation_string, 
             " implementation for controlling.")
     ans <- aeFun(ods=ods, q=q, BPPARAM=BPPARAM, ...)
-    message(date(), ": Used the ", progLang, " ", implementation, 
+    message(date(), ": Used the ", progLang, " ", implementation_string, 
             " implementation for controlling.")
     
     return(ans)
@@ -194,44 +194,60 @@ computeLatentSpace <- function(ods){
 #'          should be considered explicitly in the fit. Defaults to NULL, 
 #'          meaning no known covariates are used. Covariates given here must 
 #'          be columns in \code{colData(ods)}.
-#' @param ncpus
+#' @param latent_space_model The model for fitting the latent space.
+#' @param decoder_model The model for fitting the decoder.
+#' @param prepro_options A list specifying the preprocessing options that 
+#'          should be used. If the user wants to change some options, please 
+#'          obtain the default list using \code{getDefaultPreproParams(ods)} 
+#'          and adapt.
+#' @param ncpus The number of cores for running the model fit in parallel.
+#' @param ... Additional parameters passed onto the python implementation. 
+#'          Currently supported are loss_distribution, iterations, convergence,
+#'          seed and verbose.
 #' 
 #' @return An ods object including the control factors 
 #' 
 #' @noRd
-runPyCorrection <- function(ods, q=NA, implementation=c("autoencoder", "pca"), 
-                            covariates=NULL, ncpus=bpnworkers(bpparam()), ...){
+runPyCorrection <- function(ods, q=NA, covariates=NULL, 
+                            latent_space_model=c("autoencoder", "pca"), 
+                            decoder_model=c("autoencoder", "pca"), 
+                            prepro_options=getDefaultPreproParams(ods),
+                            ncpus=bpnworkers(bpparam()), 
+                            useBasilisk=FALSE, ...){
     
-    ### create parameter list needed for py_outrider run
-    if(implementation == "autoencoder"){
-        argsParam <- c("-p=outrider")    
-    } else if(implementation == "pca"){
-        argsParam <- c("-p=pca")    
+    # create parameter list needed for py_outrider run
+    profile <- profile(ods)
+    profile <- ifelse(profile == "other", "pca", profile)
+    argsParam <- c(paste0("-p=", profile))
+    
+    # set correct input matrix
+    prepro_func <- prepro_options$prepro_func
+    if(!is.null(prepro_func)){
+        inputMatrix <- as.data.frame(t(preprocessed(ods)))
+        prepro_func <- "none"
     } else{
-        stop("Unknown latent space fitting implementation: ", implementation)
+        inputMatrix <- as.data.frame(t(observed(ods)))
+        prepro_func <- "none" 
     }
-
-    distr <- switch(modelParams(ods, "distribution"),
-                    "negative binomial"="neg_bin",
-                    "gaussian"="gaus")
-    sf_norm <- modelParams(ods, "sf_norm")        
-    trans <- switch(modelParams(ods, "transformation"),
-                    "log"  = ifelse(sf_norm, "sf", "log"),
-                    "none" = "none")
-    prepro <- switch(modelParams(ods, "preprocessing"),
-                     "none" = "none",
-                     "log"  = "sf_log",
-                     "vst"  = "none")
-    argsParam <- c(argsParam, paste0("-dis=", distr), paste0("-ld=", distr),
-                    paste0("-dt=", trans),
-                    paste0("-pre=", prepro))    
     
-    # set encoding dim. if q=NA, hyperParOpt in python code will be used
-    if(!is.na(q)){
-        argsParam <- c(argsParam, paste0("-q=", q), paste0("--num_cpus=", ncpus))
-        extractHyperParOptResults <- FALSE
+    # set latent_space fit model
+    latent_space_model <- match.arg(latent_space_model)
+    if(latent_space_model == "autoencoder"){
+        argsParam <- c(argsParam, "--latent_space_model=AE")    
+    } else if(latent_space_model == "pca"){
+        argsParam <- c(argsParam, "--latent_space_model=PCA")    
     } else{
-        extractHyperParOptResults <- TRUE
+        stop("Unknown latent_space_model: ", latent_space_model)
+    }
+    
+    # set decoder fit model
+    decoder_model <- match.arg(decoder_model)
+    if(decoder_model == "autoencoder"){
+        argsParam <- c(argsParam, "--decoder_model=AE")    
+    } else if(decoder_model == "pca"){
+        argsParam <- c(argsParam, "--decoder_model=PCA")    
+    } else{
+        stop("Unknown decoder_model: ", decoder_model)
     }
     
     # set covariates to include in fit
@@ -240,11 +256,33 @@ runPyCorrection <- function(ods, q=NA, implementation=c("autoencoder", "pca"),
         covariates(ods) <- covariates
     }
     
-    # set optional additional parameters
+    # check supplied data_trans
+    data_trans <- prepro_options$data_trans
+    if(!is.null(data_trans)){
+        if(!(data_trans %in% c("log", "log1p"))){
+            stop("cannot pass custom transform function to python. Please use 
+                the python code directly or set data_trans to NULL, 'log' or 
+                'log1p'.")
+        }
+    } else{
+        data_trans <- "none"    
+    }
+    
+    # set remaining options
+    argsParam    <- c(argsParam, 
+                        paste0("-pre=", prepro_func),
+                        paste0("-dt=", data_trans),
+                        paste0("-sf=", prepro_options$sf_norm),
+                        paste0("-c=", "True"),
+                        paste0("-nf=", prepro_options$noise_factor))
+    
     dots <- list(...)
     if(length(dots) > 0){
+        if("loss_distribution" %in% names(dots)){
+            argsParam <- c(argsParam,  paste0("-ld=", dots$loss_distribution))
+        }
         if("iterations" %in% names(dots)){
-            argsParam <- c(argsParam,  paste0("-m=", dots$iterations))
+            argsParam <- c(argsParam,  paste0("-i=", dots$iterations))
         }
         if("verbose" %in% names(dots)){
             argsParam <- c(argsParam,  paste0("-v=", dots$verbose))
@@ -252,26 +290,78 @@ runPyCorrection <- function(ods, q=NA, implementation=c("autoencoder", "pca"),
         if("seed" %in% names(dots)){
             argsParam <- c(argsParam,  paste0("-s=", dots$seed))
         }
-        if("loss_distribution" %in% names(dots)){
-            argsParam <- c(argsParam,  paste0("-ld=", dots$loss_distribution))
+        if("convergence" %in% names(dots)){
+            argsParam <- c(argsParam,  paste0("--convergence=", 
+                                                dots$convergence))
+        }
+        if("batch_size" %in% names(dots)){
+            argsParam <- c(argsParam,  paste0("--batch_size=", 
+                                                dots$batch_size))
+        }
+        if("nr_latent_space_features" %in% names(dots)){
+            argsParam <- c(argsParam,  paste0("--nr_latent_space_features=", 
+                                                dots$nr_latent_space_features))
         }
     }
     
-    ### set correct input matrix
-    if(modelParams(ods, "preprocessing") == "vst"){
-        inputMatrix <- as.data.frame(t(preprocessed(ods)))
+    
+    # set encoding dim. if q=NA, hyperParOpt in python code will be used
+    if(!is.na(q)){
+        argsParam <- c(argsParam, paste0("-q=", q), 
+                        paste0("--num_cpus=", ncpus))
+        extractHyperParOptResults <- FALSE
     } else{
-        inputMatrix <- as.data.frame(t(observed(ods, normalized=FALSE)))
+        extractHyperParOptResults <- TRUE
+        if(length(dots) > 0){
+            if("convergence_hyper" %in% names(dots)){
+                argsParam <- c(argsParam, paste0("--convergence_hyper=", 
+                                                    dots$convergence_hyper))
+            }
+            if("max_iter_hyper" %in% names(dots)){
+                argsParam <- c(argsParam, paste0("--max_iter_hyper=", 
+                                                    dots$max_iter_hyper) )
+            }
+        }
     }
     
     ### run python backend
-    pyRes <- py_outrider$main$run_from_R_OUTRIDER(
-        inputMatrix, 
-        as.data.frame(colData(ods)), 
-        argsParam)
-    
-    ### add information from fit back to ods
-    ods <- addPyFitResults(ods, pyRes, extractHyperParOptResults)
+    if(isTRUE(useBasilisk)){
+        message("Connecting to the py_outrider package using basilisk. ",
+            "Set 'useBasilisk' = FALSE \nif you prefer to manually set the ",
+            "python binary using 'reticulate'.")
+        
+        # proc <- basiliskStart(py_outrider_env)
+        proc <- basiliskStart(outrider2_env)
+        on.exit(basiliskStop(proc))
+        ods <- basiliskRun(proc, function(ods, inputMatrix, argsParam, 
+                                    extractHyperParOptResults){ 
+            py_outrider <- import("py_outrider")
+            pyRes <- py_outrider$main_run$run_from_R_OUTRIDER(
+                inputMatrix,
+                as.data.frame(colData(ods)),
+                argsParam)
+            return(addPyFitResults(ods, pyRes, extractHyperParOptResults))
+        }, ods=ods, inputMatrix=inputMatrix, argsParam=argsParam, 
+            extractHyperParOptResults=extractHyperParOptResults)
+        
+    } else{ # use current env loaded with reticulate
+
+        message("Connecting to the py_outrider python package using reticulate",
+            " (useBasilisk = FALSE)... \nIn case of errors, please make sure ",
+            "to specify the right python binary when loading R.\n",
+            "If you rather want us to automatically setup a conda ",
+            "environment with 'py_outrider'\ninstalled using the 'basilisk'",
+            " package, please use the argument 'useBasilisk = TRUE'.")
+        
+        py_outrider <- import("py_outrider")
+        pyRes <- py_outrider$main_run$run_from_R_OUTRIDER(
+            inputMatrix, 
+            as.data.frame(colData(ods)), 
+            argsParam)
+        
+        ### add information from fit back to ods
+        ods <- addPyFitResults(ods, pyRes, extractHyperParOptResults)
+    }
 
     # return ods
     return(ods)
@@ -283,15 +373,24 @@ runPyCorrection <- function(ods, q=NA, implementation=c("autoencoder", "pca"),
 addPyFitResults <- function(ods, pyRes, extractHyperParOptResults=FALSE){
     
     # add fit information from python result back to ods
-    normalizationFactors(ods) <- t(extract_pyRes(pyRes, "X_pred"))
+    py_builtins <- import_builtins()
+    layers <- py_builtins$dict(pyRes$layers)
+    normalizationFactors(ods) <- t(layers[["X_predicted"]])
     
     # add theta for neg bin fits
-    if(modelParams(ods, "distribution") == "negative binomial"){
-        theta(ods) <- extract_pyRes(pyRes, "par_meas")
+    if("dispersions" %in% names(py_builtins$dict(pyRes$varm))){
+        theta(ods) <- as.vector(pyRes$varm["dispersions"])
+    }
+    
+    # add other info
+    sizeFactors(ods) <- as.vector(pyRes$obsm["sizefactors"])
+    preprocessed(ods, withDimnames=FALSE) <- t(layers[["X_prepro"]])
+    if("X_transformed" %in% names(layers)){
+        transformed(ods, withDimnames=FALSE) <- t(layers[["X_transformed"]])
     }
     
     if(isTRUE(extractHyperParOptResults)){
-        encDimTable <- rbindlist(lapply(pyRes[["hyperpar_table"]], 
+        encDimTable <- rbindlist(lapply(pyRes$uns[["hyperpar_table"]], 
                                         function(x){ as.data.table(x)}))
         setnames(encDimTable, "encod_dim", "encodingDimension")
         setnames(encDimTable, "prec_rec", "evaluationLoss")
@@ -302,30 +401,12 @@ addPyFitResults <- function(ods, pyRes, extractHyperParOptResults=FALSE){
         metadata(ods)[['optimalEncDim']] <- getBestQ(ods)
     }
     
-    # extract encoding dim (possibly with covariates)
-    # q_with_cov <- extract_pyRes(pyRes, "encod_dim_cov")
-     
     # add encoder and decoder weights
-    E(ods) <- extract_pyRes(pyRes, "encoder_weights")
-    D(ods) <- extract_pyRes(pyRes, "decoder_weights")
-    b(ods) <- extract_pyRes(pyRes, "decoder_bias")
+    E(ods) <- pyRes$uns["E"]
+    D(ods) <- pyRes$uns["D"]
+    b(ods) <- pyRes$uns["bias"]
     
     # return ods 
     return(ods)
-}
-
-#' Function to extract a matrix or vector from the py_outrider result (xarray)
-#' @noRd
-extract_pyRes <- function(pyRes, aname){
-    assay_xr <- pyRes[[aname]]
-    assay <- assay_xr$values
-    
-    if(length(dim(assay)) == 2){
-        rownames(assay) <- assay_xr$coords$get("sample")$values
-        colnames(assay) <- assay_xr$coords$get("meas")$values
-    } else{
-        names(assay) <- assay_xr$coords$get("meas")$values
-    }
-    return(assay)
 }
 

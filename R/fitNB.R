@@ -25,8 +25,8 @@
 fit.OutriderDataSet <- function(object, BPPARAM=bpparam(), ...){
     if(length(list(...))){
         stop("... is currently not used. Please remove the ",
-             "additional arguments: ",
-             paste(names(list(...)), collapse=", "))
+            "additional arguments: ",
+            paste(names(list(...)), collapse=", "))
     }
     fitTheta(object, BPPARAM=BPPARAM)
 }

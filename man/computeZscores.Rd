@@ -3,23 +3,55 @@
 \docType{methods}
 \name{computeZscores}
 \alias{computeZscores}
+\alias{ZscoreMatrix}
 \alias{computeZscores,Outrider2DataSet-method}
+\alias{computeEffectSizes}
 \title{Z score computation}
 \usage{
 computeZscores(ods, ...)
 
-\S4method{computeZscores}{Outrider2DataSet}(ods, peerResiduals = FALSE, ...)
+ZscoreMatrix(
+  ods,
+  distribution = c("nb", "gaussian"),
+  peerResiduals = FALSE,
+  ...
+)
+
+\S4method{computeZscores}{Outrider2DataSet}(
+  ods,
+  distribution = c("nb", "gaussian"),
+  peerResiduals = FALSE,
+  ...
+)
+
+computeEffectSizes(
+  ods,
+  distribution = c("nb", "gaussian"),
+  effect_types = c("fold_change", "zscores", "delta"),
+  peerResiduals = FALSE
+)
 }
 \arguments{
 \item{ods}{OutriderDataSet}
 
-\item{...}{Further arguments passed on to \code{ZscoreMatrix}.}
+\item{...}{Currently not used.}
+
+\item{distribution}{The distribution of the data. Used to determine in 
+which way to compute zscores. Either 'nb' or 'gaussian'.}
 
 \item{peerResiduals}{If TRUE, PEER residuals are used to compute Z scores}
+
+\item{effect_types}{The types of effects to compute. Possible options are
+"fold_change" for log2 fold-changes, "zscores" for z scores, and 
+"delta" for the difference between observed and expected values.}
 }
 \value{
-An OutriderDataSet containing the Z score matrix "zScore" and
-    the log2 fold changes "l2fc" as asasys.
+An OutriderDataSet containing the Z score matrix "zScore" as an 
+    asasy.
+
+An OutriderDataSet containing the requested effects as assays.
+    Z score matrix in "zScore", the log2 fold changes in "l2fc", and/or 
+    delta values in "delta".
 }
 \description{
 Computes the z scores for every count in the matrix. 
@@ -36,7 +68,7 @@ ods <- makeExampleOutriderDataSet()
 ods <- estimateSizeFactors(ods)
 
 ods <- controlForConfounders(ods, implementation="pca")
-ods <- computeZscores(ods)
+ods <- computeEffectSizes(ods, effect_types=c("fold_change", "zscores"))
 
 zScore(ods)[1:10,1:10]
 assay(ods, "l2fc")[1:10,1:10]

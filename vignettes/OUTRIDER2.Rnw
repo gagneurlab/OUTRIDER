@@ -31,15 +31,19 @@ opts_chunk$set(
 \newcommand{\rna}{RNA-seq}
 \newcommand{\deseq}{\Biocpkg{DESeq2}}
 \newcommand{\ods}{\Rclass{OutriderDataSet}}
+\newcommand{\outds2}{\Rclass{Outrider2DataSet}}
 
-\title{OUTRIDER - OUTlier in RNA-Seq fInDER}
+\title{OUTRIDER2}
 
 \author{
-    Felix Brechtmann$^{1}$, Christian Mertes$^{1}$, Agne Matuseviciute$^{1}$, 
-        Vicente Yepez$^{1,2}$, Julien Gagneur$^{1,2}$ \\
+    Felix Brechtmann$^{1}$, Christian Mertes$^{1}$, Ines Scheller$^{2}$,
+        Agne Matuseviciute$^{1}$, Vicente Yepez$^{1,3}$, 
+        Julien Gagneur$^{1,2,3}$ \\
     \small{$^{1}$ Technical University Munich, Department of 
         Informatics, Munich, Germany}\\
-    \small{$^{2}$ Quantitative Biosciences Munich, Gene Center, 
+    \small{$^{2}$ Helmholtz Zentrum M\"unchen, Institute of 
+        Computational Biology, Munich, Germany}\\
+    \small{$^{3}$ Quantitative Biosciences Munich, Gene Center, 
         Ludwig-Maximilians Universit\"at M\"unchen, Munich, Germany}
 }
 
@@ -275,8 +279,11 @@ However, the \Robject{TxDb.Hsapiens.UCSC.hg19.knownGene} contains only
 well annotated 
 genes. This annotation will miss a lot of genes captured by RNA-seq. To include 
 all predicted annotations as well as non-coding RNAs please download the txdb 
-object from our homepage\footnote{\url{https://cmm.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
-or create it yourself from the UCSC website\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
+object from our homepage
+\footnote{\url{https://cmm.in.tum.de/public/paper/mitoMultiOmics/ucsc.knownGenes.db}}
+or create it yourself from the UCSC website
+\footnote{\url{https://genome.ucsc.edu/cgi-bin/hgTables}}$^,$
+\footnote{\url{http://genomewiki.ucsc.edu/index.php/Genes_in_gtf_or_gff_format}}.
 
 <<create txdb, eval=FALSE>>=
 try({
@@ -350,7 +357,7 @@ samples should be reduced and close to zero.
 
 # automatically control for confounders
 # we use only 3 iterations to make the vignette faster. The default is 15. 
-ods <- estimateSizeFactors(ods)
+ods <- preprocess(ods) # estimates sizeFactors
 ods <- controlForConfounders(ods, q=21, iterations=3)
 
 # Heatmap of the sample correlation after controlling
@@ -665,6 +672,159 @@ plotPowerAnalysis(ods)
 @
 Here, we see that it is only for sufficiently high expressed genes possible, to 
 obtain significant P-values, especially for the downregulation cases.
+
+\section{OUTRIDER2}
+Since version 2.0, \outrider{} additionally supports model fitting and p value 
+based outlier detection for the Gaussian distribution, as well as the inclusion 
+of known confounders in the fitting and allows for the usage of different data 
+preprocessing and transformation options.
+Use cases could for example, among others, be outlier detection in proteomics 
+mass spectrometry intensities ('PROTRIDER'), or modelling vst transformed gene 
+counts.
+
+\subsection{Outrider2DataSet}
+The \outds2{} is a generalization of the \ods{} class. Input values no longer have 
+to be counts/integers, but can be continuous values and might also contain some 
+missing values (NAs). When creating the \outds2{}, the correct profile should be 
+specified to indicate which default settings should be used for preprocessing 
+and model fitting. Available profiles are 'outrider' for the standart negative 
+binomial OUTRIDER fit of gene counts, 'protrider' for fitting mass spectrometry 
+intensities e.g. from proteomics measurements (see TODO for more details), 
+and 'other' by default for a gaussian fit directly to the input data. To get 
+more control over the underlying settings for each profile, see the next 
+section on how to finetune the default parameter settings.
+
+<<Outrider2DataSet>>=
+# simulate intensity data
+n_samples <- 20
+n_features <- 500
+sim_intensities <- matrix(rlnorm(n_samples*n_features, meanlog=13, sdlog=2), 
+                                nrow=n_features, ncol=n_samples)
+rownames(sim_intensities) <- paste0("feature_", seq_len(n_features))
+colnames(sim_intensities) <- paste0("sample_", seq_len(n_samples))
+
+# create Outrider2Dataset, here with 'protrider' profile:
+ods <- Outrider2DataSet(inputData=sim_intensities, profile="protrider")
+ods
+@
+
+As \ods{} is now a subclass of \outds2{}, the profile is automatically set to 
+'outrider' when creating an \ods{}. 
+
+\subsection{Using the python backend}
+By default, fitting the R autoencoder implementation is used for the standard 
+NB OUTRIDER fit without the inclusion of known confounders, unless the sample 
+size is large (> 1000 samples). In all other cases, the python backend is used 
+for model fitting. The python backend to OUTRIDER is implemented in the 
+'py\_outrider' package which can be installed from pip by running ... (TODO). 
+\outrider{}2 supports both manually specyfing a python binary or conda 
+environment in which py\_outrider has been installed, or letting the package 
+automatically create an appropriate conda environment with the 
+\Biocpkg{basilisk} package
+
+<<pythonBackend, eval=FALSE>>=
+# default: using manually specified conda environment:
+reticulate::use_condaenv("py_outrider")
+ods <- OUTRIDER(ods)
+
+# alternatively, let basilisk handle py_outrider installation:
+ods <- OUTRIDER(ods, useBasilisk=TRUE)
+
+@
+
+<<usePyoutrider, echo=FALSE>>=
+reticulate::use_condaenv("py_outrider")
+@
+
+\subsection{Modifying the default data preprocessing options}
+\outrider{}2 supports the application of user specified data preprocessing 
+functions prior to fitting. One example is the usage of a variance stabilizing 
+transformation (vst) and then fitting the data with the Gaussian distribution.
+While this is typically faster than the NB autoencoder, it tends to produce a 
+higher number of outliers per sample.
+
+<<vstPrepro, fig.height=5>>=
+# create some example count data
+ods <- makeExampleOutriderDataSet()
+
+# set profile to 'other' to use general settings (uses gaussian distribution)
+profile(ods) <- "other"
+
+# modify preprocessing options, set 'prepro_func' to e.g. DESeq2 vst
+prepro_opts <- getDefaultPreproParams(ods)
+prepro_opts[["prepro_func"]] <- DESeq2::varianceStabilizingTransformation
+
+# fit model with modified preprocessing options (requires python backend)
+ods <- OUTRIDER(ods, prepro_options=prepro_opts, usePython=TRUE)
+
+# check results
+head(results(ods))
+
+# plotting, e.g.
+plotAberrantPerSample(ods)
+@
+
+In a analogous fashion, different data transformation functions to generate 
+the autoencoder input, can be chosen with 
+`prepro\_opt[["data\_trans"]] <- "log"`. Here, however, currently only 
+'log', 'log1p' or NULL (no transformation) are supported. 
+Also, sizefactor normalization can be turned on or off by setting 
+`prepro\_opt[["sf\_norm"]] <- TRUE/FALSE`.
+By default, the distribution specified in `prepro\_opt[["distribution"]]` 
+is used both for the model loss and for the p value calculation. At the moment, 
+only 'nb' (negative binomial) and 'gaussian' are supported. A different 
+distribution might be used for the model loss than for the p value calculation, 
+in this case, the argument `loss\_distribution` should be supplied to the 
+`OUTRIDER()` function to specify which distribution to use for the model 
+loss.
+
+\subsection{Including known confounders in th model fitting}
+To explicitly consider confouders known beforehand, the user only has to 
+specify the respective columns in the `colData` of the \outds2{}. The column 
+will then be included in the model as a one-hot encoding, so it is only 
+meaningful to specify columns that contain several distinct categories, not 
+continuous values.
+
+<<covariateInclusion>>=
+ods <- makeExampleProtriderDataSet()
+
+# filter out features that are not variable across samples or have many NAs
+ods <- filterExpression(ods)
+
+# covariates that should be included in the fit have to be a column in colData
+colData(ods)
+
+# fit, including known confounders (here: 'batch')
+ods <- OUTRIDER(ods, covariates = c("batch"))
+@
+
+\subsection(Results table)
+The \outrider{}2 results table is very similar to previous results table 
+(see Section~\ref{sec:Results}), but additionally specifies which distribution 
+was used for obtaining the p values, and if preprocessing was applied, 
+additionally lists the values after applying the preprocessing function. 
+Furthermore, the default cutoffs on adjusted p values and effects (fold change, 
+zscores, or delta values, if appropriate) might be adjusted according to the 
+user's preferences.
+
+<<outrider2Results>>=
+# default results extraction (p adjust < 0.05)
+res <- results(ods)
+head(res)
+
+# adjusting the cutoffs used for extracting results
+res <- results(ods, padjCutoff=0.1, l2fcCutoff=0.5, zScoreCutoff=5)
+head(res)
+@
+
+\subsection{Plotting}
+The same plotting functions as described in Section~\ref{sec:Results} may be 
+used to visualize \outds2{} results. The name of some functions has been adapted 
+to support the more general \outds2{} objects:  
+`plotExpressionRank` -> `plotFeatureRank`, 
+`plotExpectedVsObservedCounts` -> `plotExpectedVsObserved`,
+`plotCountCorHeatmap` -> `plotSampleCorHeatmap`,
+`plotCountGeneSampleHeatmap` -> `plotFeatureSampleHeatmap`.
 
 \bibliography{bibliography}
 

@@ -50,18 +50,6 @@ sampleExclusionMask <- function(ods, aeMatrix=FALSE){
     return(ods)
 }
 
-# x <- function(ods){
-#     k <- t(observed(ods, normalized=FALSE))
-#     s <- sizeFactors(ods)
-#     
-#     # compute log of per gene centered counts (per feature centered values)
-#     x0 <- log((1+k)/s)
-#     b <- colMeans(x0)
-#     x <- t(t(x0) - b)
-#     
-#     return(x)
-# }
-
 x <- function(ods){
     x0 <- transformed(ods)
     
@@ -161,32 +149,28 @@ thetaCorrection <- function(ods){
     return(ods)
 }
 
-transformed <- function(ods, normalized=FALSE){
-    checkOutrider2DataSet(ods)
-    trans <- modelParams(ods, "transformation")
-    sf_norm <- modelParams(ods, "sf_norm")
-    
-    if(trans == "none"){
-        transformed <- preprocessed(ods, normalized=normalized)
+transformed <- function(ods){
+    if(!("transformed" %in% assayNames(ods))){
+        stop("Assay 'transformed' does not exist. Calculate it first with ", 
+            "ods <- preprocess(ods)")
     }
-    else if(trans == "log"){
-        if(isTRUE(sf_norm)){
-            # checkSizeFactors(ods)
-            k <- t(preprocessed(ods, normalized=normalized))
-            s <- sizeFactors(ods)
-            if(is.null(s)){
-                s <- estimateSizeFactorsForMatrix(t(k))
-            }
-            transformed <- t(log((1+k)/s))
-        } else{
-            transformed <- log1p(preprocessed(ods, normalized=normalized))
-        }
+    return(assay(ods, "transformed"))
+}
+
+`transformed<-` <- function(ods, value, ...){
+    if(!is.matrix(value)){
+        value <- matrix(value, nrow=nrow(ods))
     }
-    else{
-        stop("Unknown transformation ", trans, ".")
-    }
-    
-    return(transformed)
+    assay(ods, "transformed", ...) <- value
+    validObject(ods)
+    return(ods)
+}
+
+getReverseTransformed <- function(x_trans, sf, revtransFUN){
+    revtransFUN <- match.fun(revtransFUN)
+    x <- revtransFUN(x_trans)
+    x <- x * sf
+    return(x)
 }
 
 covariates <- function(ods){
@@ -202,7 +186,7 @@ covariates <- function(ods){
 }
 
 variability <- function(ods){
-    if(modelParams(ods, "distribution") == "negative binomial"){
+    if(profile(ods) == "outrider"){
         return(theta(ods))
     }
     else{

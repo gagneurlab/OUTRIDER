@@ -1,108 +1,8 @@
-# compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
-#                     round=2, all=FALSE, ...){
-#     
-#     #
-#     # input check and parsing
-#     # 
-#     checkOutriderDataSet(object)
-#     checkFullAnalysis(object)
-#     
-#     if(is.null(rownames(object))){
-#         rownames(object) <- paste('feature', seq_len(nrow(object)), sep='_')
-#     }
-#     
-#     if(is.null(colnames(object))){
-#         colnames(object) <- paste('sample', seq_len(ncol(object)), sep='_')
-#     }
-#     
-#     if(isTRUE(round)){
-#         round <- 2
-#     }
-#     
-#    if(isFALSE(all)){
-#        abByGene <- aberrant(object,
-#                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff,
-#                by="feature")
-#        abBySample <- aberrant(object,
-#                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")
-#        object <- object[abByGene > 0, abBySample > 0]
-#    }
-#     
-#     if(nrow(object) == 0){
-#         if(isFALSE(all)){
-#             warning('No significant events: use all=TRUE to print all events.')
-#         } else {
-#             warning('Please provide an object with at least one feature.')
-#         }
-#         return(data.table(
-#                 geneID=NA_character_,
-#                 sampleID=NA_character_,
-#                 pValue=NA_real_,
-#                 padjust=NA_real_,
-#                 zScore=NA_real_,
-#                 l2fc=NA_real_,
-#                 rawcounts=NA_integer_,
-#                 normcounts=NA_real_,
-#                 meanCorrected=NA_real_,
-#                 theta=NA_real_,
-#                 aberrant=NA,
-#                 AberrantBySample=NA_integer_,
-#                 AberrantByGene=NA_integer_,
-#                 padj_rank=NA_real_)[0])
-#     }
-#     
-#     #
-#     # extract data
-#     # 
-#     ans <- data.table(
-#         geneID           = rownames(object), 
-#         sampleID         = rep(colnames(object), each=nrow(object)),
-#         pValue           = c(pValue(object)),
-#         padjust          = c(padj(object)),
-#         zScore           = c(zScore(object)),
-#         l2fc             = c(assay(object, "l2fc")),
-#         rawcounts        = c(counts(object)),
-#         normcounts       = c(counts(object, normalized=TRUE)),
-#         meanCorrected    = rowMeans(counts(object, normalized=TRUE)),
-#         theta            = variability(object), # return theta for NB
-#         aberrant         = c(aberrant(object, 
-#                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff)),
-#         AberrantBySample = rep(each=nrow(object), aberrant(object, 
-#                   padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
-#                   by="sample")),
-#         AberrantByGene   = aberrant(object, 
-#                   padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
-#                   by="feature"),
-#         padj_rank        = c(apply(padj(object), 2, rank)))
-#     
-#     # round columns if requested
-#     if(is.numeric(round)){
-#         devNull <- lapply(
-#                 c("normcounts", "zScore", "l2fc", "theta", "meanCorrected"),
-#                 function(x) ans[,c(x):=round(get(x), as.integer(round))] )
-#     }
-#     
-#     # drop theta column if not NB used
-#     if(modelParams(object, "distribution") != "negative binomial"){
-#         ans[,theta:=NULL]
-#     }
-#     
-#     # 
-#     # keep only aberrent events and sort by padj value
-#     # 
-#     if(isFALSE(all)){
-#         ans <- ans[aberrant == TRUE]
-#     }
-#     ans <- ans[order(padjust)]
-#     
-#     return(ans)
-# }
-
-
 #' internal result function
 #' @noRd
-compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
-                                     round=2, all=FALSE, ...){
+compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, 
+                                    zScoreCutoff=NULL, l2fcCutoff=NULL, 
+                                    deltaCutoff=NULL, round=2, all=FALSE, ...){
     
     #
     # input check and parsing
@@ -123,10 +23,12 @@ compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     }
     
     if(isFALSE(all)){
-        abByFeature <- aberrant(object, 
-                                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="feature")
-        abBySample <- aberrant(object, 
-                               padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")
+        abByFeature <- aberrant(object, padjCutoff=padjCutoff, 
+                zScoreCutoff=zScoreCutoff, l2fcCutoff=l2fcCutoff, 
+                deltaCutoff=deltaCutoff, by="feature")
+        abBySample <- aberrant(object, padjCutoff=padjCutoff, 
+                zScoreCutoff=zScoreCutoff, l2fcCutoff=l2fcCutoff, 
+                deltaCutoff=deltaCutoff, by="sample")
         object <- object[abByFeature > 0, abBySample > 0]
     }
     
@@ -142,69 +44,113 @@ compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0,
             pValue=NA_real_,
             padjust=NA_real_,
             zScore=NA_real_,
+            fc=NA_real_,
+            log2fc=NA_real_,
             delta=NA_real_,
-            observed=NA_real_,
-            preprocessed=NA_real_,
-            # expected=NA_real_,
+            input_value=NA_real_,
+            preprocessed_raw=NA_real_,
+            preprocessed_expected=NA_real_,
             normalized=NA_real_,
             meanCorrected=NA_real_,
-            sd=NA_real_,
-            pvalDistribution=NA_real_,
+            sd=NA_real_, # theta
+            sizefactor=NA_real_,
+            pvalDistribution=NA_character_,
             aberrant=NA,
             AberrantBySample=NA_integer_,
             AberrantByFeature=NA_integer_,
             padj_rank=NA_real_)[0])
+        
     }
     
     #
     # extract data
     # 
+    if("zScore" %in% assayNames(object)){
+        zscores <- zScore(object)
+    } else{
+        zscores <- NA
+    }
+    if("l2fc" %in% assayNames(object)){
+        l2fc <- assay(object, "l2fc")
+    } else{
+        l2fc <- NA
+    }
+    if("delta" %in% assayNames(object)){
+        delta <- assay(object, "delta")
+    } else{
+        delta <- NA
+    }
+    
     ans <- data.table(
         featureID        = rownames(object), 
         sampleID         = rep(colnames(object), each=nrow(object)),
         pValue           = c(pValue(object)),
         padjust          = c(padj(object)),
-        zScore           = c(zScore(object)),
-        effect           = c(effect(object)),
-        observed         = c(observed(object)),
-        preprocessed     = c(preprocessed(object)),
-        # expected         = c(expected(object)),
-        normalized       = c(observed(object, normalized=TRUE)),
-        meanCorrected    = rowMeans(observed(object, normalized=TRUE), 
+        zScore           = c(zscores),
+        fc               = c(2^l2fc),
+        log2fc           = c(l2fc),
+        delta            = c(delta), 
+        input_value      = c(observed(object)),
+        preprocessed_raw = c(preprocessed(object)),
+        preprocessed_expected = c(expected(object)),
+        normalized       = c(preprocessed(object, normalized=TRUE)),
+        meanCorrected    = rowMeans(preprocessed(object, normalized=TRUE), 
                                     na.rm=TRUE),
         sd               = variability(object),
-        pvalDistribution = modelParams(object, "distribution"),
-        aberrant         = c(aberrant(object, 
-                                      padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff)),
+        sizefactor       = rep(each=nrow(object), sizeFactors(object)),
+        pvalDistribution = metadata(object)$pvalDistribution,
+        aberrant         = c(aberrant(object, padjCutoff=padjCutoff, 
+                            zScoreCutoff=zScoreCutoff, l2fcCutoff=l2fcCutoff,
+                            deltaCutoff=deltaCutoff)),
         AberrantBySample = rep(each=nrow(object), aberrant(object, 
-                                                           padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")),
-        AberrantByFeature   = aberrant(object, 
-                                       padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="feature"),
+                            padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
+                            l2fcCutoff=l2fcCutoff, deltaCutoff=deltaCutoff, 
+                            by="sample")),
+        AberrantByFeature = aberrant(object, padjCutoff=padjCutoff, 
+                            zScoreCutoff=zScoreCutoff, l2fcCutoff=l2fcCutoff,
+                            deltaCutoff=deltaCutoff, by="feature"),
         padj_rank        = c(apply(padj(object), 2, rank)))
     
     # round columns if requested
     if(is.numeric(round)){
         devNull <- lapply(
-            c("normalized", "zScore", "effect", "sd", "meanCorrected", 
-              "observed", "preprocessed"),
+            c("normalized", "zScore", "fc", "log2fc", "delta", "sd", 
+                "meanCorrected", "input_value", "preprocessed_raw", 
+                "preprocessed_expected", "sizefactor"),
             function(x) ans[,c(x):=round(get(x), as.integer(round))] )
     }
     
-    # rename columns for neg bin distribution
-    if(modelParams(object, "distribution") == "negative binomial"){
-        setnames(ans, "sd", "theta")
-        setnames(ans, "observed", "rawcounts")
-        setnames(ans, "normalized", "normcounts")
-        setnames(ans, "effect", "l2fc")
-    }
-    # rename effect column to delta for gaussian
-    if(modelParams(object, "distribution") == "gaussian"){
-        setnames(ans, "effect", "delta")
-    }
+    # drop effect columns containing only NAs
+    devNull <- lapply(c("zScore", "fc", "log2fc", "delta"), 
+                    function(x){
+                        vals <- ans[,unique(get(x))]
+                        if(all(is.na(vals))){
+                            ans[,(x):=NULL]
+                        }
+                    })
     
     # remove preprocess column if no preprocesssing was done
-    if(modelParams(object, "preprocessing") == "none"){
-        ans[,preprocessed:=NULL]
+    if(is.null(metadata(object)$prepro_options$prepro_func)){
+        ans[,preprocessed_raw:=NULL]
+        setnames(ans, "preprocessed_expected", "expected_value")
+    }
+    
+    # drop sizefactor column if sf_norm=FALSE (all equal to 1)
+    if(all(ans[,sizefactor] == 1)){
+        ans[,sizefactor:=NULL]
+    }
+    
+    # rename columns for neg bin distribution
+    if(metadata(object)$pvalDistribution == "nb"){
+        if("preprocessed_raw" %in% colnames(ans)){
+            setnames(ans, "preprocessed_raw", "rawcounts")
+            setnames(ans, "preprocessed_expected", "expected_counts")
+        } else{
+            setnames(ans, "input_value", "rawcounts")
+            setnames(ans, "expected_value", "expected_counts")
+        }
+        setnames(ans, "normalized", "normcounts")
+        setnames(ans, "sd", "theta")
     }
     
     # set featureID -> geneID for OutriderDataSet
@@ -233,6 +179,9 @@ compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #' @param object An OutriderDataSet object
 #' @param padjCutoff The significant threshold to be applied
 #' @param zScoreCutoff If provided additionally a z score threshold is applied
+#' @param l2fcCutoff If provided additionally a threshold on the log2 fold 
+#'             change is applied
+#' @param deltaCutoff If provided additionally a threshold on delta is applied
 #' @param round Can be TRUE, defaults to 2, or an integer used for rounding
 #'             with \code{\link[base]{round}} to make the output
 #'             more user friendly

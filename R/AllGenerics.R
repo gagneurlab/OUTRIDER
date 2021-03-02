@@ -7,6 +7,16 @@ setGeneric("aberrant", function(object, ...) standardGeneric("aberrant"))
 #' @export
 DESeq2::dispersions
 
+#' @importFrom DESeq2 normalizationFactors
+#' @noRd
+#' @export
+DESeq2::normalizationFactors
+
+#' @importFrom DESeq2 normalizationFactors<-
+#' @noRd
+#' @export
+DESeq2::"normalizationFactors<-"
+
 #' @rdname filterExpression
 #' @export
 setGeneric("filterExpression", function(object, ...)
@@ -55,19 +65,6 @@ setGeneric("results", function(object, ...) standardGeneric("results"))
 
 #' @rdname getter_setter_functions
 #' @export
-setGeneric("modelParams", function(object, paramName){
-    standardGeneric("modelParams")
-}) 
-
-
-#' @rdname getter_setter_functions
-#' @export
-setGeneric("modelParams<-", signature = "object", 
-           function(object, value, paramName) standardGeneric("modelParams<-"))
-
-
-#' @rdname getter_setter_functions
-#' @export
 setGeneric("observed", function(object, normalized=FALSE, minE=0, ...){ 
     standardGeneric("observed")
 })
@@ -75,7 +72,7 @@ setGeneric("observed", function(object, normalized=FALSE, minE=0, ...){
 #' @rdname getter_setter_functions
 #' @export
 setGeneric("observed<-", signature = "object", 
-           function(object, value, ...) standardGeneric("observed<-"))
+            function(object, value, ...) standardGeneric("observed<-"))
 
 
 #' @rdname getter_setter_functions
@@ -87,7 +84,7 @@ setGeneric("expected", function(object, ...){
 #' @rdname getter_setter_functions
 #' @export
 setGeneric("expected<-", signature = "object", 
-           function(object, value, ...) standardGeneric("expected<-"))
+            function(object, value, ...) standardGeneric("expected<-"))
 
 
 #' @rdname getter_setter_functions
@@ -97,4 +94,4 @@ setGeneric("preprocessed", function(object, ...) ("preprocessed"))
 #' @rdname getter_setter_functions
 #' @export
 setGeneric("preprocessed<-", signature = "object", 
-           function(object, value, ...) standardGeneric("preprocessed<-"))
+            function(object, value, ...) standardGeneric("preprocessed<-"))

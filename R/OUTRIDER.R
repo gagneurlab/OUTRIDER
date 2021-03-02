@@ -75,69 +75,114 @@
 #     return(ods)
 # }
 # 
-OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder', 
+OUTRIDER <- function(ods, q, controlData=TRUE, 
+                    latent_space_model=c("autoencoder", "pca"), 
+                    decoder_model=c("autoencoder", "pca"),
                     covariates=NULL, usePython=checkUsePython(ods, covariates), 
+                    prepro_options=getDefaultPreproParams(ods),
+                    pvalue_options=getDefaultPvalueParams(ods),
+                    useBasilisk=FALSE,
+                    implementation='autoencoder', 
                     BPPARAM=bpparam(), ...){
     checkOutrider2DataSet(ods)
-    implementation <- tolower(implementation)
+    
+    # pass on to the approriate implementation
+    if(!missing(implementation)){
+        warning("Using implementation argument is deprecated. Use 
+                latent_space_model and decoder_model instead.")
+        latent_space_model <- implementation
+        decoder_model <- implementation
+    }
+    
+    latent_space_model <- tolower(latent_space_model)
+    decoder_model <- tolower(decoder_model)
     
     message(date(), ": Preprocessing ...")
-    ods <- preprocess(ods)
+    ods <- preprocess(ods, prepro_options=prepro_options)
     
     if(isTRUE(controlData)){
         message(date(), ": Controlling for confounders ...")
-        ods <- controlForConfounders(ods, q=q, implementation=implementation, 
-                                        usePython=usePython, BPPARAM=BPPARAM, 
-                                        covariates=covariates, ...)
+        ods <- controlForConfounders(ods, q=q, 
+                                    prepro_options=prepro_options,
+                                    latent_space_model=latent_space_model, 
+                                    decoder_model=decoder_model,
+                                    usePython=usePython, BPPARAM=BPPARAM, 
+                                    covariates=covariates, 
+                                    useBasilisk=useBasilisk, ...)
     }
     
-    if(modelParams(ods)$distribution == "negative binomial" && 
-       (isFALSE(controlData) | grepl("^(peer|pca)$", implementation))){
+    if(profile(ods) == "outrider" && 
+            (isFALSE(controlData) | grepl("^(peer|pca)$", latent_space_model))){
         message(date(), ": Fitting NB to the data ...")
-        ods <- as(ods, "OutriderDataSet")
         ods <- fit(ods, BPPARAM=BPPARAM)
     }
     
     message(date(), ": P-value calculation ...")
-    ods <- computePvalues(ods, BPPARAM=BPPARAM)
+    ods <- computePvalues(ods, BPPARAM=BPPARAM, 
+                            distribution=pvalue_options$distribution,
+                            method=pvalue_options$fdr_method, 
+                            alternative=pvalue_options$pvalue_alternative)
     
-    message(date(), ": Zscore and fold-change calculation ...")
-    ods <- computeZscores(ods,
-                          peerResiduals=grepl('^peer$', implementation))
+    message(date(), ": Fold-change / zScore / delta calculation ...")
+    ods <- computeEffectSizes(ods, distribution=pvalue_options$distribution,
+                            effect_types=pvalue_options$effect_types, 
+                            peerResiduals=grepl('^peer$', latent_space_model))
     
     validObject(ods)
     return(ods)
 }
 
-#' @noRd
-preprocess <- function(ods, normalized=FALSE){
-    prepro <- modelParams(ods, "preprocessing")
-    trans <- modelParams(ods, "transformation")
-    sf_norm <- modelParams(ods, "sf_norm")
-        
-    # calculate sizefactors if needed
-    if(isTRUE(sf_norm) || prepro == "vst"){
+#' Preprocessing
+#' 
+#' Preprocesses an Outrider2DataSet according to the supplied parameter 
+#' settings 
+#' 
+#' @param ods Outrider2DataSet
+#' @param prepro_options List of preprocessing options. The default settings 
+#'     can be obtained with getDefaultPreproParams(ods), and can be modified. 
+#'     Recognized options for this function are 'prepro_func' (preprocessing 
+#'     function, either NULL or a function), 'sf_norm' (TRUE or FALSE) and 
+#'     'data_trans' (transformation function, one of 'log', 'log1p', or NULL).
+#' @return An OutriderDataSet, with preprocessing output added.
+#' 
+#' @examples 
+#' ods <- makeExampleOutriderDataSet()
+#' prepro_opts <- getDefaultPreproParams(ods)
+#' prepro_opts
+#' ods <- preprocess(ods, prepro_options=prepro_opts)
+#' 
+#' @export
+preprocess <- function(ods, prepro_options=getDefaultPreproParams(ods)){
+    
+    # apply preprocessing function if requested
+    if(!is.null(prepro_options$prepro_func)){
+        message("\t", date(), ":  Applying preprocessing function ...")
+        prepro_func <- match.fun(prepro_options$prepro_func)
+        preprocessed(ods) <- prepro_func(observed(ods))
+    } else{
+        preprocessed(ods) <- observed(ods)
+    }
+    
+    # compute sizefactors and sf normalize if requested
+    if(isTRUE(prepro_options$sf_norm)){
         message("\t", date(), ": SizeFactor estimation ...")
         ods <- estimateSizeFactors(ods)
     }
+    else{
+        sizeFactors(ods) <- rep(1, ncol(ods))
+    }
+    X_sf_norm <- t(t(preprocessed(ods)) / sizeFactors(ods))
     
-    # apply specified preprocessing
-    if(prepro == "log"){
-        message("\t", date(), ":  Taking the log of the data ...")
-        if(sf_norm){
-            sf <- sizeFactors(ods)
-        } else{
-            sf <- rep(1, ncol(ods))
-        }
-        preprocessed(ods) <- 
-            t(log(t(observed(ods, normalized=normalized) + 1) /  sf))
+    # compute transformed values
+    if(!is.null(prepro_options$data_trans)){
+        trans_func <- match.fun(prepro_options$data_trans)
+        transformed(ods) <- trans_func(X_sf_norm)
+    } else{
+        transformed(ods) <- X_sf_norm
     }
-    if(prepro == "vst"){
-        message("\t", date(), ":  Variance stabilizing using DESeq2 ...")
-        preprocessed(ods) <- 
-            DESeq2::varianceStabilizingTransformation(
-                observed(ods, normalized=normalized))
-    }
+    
+    # add used options to metadata(ods)
+    metadata(ods)$prepro_options <- prepro_options
     
     return(ods)
 }

@@ -9,16 +9,16 @@ filterExpression.OUTRIDER <- function(object, gtfFile, fpkmCutoff=1,
     if(!missing(gtfFile)){
         object <- computeGeneLength(object, gtfFile=gtfFile, ...)
     }
-    filterExp(object, fpkmCutoff=fpkmCutoff, percentile=percentile,
+    filterExp.OUTRIDER(object, fpkmCutoff=fpkmCutoff, percentile=percentile,
             filterGenes=filterGenes, savefpkm=savefpkm, 
             addExpressedGenes=addExpressedGenes)
 }
 
-filterExpression.OUTRIDER2 <- function(object, minCutoff=0, percentile=0.95, 
+filterExpression.OUTRIDER2 <- function(object, minCutoff=-Inf, percentile=0.95, 
                     max_na_percentage=0.3, filterFeatures=TRUE, 
                     onlyVariability=FALSE, addExpressedFeatures=TRUE, ...){
     object <- filterNonVariable(object, filterFeatures=filterFeatures,
-                              verbose=filterFeatures)
+                                verbose=filterFeatures)
     if(isTRUE(onlyVariability)){
         return(object)
     }
@@ -72,8 +72,8 @@ filterExpression.OUTRIDER2 <- function(object, minCutoff=0, percentile=0.95,
 #' @export
 setMethod("filterExpression", "OutriderDataSet", filterExpression.OUTRIDER)
 
-filterExp <- function(ods, fpkmCutoff, percentile, filterGenes, savefpkm, 
-                    addExpressedGenes){
+filterExp.OUTRIDER <- function(ods, fpkmCutoff, percentile, filterGenes, 
+                                savefpkm, addExpressedGenes){
     fpkm <- fpkm(ods)
     if(savefpkm){
         assay(ods, 'fpkm', withDimnames=FALSE) <- fpkm
@@ -102,13 +102,20 @@ filterExp <- function(ods, fpkmCutoff, percentile, filterGenes, savefpkm,
     return(ods)
 }
 
-#' 
+#' @rdname filterExpression
 #' @export
-setMethod("filterExpression", "Outrider2DataSet", filterExpression.OUTRIDER2)
+setMethod("filterExpression", "Outrider2DataSet", 
+            function(object, ...){
+                if(profile(object) == "outrider")
+                    filterExpression.OUTRIDER(object, ...)
+                else
+                    filterExpression.OUTRIDER2(object, ...)
+            }
+)
 
 filterExp.OUTRIDER2 <- function(ods, minCutoff, percentile, filterFeatures, 
                                 max_na_percentage, addExpressedFeatures){
-    X <- observed(ods, normalized=FALSE)
+    X <- observed(ods)
     passed_percentile <- 
         rowQuantiles(X, probs=percentile, na.rm=TRUE) > minCutoff
     mcols(ods)['passedPercentileFilter'] <- passed_percentile
@@ -122,7 +129,7 @@ filterExp.OUTRIDER2 <- function(ods, minCutoff, percentile, filterFeatures,
                     percentile=percentile, max_na_percentage=max_na_percentage)
         goodCols <- !colnames(colData(ods)) %in% colnames(dt[,-1])
         colData(ods) <- DataFrame(row.names=colData(ods)$sampleID,
-                                  merge(colData(ods)[,goodCols, drop=FALSE], 
+                                    merge(colData(ods)[,goodCols, drop=FALSE], 
                                         dt, by="sampleID", sort=FALSE))
     }
     
@@ -262,7 +269,7 @@ filterMinCounts <- function(x, filterGenes=FALSE, verbose=TRUE){
 #' 
 #' @noRd
 filterNonVariable <- function(x, filterFeatures=FALSE, verbose=TRUE){
-    x_in <- observed(x, normalized=FALSE)
+    x_in <- observed(x)
     passed_variable <- rowMins(x_in, na.rm=TRUE) != rowMaxs(x_in, na.rm=TRUE) 
     passed_variable <- passed_variable & (rowSums(is.na(x_in)) != ncol(x_in))
     mcols(x)['passedFilter'] <- passed_variable
@@ -340,7 +347,7 @@ computeExpressedFeatures <- function(x, cutoff=1, percentile=0.95,
     
     # Make a data.table with the expressed genes
     expFeaturesDt <- data.table(sampleID = colnames(cutoffPassedMatrix), 
-                             expressedFeatures = colSums(cutoffPassedMatrix))
+                            expressedFeatures = colSums(cutoffPassedMatrix))
     
     # order by sample rank
     setorder(expFeaturesDt, "expressedFeatures")

@@ -10,10 +10,7 @@ Outrider2DataSet(
   se,
   inputData,
   colData,
-  distribution = c("gaussian", "negative binomial"),
-  sf_norm = TRUE,
-  preprocessing = c("log", "vst", "none"),
-  transformation = c("none", "log"),
+  profile = c("outrider", "protrider", "other"),
   ...
 )
 }

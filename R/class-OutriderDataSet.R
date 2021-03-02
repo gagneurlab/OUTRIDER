@@ -35,12 +35,9 @@
 #' ods
 #'    
 setClass("OutriderDataSet", contains="Outrider2DataSet",
-         prototype = list(
-             distribution    = "negative binomial",
-             preprocessing   = "none",
-             transformation  = "log",
-             sf_norm         = TRUE
-         ))
+        prototype = list(
+            profile    = "outrider"
+        ))
 
 #' check sample annotation within the colData slot of the SE object
 #' @noRd
@@ -64,7 +61,7 @@ validateOutriderDataSet <- function(object) {
     c(
         checkNames(object),
         validateCounts(object),
-        validateModelParameters(object)
+        validateProfile(object)
     )
 }
 setValidity("OutriderDataSet", validateOutriderDataSet)
@@ -93,10 +90,7 @@ setAs("Outrider2DataSet", "OutriderDataSet", function(from) {
         anames[which(anames == "observed")] <- "counts"
         assayNames(from) <- anames
     }
-    new("OutriderDataSet", from,
-          distribution=modelParams(from)$distribution,
-          transformation=modelParams(from)$transformation,
-          preprocessing=modelParams(from)$preprocessing)
+    new("OutriderDataSet", from, profile="outrider")
 })
 
 
@@ -183,6 +177,7 @@ OutriderDataSet <- function(se, countData, colData, ...) {
 #' ods3 <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
 #' ods3
 #' 
+#' @rdname makeExampleDataSets
 #' @export
 makeExampleOutriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
                     inj=c('both', 'low', 'high'), sf=rnorm(m, mean=1, sd=0.1),

@@ -54,11 +54,11 @@ checkFullAnalysis <- function(ods, funName=sys.calls()[[1]]){
         checkSizeFactors(ods)
         if(!'padjust' %in% assayNames(ods)){
             stop("Please calculate the P-values before calling the '", funName,
-                    "' function. Please do: ods <- computePvalues(ods)")
+                "' function. Please do: ods <- computePvalues(ods)")
         }
         if(!'zScore' %in% assayNames(ods)){
             stop("Please calculate the Z-scores before calling the '", funName,
-                    "' function. Please do: ods <- computeZscores(ods)")
+                "' function. Please do: ods <- computeZscores(ods)")
         }
         return(invisible(TRUE))
     }
@@ -66,11 +66,11 @@ checkFullAnalysis <- function(ods, funName=sys.calls()[[1]]){
         checkOutrider2DataSet(ods)
         if(!'padjust' %in% assayNames(ods)){
             stop("Please calculate the P-values before calling the '", funName,
-                 "' function. Please do: ods <- computePvalues(ods)")
+                "' function. Please do: ods <- computePvalues(ods)")
         }
         if(!'zScore' %in% assayNames(ods)){
             stop("Please calculate the Z-scores before calling the '", funName,
-                 "' function. Please do: ods <- computeZscores(ods)")
+                "' function. Please do: ods <- computeZscores(ods)")
         }
         return(invisible(TRUE))
     }
@@ -105,10 +105,10 @@ checkDataRequirements <- function(ods, test=FALSE){
         stop("Please provide at least one feature.")
     }
     filterFeatures <- 
-        rowSums(is.na(observed(ods, normalized=FALSE))) == ncol(ods)
+        rowSums(is.na(observed(ods))) == ncol(ods)
     if(any(filterFeatures) & isFALSE(test)){
         stop("There are features that contain only NAs. Please filter first ",
-             "the data with: ods <- filterExpression(ods)")
+            "the data with: ods <- filterExpression(ods)")
     }
     return(invisible(filterFeatures))
 }
@@ -117,12 +117,12 @@ checkDataRequirements <- function(ods, test=FALSE){
 #' Checks if preprocessing has been done (for general Outrider2DataSet)
 #' @noRd
 checkPreprocessing <- function(ods){
-    if(modelParams(ods, "preprocessing") != "none"){
-        if(!("preprocessed" %in% assayNames(ods))){
-            stop("The ods needs to be preprocessed first. Please run first: ", 
-                 "ods <- preprocess(ods)")
-        }
+    if(!("preprocessed" %in% assayNames(ods)) || 
+            !("prepro_options" %in% names(metadata(ods)))){
+        stop("The ods needs to be preprocessed first. Please run first: ", 
+            "ods <- preprocess(ods)")
     }
+    
     if(is(ods, "OutriderDataSet")){
         checkSizeFactors(ods, funName=sys.calls()[[1]])
     }
@@ -142,24 +142,25 @@ checkOutrider2DataSet <- function(ods){
 #' 
 #' Checks that this Outrider2DataSet object can be fitted with the R functions
 #' @noRd
-checkFitInR <- function(ods){
+checkFitInR <- function(ods, ...){
     checkOutrider2DataSet(ods)
-    if(modelParams(ods)$distribution !=  "negative binomial"){
-        stop("The fitting function in R works only for the negative binomial ", 
-             "distribution. For other distributions, please use the python ",
-             "version by setting usePython=TRUE.")
+    
+    if(profile(ods) != "outrider"){
+        stop("The fitting function in R works only for the standard NB ", 
+            "outrider fit and not for profile '", profile(ods), "'. For ",
+            "other profiles and distributions, please use the python ",
+            "version by setting usePython=TRUE.")
     }
-    if(modelParams(ods)$preprocessing !=  "none"){
-        stop("The fitting function in R does not support preprocessing. ", 
-             "To use preprocessing, please use the python version by setting ",
-             "usePython=TRUE.")
+    
+    prepro_options <- metadata(ods)$prepro_options
+    if(prepro_options$data_trans != "log1p"){
+        stop("The fitting function in R works only for the standard NB ", 
+            "outrider fit with transformation log1p and not for ",
+            "transformation '", prepro_options$data_trans, "'. For ",
+            "more flexibility, please use the python version by setting ",
+            "usePython=TRUE.")
     }
-    if(isFALSE(modelParams(ods)$sf_norm) || 
-       modelParams(ods)$transformation !=  "log"){
-        stop("The fitting function in R works only for the log transformation ", 
-             "with sizefactor normalization. For other combinations, please ",
-             "use the python version by setting usePython=TRUE.")
-    }
+    
     return(invisible(TRUE))
 }
 
