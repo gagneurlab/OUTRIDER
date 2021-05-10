@@ -224,8 +224,8 @@ makeExampleProtriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=2,
     #
     row.names(intensityData) <- paste0("feature_", seq_len(n))
     colnames(intensityData) <- paste0("sample_", seq_len(m))
-    batch <- as.numeric(cut(H_true[,1], breaks = c(-3, -0.5, 0, 0.5, 3), 
-                            include.lowest = T))
+    batch <- as.numeric(cut(H_true[,1], breaks=c(-3, -0.5, 0, 0.5, 3), 
+                            include.lowest=TRUE))
     colDt <- data.frame(sampleID=colnames(intensityData), batch=batch)
     ods <- Outrider2DataSet(inputData=intensityData, 
                             colData=colDt,

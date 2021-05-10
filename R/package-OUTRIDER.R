@@ -9,6 +9,8 @@
 #' 
 #' @import methods
 #' 
+#' @import Rcpp
+#' 
 #' @importFrom BiocGenerics estimateSizeFactors plotDispEsts
 #' 
 #' @importFrom DESeq2 normalizationFactors normalizationFactors<-

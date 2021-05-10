@@ -79,7 +79,11 @@ findEncodingDim <- function(ods, prepro_options=getDefaultPreproParams(ods),
     metadata(ods)[['optimalEncDim']] <- NULL
     metadata(ods)[['optimalEncDim']] <- getBestQ(ods)
     
-    preprocessed(ods) <- assay(ods, 'trueObservations') # TODO check 
+    # preprocessed(ods) <- assay(ods, 'trueObservations') # TODO check 
+    observed(ods) <- assay(ods, 'trueObservations') 
+    metadata(ods)$prepro_options$prepro_func <- 
+        metadata(ods)$prepro_options$original_prepro_func
+    metadata(ods)$prepro_options$original_prepro_func <- NULL
     validateOutrider2DataSet(ods)
     return(ods)
 }
@@ -288,6 +292,9 @@ injectOutliers.OUTRIDER2 <- function(ods, freq, zScore, inj, lnorm, sdlog){
     observed(ods, withDimnames=FALSE) <- matrix(values, nrow=nrow(ods))
     assay(ods, 'trueCorruptions', withDimnames=FALSE) <- index
     assay(ods, 'injectedZscore', withDimnames=FALSE) <- zScore
+    # save prepro_func if given
+    metadata(ods)$prepro_options$original_prepro_func <- 
+        metadata(ods)$prepro_options$prepro_func
     metadata(ods)$prepro_options$prepro_func <- NULL
     return(ods)
 }

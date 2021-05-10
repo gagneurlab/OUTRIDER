@@ -38,27 +38,49 @@ compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05,
         } else {
             warning('Please provide an object with at least one feature.')
         }
-        return(data.table(
-            featureID=NA_character_,
-            sampleID=NA_character_,
-            pValue=NA_real_,
-            padjust=NA_real_,
-            zScore=NA_real_,
-            fc=NA_real_,
-            log2fc=NA_real_,
-            delta=NA_real_,
-            input_value=NA_real_,
-            preprocessed_raw=NA_real_,
-            preprocessed_expected=NA_real_,
-            normalized=NA_real_,
-            meanCorrected=NA_real_,
-            sd=NA_real_, # theta
-            sizefactor=NA_real_,
-            pvalDistribution=NA_character_,
-            aberrant=NA,
-            AberrantBySample=NA_integer_,
-            AberrantByFeature=NA_integer_,
-            padj_rank=NA_real_)[0])
+        if(profile(ods) == "outrider"){
+            return(data.table(
+                geneID=NA_character_,
+                sampleID=NA_character_,
+                pValue=NA_real_,
+                padjust=NA_real_,
+                zScore=NA_real_,
+                fc=NA_real_,
+                log2fc=NA_real_,
+                rawcounts=NA_real_,
+                expected_counts=NA_real_,
+                normcounts=NA_real_,
+                meanCorrected=NA_real_,
+                theta=NA_real_,
+                sizefactor=NA_real_,
+                pvalDistribution=NA_character_,
+                aberrant=NA,
+                AberrantBySample=NA_integer_,
+                AberrantByFeature=NA_integer_,
+                padj_rank=NA_real_)[0])
+        } else{
+            return(data.table(
+                featureID=NA_character_,
+                sampleID=NA_character_,
+                pValue=NA_real_,
+                padjust=NA_real_,
+                zScore=NA_real_,
+                fc=NA_real_,
+                log2fc=NA_real_,
+                delta=NA_real_,
+                input_value=NA_real_,
+                preprocessed_raw=NA_real_,
+                preprocessed_expected=NA_real_,
+                normalized=NA_real_,
+                meanCorrected=NA_real_,
+                sd=NA_real_, # theta
+                sizefactor=NA_real_,
+                pvalDistribution=NA_character_,
+                aberrant=NA,
+                AberrantBySample=NA_integer_,
+                AberrantByFeature=NA_integer_,
+                padj_rank=NA_real_)[0])
+        }
         
     }
     

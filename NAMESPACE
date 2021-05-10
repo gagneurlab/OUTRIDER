@@ -83,6 +83,7 @@ exportMethods(plotQQ)
 exportMethods(plotVolcano)
 exportMethods(preprocessed)
 exportMethods(results)
+import(Rcpp)
 import(data.table, except=melt)
 
 import(methods)

@@ -11,6 +11,7 @@ test_that("test against old version", {
     expect_equal(round(mcols(ods)[['mu']], 4), mcols(odsOld)[['mu']])
     expect_equal(round(theta(ods), 4), mcols(odsOld)[['disp']])
     
+    ods <- preprocess(ods)
     ods <- computeZscores(ods)
     #expect_equal(round(zScore(ods), 1), round(zScore(odsOld), 1))
     

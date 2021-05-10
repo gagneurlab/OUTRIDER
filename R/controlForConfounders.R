@@ -256,6 +256,7 @@ runPyCorrection <- function(ods, q=NA, covariates=NULL,
         covariates(ods) <- covariates
     }
     
+    
     # check supplied data_trans
     data_trans <- prepro_options$data_trans
     if(!is.null(data_trans)){
@@ -302,6 +303,13 @@ runPyCorrection <- function(ods, q=NA, covariates=NULL,
             argsParam <- c(argsParam,  paste0("--nr_latent_space_features=", 
                                                 dots$nr_latent_space_features))
         }
+        if("parallelize_D" %in% names(dots)){
+            if(isTRUE(dots$parallelize_D)){
+                argsParam <- c(argsParam, "--parallelize_D")
+            } else{
+                argsParam <- c(argsParam,  "--no_parallelize_D")
+            }
+        }
     }
     
     
@@ -330,7 +338,6 @@ runPyCorrection <- function(ods, q=NA, covariates=NULL,
             "Set 'useBasilisk' = FALSE \nif you prefer to manually set the ",
             "python binary using 'reticulate'.")
         
-        # proc <- basiliskStart(py_outrider_env)
         proc <- basiliskStart(outrider2_env)
         on.exit(basiliskStop(proc))
         ods <- basiliskRun(proc, function(ods, inputMatrix, argsParam, 

@@ -181,3 +181,8 @@ setMethod("normalizationFactors", "Outrider2DataSet",
 #' @export "normalizationFactors<-"
 setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
         value="matrix"), normFactors.replace.Outrider2DataSet)
+
+#' @rdname normalizationFactors
+#' @export "normalizationFactors<-"
+setReplaceMethod("normalizationFactors", signature(object="Outrider2DataSet", 
+        value="NULL"), normFactors.replace.Outrider2DataSet)

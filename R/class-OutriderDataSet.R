@@ -264,7 +264,7 @@ makeExampleOutriderDataSet <- function(n=200, m=80, q=10, freq=1E-3, zScore=6,
     }
     mode(k) <- "integer"
     
-    assay(ods, 'trueCounts', withDimnames=FALSE) <- counts(ods)
+    assay(ods, 'trueObservations', withDimnames=FALSE) <- counts(ods)
     counts(ods, withDimnames=FALSE) <- k
     assay(ods, "trueOutliers", withDimnames=FALSE) <- indexOut
     

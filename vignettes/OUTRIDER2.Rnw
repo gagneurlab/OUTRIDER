@@ -673,7 +673,7 @@ plotPowerAnalysis(ods)
 Here, we see that it is only for sufficiently high expressed genes possible, to 
 obtain significant P-values, especially for the downregulation cases.
 
-\section{OUTRIDER2}
+\section{OUTRIDER2: a generalized framework for context-dependent outlier detection in omics data}
 Since version 2.0, \outrider{} additionally supports model fitting and p value 
 based outlier detection for the Gaussian distribution, as well as the inclusion 
 of known confounders in the fitting and allows for the usage of different data 
@@ -819,8 +819,8 @@ head(res)
 
 \subsection{Plotting}
 The same plotting functions as described in Section~\ref{sec:Results} may be 
-used to visualize \outds2{} results. The name of some functions has been adapted 
-to support the more general \outds2{} objects:  
+used to visualize \outds2{} results. The name of some feature-level functions 
+has been adapted to support the more general \outds2{} objects:  
 `plotExpressionRank` -> `plotFeatureRank`, 
 `plotExpectedVsObservedCounts` -> `plotExpectedVsObserved`,
 `plotCountCorHeatmap` -> `plotSampleCorHeatmap`,

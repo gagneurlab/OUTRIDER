@@ -8,12 +8,15 @@
 \alias{normalizationFactors<-,OutriderDataSet,DataFrame-method}
 \alias{normalizationFactors<-,OutriderDataSet,NULL-method}
 \alias{normalizationFactors<-,Outrider2DataSet,matrix-method}
+\alias{normalizationFactors<-,Outrider2DataSet,NULL-method}
 \title{Accessor functions for the normalization factors in an OutriderDataSet
 object.}
 \usage{
 \S4method{normalizationFactors}{Outrider2DataSet}(object, ...)
 
 \S4method{normalizationFactors}{Outrider2DataSet,matrix}(object, minE = 0.5, ...) <- value
+
+\S4method{normalizationFactors}{Outrider2DataSet,`NULL`}(object, minE = 0.5, ...) <- value
 }
 \arguments{
 \item{object}{An \code{\link{OutriderDataSet}} object}

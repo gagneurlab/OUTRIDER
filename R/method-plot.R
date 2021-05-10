@@ -469,13 +469,13 @@ plotQQ.OUTRIDER2 <- function(object, featureID, main, global=FALSE,
         }
     }
     
-    # compute expected pValues.
-    df <- df[order(subset, -obs)]
-    
     # Correct p value if needed
     df[is.na(obs) | is.infinite(obs), obs:=1]
     minNonZeroP <- min(df[obs!=0, obs]) * 1e-2
     df[obs==0, obs:=minNonZeroP]
+    
+    # compute expected pValues.
+    df <- df[order(subset, -obs)]
     
     df[,exp:=-log10(ppoints(.N)), by='subset']
     if(is.null(xlim)){
