@@ -268,7 +268,7 @@ getDefaultPreproParams <- function(ods){
     } 
     
     if(profile == "protrider"){
-        params[["prepro_func"]] <- "log2"
+        params[["prepro_func"]] <- function(x) log2(x+1)
     } else{
         params[["prepro_func"]] <- NULL 
     }

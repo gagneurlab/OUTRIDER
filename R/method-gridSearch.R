@@ -45,7 +45,8 @@
 findEncodingDim <- function(ods, prepro_options=getDefaultPreproParams(ods),
                     params=getParamsToTest(ods),
                     freq=1E-2, zScore=3, sdlog=log(1.6), lnorm=TRUE,
-                    inj='both', ..., BPPARAM=bpparam()){
+                    inj='both', ..., parallelizeInnerLoop=NULL, 
+                    BPPARAM=bpparam()){
     
     # compute auto Correction
     ods <- preprocess(ods, prepro_options)
@@ -56,11 +57,18 @@ findEncodingDim <- function(ods, prepro_options=getDefaultPreproParams(ods),
     prepro_options$prepro_func <- NULL 
     
     dot_args <- list(...)
-    if("usePython" %in% names(dot_args) & isTRUE(dot_args[["usePython"]]) ){
-        eval <- bplapply(X=params, ..., BPPARAM=SerialParam(), 
+    if(is.null(parallelizeInnerLoop)){
+        parallelizeInnerLoop <- (
+            "usePython" %in% names(dot_args) & isTRUE(dot_args[["usePython"]])
+            ) || (checkUsePython(ods, 
+                        covariates=ifelse("covariates" %in% names(dot_args), 
+                                            dot_args[["covariates"]], "")))
+    }
+    if(isTRUE(parallelizeInnerLoop)){
+        eval <- bplapply(X=params, ..., BPPARAM=SerialParam(),
                         FUN=function(i, ..., evalAucPRLoss=NA){
-                            evalAutoCorrection(ods, encoding_dim=i, 
-                                            prepro_options=prepro_options, 
+                            evalAutoCorrection(ods, encoding_dim=i,
+                                            prepro_options=prepro_options,
                                             BPPARAM=BPPARAM, ...)}
         )
     } else{

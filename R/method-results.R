@@ -204,9 +204,9 @@ compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05,
 #' @param l2fcCutoff If provided additionally a threshold on the log2 fold 
 #'             change is applied
 #' @param deltaCutoff If provided additionally a threshold on delta is applied
-#' @param round Can be TRUE, defaults to 2, or an integer used for rounding
-#'             with \code{\link[base]{round}} to make the output
-#'             more user friendly
+#' @param round Either FALSE or an integer used for rounding 
+#'             with \code{\link[base]{round}} to make the output more user 
+#'             friendly. Defaults to 2.
 #' @param all By default FALSE, only significant read counts are listed in the 
 #'             results. If TRUE all results are assembled resulting in a 
 #'             data.table of length samples x genes
