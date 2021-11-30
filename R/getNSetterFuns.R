@@ -138,10 +138,15 @@ setReplaceMethod("observed", "OutriderDataSet", function(object, value, ...) {
 setMethod("preprocessed", "Outrider2DataSet", 
         function(object, normalized=FALSE, minE=0.5) {
     if(!("preprocessed" %in% assayNames(object)) ){
-        stop("Calculate preprocessed data first with ods <- preprocess(ods)")
+        if(profile != "outrider"){
+            stop("Calculate preprocessed data first with ods <- preprocess(ods)")
+        } else{
+            prepro <- assay(object, "counts")
+        }
+    } else{
+        prepro   <- assay(object, "preprocessed")
     }
             
-    prepro   <- assay(object, "preprocessed")
     if(!normalized){
         return(prepro)    
     }

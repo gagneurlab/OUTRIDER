@@ -50,6 +50,8 @@ plotVolcano(object, ...)
   main,
   padjCutoff = 0.05,
   zScoreCutoff = 0,
+  label = "aberrant",
+  xaxis = c("zscore", "fc", "log2fc"),
   pch = 16,
   basePlot = FALSE,
   col = c("gray", "firebrick")
@@ -60,7 +62,7 @@ plotVolcano(object, ...)
   sampleID,
   main,
   padjCutoff = 0.05,
-  effect = c("zscores", "log2fc", "delta"),
+  xaxis = c("zscore", "fc", "log2fc", "delta"),
   pch = 16,
   basePlot = FALSE,
   col = c("gray", "firebrick"),
@@ -109,6 +111,7 @@ plotExpectedVsObservedCounts(
   log = TRUE,
   groups = c(),
   groupColSet = "Set1",
+  label = "aberrant",
   ...
 )
 
@@ -121,6 +124,7 @@ plotExpectedVsObserved(
   groups = c(),
   groupColSet = "Set1",
   dataAxisName = "values",
+  label = "aberrant",
   ...
 )
 
@@ -135,7 +139,8 @@ plotExpressionRank(
   log = TRUE,
   col = c("gray", "firebrick"),
   groups = c(),
-  groupColSet = "Accent"
+  groupColSet = "Accent",
+  label = "aberrant"
 )
 
 plotFeatureRank(
@@ -149,7 +154,8 @@ plotFeatureRank(
   log = FALSE,
   col = c("gray", "firebrick"),
   groups = c(),
-  groupColSet = "Accent"
+  groupColSet = "Accent",
+  label = "aberrant"
 )
 
 \S4method{plotCountCorHeatmap}{OutriderDataSet}(
@@ -289,6 +295,11 @@ Can also be a vector. Integers are treated as indices.}
 
 \item{padjCutoff, zScoreCutoff}{Significance or Z-score cutoff
 to mark outliers}
+
+\item{label}{Indicates which genes or samples should be labeled. By default 
+all aberrant genes/samples are labelled. Can be set to NULL for 
+no labels. Provide a vector of geneIDs/sampleIDs to label 
+specific genes/samples.}
 
 \item{pch}{Integer or character to be used for plotting the points}
 

@@ -34,6 +34,10 @@
 #'             to mark outliers
 #' @param global Flag to plot a global Q-Q plot, default FALSE
 #' @param outlierRatio The fraction to be used for the outlier sample filtering
+#' @param label Indicates which genes or samples should be labeled. By default 
+#'             all aberrant genes/samples are labelled. Can be set to NULL for 
+#'             no labels. Provide a vector of geneIDs/sampleIDs to label 
+#'             specific genes/samples.
 #' @param normalized If TRUE, the normalized counts are used, the default,
 #'             otherwise the raw counts
 #' @param compareDisp If TRUE, the default, and if the autoCorrect normalization
@@ -213,7 +217,8 @@ NULL
 
 
 plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
-                    zScoreCutoff=0,
+                    zScoreCutoff=0, label="aberrant",
+                    xaxis=c("zscore", "fc", "log2fc"),
                     pch=16, basePlot=FALSE, col=c("gray", "firebrick")){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
@@ -248,11 +253,39 @@ plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
         rownames(object) <- paste("feature", seq_len(nrow(object)), sep="_")
     }
 
+    xaxis <- match.arg(xaxis)
+    if(xaxis == "zscore"){
+        if("zScore" %in% assayNames(object)){
+            xaxis <- zScore(object)
+            xaxis_name <- "Z-Score"
+            base_x_lab <- xaxis_name
+        } else{
+            stop("Calculate zScores first or choose other xaxis type.")
+        }
+        
+    } else if(xaxis == "fc"){
+        if("l2fc" %in% assayNames(object)){
+            xaxis <- 2^assay(object, "l2fc")
+            xaxis_name <- "Fold change"
+            base_x_lab <- xaxis_name
+        } else{
+            stop("Calculate log2fc first or choose other xaxis type.")
+        } 
+    } else if(xaxis == "log2fc"){
+        if("l2fc" %in% assayNames(object)){
+            xaxis <- assay(object, "l2fc")
+            xaxis_name <- expression(paste(log[2], "(fold-change)"))
+            base_x_lab <- paste("log<sub>2</sub>(fold-change)")
+        } else{
+            stop("Calculate log2fc first or choose other xaxis type.")
+        } 
+    } 
+    
     dt <- data.table(
         GENE_ID   = rownames(object),
         pValue    = pValue(object)[,sampleID],
         padjust   = padj(object)[,sampleID],
-        zScore    = zScore(object)[,sampleID],
+        xaxis     = xaxis[,sampleID],
         normCts   = counts(object, normalized=TRUE)[,sampleID],
         medianCts = rowMedians(counts(object, normalized=TRUE)),
         expRank   = apply(
@@ -263,9 +296,10 @@ plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
     dt[aberrant == TRUE, color:=col[2]]
 
     # remove the NAs from the zScores for plotting
-    dt[is.na(zScore),zScore:=0]
+    dt[is.na(xaxis),xaxis:=0]
 
-    p <- ggplot(dt, aes(zScore, -log10(pValue), color=color, text=paste0(
+    p <- ggplot(dt, aes(xaxis, -log10(pValue), color=color, label=GENE_ID,
+                            text=paste0(
                 "Gene ID: ", GENE_ID,
                 "<br>Sample ID: ", sampleID,
                 "<br>Median normcount: ", round(medianCts, 2),
@@ -273,14 +307,44 @@ plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
                 "<br>expression rank: ", as.integer(expRank),
                 "<br>nominal P-value: ", signif(pValue,3),
                 "<br>adj. P-value: ", signif(padjust,3),
-                "<br>Z-score: ", signif(zScore,2)))) + 
+                "<br>Z-score: ", signif(xaxis,2)))) + 
         geom_point() + 
         theme_bw() + 
-        xlab("Z-score") + 
+        xlab(xaxis_name) + 
         ylab(expression(paste(-log[10], "(", italic(P), "-value)"))) + 
         ggtitle(main) + 
         scale_color_identity() + 
         theme(legend.position = 'none')
+    
+    # Log scale if fold change is plotted
+    if(isTRUE(basePlot)){
+        if(!is(xaxis_name, "expression") && xaxis_name == 'Fold change'){
+            p <- p + scale_x_log10(labels = scales::trans_format(
+                "log10", scales::math_format(10^.x)))
+        }
+        if(!is.null(label)){
+            if(isScalarCharacter(label) && label == "aberrant"){
+                if(nrow(dt[aberrant == TRUE,]) > 0){
+                    p <- p + geom_text_repel(data=dt[aberrant == TRUE,], 
+                                aes(col=color),
+                                fontface='bold', hjust=-.2, vjust=.2)
+                }
+            }
+            else{
+                if(nrow(dt[GENE_ID %in% label]) > 0){
+                    p <- p + geom_text_repel(
+                                data=subset(dt, GENE_ID %in% label), 
+                                aes(col=color),
+                                fontface='bold', hjust=-.2, vjust=.2)
+                }
+                if(any(!(label %in% dt[,GENE_ID]))){
+                    warning("Did not find gene(s) ", 
+                            paste(label[!(label %in% dt[,GENE_ID])], 
+                                collapse=", "), " to label.")
+                }
+            }
+        }
+    }
     
     if(isFALSE(basePlot)){
         p <- p + ylab(paste("-log<sub>10</sub>(<i>P</i>-value)"))
@@ -295,7 +359,7 @@ setMethod("plotVolcano", signature(object="OutriderDataSet"),
         plotVolcano.OUTRIDER)
 
 plotVolcano.OUTRIDER2 <- function(object, sampleID, main, padjCutoff=0.05,
-                    effect=c("zscores", "log2fc", "delta"), pch=16, 
+                    xaxis=c("zscore", "fc", "log2fc", "delta"), pch=16, 
                     basePlot=FALSE, col=c("gray", "firebrick"), ...){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
@@ -330,31 +394,39 @@ plotVolcano.OUTRIDER2 <- function(object, sampleID, main, padjCutoff=0.05,
         rownames(object) <- paste("feature", seq_len(nrow(object)), sep="_")
     }
     
-    effect <- match.arg(effect)
-    if(effect == "zscores"){
+    xaxis <- match.arg(xaxis)
+    if(xaxis == "zscore"){
         if("zScore" %in% assayNames(object)){
-            effect <- zScore(object)
-            effect_name <- "Z-Score"
-            base_x_lab <- effect_name
+            xaxis <- zScore(object)
+            xaxis_name <- "Z-Score"
+            base_x_lab <- xaxis_name
         } else{
-            stop("Calculate zScores first or choose other effect type.")
+            stop("Calculate zScores first or choose other xaxis type.")
         }
         
-    } else if(effect == "log2fc"){
+    } else if(xaxis == "fc"){
         if("l2fc" %in% assayNames(object)){
-            effect <- assay(object, "l2fc")
-            effect_name <- expression(paste(log[2], "(fold-change)"))
+            xaxis <- 2^assay(object, "l2fc")
+            xaxis_name <- "Fold change"
+            base_x_lab <- xaxis_name
+        } else{
+            stop("Calculate log2fc first or choose other xaxis type.")
+        } 
+    } else if(xaxis == "log2fc"){
+        if("l2fc" %in% assayNames(object)){
+            xaxis <- assay(object, "l2fc")
+            xaxis_name <- expression(paste(log[2], "(fold-change)"))
             base_x_lab <- paste("log<sub>2</sub>(fold-change)")
         } else{
-            stop("Calculate log2fc first or choose other effect type.")
+            stop("Calculate log2fc first or choose other xaxis type.")
         } 
     } else {
         if("delta" %in% assayNames(object)){
-            effect <- assay(object, "delta")
-            effect_name <- expression(paste(delta, "value"))
+            xaxis <- assay(object, "delta")
+            xaxis_name <- expression(paste(delta, "value"))
             base_x_lab <- paste("delta value")
         } else{
-            stop("Calculate delta first or choose other effect type.")
+            stop("Calculate delta first or choose other xaxis type.")
         }
     }
     
@@ -362,7 +434,7 @@ plotVolcano.OUTRIDER2 <- function(object, sampleID, main, padjCutoff=0.05,
         FEATURE_ID   = rownames(object),
         pValue    = pValue(object)[,sampleID],
         padjust   = padj(object)[,sampleID],
-        effect    = effect[,sampleID],
+        xaxis     = xaxis[,sampleID],
         normalized       = preprocessed(object, normalized=TRUE)[,sampleID],
         medianNormalized = rowMedians(preprocessed(object, normalized=TRUE)),
         expRank   = apply(
@@ -372,9 +444,9 @@ plotVolcano.OUTRIDER2 <- function(object, sampleID, main, padjCutoff=0.05,
     dt[aberrant == TRUE, color:=col[2]]
     
     # remove the NAs from the zScores for plotting
-    dt[is.na(effect),effect:=0]
+    dt[is.na(xaxis),xaxis:=0]
     
-    p <- ggplot(dt, aes(effect, -log10(pValue), color=color, text=paste0(
+    p <- ggplot(dt, aes(xaxis, -log10(pValue), color=color, text=paste0(
         "Feature ID: ", FEATURE_ID,
         "<br>Sample ID: ", sampleID,
         "<br>Median normalized values: ", round(medianNormalized, 2),
@@ -382,15 +454,45 @@ plotVolcano.OUTRIDER2 <- function(object, sampleID, main, padjCutoff=0.05,
         "<br>expression rank: ", as.integer(expRank),
         "<br>nominal P-value: ", signif(pValue,3),
         "<br>adj. P-value: ", signif(padjust,3),
-        "<br>effect: ", signif(effect,2)))) + 
+        "<br>effect: ", signif(xaxis,2)))) + 
         geom_point() + 
         theme_bw() + 
-        xlab(effect_name) + 
+        xlab(xaxis_name) + 
         ylab(expression(paste(-log[10], "(", italic(P), "-value)"))) + 
         ggtitle(main) + 
         scale_color_identity() + 
         theme(legend.position = 'none')
-    
+
+    # Log scale if fold change is plotted
+    if(isTRUE(basePlot)){
+        if(!is(xaxis_name, "expression") && xaxis_name == 'Fold change'){
+            p <- p + scale_x_log10(labels = scales::trans_format(
+                "log10", scales::math_format(10^.x)))
+        }
+        if(!is.null(label)){
+            if(isScalarCharacter(label) && label == "aberrant"){
+                if(nrow(dt[aberrant == TRUE,]) > 0){
+                    p <- p + geom_text_repel(data=dt[aberrant == TRUE,], 
+                                aes(col=color),
+                                fontface='bold', hjust=-.2, vjust=.2)
+                }
+            }
+            else{
+                if(nrow(dt[GENE_ID %in% label]) > 0){
+                    p <- p + geom_text_repel(
+                                data=subset(dt, GENE_ID %in% label), 
+                                aes(col=color),
+                                fontface='bold', hjust=-.2, vjust=.2)
+                }
+                if(any(!(label %in% dt[,GENE_ID]))){
+                    warning("Did not find gene(s) ", 
+                            paste(label[!(label %in% dt[,GENE_ID])], 
+                                collapse=", "), " to label.")
+                }
+            }
+        }
+    }
+        
     if(isFALSE(basePlot)){
         p <- p + xlab(base_x_lab) +
             ylab(paste("-log<sub>10</sub>(<i>P</i>-value)"))
@@ -586,7 +688,8 @@ setMethod("plotQQ", signature(object="OutriderDataSet"), plotQQ.OUTRIDER)
 #' @rdname plotFunctions
 #' @export
 plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
-                    log=TRUE, groups=c(), groupColSet='Set1', ...){
+                    log=TRUE, groups=c(), groupColSet='Set1', label="aberrant",
+                    ...){
 
     # check user input
     checkOutriderDataSet(ods)
@@ -601,14 +704,14 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
     
     plotExpectedVsObserved(ods=ods, featureID=geneID, main=main, 
             basePlot=basePlot, log=log, groups=groups, groupColSet=groupColSet, 
-            dataAxisName="counts", ...)
+            dataAxisName="counts", label=label, ...)
 }
 
 #' @rdname plotFunctions
 #' @export
 plotExpectedVsObserved <- function(ods, featureID, main, basePlot=FALSE, 
                             log=FALSE, groups=c(), groupColSet='Set1', 
-                            dataAxisName="values", ...){
+                            dataAxisName="values", label="aberrant", ...){
     
     # check user input
     checkOutrider2DataSet(ods)
@@ -644,7 +747,8 @@ plotExpectedVsObserved <- function(ods, featureID, main, basePlot=FALSE,
     groups[is.na(groups)] <- 'NA'
     cnts[, group := groups]
     
-    g <- ggplot(cnts, aes(expected, observed, text=paste0(
+    g <- ggplot(cnts, aes(expected, observed, label=sampleID,
+                            text=paste0(
         "Feature ID: ", feature_id, "<br>", 
         "Sample ID: ", sampleID, "<br>",
         paste0("Raw ", dataAxisName, ": "), observed, "<br>",
@@ -682,6 +786,28 @@ plotExpectedVsObserved <- function(ods, featureID, main, basePlot=FALSE,
     }
     
     if (isTRUE(basePlot)) {
+        if(!is.null(label)){
+            if(isScalarCharacter(label) && label == "aberrant"){
+                if(nrow(cnts[aberrant == TRUE,]) > 0){
+                    g <- g + geom_text_repel(data=cnts[aberrant == TRUE,], 
+                                aes(col=aberrant),
+                                fontface='bold', hjust=-.2, vjust=.5)
+                }
+            }
+            else{
+                if(nrow(cnts[sampleID %in% label]) > 0){
+                    g <- g + geom_text_repel(
+                                data=subset(cnts, sampleID %in% label), 
+                                aes(col=aberrant),
+                                fontface='bold', hjust=-.2, vjust=.5)
+                }
+                if(any(!(label %in% cnts[,sampleID]))){
+                    warning("Did not find sample(s) ", 
+                            paste(label[!(label %in% cnts[,sampleID])], 
+                                collapse=", "), " to label.")
+                }
+            }
+        }
         return(g)
     }
     ggplotly(g, tooltip="text")
@@ -693,7 +819,7 @@ plotExpectedVsObserved <- function(ods, featureID, main, basePlot=FALSE,
 plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
                     zScoreCutoff=0, normalized=TRUE, basePlot=FALSE, log=TRUE,
                     col=c("gray", "firebrick"), groups=c(),
-                    groupColSet='Accent'){
+                    groupColSet='Accent', label="aberrant"){
     # check user input
     checkOutriderDataSet(ods)
     if(isTRUE(normalized) & is.null(sizeFactors(ods))){
@@ -754,7 +880,8 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     }
 
     # create ggplot object
-    g <- ggplot(data=dt, aes(x = norm_rank, y = counts, text = paste0(
+    g <- ggplot(data=dt, aes(x = norm_rank, y = counts, label = sampleID, 
+                            text = paste0(
         "Gene ID: ", geneID, "<br>",
         "Sample ID: ", sampleID, "<br>",
         ifelse(uniqueN(groups) == 1, "", paste0("Group: ", group, "<br>")),
@@ -770,7 +897,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
         theme_bw()
 
     if(isTRUE(log)){
-        g <- g + scale_y_log10()
+        g <- g + scale_y_log10() # + annotation_logticks(sides = 'l')
     }
     
     point_mapping <- aes(col = aberrant)
@@ -793,6 +920,28 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     }
 
     if(isTRUE(basePlot)){
+        if(!is.null(label)){
+            if(isScalarCharacter(label) && label == "aberrant"){
+                if(nrow(dt[aberrant == TRUE,]) > 0){
+                    g <- g + geom_text_repel(data=dt[aberrant == TRUE,], 
+                                aes(col=aberrant),
+                                fontface='bold', hjust=-.2, vjust=.5)
+                }
+            }
+            else{
+                if(nrow(dt[sampleID %in% label]) > 0){
+                    g <- g + geom_text_repel(
+                                data=subset(dt, sampleID %in% label), 
+                                aes(col=aberrant),
+                                fontface='bold', hjust=-.2, vjust=.5)
+                }
+                if(any(!(label %in% dt[,sampleID]))){
+                    warning("Did not find sample(s) ", 
+                            paste(label[!(label %in% dt[,sampleID])], 
+                                collapse=", "), " to label.")
+                }
+            }
+        }
         return(g)
     }
     return(ggplotly(g))
@@ -802,7 +951,8 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
 #' @export
 plotFeatureRank <- function(ods, featureID, main, padjCutoff=0.05,
                 zScoreCutoff=0, normalized=TRUE, basePlot=FALSE, log=FALSE,
-                col=c("gray", "firebrick"), groups=c(), groupColSet='Accent'){
+                col=c("gray", "firebrick"), groups=c(), groupColSet='Accent',
+                label="aberrant"){
     # check user input
     checkOutrider2DataSet(ods)
     if(isTRUE(normalized) &  is.null(sizeFactors(ods))){
@@ -866,7 +1016,8 @@ plotFeatureRank <- function(ods, featureID, main, padjCutoff=0.05,
     }
     
     # create ggplot object
-    g <- ggplot(data=dt, aes(x = norm_rank, y = value, text = paste0(
+    g <- ggplot(data=dt, aes(x = norm_rank, y = value, label=sampleID,
+                            text = paste0(
         "Feature ID: ", featureID, "<br>",
         "Sample ID: ", sampleID, "<br>",
         ifelse(uniqueN(groups) == 1, "", paste0("Group: ", group, "<br>")),
@@ -906,6 +1057,28 @@ plotFeatureRank <- function(ods, featureID, main, padjCutoff=0.05,
     }
     
     if(isTRUE(basePlot)){
+        if(!is.null(label)){
+            if(isScalarCharacter(label) && label == "aberrant"){
+                if(nrow(dt[aberrant == TRUE,]) > 0){
+                    g <- g + geom_text_repel(data=dt[aberrant == TRUE,], 
+                                aes(col=aberrant),
+                                fontface='bold', hjust=-.2, vjust=.5)
+                }
+            }
+            else{
+                if(nrow(dt[sampleID %in% label]) > 0){
+                    g <- g + geom_text_repel(
+                                data=subset(dt, sampleID %in% label), 
+                                aes(col=aberrant),
+                                fontface='bold', hjust=-.2, vjust=.5)
+                }
+                if(any(!(label %in% dt[,sampleID]))){
+                    warning("Did not find sample(s) ", 
+                            paste(label[!(label %in% dt[,sampleID])], 
+                                collapse=", "), " to label.")
+                }
+            }
+        }
         return(g)
     }
     return(ggplotly(g))

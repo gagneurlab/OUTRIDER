@@ -16,6 +16,7 @@ findEncodingDim(
   lnorm = TRUE,
   inj = "both",
   ...,
+  parallelizeInnerLoop = NULL,
   BPPARAM = bpparam()
 )
 

@@ -32,9 +32,9 @@ change is applied}
 
 \item{deltaCutoff}{If provided additionally a threshold on delta is applied}
 
-\item{round}{Can be TRUE, defaults to 2, or an integer used for rounding
-with \code{\link[base]{round}} to make the output
-more user friendly}
+\item{round}{Either FALSE or an integer used for rounding 
+with \code{\link[base]{round}} to make the output more user 
+friendly. Defaults to 2.}
 
 \item{all}{By default FALSE, only significant read counts are listed in the 
 results. If TRUE all results are assembled resulting in a 

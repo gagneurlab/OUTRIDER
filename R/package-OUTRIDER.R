@@ -39,7 +39,9 @@
 #'          scale_y_log10 scale_fill_manual scale_color_manual 
 #'          scale_fill_brewer scale_color_brewer theme ylim guides 
 #'          ggtitle geom_vline geom_text scale_linetype_manual geom_line 
-#'          geom_abline theme_bw element_blank xlab ylab scale_color_identity
+#'          geom_abline theme_bw element_blank xlab ylab scale_color_identity 
+#' 
+#' @importFrom ggrepel geom_text_repel
 #' 
 #' @importFrom grDevices colorRampPalette
 #' 
