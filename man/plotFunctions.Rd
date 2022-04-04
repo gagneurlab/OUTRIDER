@@ -3,6 +3,7 @@
 \name{plotAberrantPerSample}
 \alias{plotAberrantPerSample}
 \alias{plotCountCorHeatmap}
+\alias{plotManhattan}
 \alias{plotEncDimSearch}
 \alias{plotQQ}
 \alias{plotVolcano}
@@ -21,7 +22,6 @@
 \alias{plotQQ,Outrider2DataSet-method}
 \alias{plotQQ,OutriderDataSet-method}
 \alias{plotExpectedVsObserved}
-\alias{plotFeatureRank}
 \alias{plotCountCorHeatmap,OutriderDataSet-method}
 \alias{plotCountCorHeatmap,Outrider2DataSet-method}
 \alias{plotFeatureSampleHeatmap}
@@ -32,11 +32,14 @@
 \alias{plotEncDimSearch,OutriderDataSet-method}
 \alias{plotEncDimSearch,Outrider2DataSet-method}
 \alias{plotExpressedFeatures}
+\alias{plotManhattan,Outrider2DataSet-method}
 \title{Visualization functions for OUTRIDER}
 \usage{
 plotAberrantPerSample(object, ...)
 
 plotCountCorHeatmap(object, ...)
+
+plotManhattan(object, ...)
 
 plotEncDimSearch(object, ...)
 
@@ -51,10 +54,11 @@ plotVolcano(object, ...)
   padjCutoff = 0.05,
   zScoreCutoff = 0,
   label = "aberrant",
-  xaxis = c("zscore", "fc", "log2fc"),
+  xaxis = c("zscore", "fc", "log2fc", "delta"),
   pch = 16,
   basePlot = FALSE,
-  col = c("gray", "firebrick")
+  col = c("gray", "firebrick"),
+  ...
 )
 
 \S4method{plotVolcano}{Outrider2DataSet}(
@@ -62,6 +66,8 @@ plotVolcano(object, ...)
   sampleID,
   main,
   padjCutoff = 0.05,
+  zScoreCutoff = 0,
+  label = "aberrant",
   xaxis = c("zscore", "fc", "log2fc", "delta"),
   pch = 16,
   basePlot = FALSE,
@@ -123,7 +129,7 @@ plotExpectedVsObserved(
   log = FALSE,
   groups = c(),
   groupColSet = "Set1",
-  dataAxisName = "values",
+  dataAxisName = "expression",
   label = "aberrant",
   ...
 )
@@ -139,21 +145,7 @@ plotExpressionRank(
   log = TRUE,
   col = c("gray", "firebrick"),
   groups = c(),
-  groupColSet = "Accent",
-  label = "aberrant"
-)
-
-plotFeatureRank(
-  ods,
   featureID,
-  main,
-  padjCutoff = 0.05,
-  zScoreCutoff = 0,
-  normalized = TRUE,
-  basePlot = FALSE,
-  log = FALSE,
-  col = c("gray", "firebrick"),
-  groups = c(),
   groupColSet = "Accent",
   label = "aberrant"
 )
@@ -168,18 +160,18 @@ plotFeatureRank(
   colColSet = NA,
   nRowCluster = 4,
   nColCluster = 4,
-  main = "Count correlation heatmap",
+  main = "Sample correlation heatmap",
   basePlot = TRUE,
   nBreaks = 50,
   show_names = c("none", "row", "col", "both"),
   returnPlot = FALSE,
+  colLabelCol = NULL,
   ...
 )
 
 \S4method{plotCountCorHeatmap}{Outrider2DataSet}(
   object,
   normalized = TRUE,
-  transform_fun = metadata(object)$prepro_options$data_trans,
   rowCentered = TRUE,
   rowGroups = NA,
   rowColSet = NA,
@@ -192,6 +184,7 @@ plotFeatureRank(
   nBreaks = 50,
   show_names = c("none", "row", "col", "both"),
   returnPlot = FALSE,
+  colLabelCol = NULL,
   ...
 )
 
@@ -210,6 +203,8 @@ plotCountGeneSampleHeatmap(
   show_names = c("none", "col", "row", "both"),
   nGenes = 500,
   nBreaks = 50,
+  rowLabelCol = NULL,
+  colLabelCol = NULL,
   ...
 )
 
@@ -217,7 +212,6 @@ plotFeatureSampleHeatmap(
   ods,
   normalized = TRUE,
   rowCentered = TRUE,
-  transform_fun = metadata(ods)$prepro_options$data_trans,
   rowGroups = NA,
   rowColSet = NA,
   colGroups = NA,
@@ -229,6 +223,8 @@ plotFeatureSampleHeatmap(
   show_names = c("none", "col", "row", "both"),
   nFeatures = 500,
   nBreaks = 50,
+  rowLabelCol = NULL,
+  colLabelCol = NULL,
   ...
 )
 
@@ -238,7 +234,7 @@ plotFeatureSampleHeatmap(
   outlierRatio = 0.001,
   col = "Dark2",
   yadjust = 1.2,
-  ylab = "#Aberrant features",
+  ylab = "Aberrantly expressed features",
   ...
 )
 
@@ -248,7 +244,7 @@ plotFeatureSampleHeatmap(
   outlierRatio = 0.001,
   col = "Dark2",
   yadjust = 1.2,
-  ylab = "#Aberrantly expressed genes",
+  ylab = "Aberrantly expressed genes",
   ...
 )
 
@@ -283,6 +279,14 @@ plotExpressedGenes(ods, main = "Statistics of expressed genes")
 plotExpressedFeatures(ods, main = "Statistics of expressed features")
 
 plotSizeFactors(ods, basePlot = TRUE)
+
+\S4method{plotManhattan}{Outrider2DataSet}(
+  object,
+  sample,
+  value = "pvalue",
+  feature_ranges = rowRanges(object),
+  color_chr = c("black", "darkgrey")
+)
 }
 \arguments{
 \item{...}{Additional parameters passed to plot() or plot_ly() if not stated
@@ -301,6 +305,9 @@ all aberrant genes/samples are labelled. Can be set to NULL for
 no labels. Provide a vector of geneIDs/sampleIDs to label 
 specific genes/samples.}
 
+\item{xaxis}{Indicates which assay should be shown on the x-axis of the 
+volcano plot. Defaults to 'zscore'.}
+
 \item{pch}{Integer or character to be used for plotting the points}
 
 \item{basePlot}{if \code{TRUE}, use the R base plot version, else use the
@@ -316,7 +323,10 @@ character referring to a color palette from \code{RColorBrewer}.}
 
 \item{legendPos}{Set legendpos, by default topleft.}
 
-\item{outlierRatio}{The fraction to be used for the outlier sample filtering}
+\item{outlierRatio}{In the QQ-plot, this defines the fraction that is used 
+for removing samples with too many outliers from the plot. Only 
+samples with less than \code{outlierRatio*length(ods)} outliers 
+are shown.}
 
 \item{conf.alpha}{If set, a confidence interval is plotted, defaults to 0.05}
 
@@ -336,6 +346,11 @@ in a binary group assignemt.}
 \item{groupColSet}{A color set from RColorBrewer or a manual vector of
 colors, which length must match the number of categories
 from groups.}
+
+\item{dataAxisName}{Gives the name for the data values that will be 
+displayed in the axis labels. 
+Defaults to 'counts' for OutriderDataSet and 'expression' for 
+the more general Outrider2DataSet.}
 
 \item{normalized}{If TRUE, the normalized counts are used, the default,
 otherwise the raw counts}
@@ -357,11 +372,22 @@ cluster assignments are added to the OutriderDataSet.}
 \item{show_names}{character string indicating whether to show 'none', 'row',
 'col', or 'both' names on the heatmap axes.}
 
+\item{colLabelCol}{Name of a column in \code{colData(object)} that will be 
+used for labelling columns (samples) in the heatmap. By default, 
+the \code{colnames(object)} are used. Only takes effect if 
+\code{show_names} is either 'col' or 'both' (or 'row' for the 
+sample correlation heatmap).}
+
 \item{bcvQuantile}{quantile for choosing the cutoff for the biological 
 coefficient of variation (BCV)}
 
 \item{nGenes}{upper limit of number of genes (defaults to 500). Subsets the
 top n genes based on the BCV.}
+
+\item{rowLabelCol}{Name of a column in \code{rowData(object)} that will be 
+used for labelling rows in the heatmap. By default (NULL) the 
+\code{rownames(object)} are used. Only takes effect if 
+\code{show_names} is either 'row' or 'both'.}
 
 \item{yadjust}{Option to adjust position of Median and 90 percentile labels.}
 
@@ -372,6 +398,13 @@ top n genes based on the BCV.}
 \item{compareDisp}{If TRUE, the default, and if the autoCorrect normalization
 was used it computes the dispersion without autoCorrect and
 plots it for comparison.}
+
+\item{feature_ranges}{A GRanges object of the same length as the 
+OutriderDataSet object that contains the genomic positions of 
+features that are shown in the manhattan plot.}
+
+\item{values}{Indicates which assay is shown in the manhattan plot. Defaults 
+to 'pvalue'.}
 }
 \value{
 If base R graphics are used nothing is returned else the plotly or
@@ -396,6 +429,7 @@ This is the list of all plotting function provided by OUTRIDER:
   \item plotDispEsts()
   \item plotPowerAnalysis()
   \item plotEncDimSearch()
+  \item plotManhattan()
 }
 
 For a detailed description of each plot function please see the details.
@@ -457,7 +491,12 @@ levels. The curves are smooths to make the reading of the plot easier.
 \code{plotEncDimSearch}: Visualization of the hyperparameter optimization. 
 It plots the encoding dimension against the achieved loss (area under the 
 precision-recall curve). From this plot the optimum should be choosen for
-the \code{q} in fitting process.
+the \code{q} in fitting process. 
+
+\code{plotManhattan}: Visualizes different metrics for each gene (pvalue, 
+log2 fold-change, z-score) along with the genomic coordinates of the 
+respective gene as a manhattan plot. Detected outlier genes are indicated 
+with red color.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="Kremer")
@@ -474,17 +513,16 @@ ods <- OUTRIDER(ods, implementation=implementation)
 
 plotAberrantPerSample(ods)
 
-plotVolcano(ods, 49)
-plotVolcano(ods, 'MUC1365', basePlot=TRUE)
+plotVolcano(ods, 'MUC1365', basePlot=FALSE)
 
-plotExpressionRank(ods, 35)
+plotExpressionRank(ods, "NDUFS5")
 plotExpressionRank(ods, "NDUFS5", normalized=FALSE,
     log=FALSE, main="Over expression outlier", basePlot=TRUE)
 
-plotQQ(ods, 149)
+plotQQ(ods, "RPL11")
 plotQQ(ods, global=TRUE, outlierRatio=0.001)
 
-plotExpectedVsObservedCounts(ods, 149)
+plotExpectedVsObservedCounts(ods, "RPL11")
 plotExpectedVsObservedCounts(ods, "ATAD3C", basePlot=TRUE)
 
 plotExpressedGenes(ods)
@@ -509,11 +547,23 @@ plotDispEsts(ods, compareDisp=FALSE)
 
 plotPowerAnalysis(ods)
 
-\dontrun{
 # for speed reasons we only search for 5 different dimensions
 ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50), 
         implementation=implementation)
 plotEncDimSearch(ods)
 }
+
+# to show pvalues of a sample as manhattan plot, rowRanges(ods) must contain
+# the genomic position of each feature or a GRanges object must be provided
+\dontrun{
+# in case rowRanges(ods) is a GRangesList, run this first once to speed up:
+rowRanges(ods) <- unlist(endoapply(rowRanges(ods), function(rr) rr[1,]))
+}
+\dontrun{
+gr <- GRanges(
+         seqnames=sample(paste0("chr", 1:22), nrow(ods), replace=TRUE),
+         ranges=IRanges(start=runif(nrow(ods), min=0, max=1e5), width=100))
+plotManhattan(ods, "MUC1350", value="pvalue", feature_ranges=gr)
+plotManhattan(ods, "MUC1350", value="l2fc", feature_ranges=gr)
 
 }

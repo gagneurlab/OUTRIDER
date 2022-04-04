@@ -19,6 +19,12 @@ aberrant.OUTRIDER2 <- function(object, padjCutoff=0.05, zScoreCutoff=NULL,
                                 by=c("none", "sample", "feature", "gene")){
     checkFullAnalysis(object)
     
+    if(is.null(padjCutoff) || is.na(padjCutoff)){
+        padjCutoff <- 1
+    } else if(!isScalarNumeric(padjCutoff, na.ok=FALSE) || padjCutoff < 0 || 
+                padjCutoff > 1){
+        stop("Please provide a valid padjCutoff between 0 and 1.")
+    }
     aberrantEvents <- padj(object) <= padjCutoff
     if(!is.null(zScoreCutoff) && isScalarNumeric(zScoreCutoff, na.ok=FALSE)){
         aberrantEvents <- aberrantEvents & abs(zScore(object)) >= zScoreCutoff

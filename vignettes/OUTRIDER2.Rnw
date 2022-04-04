@@ -48,6 +48,7 @@ opts_chunk$set(
 }
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 <<include=FALSE>>=
 opts_chunk$set(concordance=TRUE)
@@ -689,7 +690,7 @@ missing values (NAs). When creating the \outds2{}, the correct profile should be
 specified to indicate which default settings should be used for preprocessing 
 and model fitting. Available profiles are 'outrider' for the standart negative 
 binomial OUTRIDER fit of gene counts, 'protrider' for fitting mass spectrometry 
-intensities e.g. from proteomics measurements (see TODO for more details), 
+intensities e.g. from proteomics measurements, 
 and 'other' by default for a gaussian fit directly to the input data. To get 
 more control over the underlying settings for each profile, see the next 
 section on how to finetune the default parameter settings.
@@ -716,7 +717,8 @@ By default, fitting the R autoencoder implementation is used for the standard
 NB OUTRIDER fit without the inclusion of known confounders, unless the sample 
 size is large (> 1000 samples). In all other cases, the python backend is used 
 for model fitting. The python backend to OUTRIDER is implemented in the 
-'py\_outrider' package which can be installed from pip by running ... (TODO). 
+'py\_outrider' package which can be installed from pip by running 
+\textit{pip install py_outrider}. 
 \outrider{}2 supports both manually specyfing a python binary or conda 
 environment in which py\_outrider has been installed, or letting the package 
 automatically create an appropriate conda environment with the 
@@ -729,11 +731,6 @@ ods <- OUTRIDER(ods)
 
 # alternatively, let basilisk handle py_outrider installation:
 ods <- OUTRIDER(ods, useBasilisk=TRUE)
-
-@
-
-<<usePyoutrider, echo=FALSE>>=
-reticulate::use_condaenv("py_outrider")
 @
 
 \subsection{Modifying the default data preprocessing options}
@@ -755,7 +752,8 @@ prepro_opts <- getDefaultPreproParams(ods)
 prepro_opts[["prepro_func"]] <- DESeq2::varianceStabilizingTransformation
 
 # fit model with modified preprocessing options (requires python backend)
-ods <- OUTRIDER(ods, prepro_options=prepro_opts, usePython=TRUE)
+ods <- OUTRIDER(ods, prepro_options=prepro_opts, usePython=TRUE, 
+                useBasilisk=TRUE)
 
 # check results
 head(results(ods))
@@ -766,17 +764,17 @@ plotAberrantPerSample(ods)
 
 In a analogous fashion, different data transformation functions to generate 
 the autoencoder input, can be chosen with 
-`prepro\_opt[["data\_trans"]] <- "log"`. Here, however, currently only 
-'log', 'log1p' or NULL (no transformation) are supported. 
+\Rcode{prepro_opt[["data_trans"]] <- "log"}. Here, however, currently only 
+'log', 'log1p' or \Rcode{NULL} (no transformation) are supported. 
 Also, sizefactor normalization can be turned on or off by setting 
-`prepro\_opt[["sf\_norm"]] <- TRUE/FALSE`.
-By default, the distribution specified in `prepro\_opt[["distribution"]]` 
+\Rcode{prepro_opt[["sf_norm"]] <- TRUE/FALSE}.
+By default, the distribution specified in \Rcode{prepro_opt[["distribution"]]} 
 is used both for the model loss and for the p value calculation. At the moment, 
 only 'nb' (negative binomial) and 'gaussian' are supported. A different 
 distribution might be used for the model loss than for the p value calculation, 
-in this case, the argument `loss\_distribution` should be supplied to the 
-`OUTRIDER()` function to specify which distribution to use for the model 
-loss.
+in this case, the argument \Rcode{loss_distribution} should be supplied to the 
+\Rfunction{OUTRIDER()} function to specify which distribution to use for the 
+model loss.
 
 \subsection{Including known confounders in th model fitting}
 To explicitly consider confouders known beforehand, the user only has to 
@@ -795,7 +793,7 @@ ods <- filterExpression(ods)
 colData(ods)
 
 # fit, including known confounders (here: 'batch')
-ods <- OUTRIDER(ods, covariates = c("batch"))
+ods <- OUTRIDER(ods, covariates = c("batch"), useBasilisk=TRUE)
 @
 
 \subsection(Results table)
@@ -821,7 +819,6 @@ head(res)
 The same plotting functions as described in Section~\ref{sec:Results} may be 
 used to visualize \outds2{} results. The name of some feature-level functions 
 has been adapted to support the more general \outds2{} objects:  
-`plotExpressionRank` -> `plotFeatureRank`, 
 `plotExpectedVsObservedCounts` -> `plotExpectedVsObserved`,
 `plotCountCorHeatmap` -> `plotSampleCorHeatmap`,
 `plotCountGeneSampleHeatmap` -> `plotFeatureSampleHeatmap`.

@@ -21,6 +21,7 @@
 #'   \item plotDispEsts()
 #'   \item plotPowerAnalysis()
 #'   \item plotEncDimSearch()
+#'   \item plotManhattan()
 #' }
 #'
 #' For a detailed description of each plot function please see the details.
@@ -33,7 +34,10 @@
 #' @param padjCutoff,zScoreCutoff Significance or Z-score cutoff
 #'             to mark outliers
 #' @param global Flag to plot a global Q-Q plot, default FALSE
-#' @param outlierRatio The fraction to be used for the outlier sample filtering
+#' @param outlierRatio In the QQ-plot, this defines the fraction that is used 
+#'             for removing samples with too many outliers from the plot. Only 
+#'             samples with less than \code{outlierRatio*length(ods)} outliers 
+#'             are shown.
 #' @param label Indicates which genes or samples should be labeled. By default 
 #'             all aberrant genes/samples are labelled. Can be set to NULL for 
 #'             no labels. Provide a vector of geneIDs/sampleIDs to label 
@@ -43,6 +47,13 @@
 #' @param compareDisp If TRUE, the default, and if the autoCorrect normalization
 #'             was used it computes the dispersion without autoCorrect and
 #'             plots it for comparison.
+#' @param xaxis Indicates which assay should be shown on the x-axis of the 
+#'             volcano plot. Defaults to 'zscore'. 
+#' @param values Indicates which assay is shown in the manhattan plot. Defaults 
+#'             to 'pvalue'.
+#' @param feature_ranges A GRanges object of the same length as the 
+#'             OutriderDataSet object that contains the genomic positions of 
+#'             features that are shown in the manhattan plot.
 #### Graphical parameters
 #' @param main Title for the plot, if missing a default title will be used.
 #' @param groups A character vector containing either group assignments of
@@ -62,6 +73,10 @@
 #' @param legendPos Set legendpos, by default topleft.
 #' @param conf.alpha If set, a confidence interval is plotted, defaults to 0.05
 #' @param samplePoints Sample points for Q-Q plot, defaults to max 30k points
+#' @param dataAxisName Gives the name for the data values that will be 
+#'             displayed in the axis labels. 
+#'             Defaults to 'counts' for OutriderDataSet and 'expression' for 
+#'             the more general Outrider2DataSet. 
 #' @param xlim,ylim The x/y limits for the plot or NULL to use
 #'             the full data range
 #' @param log If TRUE, the default, counts are plotted in log10.
@@ -75,6 +90,15 @@
 #'             cluster assignments are added to the OutriderDataSet.
 #' @param show_names character string indicating whether to show 'none', 'row',
 #'             'col', or 'both' names on the heatmap axes.
+#' @param rowLabelCol Name of a column in \code{rowData(object)} that will be 
+#'             used for labelling rows in the heatmap. By default (NULL) the 
+#'             \code{rownames(object)} are used. Only takes effect if 
+#'             \code{show_names} is either 'row' or 'both'.
+#' @param colLabelCol Name of a column in \code{colData(object)} that will be 
+#'             used for labelling columns (samples) in the heatmap. By default, 
+#'             the \code{colnames(object)} are used. Only takes effect if 
+#'             \code{show_names} is either 'col' or 'both' (or 'row' for the 
+#'             sample correlation heatmap).
 #' @param bcvQuantile quantile for choosing the cutoff for the biological 
 #'             coefficient of variation (BCV)
 #' @param nGenes upper limit of number of genes (defaults to 500). Subsets the
@@ -147,6 +171,11 @@
 #' precision-recall curve). From this plot the optimum should be choosen for
 #' the \code{q} in fitting process. 
 #' 
+#' \code{plotManhattan}: Visualizes different metrics for each gene (pvalue, 
+#' log2 fold-change, z-score) along with the genomic coordinates of the 
+#' respective gene as a manhattan plot. Detected outlier genes are indicated 
+#' with red color. 
+#' 
 #' @return If base R graphics are used nothing is returned else the plotly or
 #'             the gplot object is returned.
 #'
@@ -165,17 +194,16 @@
 #'
 #' plotAberrantPerSample(ods)
 #'
-#' plotVolcano(ods, 49)
-#' plotVolcano(ods, 'MUC1365', basePlot=TRUE)
+#' plotVolcano(ods, 'MUC1365', basePlot=FALSE)
 #'
-#' plotExpressionRank(ods, 35)
+#' plotExpressionRank(ods, "NDUFS5")
 #' plotExpressionRank(ods, "NDUFS5", normalized=FALSE,
 #'     log=FALSE, main="Over expression outlier", basePlot=TRUE)
 #'
-#' plotQQ(ods, 149)
+#' plotQQ(ods, "RPL11")
 #' plotQQ(ods, global=TRUE, outlierRatio=0.001)
 #' 
-#' plotExpectedVsObservedCounts(ods, 149)
+#' plotExpectedVsObservedCounts(ods, "RPL11")
 #' plotExpectedVsObservedCounts(ods, "ATAD3C", basePlot=TRUE)
 #' 
 #' plotExpressedGenes(ods)
@@ -200,12 +228,24 @@
 #'
 #' plotPowerAnalysis(ods)
 #'
-#' \dontrun{
 #' # for speed reasons we only search for 5 different dimensions
 #' ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50), 
 #'         implementation=implementation)
 #' plotEncDimSearch(ods)
 #' }
+#' 
+#' # to show pvalues of a sample as manhattan plot, rowRanges(ods) must contain
+#' # the genomic position of each feature or a GRanges object must be provided
+#' \dontrun{
+#' # in case rowRanges(ods) is a GRangesList, run this first once to speed up:
+#' rowRanges(ods) <- unlist(endoapply(rowRanges(ods), function(rr) rr[1,]))
+#' }
+#' \dontrun{
+#' gr <- GRanges(
+#'          seqnames=sample(paste0("chr", 1:22), nrow(ods), replace=TRUE),
+#'          ranges=IRanges(start=runif(nrow(ods), min=0, max=1e5), width=100))
+#' plotManhattan(ods, "MUC1350", value="pvalue", feature_ranges=gr)
+#' plotManhattan(ods, "MUC1350", value="l2fc", feature_ranges=gr)
 #'
 #' @rdname plotFunctions
 #' @aliases plotFunctions plotVolcano plotQQ plotExpectedVsObservedCounts 
@@ -218,8 +258,8 @@ NULL
 
 plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
                     zScoreCutoff=0, label="aberrant",
-                    xaxis=c("zscore", "fc", "log2fc"),
-                    pch=16, basePlot=FALSE, col=c("gray", "firebrick")){
+                    xaxis=c("zscore", "fc", "log2fc", "delta"),
+                    pch=16, basePlot=FALSE, col=c("gray", "firebrick"), ...){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
     }
@@ -279,35 +319,54 @@ plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
         } else{
             stop("Calculate log2fc first or choose other xaxis type.")
         } 
-    } 
+    } else {
+        if("delta" %in% assayNames(object)){
+            xaxis <- assay(object, "delta")
+            xaxis_name <- expression(paste(delta, "value"))
+            base_x_lab <- paste("delta value")
+        } else{
+            stop("Calculate delta first or choose other xaxis type.")
+        }
+    }
     
+    # dt <- data.table(
+    #     GENE_ID   = rownames(object),
+    #     pValue    = pValue(object)[,sampleID],
+    #     padjust   = padj(object)[,sampleID],
+    #     xaxis     = xaxis[,sampleID],
+    #     normCts   = counts(object, normalized=TRUE)[,sampleID],
+    #     medianCts = rowMedians(counts(object, normalized=TRUE)),
+    #     expRank   = apply(
+    #             counts(object, normalized=TRUE), 2, rank)[,sampleID],
+    #     aberrant  = aberrant(object, padjCutoff=padjCutoff,
+    #             zScoreCutoff=zScoreCutoff)[,sampleID],
+    #     color     = col[1])
     dt <- data.table(
-        GENE_ID   = rownames(object),
-        pValue    = pValue(object)[,sampleID],
-        padjust   = padj(object)[,sampleID],
-        xaxis     = xaxis[,sampleID],
-        normCts   = counts(object, normalized=TRUE)[,sampleID],
-        medianCts = rowMedians(counts(object, normalized=TRUE)),
+        FEATURE_ID   = rownames(object),
+        pValue       = pValue(object)[,sampleID],
+        padjust      = padj(object)[,sampleID],
+        xaxis        = xaxis[,sampleID],
+        normalized   = preprocessed(object, normalized=TRUE)[,sampleID],
+        medianNormalized = rowMedians(preprocessed(object, normalized=TRUE)),
         expRank   = apply(
-                counts(object, normalized=TRUE), 2, rank)[,sampleID],
-        aberrant  = aberrant(object, padjCutoff=padjCutoff,
-                zScoreCutoff=zScoreCutoff)[,sampleID],
+            preprocessed(object, normalized=TRUE), 2, rank)[,sampleID],
+        aberrant  = aberrant(object, padjCutoff=padjCutoff, ...)[,sampleID],
         color     = col[1])
     dt[aberrant == TRUE, color:=col[2]]
 
     # remove the NAs from the zScores for plotting
     dt[is.na(xaxis),xaxis:=0]
 
-    p <- ggplot(dt, aes(xaxis, -log10(pValue), color=color, label=GENE_ID,
+    p <- ggplot(dt, aes(xaxis, -log10(pValue), color=color, label=FEATURE_ID,
                             text=paste0(
-                "Gene ID: ", GENE_ID,
+                "Feature ID: ", FEATURE_ID,
                 "<br>Sample ID: ", sampleID,
-                "<br>Median normcount: ", round(medianCts, 2),
-                "<br>normcount: ", round(normCts, 2),
+                "<br>Median normalized: ", round(medianNormalized, 2),
+                "<br>normalized: ", round(normalized, 2),
                 "<br>expression rank: ", as.integer(expRank),
                 "<br>nominal P-value: ", signif(pValue,3),
                 "<br>adj. P-value: ", signif(padjust,3),
-                "<br>Z-score: ", signif(xaxis,2)))) + 
+                "<br>", xaxis_name, ": ", signif(xaxis,2)))) + 
         geom_point() + 
         theme_bw() + 
         xlab(xaxis_name) + 
@@ -331,15 +390,15 @@ plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
                 }
             }
             else{
-                if(nrow(dt[GENE_ID %in% label]) > 0){
+                if(nrow(dt[FEATURE_ID %in% label]) > 0){
                     p <- p + geom_text_repel(
-                                data=subset(dt, GENE_ID %in% label), 
+                                data=subset(dt, FEATURE_ID %in% label), 
                                 aes(col=color),
                                 fontface='bold', hjust=-.2, vjust=.2)
                 }
-                if(any(!(label %in% dt[,GENE_ID]))){
+                if(any(!(label %in% dt[,FEATURE_ID]))){
                     warning("Did not find gene(s) ", 
-                            paste(label[!(label %in% dt[,GENE_ID])], 
+                            paste(label[!(label %in% dt[,FEATURE_ID])], 
                                 collapse=", "), " to label.")
                 }
             }
@@ -358,153 +417,10 @@ plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
 setMethod("plotVolcano", signature(object="OutriderDataSet"),
         plotVolcano.OUTRIDER)
 
-plotVolcano.OUTRIDER2 <- function(object, sampleID, main, padjCutoff=0.05,
-                    xaxis=c("zscore", "fc", "log2fc", "delta"), pch=16, 
-                    basePlot=FALSE, col=c("gray", "firebrick"), ...){
-    if(missing(sampleID)){
-        stop("specify which sample should be plotted, sampleID = 'sample5'")
-    }
-    if(!all(c('padjust', 'zScore') %in% assayNames(object))){
-        stop('Calculate Z-scores and P-values first.')
-    }
-    if(is.logical(sampleID)){
-        sampleID <- which(sampleID)
-    }
-    if(is.numeric(sampleID)){
-        if(!(is.numeric(sampleID) && max(sampleID) <= ncol(object))){
-            stop('Sample index is out of bounds:',
-                paste(sampleID, collapse=", "))
-        }
-        sampleID <- colnames(object)[sampleID]
-    }
-    if(!all(sampleID %in% colnames(object))){
-        stop("Sample ID is not in the data set.")
-    }
-    if(length(sampleID) > 1){
-        ans <- lapply(sampleID, plotVolcano, object=object, 
-                        padjCutoff=padjCutoff,
-                        effectCutoff=effectCutoff, basePlot=basePlot)
-        return(ans)
-    }
-    if(missing(main)){
-        main <- paste0("Volcano plot: ", sampleID)
-    }
-    
-    if(is.null(rownames(object))){
-        rownames(object) <- paste("feature", seq_len(nrow(object)), sep="_")
-    }
-    
-    xaxis <- match.arg(xaxis)
-    if(xaxis == "zscore"){
-        if("zScore" %in% assayNames(object)){
-            xaxis <- zScore(object)
-            xaxis_name <- "Z-Score"
-            base_x_lab <- xaxis_name
-        } else{
-            stop("Calculate zScores first or choose other xaxis type.")
-        }
-        
-    } else if(xaxis == "fc"){
-        if("l2fc" %in% assayNames(object)){
-            xaxis <- 2^assay(object, "l2fc")
-            xaxis_name <- "Fold change"
-            base_x_lab <- xaxis_name
-        } else{
-            stop("Calculate log2fc first or choose other xaxis type.")
-        } 
-    } else if(xaxis == "log2fc"){
-        if("l2fc" %in% assayNames(object)){
-            xaxis <- assay(object, "l2fc")
-            xaxis_name <- expression(paste(log[2], "(fold-change)"))
-            base_x_lab <- paste("log<sub>2</sub>(fold-change)")
-        } else{
-            stop("Calculate log2fc first or choose other xaxis type.")
-        } 
-    } else {
-        if("delta" %in% assayNames(object)){
-            xaxis <- assay(object, "delta")
-            xaxis_name <- expression(paste(delta, "value"))
-            base_x_lab <- paste("delta value")
-        } else{
-            stop("Calculate delta first or choose other xaxis type.")
-        }
-    }
-    
-    dt <- data.table(
-        FEATURE_ID   = rownames(object),
-        pValue    = pValue(object)[,sampleID],
-        padjust   = padj(object)[,sampleID],
-        xaxis     = xaxis[,sampleID],
-        normalized       = preprocessed(object, normalized=TRUE)[,sampleID],
-        medianNormalized = rowMedians(preprocessed(object, normalized=TRUE)),
-        expRank   = apply(
-            preprocessed(object, normalized=TRUE), 2, rank)[,sampleID],
-        aberrant  = aberrant(object, padjCutoff=padjCutoff, ...)[,sampleID],
-        color     = col[1])
-    dt[aberrant == TRUE, color:=col[2]]
-    
-    # remove the NAs from the zScores for plotting
-    dt[is.na(xaxis),xaxis:=0]
-    
-    p <- ggplot(dt, aes(xaxis, -log10(pValue), color=color, text=paste0(
-        "Feature ID: ", FEATURE_ID,
-        "<br>Sample ID: ", sampleID,
-        "<br>Median normalized values: ", round(medianNormalized, 2),
-        "<br>normalized: ", round(normalized, 2),
-        "<br>expression rank: ", as.integer(expRank),
-        "<br>nominal P-value: ", signif(pValue,3),
-        "<br>adj. P-value: ", signif(padjust,3),
-        "<br>effect: ", signif(xaxis,2)))) + 
-        geom_point() + 
-        theme_bw() + 
-        xlab(xaxis_name) + 
-        ylab(expression(paste(-log[10], "(", italic(P), "-value)"))) + 
-        ggtitle(main) + 
-        scale_color_identity() + 
-        theme(legend.position = 'none')
-
-    # Log scale if fold change is plotted
-    if(isTRUE(basePlot)){
-        if(!is(xaxis_name, "expression") && xaxis_name == 'Fold change'){
-            p <- p + scale_x_log10(labels = scales::trans_format(
-                "log10", scales::math_format(10^.x)))
-        }
-        if(!is.null(label)){
-            if(isScalarCharacter(label) && label == "aberrant"){
-                if(nrow(dt[aberrant == TRUE,]) > 0){
-                    p <- p + geom_text_repel(data=dt[aberrant == TRUE,], 
-                                aes(col=color),
-                                fontface='bold', hjust=-.2, vjust=.2)
-                }
-            }
-            else{
-                if(nrow(dt[GENE_ID %in% label]) > 0){
-                    p <- p + geom_text_repel(
-                                data=subset(dt, GENE_ID %in% label), 
-                                aes(col=color),
-                                fontface='bold', hjust=-.2, vjust=.2)
-                }
-                if(any(!(label %in% dt[,GENE_ID]))){
-                    warning("Did not find gene(s) ", 
-                            paste(label[!(label %in% dt[,GENE_ID])], 
-                                collapse=", "), " to label.")
-                }
-            }
-        }
-    }
-        
-    if(isFALSE(basePlot)){
-        p <- p + xlab(base_x_lab) +
-            ylab(paste("-log<sub>10</sub>(<i>P</i>-value)"))
-        return(ggplotly(p, tooltip="text"))        
-    }
-    p
-}
-
 #' @rdname plotFunctions
 #' @export
 setMethod("plotVolcano", signature(object="Outrider2DataSet"),
-            plotVolcano.OUTRIDER2)
+            plotVolcano.OUTRIDER)
 
 
 plotQQ.OUTRIDER2 <- function(object, featureID, main, global=FALSE, 
@@ -711,7 +627,7 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
 #' @export
 plotExpectedVsObserved <- function(ods, featureID, main, basePlot=FALSE, 
                             log=FALSE, groups=c(), groupColSet='Set1', 
-                            dataAxisName="values", label="aberrant", ...){
+                            dataAxisName="expression", label="aberrant", ...){
     
     # check user input
     checkOutrider2DataSet(ods)
@@ -818,7 +734,7 @@ plotExpectedVsObserved <- function(ods, featureID, main, basePlot=FALSE,
 #' @export
 plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
                     zScoreCutoff=0, normalized=TRUE, basePlot=FALSE, log=TRUE,
-                    col=c("gray", "firebrick"), groups=c(),
+                    col=c("gray", "firebrick"), groups=c(), featureID,
                     groupColSet='Accent', label="aberrant"){
     # check user input
     checkOutriderDataSet(ods)
@@ -826,10 +742,16 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
         stop("Please calculate the sizeFactors or normalization factors ",
                 "before plotting normlized counts.")
     }
-    if(missing(geneID)){
-        stop("Please Specify which gene should be plotted, geneID = 'geneA'")
+    if(missing(geneID) & missing(featureID)){
+        stop("Please Specify which feature (e.g. gene) should be plotted by ",
+                "specifying \neither a geneID or a featureID, ",
+                "e.g. geneID = 'geneA'")
     }
-    geneID <- getGeneIndex(geneID, ods)
+    if(!missing(featureID)){
+        geneID <- featureID
+    }
+    # geneID <- getGeneIndex(geneID, ods)
+    geneID <- getFeatureIndex(geneID, ods)
 
     if(length(col) != 2){
         stop("Please provide two colors as a vector.")
@@ -856,14 +778,23 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     # subset ods
     ods <- ods[geneID,]
 
+    # dt <- data.table(
+    #     sampleID  = colnames(ods),
+    #     counts    = as.vector(counts(ods, normalized=normalized)) + isTRUE(log),
+    #     rawcounts = as.vector(counts(ods)),
+    #     group     = groups)
+    # dt[, medianCts:= median(counts)]
+    # dt[, norm_rank:= rank(counts, ties.method = 'first')]
     dt <- data.table(
-        sampleID  = colnames(ods),
-        counts    = as.vector(counts(ods, normalized=normalized)) + isTRUE(log),
-        rawcounts = as.vector(counts(ods)),
-        group     = groups)
+        sampleID = colnames(ods),
+        expression = as.vector(preprocessed(ods, normalized=normalized)) + 
+                    isTRUE(log),
+        ae_input = as.vector(preprocessed(ods, normalized=FALSE)),
+        obsexpr = as.vector(observed(ods)),
+        group    = groups)
+    dt[, medianExpr:= median(expression)]
+    dt[, norm_rank:= rank(expression, ties.method = 'first')]
 
-    dt[, medianCts:= median(counts)]
-    dt[, norm_rank:= rank(counts, ties.method = 'first')]
     if(all(c('pValue', 'padjust', 'zScore') %in% assayNames(ods))){
         dt[, pValue   := assay(ods, 'pValue')[1,]]
         dt[, padjust  := assay(ods, 'padjust')[1,]]
@@ -874,19 +805,20 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
         dt[,aberrant:=FALSE]
     }
     ylab <- paste0(ifelse(isTRUE(normalized), "Normalized", "Raw"),
-            " counts", ifelse(isTRUE(log), " + 1", ""))
+            " expression", ifelse(isTRUE(log), " + 1", ""))
     if(missing(main)){
         main <- paste("Expression rank plot:", geneID)
     }
 
     # create ggplot object
-    g <- ggplot(data=dt, aes(x = norm_rank, y = counts, label = sampleID, 
+    g <- ggplot(data=dt, aes(x = norm_rank, y = expression, label = sampleID, 
                             text = paste0(
-        "Gene ID: ", geneID, "<br>",
+        "Feature ID: ", geneID, "<br>",
         "Sample ID: ", sampleID, "<br>",
         ifelse(uniqueN(groups) == 1, "", paste0("Group: ", group, "<br>")),
-        "Median normcount: ", round(medianCts, digits = 1), "<br>", 
-        "rawcount: ", rawcounts, "<br>", 
+        "Median normexpression: ", round(medianExpr, digits = 1), "<br>", 
+        "raw AE input: ", ae_input, "<br>", 
+        "obs expression: ", obsexpr, "<br>", 
         "expression rank: ", round(norm_rank, digits = 1), "<br>",
         if('padjust' %in% colnames(dt))
             paste0("adj. P-value: ", sprintf("%1.1E", padjust), "<br>", 
@@ -947,154 +879,31 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     return(ggplotly(g))
 }
 
-#' @rdname plotFunctions
-#' @export
-plotFeatureRank <- function(ods, featureID, main, padjCutoff=0.05,
-                zScoreCutoff=0, normalized=TRUE, basePlot=FALSE, log=FALSE,
-                col=c("gray", "firebrick"), groups=c(), groupColSet='Accent',
-                label="aberrant"){
-    # check user input
-    checkOutrider2DataSet(ods)
-    if(isTRUE(normalized) &  is.null(sizeFactors(ods))){
-        stop("Please calculate the sizeFactors or normalization factors ",
-            "before plotting normalized counts.")
-    }
-    if(missing(featureID)){
-        stop("Please Specify which feature should be plotted, e.g. ", 
-            "featureID = 'geneA'")
-    }
-    featureID <- getFeatureIndex(featureID, ods)
-    
-    if(length(col) != 2){
-        stop("Please provide two colors as a vector.")
-    }
-    if(length(groups) == 0){
-        groups <- logical(ncol(ods))
-    } else if(all(groups %in% colData(ods)[,'sampleID'])){
-        group <- colData(ods)[,'sampleID'] %in% groups
-    } else if(length(groups) == ncol(ods)){
-        groups[is.na(groups)] <- 'NA'
-    } else {
-        stop("Please provide meaningfull input for 'groups'.")
-    }
-    
-    # apply over each feature if vector
-    if(length(featureID) > 1){
-        ans <- lapply(featureID, plotFeatureRank, ods=ods,
-                        padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff,
-                        basePlot=basePlot, normalized=normalized)
-        return(ans)
-    }
-    stopifnot(isScalarValue(featureID))
-    
-    # subset ods
-    ods <- ods[featureID,]
-    
-    dt <- data.table(
-        sampleID = colnames(ods),
-        value    = as.vector(preprocessed(ods, normalized=normalized)) + 
-            isTRUE(log),
-        rawvalue = as.vector(preprocessed(ods, normalized=FALSE)),
-        rawinput = as.vector(observed(ods)),
-        group    = groups)
-    
-    dt[, medianCts:= median(value)]
-    dt[, norm_rank:= rank(value, ties.method = 'first')]
-    if(all(c('pValue', 'padjust', 'zScore') %in% assayNames(ods))){
-        dt[, pValue   := assay(ods, 'pValue')[1,]]
-        dt[, padjust  := assay(ods, 'padjust')[1,]]
-        dt[, zScore   := assay(ods, 'zScore')[1,]]
-        dt[, aberrant := aberrant(ods, padjCutoff=padjCutoff,
-                                    zScoreCutoff=zScoreCutoff)[1,]]
-    } else {
-        dt[,aberrant:=FALSE]
-    }
-    ylab <- paste0(ifelse(isTRUE(normalized), "Normalized", "Raw"),
-                    " values", ifelse(isTRUE(log), " + 1", ""))
-    if(missing(main)){
-        main <- paste("Expression rank plot:", featureID)
-    }
-    
-    # create ggplot object
-    g <- ggplot(data=dt, aes(x = norm_rank, y = value, label=sampleID,
-                            text = paste0(
-        "Feature ID: ", featureID, "<br>",
-        "Sample ID: ", sampleID, "<br>",
-        ifelse(uniqueN(groups) == 1, "", paste0("Group: ", group, "<br>")),
-        "Median normvalue: ", round(medianCts, digits = 1), "<br>", 
-        "raw value: ", rawvalue, "<br>", 
-        "raw input: ", rawinput, "<br>", 
-        "expression rank: ", round(norm_rank, digits = 1), "<br>",
-        if('padjust' %in% colnames(dt))
-            paste0("adj. P-value: ", sprintf("%1.1E", padjust), "<br>", 
-                    "nominal P-value: ", sprintf("%1.1E", pValue), "<br>",
-                    "Z-score: ", round(zScore, digits = 1), "<br>")
-    ))) +
-        labs(title = main, x = 'Sample rank', y = ylab) +
-        theme_bw()
-    
-    if(isTRUE(log)){
-        g <- g + scale_y_log10()
-    }
-    
-    point_mapping <- aes(col = aberrant)
-    
-    # switch color mode
-    if(uniqueN(groups) > 1){
-        point_mapping$fill <- substitute(group)
-        ignoreAesTextWarning({
-            g <- g + 
-                geom_point(size=3, stroke=0.5, pch=21, mapping=point_mapping) +
-                scale_fill_brewer(palette=groupColSet) +
-                scale_color_manual(values= c('grey30', col[2]))
-        })
-    } else {
-        ignoreAesTextWarning({
-            g <- g + geom_point(size = 2, point_mapping) +
-                scale_color_manual(values = col) +
-                theme(legend.position = 'none')
-        })
-    }
-    
-    if(isTRUE(basePlot)){
-        if(!is.null(label)){
-            if(isScalarCharacter(label) && label == "aberrant"){
-                if(nrow(dt[aberrant == TRUE,]) > 0){
-                    g <- g + geom_text_repel(data=dt[aberrant == TRUE,], 
-                                aes(col=aberrant),
-                                fontface='bold', hjust=-.2, vjust=.5)
-                }
-            }
-            else{
-                if(nrow(dt[sampleID %in% label]) > 0){
-                    g <- g + geom_text_repel(
-                                data=subset(dt, sampleID %in% label), 
-                                aes(col=aberrant),
-                                fontface='bold', hjust=-.2, vjust=.5)
-                }
-                if(any(!(label %in% dt[,sampleID]))){
-                    warning("Did not find sample(s) ", 
-                            paste(label[!(label %in% dt[,sampleID])], 
-                                collapse=", "), " to label.")
-                }
-            }
-        }
-        return(g)
-    }
-    return(ggplotly(g))
-}
-
 plotSampleCorHeatmap <- function(object, normalized=TRUE,
-                    transform_fun=metadata(object)$prepro_options$data_trans,
                     rowCentered=TRUE, rowGroups=NA, rowColSet=NA, colGroups=NA,
                     colColSet=NA, nRowCluster=4, nColCluster=4,
                     main="Sample correlation heatmap", basePlot=TRUE, 
                     nBreaks=50, show_names=c("none", "row", "col", "both"), 
-                    returnPlot=FALSE, ...) {
+                    returnPlot=FALSE, colLabelCol=NULL, ...) {
     
     checkDeprication(names2check=c("rowGroups"="rowCoFactor", 
             "colGroups"="colCoFactor", "nRow/nCol-Cluster"="nCluster", 
             "not used anymore"="dendrogram", "show_names"="names"), ...)
+    
+    if(is(ods, "OutriderDataSet")){
+        transform_fun <- function(x){log2(x+1)}
+    } else{
+        transform_fun <- metadata(object)$prepro_options$data_trans
+    }
+    
+    if(!is.null(colLabelCol)){
+        if(!(colLabelCol %in% colnames(colData(ods)))){
+            warning("No column '", colLabelCol, "' found in colData(ods). ",
+                    "Using colnames(ods) instead.")
+        } else{
+            colnames(ods) <- colData(ods)[,colLabelCol]
+        }
+    }
     
     if(!isTRUE(basePlot)){
         return(plotCountCorHeatmapPlotly(
@@ -1149,25 +958,6 @@ plotSampleCorHeatmap <- function(object, normalized=TRUE,
         returnPlot=returnPlot,
         ...
     )
-}
-
-plotCountCorHeatmap.OUTRIDER <- function(object, normalized=TRUE,
-            rowCentered=TRUE, rowGroups=NA, rowColSet=NA, colGroups=NA,
-            colColSet=NA, nRowCluster=4, nColCluster=4,
-            main="Count correlation heatmap", basePlot=TRUE, nBreaks=50,
-            show_names=c("none", "row", "col", "both"), 
-            returnPlot=FALSE, ...) {
-    
-    checkOutriderDataSet(object)
-    plotSampleCorHeatmap(
-        object=object, normalized=normalized, rowCentered=rowCentered, 
-        transform_fun=function(x){log2(x+1)},
-        rowGroups=rowGroups, rowColSet=rowColSet, colGroups=colGroups,
-        colColSet=colColSet, nRowCluster=nRowCluster, nColCluster=nColCluster,
-        main=main, basePlot=basePlot, nBreaks=nBreaks, show_names=show_names, 
-        returnPlot=returnPlot, ...
-    )
-        
 }
 
 plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
@@ -1226,13 +1016,12 @@ plotCountCorHeatmapPlotly <- function(x, normalized=TRUE, rowCentered=TRUE,
 #' @rdname plotFunctions
 #' @export
 setMethod("plotCountCorHeatmap", signature="OutriderDataSet", 
-        plotCountCorHeatmap.OUTRIDER)
+        plotSampleCorHeatmap)
 
 #' @rdname plotFunctions
 #' @export
 setMethod("plotCountCorHeatmap", signature="Outrider2DataSet", 
         plotSampleCorHeatmap)
-
 
 ##### plotCountGeneSampleHeatmap #####
 #' @rdname plotFunctions
@@ -1242,10 +1031,27 @@ plotCountGeneSampleHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
                     colColSet=NA, nRowCluster=4, nColCluster=4,
                     main="Count Gene vs Sample Heatmap", bcvQuantile=0.9,
                     show_names=c("none", "col", "row", "both"),
-                    nGenes=500, nBreaks=50, ...){
+                    nGenes=500, nBreaks=50, rowLabelCol=NULL, 
+                    colLabelCol=NULL, ...){
 
     checkOutriderDataSet(ods)
-    
+
+    if(!is.null(rowLabelCol)){
+        if(!(rowLabelCol %in% colnames(rowData(ods)))){
+            warning("No column '", rowLabelCol, "' found in rowData(ods). ",
+                        "Using rownames(ods) instead.")
+        } else{
+            rownames(ods) <- rowData(ods)[,rowLabelCol]
+        }
+    }
+    if(!is.null(colLabelCol)){
+        if(!(colLabelCol %in% colnames(colData(ods)))){
+            warning("No column '", colLabelCol, "' found in colData(ods). ",
+                    "Using colnames(ods) instead.")
+        } else{
+            colnames(ods) <- colData(ods)[,colLabelCol]
+        }
+    }
     if (is.null(rownames(ods))) {
         message("Missing row names, using row numbers.")
         rownames(ods) <- paste0('row', seq_row(ods))
@@ -1322,12 +1128,12 @@ plotHeatmap <- function(ods, mtx, annotation_row=NULL, annotation_col=NULL,
     row_colors <- getAnnoColors(colorSet=rowColSet, annotation=annotation_row)
     col_colors <- getAnnoColors(colorSet=colColSet, annotation=annotation_col)
     tmp_anno_colors <- c(row_colors, col_colors)
-    
+
     # use user defined colors and override autogenerated once if needed
     if(!missing(annotation_colors) & !isScalarNA(annotation_colors)){
         tmp_anno_colors <- c(annotation_colors, tmp_anno_colors)
     }
-    
+
     # remove duplicates and NULL colors
     annotation_colors <- tmp_anno_colors[!duplicated(names(tmp_anno_colors))]
     annotation_colors <- annotation_colors[
@@ -1354,11 +1160,11 @@ plotHeatmap <- function(ods, mtx, annotation_row=NULL, annotation_col=NULL,
         labels_col = getNiceName(colnames(mtx), 12),
         ...
     )
-    
+
     if(isTRUE(returnPlot)){
         return(p)    
     }
-    
+
     print(p)
     return(invisible(ods))
 }
@@ -1366,15 +1172,37 @@ plotHeatmap <- function(ods, mtx, annotation_row=NULL, annotation_col=NULL,
 #' @rdname plotFunctions
 #' @export
 plotFeatureSampleHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
-                        transform_fun=metadata(ods)$prepro_options$data_trans,
                         rowGroups=NA, rowColSet=NA, colGroups=NA,
                         colColSet=NA, nRowCluster=4, nColCluster=4,
                         main="Feature vs Sample Heatmap", varQuantile=0.9,
                         show_names=c("none", "col", "row", "both"),
-                        nFeatures=500, nBreaks=50, ...){
+                        nFeatures=500, nBreaks=50, rowLabelCol=NULL, 
+                        colLabelCol=NULL, ...){
     
     checkOutrider2DataSet(ods)
     
+    if(is(ods, "OutriderDataSet")){
+        transform_fun <- function(x){log2(x+1)}
+    } else{
+        transform_fun <- metadata(object)$prepro_options$data_trans
+    }
+    
+    if(!is.null(rowLabelCol)){
+        if(!(rowLabelCol %in% colnames(rowData(ods)))){
+            warning("No column '", rowLabelCol, "' found in rowData(ods). ",
+                    "Using rownames(ods) instead.")
+        } else{
+            rownames(ods) <- rowData(ods)[,rowLabelCol]
+        }
+    }
+    if(!is.null(colLabelCol)){
+        if(!(colLabelCol %in% colnames(colData(ods)))){
+            warning("No column '", colLabelCol, "' found in colData(ods). ",
+                    "Using colnames(ods) instead.")
+        } else{
+            colnames(ods) <- colData(ods)[,colLabelCol]
+        }
+    }
     if (is.null(rownames(ods))) {
         message("Missing row names, using row numbers.")
         rownames(ods) <- paste0('row', seq_row(ods))
@@ -1457,7 +1285,7 @@ plotFeatureSampleHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
 plotAberrantPerSample.OUTRIDER2 <- function(object, 
                     main='Aberrant Features per Sample',
                     outlierRatio=0.001, col='Dark2', yadjust=1.2,
-                    ylab="#Aberrant features", ...){
+                    ylab="Aberrantly expressed features", ...){
 
     oneOffset <- 0.8
     count_vector <- sort(aberrant(object, by="sample", ...))
@@ -1493,7 +1321,7 @@ plotAberrantPerSample.OUTRIDER2 <- function(object,
 plotAberrantPerSample.OUTRIDER <- function(object, 
                     main='Aberrant Genes per Sample',
                     outlierRatio=0.001, col='Dark2', yadjust=1.2,
-                    ylab="#Aberrantly expressed genes", ...){
+                    ylab="Aberrantly expressed genes", ...){
 
     plotAberrantPerSample.OUTRIDER2(object=object, main=main, 
             outlierRatio=outlierRatio, col=col, yadjust=yadjust, ylab=ylab)
@@ -1668,7 +1496,7 @@ plotEncDimSearch.OUTRIDER <- function(object){
                 aes(xintercept=enc, col=z, linetype='Optimum')) +
         geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) +
         labs(x='Encoding dimensions',
-                y='Evaluation loss', col='Z score', linetype='Best Q') +
+                y='Area under the PR curve', col='Z score', linetype='Best Q') +
         scale_linetype_manual(values="dotted")
     
     if(isTRUE(showZscoreLegend)){
@@ -1696,12 +1524,13 @@ plotExpressedGenes <- function(ods, main='Statistics of expressed genes'){
     checkOutriderDataSet(ods)
     # labels and col names
     exp_genes_cols <- c(
-        'sampleID'                         = 'sampleID',
-        'Expressed\ngenes'                 = 'expressedGenes',
-        'Union of\nexpressed genes'        = 'unionExpressedGenes',
-        'Intersection of\nexpressed genes' = 'intersectionExpressedGenes',
-        'Genes passed\nfiltering'          = 'passedFilterGenes',
-        'Rank'                             = 'expressedGenesRank')
+        'sampleID'                                = 'sampleID',
+        'Expressed\ngenes'                        = 'expressedGenes',
+        'Union of\nexpressed genes\n(cumulative)' = 'unionExpressedGenes',
+        'Intersection of\nexpressed genes\n(cumulative)' = 
+                                                'intersectionExpressedGenes',
+        'Genes passed\nfiltering\n(cumulative)'   = 'passedFilterGenes',
+        'Rank'                                    = 'expressedGenesRank')
 
     # validate input
     if(!all(exp_genes_cols %in% names(colData(ods)))){
@@ -1769,8 +1598,8 @@ plotSizeFactors <- function(ods, basePlot=TRUE){
         "Rank: ", rank))) +
         geom_point() +
         theme_bw() +
-        xlab("Sample rank") + 
-        ggtitle("Size factor plot")
+        xlab("Sample rank") +
+        ylab("Size factors")
     
     if(isFALSE(basePlot)){
         g <- ggplotly(g, tooltip="text")
@@ -1790,3 +1619,64 @@ checkDeprication <- function(names2check, ...){
                 "\t'", names2check[i], "' --> '", names(names2check[i]), "'")
     }
 }
+
+
+plotManhattan.OUTRIDER <- function(object, sample, value="pvalue", 
+                                    feature_ranges=rowRanges(object), 
+                                    color_chr = c("black", "darkgrey")){
+    
+    stopifnot("Sample not in ods" = sample %in% colnames(object))
+    stopifnot("Value should be either pvalue, zscore or l2fc" = 
+                  value %in% c('pvalue', 'pValue', 'pv', 'zscore', 'zScore', 
+                                'l2fc', 'L2FC', 'log2fc'))
+    require(ggbio)
+    
+    # get granges from rowRanges(ods)
+    if(is.null(feature_ranges)){
+        if(is.null(rowRanges(object))){
+            stop("No rowRanges(ods) found. Assign them first to use ", 
+                    "this function or provide a GRanges object.")
+        }
+    } else if(length(feature_ranges) != nrow(object)){
+        stop("The provided feature ranges must be of the same length as the ", 
+            "ods object.")
+    } else if(is(feature_ranges, "GRanges")){
+            gr <- feature_ranges
+    } else if(is(feature_ranges, "GRangesList")){
+            gr <- unlist(endoapply(feature_ranges, 
+                                    function(rr) rr[1,])) # faster than range
+    } else{
+        stop("The provided feature_ranges must a a GRanges or GRangesList ",
+            "object.")
+    }
+    
+    seqlevelsStyle(gr) <- 'NCBI'
+    
+    # Add values to granges
+    if(value %in% c('pvalue', 'pValue', 'pv')){
+        gr$value <- -log10(assays(object)$pValue[, sample])
+        value <- '-log10(pvalue)'
+    }
+    if(value %in% c('zscore', 'zScore'))
+        gr$value <- assays(object)$zScore[, sample]
+    if(value %in% c('l2fc', 'L2FC', 'log2fc'))
+        gr$value <- assays(object)$l2fc[, sample]
+    gr$aberrant <- aberrant(object)[,sample]
+    
+    # Sort granges for plot
+    gr <- sortSeqlevels(gr)
+    gr <- sort(gr)
+    
+    p <- plotGrandLinear(gr, aes(y = value), 
+                            color = color_chr, 
+                            highlight.gr = gr[gr$aberrant == T], 
+                            highlight.col = 'firebrick') +
+        labs(y = value)
+    return(p)
+}
+
+#' @rdname plotFunctions
+#' @export
+setMethod("plotManhattan", signature="Outrider2DataSet", 
+          plotManhattan.OUTRIDER)
+

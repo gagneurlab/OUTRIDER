@@ -38,7 +38,7 @@ compileResults.OUTRIDER2 <- function(object, padjCutoff=0.05,
         } else {
             warning('Please provide an object with at least one feature.')
         }
-        if(profile(ods) == "outrider"){
+        if(profile(object) == "outrider"){
             return(data.table(
                 geneID=NA_character_,
                 sampleID=NA_character_,
