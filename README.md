@@ -15,8 +15,8 @@ and available through [Bioconductor](http://bioconductor.org/packages/release/bi
 
 `OUTRIDER`(v2) is an R software package requiring a running [R 3.6 version or higher](https://cran.r-project.org/).
 
-`OUTRIDER`(v2) is not yet on Bioconductor , but we can still use `BiocManager` to install the package and its dependencies. 
-This will use `remotes::install_github` to install the `OUTRIDER2` version from the outrider2 branch on github. 
+`OUTRIDER`(v2) is not yet on Bioconductor. Instead, it can be installed using `BiocManager` (incluidng its dependencies). 
+This will use `remotes::install_github` to install the `OUTRIDER2` version from the `outrider2` branch on github. 
 
 ```
 if (!requireNamespace("BiocManager", quietly=TRUE))
@@ -30,7 +30,7 @@ at the Troubleshooting section or submit an issue on [GitHub](https://github.com
 ### Alternative OUTRIDER2 development installation with devtools
 
 If you want to get the latest development version of `OUTRIDER`(v2), you can also 
-install also it from GitHub with `devtools`. For this, you need a working development environment to compile the
+install it from GitHub with `devtools`. For this, you need a working development environment to compile the
 C++ code (see for details: [Windows](https://cran.r-project.org/bin/windows/Rtools/)
 or [MacOS X](https://cran.r-project.org/bin/macosx/tools/)).
 
