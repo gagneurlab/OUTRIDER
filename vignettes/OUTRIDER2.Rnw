@@ -31,7 +31,7 @@ opts_chunk$set(
 \newcommand{\rna}{RNA-seq}
 \newcommand{\deseq}{\Biocpkg{DESeq2}}
 \newcommand{\ods}{\Rclass{OutriderDataSet}}
-\newcommand{\outds2}{\Rclass{Outrider2DataSet}}
+\newcommand{\odstwo}{\Rclass{Outrider2DataSet}}
 
 \title{OUTRIDER2}
 
@@ -48,7 +48,6 @@ opts_chunk$set(
 }
 
 \begin{document}
-\SweaveOpts{concordance=TRUE}
 
 <<include=FALSE>>=
 opts_chunk$set(concordance=TRUE)
@@ -684,9 +683,9 @@ mass spectrometry intensities ('PROTRIDER'), or modelling vst transformed gene
 counts.
 
 \subsection{Outrider2DataSet}
-The \outds2{} is a generalization of the \ods{} class. Input values no longer have 
+The \odstwo{} is a generalization of the \ods{} class. Input values no longer have 
 to be counts/integers, but can be continuous values and might also contain some 
-missing values (NAs). When creating the \outds2{}, the correct profile should be 
+missing values (NAs). When creating the \odstwo{}, the correct profile should be 
 specified to indicate which default settings should be used for preprocessing 
 and model fitting. Available profiles are 'outrider' for the standart negative 
 binomial OUTRIDER fit of gene counts, 'protrider' for fitting mass spectrometry 
@@ -709,7 +708,7 @@ ods <- Outrider2DataSet(inputData=sim_intensities, profile="protrider")
 ods
 @
 
-As \ods{} is now a subclass of \outds2{}, the profile is automatically set to 
+As \ods{} is now a subclass of \odstwo{}, the profile is automatically set to 
 'outrider' when creating an \ods{}. 
 
 \subsection{Using the python backend}
@@ -718,7 +717,7 @@ NB OUTRIDER fit without the inclusion of known confounders, unless the sample
 size is large (> 1000 samples). In all other cases, the python backend is used 
 for model fitting. The python backend to OUTRIDER is implemented in the 
 'py\_outrider' package which can be installed from pip by running 
-\textit{pip install py_outrider}. 
+\textit{pip install py\_outrider}. 
 \outrider{}2 supports both manually specyfing a python binary or conda 
 environment in which py\_outrider has been installed, or letting the package 
 automatically create an appropriate conda environment with the 
@@ -764,21 +763,21 @@ plotAberrantPerSample(ods)
 
 In a analogous fashion, different data transformation functions to generate 
 the autoencoder input, can be chosen with 
-\Rcode{prepro_opt[["data_trans"]] <- "log"}. Here, however, currently only 
+\Rcode{prepro\_opt[["data\_trans"]] <- "log"}. Here, however, currently only 
 'log', 'log1p' or \Rcode{NULL} (no transformation) are supported. 
 Also, sizefactor normalization can be turned on or off by setting 
-\Rcode{prepro_opt[["sf_norm"]] <- TRUE/FALSE}.
-By default, the distribution specified in \Rcode{prepro_opt[["distribution"]]} 
+\Rcode{prepro\_opt[["sf\_norm"]] <- TRUE/FALSE}.
+By default, the distribution specified in \Rcode{prepro\_opt[["distribution"]]} 
 is used both for the model loss and for the p value calculation. At the moment, 
 only 'nb' (negative binomial) and 'gaussian' are supported. A different 
 distribution might be used for the model loss than for the p value calculation, 
-in this case, the argument \Rcode{loss_distribution} should be supplied to the 
-\Rfunction{OUTRIDER()} function to specify which distribution to use for the 
+in this case, the argument \Rcode{loss\_distribution} should be supplied to the 
+\Rfunction{OUTRIDER} function to specify which distribution to use for the 
 model loss.
 
-\subsection{Including known confounders in th model fitting}
+\subsection{Including known confounders in the model fitting}
 To explicitly consider confouders known beforehand, the user only has to 
-specify the respective columns in the `colData` of the \outds2{}. The column 
+specify the respective columns in the `colData` of the \odstwo{}. The column 
 will then be included in the model as a one-hot encoding, so it is only 
 meaningful to specify columns that contain several distinct categories, not 
 continuous values.
@@ -796,14 +795,14 @@ colData(ods)
 ods <- OUTRIDER(ods, covariates = c("batch"), useBasilisk=TRUE)
 @
 
-\subsection(Results table)
+\subsection{Results table}
 The \outrider{}2 results table is very similar to previous results table 
 (see Section~\ref{sec:Results}), but additionally specifies which distribution 
 was used for obtaining the p values, and if preprocessing was applied, 
 additionally lists the values after applying the preprocessing function. 
-Furthermore, the default cutoffs on adjusted p values and effects (fold change, 
-zscores, or delta values, if appropriate) might be adjusted according to the 
-user's preferences.
+Furthermore, the default cutoffs on adjusted p values and effect size (fold 
+change, zscores, or delta values, if appropriate) might be adjusted according 
+to the user's preferences.
 
 <<outrider2Results>>=
 # default results extraction (p adjust < 0.05)
@@ -817,11 +816,13 @@ head(res)
 
 \subsection{Plotting}
 The same plotting functions as described in Section~\ref{sec:Results} may be 
-used to visualize \outds2{} results. The name of some feature-level functions 
-has been adapted to support the more general \outds2{} objects:  
-`plotExpectedVsObservedCounts` -> `plotExpectedVsObserved`,
-`plotCountCorHeatmap` -> `plotSampleCorHeatmap`,
-`plotCountGeneSampleHeatmap` -> `plotFeatureSampleHeatmap`.
+used to visualize \odstwo{} results. The name of some feature-level functions 
+has been adapted to support the more general \odstwo{} objects:  
+\begin{itemize}
+	\item \Rfunction{plotExpectedVsObservedCounts} -> \Rfunction{plotExpectedVsObserved},
+	\item \Rfunction{plotCountCorHeatmap} -> \Rfunction{plotSampleCorHeatmap},
+	\item \Rfunction{plotCountGeneSampleHeatmap} -> \Rfunction{plotFeatureSampleHeatmap}.
+\end{itemize}
 
 \bibliography{bibliography}
 

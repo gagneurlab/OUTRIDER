@@ -547,6 +547,7 @@ plotDispEsts(ods, compareDisp=FALSE)
 
 plotPowerAnalysis(ods)
 
+\dontrun{
 # for speed reasons we only search for 5 different dimensions
 ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50), 
         implementation=implementation)
@@ -559,7 +560,6 @@ plotEncDimSearch(ods)
 # in case rowRanges(ods) is a GRangesList, run this first once to speed up:
 rowRanges(ods) <- unlist(endoapply(rowRanges(ods), function(rr) rr[1,]))
 }
-\dontrun{
 gr <- GRanges(
          seqnames=sample(paste0("chr", 1:22), nrow(ods), replace=TRUE),
          ranges=IRanges(start=runif(nrow(ods), min=0, max=1e5), width=100))
