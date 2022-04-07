@@ -48,13 +48,14 @@ To check which versions/tags are available you can check the GitHub repo
 ### Quick tour through OUTRIDER
 
 To get started with `OUTRIDER`, please have a look at our
-[vignette](http://bioconductor.org/packages/release/bioc/vignettes/OUTRIDER/inst/doc/OUTRIDER.pdf).
-In order to get the pdf version, please type the following code in an R session:
+[vignette](https://github.com/gagneurlab/OUTRIDER/tree/outrider2/vignettes/OUTRIDER2.pdf).
+<!--In order to get the pdf version, please type the following code in an R session:
 
 ```
 library(OUTRIDER)
 vignette('OUTRIDER')
 ```
+-->
 
 ### Toubleshooting
 
