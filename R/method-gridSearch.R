@@ -199,8 +199,15 @@ injectOutliers <- function(ods, freq, zScore, inj, lnorm, sdlog){
         
         # only insert outliers if they are different from before 
         # and not too large and non-zero
-        if(art_out < max_out & counts[idxRow, idxCol] != art_out & art_out !=0){
-            counts[idxRow, idxCol] <- art_out
+        if(art_out < max_out & counts[idxRow, idxCol] != art_out){
+
+          # if all other samples (excluding idxCol) are 0 and art_out is 0
+          # do not introduce outlier so all samples have 0 counts
+          if(all(counts[idxRow,-idxCol] == 0) & art_out == 0){
+              index[idxRow, idxCol] <- 0
+          }else{
+              counts[idxRow, idxCol] <- art_out
+          }
         }else{
             index[idxRow, idxCol] <- 0
             zScore
