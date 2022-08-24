@@ -22,8 +22,9 @@ installIfReq <- function(p, type=BTYPE, Ncpus=NCPUS, ...){
 if(!requireNamespace("BiocManager", quietly=TRUE)){
     print_log("Install BiocManager")
     install.packages("BiocManager", Ncpus=NCPUS)
-    BiocManager::install("BiocVersion", version=BIOC_VERSION,ask = FALSE)                                                   
 }
+# set install version
+BiocManager::install("BiocVersion", version=BIOC_VERSION,ask = FALSE)                                                   
 
 INSTALL <- BiocManager::install
 
