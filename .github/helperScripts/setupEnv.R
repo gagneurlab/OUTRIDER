@@ -41,9 +41,7 @@ if("windows" == .Platform$OS.type){
     installIfReq(p=c("XML", "xml2", "RSQLite", "progress", "AnnotationDbi", "BiocCheck"))
     
     print_log("Install source packages only for windows ...")
-    #force Biostrings first
-    INSTALL("Biostrings", type="both", version=BIOC_VERSION)                                                                          
-    INSTALL(c("GenomeInfoDbData", "org.Hs.eg.db", "TxDb.Hsapiens.UCSC.hg19.knownGene"),
+    INSTALL(c("Biostrings","GenomeInfoDbData", "org.Hs.eg.db", "TxDb.Hsapiens.UCSC.hg19.knownGene"),
             type="both", version=BIOC_VERSION)                                                                          
 
 } else {
