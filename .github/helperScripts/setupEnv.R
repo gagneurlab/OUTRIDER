@@ -9,15 +9,6 @@ print_log <- function(...){
     message(paste0("\n", hash_line, "\n### ", date(), ": ", ..., "\n", hash_line, "\n"))
 }
 
-installIfReq <- function(p, type=BTYPE, Ncpus=NCPUS, ...){
-    for(j in p){
-        if(!requireNamespace(j, quietly=TRUE)){
-            print_log("Install ", j)
-            INSTALL(j, type=type, Ncpus=Ncpus, ...)
-        }
-    }
-}
-
 # install Bioconductor
 if(!requireNamespace("BiocManager", quietly=TRUE)){
     print_log("Install BiocManager")
@@ -27,6 +18,15 @@ if(!requireNamespace("BiocManager", quietly=TRUE)){
 BiocManager::install("BiocVersion", version=BIOC_VERSION,ask = FALSE)                                                   
 
 INSTALL <- BiocManager::install
+
+installIfReq <- function(p, type=BTYPE, Ncpus=NCPUS, ...){
+    for(j in p){
+        if(!requireNamespace(j, quietly=TRUE)){
+            print_log("Install ", j)
+            INSTALL(j, type=type, Ncpus=Ncpus, ...)
+        }
+    }
+}
 
 # since the current XML package is not compatible with 3.6 anymore
 if(!requireNamespace("XML", quietly=TRUE) & R.version[['major']] == "3"){
@@ -38,10 +38,10 @@ if(!requireNamespace("XML", quietly=TRUE) & R.version[['major']] == "3"){
 if("windows" == .Platform$OS.type){
     print_log("Install XML on windows ...")
     BTYPE <- "win.binary"
-    installIfReq(p=c("XML", "xml2", "RSQLite", "progress", "AnnotationDbi", "BiocCheck"))
+    installIfReq(p=c("Biostrings","XML", "xml2", "RSQLite", "progress", "AnnotationDbi", "BiocCheck"))
     
     print_log("Install source packages only for windows ...")
-    INSTALL(c("Biostrings","GenomeInfoDbData", "org.Hs.eg.db", "TxDb.Hsapiens.UCSC.hg19.knownGene"),
+    INSTALL(c("GenomeInfoDbData", "org.Hs.eg.db", "TxDb.Hsapiens.UCSC.hg19.knownGene"),
             type="both", version=BIOC_VERSION)                                                                          
 
 } else {
