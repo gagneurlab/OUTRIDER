@@ -1,6 +1,8 @@
 BTYPE <- ifelse(.Platform$OS.type == 'unix', "source", "both")
 NCPUS <- 6
 START_TIME <- Sys.time()
+BIOC_VERSION <- Sys.getenv("BIOC_VERSION")                                                                              
+
 
 print_log <- function(...){
     hash_line <- paste0(rep("#", 10), collapse="")
@@ -20,7 +22,9 @@ installIfReq <- function(p, type=BTYPE, Ncpus=NCPUS, ...){
 if(!requireNamespace("BiocManager", quietly=TRUE)){
     print_log("Install BiocManager")
     install.packages("BiocManager", Ncpus=NCPUS)
+    BiocManager::install("BiocVersion", version=BIOC_VERSION,ask = FALSE)                                                   
 }
+
 INSTALL <- BiocManager::install
 
 # since the current XML package is not compatible with 3.6 anymore
