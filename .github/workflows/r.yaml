@@ -14,17 +14,16 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: windows-latest, r: 'release'}
-          # - {os: macOS-latest, r: 'release'} # Due to gfortran installation issues
-          - {os: ubuntu-20.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-          - {os: ubuntu-20.04, r: 'devel',   rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-         # due to biomaRt/httr compatibility issues
-         # - {os: ubuntu-20.04, r: '3.6',     rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: windows-latest, r: '4.2', bioc: '3.15'}
+          - {os: macOS-latest,   r: '4.2', bioc: '3.15'}
+          - {os: ubuntu-20.04,   r: '4.2', bioc: '3.15',  rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: ubuntu-20.04,   r: 'next',    bioc: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      BIOC_VERSION: ${{ matrix.config.bioc }}
 
     steps:
       - uses: actions/checkout@v2
@@ -62,6 +61,7 @@ jobs:
         if: runner.os == 'macos'
         run: |
           brew install libgit2
+          brew unlink gcc && brew link --overwrite gcc
           brew reinstall gcc
       - uses: r-lib/actions/setup-tinytex@v1
       - name: Init and install packages for tex
@@ -73,16 +73,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages('BiocManager')
-          BiocManager::install(ask=FALSE, update=TRUE)
-          BiocManager::install(c('BiocCheck', 'rcmdcheck', 'devtools'))
-          
-          library(remotes)
-          toInstall <- remotes::dev_package_deps(dependencies=TRUE)
-          update(toInstall)
-          
-          # source(".github/helperScripts/setupEnv.R")
-          # remotes::install_cran("rcmdcheck")
+          source(".github/helperScripts/setupEnv.R")
+          remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
 
       - name: Check build
