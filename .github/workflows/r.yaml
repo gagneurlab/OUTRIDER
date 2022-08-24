@@ -72,16 +72,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages('BiocManager')
-          BiocManager::install(ask=FALSE, update=TRUE)
-          BiocManager::install(c('BiocCheck', 'rcmdcheck', 'devtools'))
+          #install.packages('BiocManager')
+          #BiocManager::install(ask=FALSE, update=TRUE)
+          #BiocManager::install(c('BiocCheck', 'rcmdcheck', 'devtools'))
           
-          library(remotes)
-          toInstall <- remotes::dev_package_deps(dependencies=TRUE)
-          update(toInstall)
+          #library(remotes)
+          #toInstall <- remotes::dev_package_deps(dependencies=TRUE)
+          #update(toInstall)
           
-          # source(".github/helperScripts/setupEnv.R")
-          # remotes::install_cran("rcmdcheck")
+           source(".github/helperScripts/setupEnv.R")
+           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
 
       - name: Check build
