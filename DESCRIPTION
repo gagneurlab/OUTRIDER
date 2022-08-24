@@ -65,7 +65,6 @@ Suggests:
     knitr,
     rmarkdown,
     BiocStyle,
-    Biostrings,
     TxDb.Hsapiens.UCSC.hg19.knownGene,
     org.Hs.eg.db,
     RMariaDB,
