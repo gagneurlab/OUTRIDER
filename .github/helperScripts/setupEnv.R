@@ -29,7 +29,7 @@ if(!requireNamespace("XML", quietly=TRUE) & R.version[['major']] == "3"){
 
 # install needed packages
 # add testthat to pre installation dependencies due to: https://github.com/r-lib/pkgload/issues/89
-for(p in c("Biostrings","XML", "xml2", "testthat", "devtools", "covr", "roxygen2", "BiocCheck", "R.utils", 
+for(p in c("textshaping","Biostrings","XML", "xml2", "testthat", "devtools", "covr", "roxygen2", "BiocCheck", "R.utils", 
             "GenomeInfoDbData", "rtracklayer", "hms")){
     installIfReq(p=p, type=BTYPE, Ncpus=NCPUS)
 }
