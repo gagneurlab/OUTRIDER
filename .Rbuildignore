@@ -14,3 +14,4 @@ ucsc.knownGenes.db
 ^appveyor\.yml$
 
 setupEnv.R
+^\.github$
