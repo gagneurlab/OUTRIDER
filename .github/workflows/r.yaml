@@ -41,14 +41,6 @@ jobs:
           writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
         shell: Rscript {0}
 
-      - name: Cache R packages
-        if: runner.os != 'Windows'
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
-
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -61,9 +53,7 @@ jobs:
         if: runner.os == 'macos'
         run: |
           brew install libgit2
-          brew install harfbuzz
-          brew unlink gcc && brew link --overwrite gcc
-          brew reinstall gcc
+          brew install --force --overwrite gcc
       - uses: r-lib/actions/setup-tinytex@v1
       - name: Init and install packages for tex
         run: |
