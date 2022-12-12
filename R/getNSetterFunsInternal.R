@@ -54,7 +54,7 @@ x <- function(ods){
     x0 <- transformed(ods)
     
     # compute per feature centered values
-    b <- rowMeans(x0)
+    b <- rowMeans(x0, na.rm=TRUE)
     x <- t(x0 - b)
     
     # add covariates as one-hot-encoded if requested
@@ -67,7 +67,9 @@ x <- function(ods){
 }
 
 H <- function(ods){
-    H <- x(ods) %*% E(ods)
+    x <- x(ods)
+    x[is.na(x)] <- 0
+    H <- x %*% E(ods)
     
     if(!is.null(covariates(ods))){
         H <- cbind(H, getCovariatesOneHotEncoded(ods))

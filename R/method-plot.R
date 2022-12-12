@@ -737,7 +737,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
                     col=c("gray", "firebrick"), groups=c(), featureID,
                     groupColSet='Accent', label="aberrant"){
     # check user input
-    checkOutriderDataSet(ods)
+    checkOutrider2DataSet(ods)
     if(isTRUE(normalized) & is.null(sizeFactors(ods))){
         stop("Please calculate the sizeFactors or normalization factors ",
                 "before plotting normlized counts.")
@@ -890,18 +890,18 @@ plotSampleCorHeatmap <- function(object, normalized=TRUE,
             "colGroups"="colCoFactor", "nRow/nCol-Cluster"="nCluster", 
             "not used anymore"="dendrogram", "show_names"="names"), ...)
     
-    if(is(ods, "OutriderDataSet")){
+    if(is(object, "OutriderDataSet")){
         transform_fun <- function(x){log2(x+1)}
     } else{
         transform_fun <- metadata(object)$prepro_options$data_trans
     }
     
     if(!is.null(colLabelCol)){
-        if(!(colLabelCol %in% colnames(colData(ods)))){
-            warning("No column '", colLabelCol, "' found in colData(ods). ",
-                    "Using colnames(ods) instead.")
+        if(!(colLabelCol %in% colnames(colData(object)))){
+            warning("No column '", colLabelCol, "' found in colData(object). ",
+                    "Using colnames(object) instead.")
         } else{
-            colnames(ods) <- colData(ods)[,colLabelCol]
+            colnames(object) <- colData(object)[,colLabelCol]
         }
     }
     
