@@ -1,0 +1,108 @@
+# For help debugging build failures open an issue on the RStudio community with the 'github-actions' tag.
+# https://community.rstudio.com/new-topic?category=Package%20development&tags=github-actions
+on: [push]
+
+name: Build
+
+jobs:
+  Build:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: windows-latest, r: '4.2', bioc: '3.15'}
+          - {os: macOS-latest,   r: '4.2', bioc: '3.15'}
+          - {os: ubuntu-20.04,   r: '4.2', bioc: '3.15',  rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: ubuntu-20.04,   r: 'next',    bioc: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      RSPM: ${{ matrix.config.rspm }}
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      BIOC_VERSION: ${{ matrix.config.bioc }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: ${{ matrix.config.r }}
+
+      - uses: r-lib/actions/setup-pandoc@v1
+
+      - name: Query dependencies
+        run: |
+          install.packages('remotes')
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
+          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
+        shell: Rscript {0}
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install libgit2-dev
+          while read -r cmd
+          do
+            eval sudo $cmd
+          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macos'
+        run: |
+          brew install libgit2
+          brew install --force --overwrite gcc
+      - uses: r-lib/actions/setup-tinytex@v1
+      - name: Init and install packages for tex
+        run: |
+          system("tlmgr --version")
+          install.packages("tinytex")
+          tinytex::tlmgr_install(pkgs = c("bera", "caption", "changepage", "enumitem", "everysel", "fancyhdr", "footmisc", "grfext", "index", "marginfix", "mathtools", "ms", "nowidow", "parnotes", "parskip", "placeins", "preprint", "ragged2e", "side", "soul", "titlesec", "tocbibind", "xstring"))
+        shell: Rscript {0}
+
+      - name: Install dependencies
+        run: |
+          source(".github/helperScripts/setupEnv.R")
+          remotes::install_cran("rcmdcheck")
+        shell: Rscript {0}
+
+      - name: Check build
+        run: |
+          devtools::build(vignettes = FALSE)
+        shell: Rscript {0}
+        
+      - name: Check BiocCheck
+        run: |
+          BiocCheck::BiocCheck('.', `quit-with-status`=TRUE)
+        shell: Rscript {0}
+        
+      - name: Check R check
+        run: |
+          devtools::check(vignettes = FALSE, args = '--timings')
+        shell: Rscript {0}
+        
+      - name: Check Examples
+        run: |
+          devtools::run_examples()
+        shell: Rscript {0}
+        
+      - name: Check tests
+        run: |
+          devtools::test()
+        shell: Rscript {0}
+        
+      - name: Check vignette
+        run: |
+          devtools::build_vignettes()
+        shell: Rscript {0}
+
+      - name: Upload check results
+        if: failure()
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{ runner.os }}-r${{ matrix.config.r }}-results
+          path: check
+      
+      - uses: codecov/codecov-action@v1
