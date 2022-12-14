@@ -25,31 +25,8 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         FDR_set <- subsetName
         object <- padjOnSubset(ods=object, genesToTest=genesToTest, 
                                subsetName=subsetName)
-        fdr_subset <- metadata(object)[[paste("FDR", subsetName, sep="_")]]
-        
     } else{
         FDR_set <- "transcriptome-wide"
-        fdr_subset <- NULL
-    }
-    
-    if(isFALSE(all)){
-        abByGene <- aberrant(object, 
-                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene",
-                FDR_subset=fdr_subset)
-        abBySample <- aberrant(object, 
-                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample",
-                FDR_subset=fdr_subset)
-        object <- object[abByGene > 0, abBySample > 0]
-        
-        # recalc FDR on subset after subsetting to get correct row idx
-        if(nrow(object) < length(abByGene) && !is.null(genesToTest)){
-            object <- padjOnSubset(ods=object, 
-                                genesToTest=genesToTest[names(genesToTest) %in% 
-                                                        colnames(object)], 
-                                subsetName=subsetName)
-            fdr_subset <- metadata(object)[[paste("FDR", subsetName, sep="_")]]
-        }
-        
     }
     
     if(nrow(object) == 0){
@@ -83,7 +60,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         geneID           = rownames(object), 
         sampleID         = rep(colnames(object), each=nrow(object)),
         pValue           = c(pValue(object)),
-        padjust          = c(padj(object)),
+        padjust          = c(padj(object, subsetName=subsetName)),
         zScore           = c(zScore(object)),
         l2fc             = c(assay(object, "l2fc")),
         rawcounts        = c(counts(object)),
@@ -92,35 +69,15 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         theta            = theta(object),
         aberrant         = c(aberrant(object, 
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff,
-                FDR_subset=fdr_subset)),
+                subsetName=subsetName)),
         AberrantBySample = rep(each=nrow(object), aberrant(object, 
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample",
-                FDR_subset=fdr_subset)),
+                subsetName=subsetName)),
         AberrantByGene   = aberrant(object, 
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene",
-                FDR_subset=fdr_subset),
+                subsetName=subsetName),
         padj_rank        = c(apply(padj(object), 2, rank)),
         FDR_set          = FDR_set)
-    
-    # if subset of genes tested for FDR, report pvalues on subset instead
-    if(!is.null(genesToTest)){
-        # get row,col idx of genes/samples in subset
-        subset_padj <- as.matrix(
-            fdr_subset[sampleID %in% colnames(object), 
-                        .(idx, sapply(sampleID, 
-                                function(s) which(colnames(object) == s)),
-                        FDR_subset)]
-        )
-        # replace padj values with values on subset
-        subset_idx <- matrix(FALSE, nrow=nrow(object), ncol=ncol(object))
-        padj <- matrix(NA, nrow=nrow(object), ncol=ncol(object))
-        if(nrow(subset_padj) > 0){
-            padj[subset_padj[,1:2]] <- subset_padj[,3]
-            subset_idx[subset_padj[,1:2]] <- TRUE
-        }
-        ans[, padjust   := c(padj)]
-        ans[, padj_rank := c(apply(padj, 2, rank))]
-    }
     
     # round columns if requested
     if(is.numeric(round)){
@@ -130,12 +87,14 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     }
     
     # 
-    # keep only aberrent events and sort by padj value
+    # keep only abrrant events and sort by padj value
     # 
     if(isFALSE(all)){
         ans <- ans[aberrant == TRUE]
+        
     } else if(!is.null(genesToTest)){
-        ans <- ans[c(subset_idx),]
+        # if return full subset is requested, retrieve those as all non-NA padj
+        ans <- ans[!is.na(padjust),]
     }
     ans <- ans[order(padjust)]
     
@@ -146,12 +105,15 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
                                     round=2, all=FALSE, subsets=NULL, 
                                     returnTranscriptomewideResults=TRUE, ...){
     if(is.null(subsets)){
+        # always return transcriptome-wide results if no subsets are provided
         returnTranscriptomewideResults <- TRUE
     }
+    
+    # first retrieve transcriptome-wide results
     if(isTRUE(returnTranscriptomewideResults)){
         res <- compileResults.OUTRIDER(object=object, padjCutoff=padjCutoff, 
-                                zScoreCutoff=zScoreCutoff, all=all, round=round,
-                                genesToTest=NULL, subsetName=NULL, ...)
+                            zScoreCutoff=zScoreCutoff, all=all, round=round,
+                            genesToTest=NULL, subsetName=NULL, ...)
     }
     
     # add results for FDR_subsets if requested

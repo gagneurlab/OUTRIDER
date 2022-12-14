@@ -12,7 +12,7 @@ aberrant(object, ...)
   padjCutoff = 0.05,
   zScoreCutoff = 0,
   by = c("none", "sample", "gene"),
-  genesToTest = NULL,
+  subsetName = NULL,
   ...
 )
 }
@@ -29,10 +29,9 @@ if NA or NULL no Z-score cutoff is used}
 \item{by}{if the results should be summarized by 'sample', 
 'gene' or not at all (default).}
 
-\item{genesToTest}{A named list giving a subset of genes per sample to which
-FDR correction should be restricted before determining aberrant 
-status. The names of the list must correspond to the sampleIDs 
-in the ods object. See examples for how to use this feature.}
+\item{subsetName}{The name of a subset of genes for which FDR values have 
+been previously computed. Those FDR values on the subset will 
+then be used to determine aberrant status.}
 }
 \value{
 The number of aberrent events by gene or sample or a TRUE/FALSE 
@@ -49,14 +48,5 @@ ods <- OUTRIDER(ods, implementation='pca')
 aberrant(ods)[1:10,1:10]
 tail(sort(aberrant(ods, by="sample")))
 tail(sort(aberrant(ods, by="gene")))
-
-# example of retrieving aberrant status with FDR correction limited to a 
-# set of genes of interest
-genesToTest <- list("sample_1"=sample(rownames(ods)[1:10], 3), 
-                    "sample_2"=sample(rownames(ods)[1:10], 8), 
-                    "sample_6"=sample(rownames(ods)[1:10], 5))
-aberrant(ods, genesToTest=genesToTest)[1:10,1:10]
-tail(sort(aberrant(ods, genesToTest=genesToTest, by="sample")))
-tail(sort(aberrant(ods, genesToTest=genesToTest, by="gene")))
 
 }

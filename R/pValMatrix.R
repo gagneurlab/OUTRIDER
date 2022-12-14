@@ -156,7 +156,7 @@ padjMatrix <- function(ods, method='BH'){
 #' @param genesToTest A named list with the subset of genes to test per sample.
 #'     The names must correspond to the sampleIDs in the ods object.
 #' @param subsetName The name under which the resulting FDR corrected pvalues 
-#'     will be stored in metadata(ods) (after prefix 'FDR_').
+#'     will be stored as an assay with name 'FDR_'+subsetName.
 #' @return OutriderDataSet containing adjusted pValues
 #' 
 #' @noRd
@@ -172,9 +172,17 @@ padjOnSubset <- function(ods, genesToTest, subsetName, method='BY',
     }
     
     # compute FDR on the given subsets of genes
-    FDR_subset <- rbindlist(bpmapply(names(genesToTest), genesToTest, 
-        FUN=function(sample_id, genes_to_test_sample){
+    FDR_subset <- bpmapply(colnames(ods), FUN=function(sample_id){
                                          
+            # get genes to test for this sample
+            genes_to_test_sample <- genesToTest[[sample_id]]
+            pa <- rep(NA, nrow(ods))
+            
+            # if no genes present in the subset for this sample, return NAs
+            if(is.null(genes_to_test_sample)){
+                return(pa)
+            }
+            
             # get idx of junctions corresponding to genes to test
             if(is.character(genes_to_test_sample)){
                 row_idx <- sort(which(rownames(ods) %in% genes_to_test_sample))
@@ -187,28 +195,25 @@ padjOnSubset <- function(ods, genesToTest, subsetName, method='BY',
             if(length(row_idx) == 0){
                 warning("No genes from the given subset found in the ods ",
                             "object for sample: ", sample_id)
-                return(data.table(gene=character(0), 
-                                    sampleID=character(0), 
-                                    pval=numeric(0),
-                                    FDR_subset=numeric(0), 
-                                    idx=integer(0)))
+                return(pa)
             }
                                          
             # retrieve pvalues of junctions to test
             p <- pValue(ods)[row_idx, sample_id]
                      
             # FDR correction
-            pa <- p.adjust(p, method=method)
+            pa_sub <- p.adjust(p, method=method)
                                          
-            # return FDR on subset
-            dt <- data.table(gene=rownames(ods)[row_idx], sampleID=sample_id, 
-                                pval=p, FDR_subset=pa, 
-                                idx=row_idx)
-            return(dt)
-        }, SIMPLIFY=FALSE, BPPARAM=BPPARAM))
+            # return FDR on subset, filled with NA for all other genes
+            pa[row_idx] <- pa_sub
+            return(pa)
+            
+        }, SIMPLIFY=TRUE, BPPARAM=BPPARAM)
+    rownames(FDR_subset) <- rownames(ods)
+    colnames(FDR_subset) <- colnames(ods)
     
     # add FDR subset info to ods object and return
-    metadata(ods)[[paste("FDR", subsetName, sep="_")]] <- FDR_subset
+    padj(ods, subsetName=subsetName) <- FDR_subset
     validObject(ods)
     return(ods)
 }

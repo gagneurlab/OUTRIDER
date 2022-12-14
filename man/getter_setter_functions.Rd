@@ -22,7 +22,7 @@ zScore(ods)
 
 pValue(ods)
 
-padj(ods)
+padj(ods, subsetName = NULL)
 
 \S4method{dispersions}{OutriderDataSet}(object, ...)
 
@@ -30,6 +30,9 @@ theta(ods)
 }
 \arguments{
 \item{ods, object}{An OutriderDataSet object.}
+
+\item{subsetName}{Name of a gene subset for which to store ore retrieve 
+FDR corrected p values}
 
 \item{...}{Further arguments passed on to the underlying assay function.}
 }

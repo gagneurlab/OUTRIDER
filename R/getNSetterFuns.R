@@ -4,6 +4,8 @@
 #' the values within the OUTRIDER model.
 #' 
 #' @param ods,object An OutriderDataSet object.
+#' @param subsetName Name of a gene subset for which to store ore retrieve 
+#'              FDR corrected p values 
 #' @param ... Further arguments passed on to the underlying assay function.
 #' @return A matrix or vector dependent on the type of data retrieved.
 #' 
@@ -58,18 +60,26 @@ pValue <- function(ods){
 
 #' @rdname getter_setter_functions
 #' @export padj
-padj <- function(ods){
-    if(!'padjust' %in% assayNames(ods)){
+padj <- function(ods, subsetName=NULL){
+    aname <- 'padjust'
+    if(!is.null(subsetName)){
+        aname <- paste0(aname, "_", subsetName)
+    }
+    if(!aname %in% assayNames(ods)){
         stop('Please compute first the P-values before retrieving', '
                 the adjusted ones.')
     }
-    assay(ods, 'padjust')
+    assay(ods, aname)
 }
 
-`padj<-` <- function(ods, ..., value){
+`padj<-` <- function(ods, subsetName=NULL, ..., value){
     stopifnot(is.matrix(value))
     stopifnot(dim(ods) == dim(value))
-    assay(ods, 'padjust', ...) <- value
+    aname <- 'padjust'
+    if(!is.null(subsetName)){
+        aname <- paste0(aname, "_", subsetName)
+    }
+    assay(ods, aname, ...) <- value
     return(ods)
 }
 
