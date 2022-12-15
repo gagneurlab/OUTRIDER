@@ -108,11 +108,11 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         stopifnot(!is.null(names(subsets)))
         reslsSubsets <- lapply(names(subsets), function(setName){
             geneListSubset <- subsets[[setName]]
-            res_sub <- compileResults.OUTRIDER(object=object, 
+            resSub <- compileResults.OUTRIDER(object=object, 
                             padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
                             all=all, round=round, genesToTest=geneListSubset, 
                             subsetName=setName, ...)
-            return(res_sub)
+            return(resSub)
         })
         if(isTRUE(returnTranscriptomewideResults)){
             res <- rbindlist(append(list(res), reslsSubsets))
@@ -173,11 +173,11 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #' genesOfInterest <- list("sample_1"=sample(rownames(ods), 3), 
 #'                          "sample_2"=sample(rownames(ods), 8), 
 #'                          "sample_6"=sample(rownames(ods), 5))
-#' res_genesOfInterest <- results(ods, 
-#'                          subsets=list("Example_subset"=genesOfInterest),
+#' resGenesOfInterest <- results(ods, 
+#'                          subsets=list("exampleSubset"=genesOfInterest),
 #'                          all=TRUE,
 #'                          returnTranscriptomewideResults=FALSE)
-#' res_genesOfInterest
+#' resGenesOfInterest
 #' 
 #' @name results
 #' @rdname results
