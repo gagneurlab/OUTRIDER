@@ -29,9 +29,10 @@ if NA or NULL no Z-score cutoff is used}
 \item{by}{if the results should be summarized by 'sample', 
 'gene' or not at all (default).}
 
-\item{subsetName}{The name of a subset of genes for which FDR values have 
-been previously computed. Those FDR values on the subset will 
-then be used to determine aberrant status.}
+\item{subsetName}{The name of a subset of genes of interest for which FDR 
+corected pvalues have been previously computed. Those FDR values 
+on the subset will then be used to determine aberrant status. 
+Default is NULL (using transcriptome-wide FDR corrected pvalues).}
 }
 \value{
 The number of aberrent events by gene or sample or a TRUE/FALSE 

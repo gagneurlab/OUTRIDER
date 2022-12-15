@@ -13,7 +13,6 @@ results(object, ...)
   zScoreCutoff = 0,
   round = 2,
   all = FALSE,
-  subsets = NULL,
   returnTranscriptomewideResults = TRUE,
   ...
 )
@@ -33,18 +32,15 @@ more user friendly}
 
 \item{all}{By default FALSE, only significant read counts are listed in the 
 results. If TRUE all results are assembled resulting in a 
-data.table of length samples x genes}
+data.table of length samples x genes. If FDR corrected pvalues 
+for subsets of genes of interest have been calculated, this 
+indicates whether the whole subset will be listed in the results.}
 
-\item{subsets}{A named list of named lists specifying any number of gene 
-subsets (can differ per sample). For each subset, FDR correction
-will be limited to genes in the subset, and aberrant 
-events passing the FDR cutoff will be reported for each subset 
-separately. See the examples for how to use this argument.}
-
-\item{returnTranscriptomewideResults}{If subsets of genes to test are 
-provided (i.e. \code{!is.null(subsets)}), this parameter 
-indicates whether additionally the transcritome-wide results 
-should be returned as well (default).}
+\item{returnTranscriptomewideResults}{If FDR corrected pvalues for subsets 
+of genes of interest have been calculated, this parameter 
+indicates whether additionally the transcriptome-wide results 
+should be returned as well (default), or whether only results 
+for those subsets should be retrieved.}
 }
 \value{
 A data.table where each row is an outlier event and the columns
@@ -71,10 +67,9 @@ res
 genesOfInterest <- list("sample_1"=sample(rownames(ods), 3), 
                          "sample_2"=sample(rownames(ods), 8), 
                          "sample_6"=sample(rownames(ods), 5))
-res_genesOfInterest <- results(ods, 
-                         subsets=list("Example_subset"=genesOfInterest),
-                         all=TRUE,
-                         returnTranscriptomewideResults=FALSE)
-res_genesOfInterest
+genesOfInterest
+ods <- computePvalues(ods, subsets=list("exampleSubset"=genesOfInterest))
+res <- results(ods, all=TRUE, returnTranscriptomewideResults=FALSE)
+res
 
 }

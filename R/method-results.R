@@ -1,6 +1,5 @@
 compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
-                    round=2, all=FALSE, genesToTest=NULL, subsetName=NULL, 
-                    ...){
+                    round=2, all=FALSE, subsetName=NULL, ...){
     
     #
     # input check and parsing
@@ -20,14 +19,39 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         round <- 2
     }
     
-    # compute FDR on subset if subset is specified
-    if(!is.null(genesToTest)){
-        subsetName <- ifelse(is.null(subsetName), "subset", subsetName)
-        fdrSet <- subsetName
-        object <- padjOnSubset(ods=object, genesToTest=genesToTest, 
-                               subsetName=subsetName)
-    } else{
-        fdrSet <- "transcriptome-wide"
+    meanCorrectedCounts <- rowMeans(counts(object, normalized=TRUE))
+    if(isFALSE(all)){
+        abByGene <- aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene")
+        abBySample <- aberrant(object, 
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")
+        object <- object[abByGene > 0, abBySample > 0]
+        meanCorrectedCounts <- meanCorrectedCounts[abByGene > 0]
+    }
+    
+    # warning if no rows to return 
+    if(nrow(object) == 0){
+        if(isFALSE(all)){
+            warning('No significant events: use all=TRUE to print all events.')
+        } else {
+            warning('Please provide an object with at least one feature.')
+        }
+        return(data.table(
+            geneID=NA_character_,
+            sampleID=NA_character_,
+            pValue=NA_real_,
+            padjust=NA_real_,
+            zScore=NA_real_,
+            l2fc=NA_real_,
+            rawcounts=NA_integer_,
+            normcounts=NA_real_,
+            meanCorrected=NA_real_,
+            theta=NA_real_,
+            aberrant=NA,
+            AberrantBySample=NA_integer_,
+            AberrantByGene=NA_integer_,
+            padj_rank=NA_real_,
+            FDR_set=NA_character_)[0])
     }
     
     #
@@ -42,7 +66,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         l2fc             = c(assay(object, "l2fc")),
         rawcounts        = c(counts(object)),
         normcounts       = c(counts(object, normalized=TRUE)),
-        meanCorrected    = rowMeans(counts(object, normalized=TRUE)),
+        meanCorrected    = meanCorrectedCounts,
         theta            = theta(object),
         aberrant         = c(aberrant(object, 
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff,
@@ -54,7 +78,9 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene",
                 subsetName=subsetName),
         padj_rank        = c(apply(padj(object), 2, rank)),
-        FDR_set          = fdrSet)
+        FDR_set          = ifelse(is.null(subsetName), "transcriptome-wide", 
+                                    subsetName)
+    )
     
     # round columns if requested
     if(is.numeric(round)){
@@ -69,62 +95,57 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     if(isFALSE(all)){
         ans <- ans[aberrant == TRUE]
         
-    } else if(!is.null(genesToTest)){
+    } else{
         # if return full subset is requested, retrieve those as all non-NA padj
         ans <- ans[!is.na(padjust),]
     }
     ans <- ans[order(padjust)]
-   
-    # warning if no rows to return 
-    if(nrow(ans) == 0){
-        if(isFALSE(all)){
-            warning('No significant events: use all=TRUE to print all events.')
-        } else {
-            warning('Please provide an object with at least one feature.')
-        }
-    }
     
     return(ans)
 }
 
 compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
-                                    round=2, all=FALSE, subsets=NULL, 
+                                    round=2, all=FALSE, 
                                     returnTranscriptomewideResults=TRUE, ...){
-    if(is.null(subsets)){
-        # always return transcriptome-wide results if no subsets are provided
-        returnTranscriptomewideResults <- TRUE
-    }
+    #
+    # input check and parsing
+    # 
+    checkOutriderDataSet(object)
+    checkFullAnalysis(object)
     
-    # first retrieve transcriptome-wide results
-    if(isTRUE(returnTranscriptomewideResults)){
-        res <- compileResults.OUTRIDER(object=object, padjCutoff=padjCutoff, 
-                            zScoreCutoff=zScoreCutoff, all=all, round=round,
-                            genesToTest=NULL, subsetName=NULL, ...)
-    }
+    # get all padjust assays (transcriptome-wide and on subsets)
+    padjAssays <- grep('padjust', assayNames(object), value=TRUE)
     
-    # add results for FDR_subsets if requested
-    if(!is.null(subsets)){
-        stopifnot(is.list(subsets))
-        stopifnot(!is.null(names(subsets)))
-        reslsSubsets <- lapply(names(subsets), function(setName){
-            geneListSubset <- subsets[[setName]]
-            resSub <- compileResults.OUTRIDER(object=object, 
-                            padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
-                            all=all, round=round, genesToTest=geneListSubset, 
-                            subsetName=setName, ...)
-            return(resSub)
-        })
-        if(isTRUE(returnTranscriptomewideResults)){
-            res <- rbindlist(append(list(res), reslsSubsets))
+    # dont retrieve transcriptome-wide results if requested
+    if(isFALSE(returnTranscriptomewideResults)){
+        if(length(padjAssays) == 1 && padjAssays == 'padjust'){
+            warning("Retrieving transcriptome-wide results as no other ",
+                    "padjust assays are available in the ods object.")
         } else{
-            res <- rbindlist(reslsSubsets)
-        }
-        
-        # sort it if existing
-        if(length(res) > 0){
-            res <- res[order(padjust)]
+            padjAssays <- padjAssays[padjAssays != 'padjust']
         }
     }
+    
+    # get results for all available padjust assays
+    resSubsets <- lapply(padjAssays, function(padjAssay){
+        if(padjAssay == 'padjust'){
+            subsetName <- NULL
+        } else{
+            subsetName <- gsub("padjust_", "", padjAssay)
+        }
+        resSub <- compileResults.OUTRIDER(object=object, 
+                            padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
+                            all=all, round=round, 
+                            subsetName=subsetName, ...)
+        return(resSub)
+    })
+    res <- rbindlist(resSubsets)
+        
+    # sort it if existing
+    if(length(res) > 0){
+        res <- res[order(padjust)]
+    }
+    
     return(res)
 }
 
@@ -143,16 +164,14 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #'             more user friendly
 #' @param all By default FALSE, only significant read counts are listed in the 
 #'             results. If TRUE all results are assembled resulting in a 
-#'             data.table of length samples x genes
-#' @param subsets A named list of named lists specifying any number of gene 
-#'              subsets (can differ per sample). For each subset, FDR correction
-#'              will be limited to genes in the subset, and aberrant 
-#'              events passing the FDR cutoff will be reported for each subset 
-#'              separately. See the examples for how to use this argument. 
-#' @param returnTranscriptomewideResults If subsets of genes to test are 
-#'              provided (i.e. \code{!is.null(subsets)}), this parameter 
-#'              indicates whether additionally the transcritome-wide results 
-#'              should be returned as well (default).
+#'             data.table of length samples x genes. If FDR corrected pvalues 
+#'             for subsets of genes of interest have been calculated, this 
+#'             indicates whether the whole subset will be listed in the results.
+#' @param returnTranscriptomewideResults If FDR corrected pvalues for subsets 
+#'              of genes of interest have been calculated, this parameter 
+#'              indicates whether additionally the transcriptome-wide results 
+#'              should be returned as well (default), or whether only results 
+#'              for those subsets should be retrieved.
 #' @param ... Additional arguments, currently not used
 #' @return A data.table where each row is an outlier event and the columns
 #'             contain additional information about this event. Eg padj, l2fc
@@ -173,11 +192,10 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #' genesOfInterest <- list("sample_1"=sample(rownames(ods), 3), 
 #'                          "sample_2"=sample(rownames(ods), 8), 
 #'                          "sample_6"=sample(rownames(ods), 5))
-#' resGenesOfInterest <- results(ods, 
-#'                          subsets=list("exampleSubset"=genesOfInterest),
-#'                          all=TRUE,
-#'                          returnTranscriptomewideResults=FALSE)
-#' resGenesOfInterest
+#' genesOfInterest
+#' ods <- computePvalues(ods, subsets=list("exampleSubset"=genesOfInterest))
+#' res <- results(ods, all=TRUE, returnTranscriptomewideResults=FALSE)
+#' res
 #' 
 #' @name results
 #' @rdname results
