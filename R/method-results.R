@@ -22,11 +22,11 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     
     if(!is.null(genesToTest)){
         subsetName <- ifelse(is.null(subsetName), "subset", subsetName)
-        FDR_set <- subsetName
+        fdrSet <- subsetName
         object <- padjOnSubset(ods=object, genesToTest=genesToTest, 
                                subsetName=subsetName)
     } else{
-        FDR_set <- "transcriptome-wide"
+        fdrSet <- "transcriptome-wide"
     }
     
     if(nrow(object) == 0){
@@ -77,7 +77,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene",
                 subsetName=subsetName),
         padj_rank        = c(apply(padj(object), 2, rank)),
-        FDR_set          = FDR_set)
+        FDR_set          = fdrSet)
     
     # round columns if requested
     if(is.numeric(round)){
@@ -120,18 +120,18 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     if(!is.null(subsets)){
         stopifnot(is.list(subsets))
         stopifnot(!is.null(names(subsets)))
-        resls_subsets <- lapply(names(subsets), function(setName){
-            geneList_sub <- subsets[[setName]]
+        reslsSubsets <- lapply(names(subsets), function(setName){
+            geneListSubset <- subsets[[setName]]
             res_sub <- compileResults.OUTRIDER(object=object, 
                             padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, 
-                            all=all, round=round, genesToTest=geneList_sub, 
+                            all=all, round=round, genesToTest=geneListSubset, 
                             subsetName=setName, ...)
             return(res_sub)
         })
         if(isTRUE(returnTranscriptomewideResults)){
-            res <- rbindlist(append(list(res), resls_subsets))
+            res <- rbindlist(append(list(res), reslsSubsets))
         } else{
-            res <- rbindlist(resls_subsets)
+            res <- rbindlist(reslsSubsets)
         }
         
         # sort it if existing

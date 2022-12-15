@@ -61,25 +61,25 @@ pValue <- function(ods){
 #' @rdname getter_setter_functions
 #' @export padj
 padj <- function(ods, subsetName=NULL){
-    aname <- 'padjust'
+    assayName <- 'padjust'
     if(!is.null(subsetName)){
-        aname <- paste0(aname, "_", subsetName)
+        assayName <- paste0(assayName, "_", subsetName)
     }
-    if(!aname %in% assayNames(ods)){
+    if(!assayName %in% assayNames(ods)){
         stop('Please compute first the P-values before retrieving', '
                 the adjusted ones.')
     }
-    assay(ods, aname)
+    assay(ods, assayName)
 }
 
 `padj<-` <- function(ods, subsetName=NULL, ..., value){
     stopifnot(is.matrix(value))
     stopifnot(dim(ods) == dim(value))
-    aname <- 'padjust'
+    assayName <- 'padjust'
     if(!is.null(subsetName)){
-        aname <- paste0(aname, "_", subsetName)
+        assayName <- paste0(assayName, "_", subsetName)
     }
-    assay(ods, aname, ...) <- value
+    assay(ods, assayName, ...) <- value
     return(ods)
 }
 
