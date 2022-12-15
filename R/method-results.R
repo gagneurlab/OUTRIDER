@@ -87,7 +87,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     }
     
     # 
-    # keep only abrrant events and sort by padj value
+    # keep only aberrant events and sort by padj value
     # 
     if(isFALSE(all)){
         ans <- ans[aberrant == TRUE]
