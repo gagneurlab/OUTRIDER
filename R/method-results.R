@@ -20,6 +20,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         round <- 2
     }
     
+    # compute FDR on subset if subset is specified
     if(!is.null(genesToTest)){
         subsetName <- ifelse(is.null(subsetName), "subset", subsetName)
         fdrSet <- subsetName
@@ -27,30 +28,6 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
                                subsetName=subsetName)
     } else{
         fdrSet <- "transcriptome-wide"
-    }
-    
-    if(nrow(object) == 0){
-        if(isFALSE(all)){
-            warning('No significant events: use all=TRUE to print all events.')
-        } else {
-            warning('Please provide an object with at least one feature.')
-        }
-        return(data.table(
-                geneID=NA_character_,
-                sampleID=NA_character_,
-                pValue=NA_real_,
-                padjust=NA_real_,
-                zScore=NA_real_,
-                l2fc=NA_real_,
-                rawcounts=NA_integer_,
-                normcounts=NA_real_,
-                meanCorrected=NA_real_,
-                theta=NA_real_,
-                aberrant=NA,
-                AberrantBySample=NA_integer_,
-                AberrantByGene=NA_integer_,
-                padj_rank=NA_real_,
-                FDR_set=NA_character_)[0])
     }
     
     #
@@ -97,6 +74,15 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         ans <- ans[!is.na(padjust),]
     }
     ans <- ans[order(padjust)]
+   
+    # warning if no rows to return 
+    if(nrow(ans) == 0){
+        if(isFALSE(all)){
+            warning('No significant events: use all=TRUE to print all events.')
+        } else {
+            warning('Please provide an object with at least one feature.')
+        }
+    }
     
     return(ans)
 }
