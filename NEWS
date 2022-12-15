@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.7.3
+CHANGES IN VERSION 1.16.1
 -----------------------------
     o Add option to restrict FDR correction to sets of genes of interest
     o Add opttion to retrieve results based on those FDR values on subsets of 

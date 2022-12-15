@@ -4,7 +4,7 @@
 #' the values within the OUTRIDER model.
 #' 
 #' @param ods,object An OutriderDataSet object.
-#' @param subsetName Name of a gene subset for which to store ore retrieve 
+#' @param subsetName Name of a gene subset for which to store or retrieve 
 #'              FDR corrected p values 
 #' @param ... Further arguments passed on to the underlying assay function.
 #' @return A matrix or vector dependent on the type of data retrieved.

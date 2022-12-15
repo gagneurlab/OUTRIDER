@@ -31,7 +31,7 @@ theta(ods)
 \arguments{
 \item{ods, object}{An OutriderDataSet object.}
 
-\item{subsetName}{Name of a gene subset for which to store ore retrieve 
+\item{subsetName}{Name of a gene subset for which to store or retrieve 
 FDR corrected p values}
 
 \item{...}{Further arguments passed on to the underlying assay function.}
