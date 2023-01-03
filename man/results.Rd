@@ -35,7 +35,32 @@ data.table of length samples x genes}
 }
 \value{
 A data.table where each row is an outlier event and the columns
-            contain additional information about this event. Eg padj, l2fc
+   contain additional information about this event. In details the 
+   table contains: 
+   \itemize{
+     \item{geneID: }{The gene ID as provided by the user.}
+     \item{sampleID: }{The sample ID as provided by the user.}
+     \item{pValue: }{The nominal P-value as computed by 
+           \code{\link[OUTRIDER]{computePvalues}}.}
+     \item{padjust: }{The FDR corrected P-value as computed by 
+           \code{\link[OUTRIDER]{computePvalues}}.}
+     \item{zScore: }{The z score as computed by 
+           \code{\link[OUTRIDER]{computeZscores}}.}
+     \item{l2fc: }{The log\eqn{_2}{[2]} fold change as computed by 
+           \code{\link[OUTRIDER]{computeZscores}}.}
+     \item{rawcounts: }{The observed read counts.}
+     \item{normcounts: }{The expected count given the fitted 
+           autoencoder model.}
+     \item{meanCorrected: }{For this gene, the mean of the expected counts
+          given the fitted autoencoder model.}
+     \item{theta: }{The dispersion parameter of the NB distribution 
+           for the given gene.}
+     \item{aberrant: }{The outlier status of this event: 
+           \code{TRUE} or \code{FALSE}.}
+     \item{AberrantBySample: }{Number of outliers for the given sample.}
+     \item{AberrantByGene: }{Number of outliers for the given gene.}
+     \item{padj_rank: }{Rank of this outlier within the given sample.}
+   }
 }
 \description{
 This function assembles a results table of significant outlier events based
