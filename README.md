@@ -7,7 +7,7 @@
 OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
 The method is published in the [AJHG](https://doi.org/10.1016/j.ajhg.2018.10.025)
 and available through [Bioconductor](http://bioconductor.org/packages/release/bioc/html/OUTRIDER.html).
-It is also part of workflow [DROP pipeline](https://github.com/gagneurlab/drop), which is described in [Nature Protocols](https://www.nature.com/articles/s41596-020-00462-5).
+It is also part of the workflow [DROP](https://github.com/gagneurlab/drop), which is described in [Nature Protocols](https://www.nature.com/articles/s41596-020-00462-5).
 
 Please cite our method paper if you use it in a publication:
 
