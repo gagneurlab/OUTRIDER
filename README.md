@@ -1,5 +1,5 @@
 # OUTRIDER #
-[![Build](https://github.com/gagneurlab/OUTRIDER/workflows/Build/badge.svg)](https://github.com/gagneurlab/OUTRIDER/actions)
+[![Build](https://github.com/gagneurlab/OUTRIDER/actions/workflows/check-bioc.yml/badge.svg)](https://github.com/gagneurlab/OUTRIDER/actions/workflows/check-bioc.yml)
 [![Version](https://img.shields.io/github/v/release/gagneurlab/OUTRIDER)](https://github.com/gagneurlab/OUTRIDER/releases)
 [![Coverage status](https://codecov.io/gh/gagneurlab/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/gagneurlab/OUTRIDER?branch=master)
 [![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/gagneurlab/OUTRIDER/blob/master/LICENSE)
@@ -7,7 +7,7 @@
 OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
 The method is published in the [AJHG](https://doi.org/10.1016/j.ajhg.2018.10.025)
 and available through [Bioconductor](http://bioconductor.org/packages/release/bioc/html/OUTRIDER.html).
-It is also part of the [DROP pipeline](https://github.com/gagneurlab/drop), which is described in [Nature protocols](https://www.nature.com/articles/s41596-020-00462-5).
+It is also part of the workflow [DROP](https://github.com/gagneurlab/drop), which is described in [Nature Protocols](https://www.nature.com/articles/s41596-020-00462-5).
 
 Please cite our method paper if you use it in a publication:
 
@@ -47,7 +47,7 @@ install.packages('devtools')
 devtools::install_github('gagneurlab/OUTRIDER', dependencies=TRUE)
 
 # installing a specific version/tag of OUTRIDER
-devtools::install_github('gagneurlab/OUTRIDER@1.3.5', dependencies=TRUE)
+devtools::install_github('gagneurlab/OUTRIDER@1.16.1', dependencies=TRUE)
 ```
 
 To check which versions/tags are available you can check the GitHub repo

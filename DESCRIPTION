@@ -1,7 +1,7 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.16.1
+Version: 1.17.1
 Date: 2020-10-20
 URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
@@ -9,7 +9,7 @@ Authors@R: c(
     person("Felix", "Brechtmann", role=c("aut"), 
             email="brechtma@in.tum.de"),
     person("Christian", "Mertes", role=c("aut", "cre"), 
-            email="mertes@in.tum.de"),
+            email="mertes@in.tum.de", comment=c(ORCID="0000-0002-1091-205X")),
     person("Agne", "Matuseviciute", role=c("aut")),
     person(c("Michaela", "Fee"), "Müller", role=c("ctb")),
     person("Vicente", "Yepez", role=c("aut"), email="yepez@in.tum.de"),
@@ -27,7 +27,7 @@ biocViews: ImmunoOncology, RNASeq, Transcriptomics, Alignment, Sequencing,
 License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Depends:
     R (>= 3.6), 
     BiocParallel,
@@ -53,7 +53,6 @@ Imports:
     pcaMethods,
     PRROC,
     RColorBrewer,
-    Rcpp,
     reshape2,
     S4Vectors,
     scales,
