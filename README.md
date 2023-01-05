@@ -1,5 +1,5 @@
 # OUTRIDER #
-[![Build](https://github.com/gagneurlab/OUTRIDER/workflows/Build/badge.svg)](https://github.com/gagneurlab/OUTRIDER/actions)
+[![Build](https://github.com/gagneurlab/OUTRIDER/actions/workflows/check-bioc.yml/badge.svg)](https://github.com/gagneurlab/OUTRIDER/actions/workflows/check-bioc.yml)
 [![Version](https://img.shields.io/github/v/release/gagneurlab/OUTRIDER)](https://github.com/gagneurlab/OUTRIDER/releases)
 [![Coverage status](https://codecov.io/gh/gagneurlab/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/gagneurlab/OUTRIDER?branch=master)
 [![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/gagneurlab/OUTRIDER/blob/master/LICENSE)
@@ -47,7 +47,7 @@ install.packages('devtools')
 devtools::install_github('gagneurlab/OUTRIDER', dependencies=TRUE)
 
 # installing a specific version/tag of OUTRIDER
-devtools::install_github('gagneurlab/OUTRIDER@1.3.5', dependencies=TRUE)
+devtools::install_github('gagneurlab/OUTRIDER@1.16.1', dependencies=TRUE)
 ```
 
 To check which versions/tags are available you can check the GitHub repo
