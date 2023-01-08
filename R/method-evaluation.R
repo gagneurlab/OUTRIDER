@@ -1,8 +1,9 @@
 aberrant.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0, 
-                    by=c("none", "sample", "gene")){
+                    by=c("none", "sample", "gene"), subsetName=NULL, ...){
     checkFullAnalysis(object)
     
-    aberrantEvents <- padj(object) <= padjCutoff
+    aberrantEvents <- padj(object, subsetName=subsetName) <= padjCutoff
+    
     if(isScalarNumeric(zScoreCutoff, na.ok=FALSE)){
         aberrantEvents <- aberrantEvents & abs(zScore(object)) >= zScoreCutoff
     }
@@ -26,6 +27,10 @@ aberrant.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #'             if NA or NULL no Z-score cutoff is used
 #' @param by if the results should be summarized by 'sample', 
 #'             'gene' or not at all (default).
+#' @param subsetName The name of a subset of genes of interest for which FDR 
+#'             corected pvalues have been previously computed. Those FDR values 
+#'             on the subset will then be used to determine aberrant status. 
+#'             Default is NULL (using transcriptome-wide FDR corrected pvalues).
 #' @param ... Currently not in use.
 #'
 #' @return The number of aberrent events by gene or sample or a TRUE/FALSE 

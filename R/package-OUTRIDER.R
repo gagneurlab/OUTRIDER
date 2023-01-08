@@ -24,6 +24,7 @@
 #'          isScalarValue isScalarNA chunk seq_col seq_row
 #' 
 #' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
+#'          bpmapply
 #' 
 #' @importFrom GenomicFeatures makeTxDbFromGFF exonsBy
 #' 

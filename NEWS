@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.16.2
+-----------------------------
+    o Add option to restrict FDR correction to sets of genes of interest
+    o Add opttion to retrieve results based on those FDR values on subsets of 
+      genes
+    
 CHANGES IN VERSION 1.7.1
 -----------------------------
     o Move to S3/S4 methods to be compatible with FRASER
