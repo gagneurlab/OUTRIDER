@@ -13,6 +13,7 @@ results(object, ...)
   zScoreCutoff = 0,
   round = 2,
   all = FALSE,
+  returnTranscriptomewideResults = TRUE,
   ...
 )
 }
@@ -31,7 +32,15 @@ more user friendly}
 
 \item{all}{By default FALSE, only significant read counts are listed in the 
 results. If TRUE all results are assembled resulting in a 
-data.table of length samples x genes}
+data.table of length samples x genes. If FDR corrected pvalues 
+for subsets of genes of interest have been calculated, this 
+indicates whether the whole subset will be listed in the results.}
+
+\item{returnTranscriptomewideResults}{If FDR corrected pvalues for subsets 
+of genes of interest have been calculated, this parameter 
+indicates whether additionally the transcriptome-wide results 
+should be returned as well (default), or whether only results 
+for those subsets should be retrieved.}
 }
 \value{
 A data.table where each row is an outlier event and the columns
@@ -76,6 +85,16 @@ ods <- makeExampleOutriderDataSet()
 ods <- OUTRIDER(ods)
 
 res <- results(ods, all=TRUE)
+res
+
+# example of retrieving results with FDR correction limited to a 
+# set of genes of interest
+genesOfInterest <- list("sample_1"=sample(rownames(ods), 3), 
+                         "sample_2"=sample(rownames(ods), 8), 
+                         "sample_6"=sample(rownames(ods), 5))
+genesOfInterest
+ods <- computePvalues(ods, subsets=list("exampleSubset"=genesOfInterest))
+res <- results(ods, all=TRUE, returnTranscriptomewideResults=FALSE)
 res
 
 }

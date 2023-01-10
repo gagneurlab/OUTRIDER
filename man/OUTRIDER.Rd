@@ -9,6 +9,7 @@ OUTRIDER(
   q,
   controlData = TRUE,
   implementation = "autoencoder",
+  subsets = NULL,
   BPPARAM = bpparam(),
   ...
 )
@@ -24,6 +25,13 @@ for confounders by the autoencoder}
 \item{implementation}{"autoencoder", the default, will use the autoencoder
 implementation. Also 'pca' and 'peer' can be used to control
 for confounding effects}
+
+\item{subsets}{A named list of named lists specifying any number of gene 
+subsets (can differ per sample). For each subset, FDR correction
+will be limited to genes in the subset, and the FDR corrected 
+pvalues stored as an assay in the ods object in addition to the 
+transcriptome-wide FDR corrected pvalues. See the examples for 
+how to use this argument.}
 
 \item{BPPARAM}{A 
 \code{\link[BiocParallel:BiocParallelParam-class]{BiocParallelParam}}
@@ -71,5 +79,15 @@ res
 
 plotAberrantPerSample(ods)
 plotVolcano(ods, 1)
+
+# example of restricting FDR correction to subsets of genes of interest 
+genesOfInterest <- list("sample_1"=sample(rownames(ods), 3), 
+                         "sample_2"=sample(rownames(ods), 8), 
+                         "sample_6"=sample(rownames(ods), 5))
+genesOfInterest
+ods <- OUTRIDER(ods, subsets=list("exampleSubset"=genesOfInterest))
+padj(ods, subsetName="exampleSubset")[1:10,1:10]
+res <- results(ods, all=TRUE)
+res
 
 }

@@ -22,6 +22,12 @@
 #' @inheritParams controlForConfounders
 #' @param controlData If TRUE, the default, the raw counts are controled 
 #'             for confounders by the autoencoder
+#' @param subsets A named list of named lists specifying any number of gene 
+#'             subsets (can differ per sample). For each subset, FDR correction
+#'             will be limited to genes in the subset, and the FDR corrected 
+#'             pvalues stored as an assay in the ods object in addition to the 
+#'             transcriptome-wide FDR corrected pvalues. See the examples for 
+#'             how to use this argument. 
 #' @param ... Further arguments passed on to \code{controlForConfounders}
 #' @return OutriderDataSet with all the computed values. The values are stored
 #'             as assays and can be accessed by: \code{assay(ods, 'value')}.
@@ -44,9 +50,19 @@
 #' plotAberrantPerSample(ods)
 #' plotVolcano(ods, 1)
 #' 
+#' # example of restricting FDR correction to subsets of genes of interest 
+#' genesOfInterest <- list("sample_1"=sample(rownames(ods), 3), 
+#'                          "sample_2"=sample(rownames(ods), 8), 
+#'                          "sample_6"=sample(rownames(ods), 5))
+#' genesOfInterest
+#' ods <- OUTRIDER(ods, subsets=list("exampleSubset"=genesOfInterest))
+#' padj(ods, subsetName="exampleSubset")[1:10,1:10]
+#' res <- results(ods, all=TRUE)
+#' res
+#' 
 #' @export
 OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder', 
-                    BPPARAM=bpparam(), ...){
+                     subsets=NULL, BPPARAM=bpparam(), ...){
     checkOutriderDataSet(ods)
     implementation <- tolower(implementation)
     
@@ -65,7 +81,7 @@ OUTRIDER <- function(ods, q, controlData=TRUE, implementation='autoencoder',
     }
     
     message(date(), ": P-value calculation ...")
-    ods <- computePvalues(ods, BPPARAM=BPPARAM)
+    ods <- computePvalues(ods, subsets=subsets, BPPARAM=BPPARAM)
     
     message(date(), ": Zscore calculation ...")
     ods <- computeZscores(ods, 
