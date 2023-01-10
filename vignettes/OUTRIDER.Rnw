@@ -533,8 +533,8 @@ In details the table contains:
     \item{aberrant: }{The outlier status of this event: TRUE or FALSE.}
     \item{AberrantBySample / AberrantByGene: }{Number of outliers for the 
           given sample or gene, respectively.}
-    \item{padj_rank: }{Rank of this outlier event within the given sample.}
-    \item{FDR_set: }{The subset-name used for the P-value computation.}
+    \item{padj rank: }{Rank of this outlier event within the given sample.}
+    \item{FDR set: }{The subset-name used for the P-value computation.}
 }
 
 
