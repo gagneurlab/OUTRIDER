@@ -520,7 +520,7 @@ In details the table contains:
     \item{pValue / padjust: }{The nominal P-value and the FDR corrected
           P-value indicating the outlier status. Find more details at 
           computePvalues.}
-    \item{zScore / l2fc: }{The z score and log2 fold change 
+    \item{zScore / l2fc: }{The z score and $\log_{2}$ fold change 
         as computed by computeZscores.}
     \item{rawcounts: }{The observed read counts.}
     \item{normcounts: }{The expected count given the fitted 
