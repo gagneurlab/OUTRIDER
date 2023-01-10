@@ -1,14 +1,13 @@
 #' 
 #' Z score computation
 #' 
-#' Computes the z scores for every count in the matrix. 
-#' The z score is defined in the log2 space as follows:
-#' \ifelse{html}{
-#'     \out{z<sub>ij</sub> = (l<sub>ij</sub> - mu<sub>j</sub><sup>l</sup>)/
-#'             sigma<sub>j</sub><sup>l</sup>}}{
-#'     \deqn{z_{ij} = \frac{l_{ij} - \mu_j^l}{\sigma_j^l}}},
-#' where l is the log2 transformed normalized count and mu and sigma the 
-#' mean and standard deviation for gene j, respectively.
+#' Computes the z scores for every count in the matrix.
+#' The z score is defined in the log\eqn{_2}{[2]} space as follows:
+#' \eqn{z_{ij} = \frac{l_{ij} - \mu_j^l}{
+#'      \sigma_j^l}}{z_ij = (l[ij] - mu[j]^l)/sigma[ij]}
+#' where \code{l} is the log\eqn{_2}{[2]} transformed normalized count and 
+#' \eqn{\mu}{mu} and \eqn{\sigma}{sigma} the mean and standard deviation 
+#' for gene \code{j} and sample \code{i}, respectively.
 #' 
 #' @param ods OutriderDataSet
 #' @param ... Further arguments passed on to \code{ZscoreMatrix}.

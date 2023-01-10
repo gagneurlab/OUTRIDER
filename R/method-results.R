@@ -20,6 +20,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     }
     
     meanCorrectedCounts <- rowMeans(counts(object, normalized=TRUE))
+    meanRawCounts       <- rowMeans(counts(object, normalized=FALSE))
     if(isFALSE(all)){
         abByGene <- aberrant(object, 
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene")
@@ -27,6 +28,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")
         object <- object[abByGene > 0, abBySample > 0]
         meanCorrectedCounts <- meanCorrectedCounts[abByGene > 0]
+        meanRawCounts <- meanRawCounts[abByGene > 0]
     }
     
     # warning if no rows to return 
@@ -45,6 +47,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
             l2fc=NA_real_,
             rawcounts=NA_integer_,
             normcounts=NA_real_,
+            meanRawcounts=NA_real_,
             meanCorrected=NA_real_,
             theta=NA_real_,
             aberrant=NA,
@@ -65,6 +68,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         zScore           = c(zScore(object)),
         l2fc             = c(assay(object, "l2fc")),
         rawcounts        = c(counts(object)),
+        meanRawcounts    = meanRawCounts,
         normcounts       = c(counts(object, normalized=TRUE)),
         meanCorrected    = meanCorrectedCounts,
         theta            = theta(object),
@@ -84,8 +88,8 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     
     # round columns if requested
     if(is.numeric(round)){
-        devNull <- lapply(
-                c("normcounts", "zScore", "l2fc", "theta", "meanCorrected"),
+        devNull <- lapply(c("normcounts", "zScore", "l2fc", "theta", 
+                "meanRawcounts", "meanCorrected"),
                 function(x) ans[,c(x):=round(get(x), as.integer(round))] )
     }
     
@@ -177,28 +181,28 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #'    contain additional information about this event. In details the 
 #'    table contains: 
 #'    \itemize{
-#'      \item{geneID: }{The gene ID as provided by the user.}
-#'      \item{sampleID: }{The sample ID as provided by the user.}
-#'      \item{pValue: }{The nominal P-value as computed by 
+#'      \item{sampleID / geneID: }{The gene or sample ID as provided by the 
+#'            user, e.g. \code{rowData(ods)} and \code{colData(ods)},
+#'            respectively.}
+#'      \item{pValue / padjust: }{The nominal P-value and the FDR corrected
+#'            P-value indicating the outlier status. Find more details at 
 #'            \code{\link[OUTRIDER]{computePvalues}}.}
-#'      \item{padjust: }{The FDR corrected P-value as computed by 
-#'            \code{\link[OUTRIDER]{computePvalues}}.}
-#'      \item{zScore: }{The z score as computed by 
-#'            \code{\link[OUTRIDER]{computeZscores}}.}
-#'      \item{l2fc: }{The log\eqn{_2}{[2]} fold change as computed by 
-#'            \code{\link[OUTRIDER]{computeZscores}}.}
+#'      \item{zScore / l2fc: }{The z score and log\eqn{_2}{[2]} fold change 
+#'          as computed by \code{\link[OUTRIDER]{computeZscores}}.}
 #'      \item{rawcounts: }{The observed read counts.}
 #'      \item{normcounts: }{The expected count given the fitted 
-#'            autoencoder model.}
-#'      \item{meanCorrected: }{For this gene, the mean of the expected counts
-#'           given the fitted autoencoder model.}
+#'            autoencoder model for the given gene-sample combination.}
+#'      \item{meanRawcounts / meanCorrected: }{For this gene, the mean of the 
+#'           observed or expected counts, respectively, given the fitted 
+#'           autoencoder model.}
 #'      \item{theta: }{The dispersion parameter of the NB distribution 
 #'            for the given gene.}
 #'      \item{aberrant: }{The outlier status of this event: 
 #'            \code{TRUE} or \code{FALSE}.}
-#'      \item{AberrantBySample: }{Number of outliers for the given sample.}
-#'      \item{AberrantByGene: }{Number of outliers for the given gene.}
-#'      \item{padj_rank: }{Rank of this outlier within the given sample.}
+#'      \item{AberrantBySample / AberrantByGene: }{Number of outliers for the 
+#'            given sample or gene, respectively.}
+#'      \item{padj_rank: }{Rank of this outlier event within the given sample.}
+#'      \item{FDR_set: }{The subset-name used for the P-value computation.}
 #'    }
 #' 
 #' @examples
