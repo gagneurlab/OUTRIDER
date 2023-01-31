@@ -42,6 +42,7 @@ Imports:
     generics,
     GenomicRanges,
     ggplot2,
+    ggrepel,
     grDevices,
     heatmaply,
     pheatmap,
