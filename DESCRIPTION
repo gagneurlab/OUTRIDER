@@ -71,6 +71,7 @@ Suggests:
     AnnotationDbi,
     beeswarm,
     covr,
+    GenomeInfoDb,
     ggbio
 LinkingTo:
     Rcpp,

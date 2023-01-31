@@ -260,6 +260,9 @@ top n genes based on the BCV.}
 was used it computes the dispersion without autoCorrect and
 plots it for comparison.}
 
+\item{value}{Indicates which assay is shown in the manhattan plot. Defaults 
+to 'pvalue'. Other options are 'zScore' and 'log2fc'.}
+
 \item{featureRanges}{A GRanges object of the same length as the 
 OutriderDataSet object that contains the genomic positions of 
 features that are shown in the manhattan plot.}
@@ -267,9 +270,6 @@ features that are shown in the manhattan plot.}
 \item{chrColor}{A vector of length 2 giving the two colors used for 
 coloring alternating chromosomes in the manhattan plot. Default 
 colors are 'black' and 'darkgrey'.}
-
-\item{values}{Indicates which assay is shown in the manhattan plot. Defaults 
-to 'pvalue'. Other options are 'zScore' and 'log2fc'.}
 }
 \value{
 If base R graphics are used nothing is returned else the plotly or

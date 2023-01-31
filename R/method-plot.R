@@ -46,7 +46,7 @@
 #' @param xaxis Indicates which assay should be shown on the x-axis of the 
 #'             volcano plot. Defaults to 'zscore'. Other options are 'fc' and 
 #'             'log2fc' for the fold-change or log2 fold-change.
-#' @param values Indicates which assay is shown in the manhattan plot. Defaults 
+#' @param value Indicates which assay is shown in the manhattan plot. Defaults 
 #'             to 'pvalue'. Other options are 'zScore' and 'log2fc'.
 #' @param featureRanges A GRanges object of the same length as the 
 #'             OutriderDataSet object that contains the genomic positions of 
@@ -1285,6 +1285,7 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                   value %in% c('pvalue', 'pValue', 'pv', 'zscore', 'zScore', 
                                'l2fc', 'L2FC', 'log2fc'))
     require(ggbio)
+    require(GenomeInfoDb)
     
     # get granges from rowRanges(ods)
     if(is.null(featureRanges)){
@@ -1305,7 +1306,7 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                 "object.")
     }
     
-    seqlevelsStyle(gr) <- 'NCBI'
+    GenomeInfoDb::seqlevelsStyle(gr) <- 'NCBI'
 
     # Add values to granges
     if(value %in% c('pvalue', 'pValue', 'pv')){
@@ -1320,10 +1321,10 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
     gr$aberrant <- aberrant(object)[,sampleID]
     
     # Sort granges for plot
-    gr <- sortSeqlevels(gr)
+    gr <- GenomeInfoDb::sortSeqlevels(gr)
     gr <- sort(gr)
     
-    p <- plotGrandLinear(gr, aes(y = value), 
+    p <- ggbio::plotGrandLinear(gr, aes(y = value), 
                          color = chrColor, 
                          highlight.gr = gr[gr$aberrant == T], 
                          highlight.col = 'firebrick') +

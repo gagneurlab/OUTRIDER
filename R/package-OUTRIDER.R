@@ -18,7 +18,7 @@
 #'          estimateSizeFactorsForMatrix replaceOutliers dispersions
 #' 
 #' @importFrom SummarizedExperiment colData colData<- rowData rowData<-
-#'          assays assays<- assayNames mcols mcols<- assay assay<-
+#'          assays assays<- assayNames mcols mcols<- assay assay<- rowRanges
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
 #'          isScalarValue isScalarNA chunk seq_col seq_row
@@ -62,7 +62,7 @@
 #' 
 #' @importFrom reshape2 melt
 #' 
-#' @importFrom S4Vectors DataFrame metadata metadata<-
+#' @importFrom S4Vectors DataFrame metadata metadata<- endoapply
 #' 
 #' @importFrom scales math_format trans_format
 #' 
