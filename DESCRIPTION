@@ -69,7 +69,8 @@ Suggests:
     RMariaDB,
     AnnotationDbi,
     beeswarm,
-    covr
+    covr,
+    ggbio
 LinkingTo:
     Rcpp,
     RcppArmadillo

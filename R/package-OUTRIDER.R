@@ -37,6 +37,8 @@
 #'          ggtitle geom_vline geom_text scale_linetype_manual geom_line 
 #'          geom_abline theme_bw element_blank xlab ylab scale_color_identity
 #' 
+#' @importFrom ggrepel geom_text_repel
+#' 
 #' @importFrom grDevices colorRampPalette
 #' 
 #' @importFrom pheatmap pheatmap
