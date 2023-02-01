@@ -229,7 +229,7 @@
 #' # be provided 
 #' \dontrun{
 #' # in case rowRanges(ods) is a GRangesList, run this first once to speed up:
-#' rowRanges(ods) <- unlist(endoapply(rowRanges(ods), function(rr) rr[1,]))
+#' rowRanges(ods) <- unlist(endoapply(rowRanges(ods), range))
 #' }
 #' gr <- GRanges(
 #'          seqnames=sample(paste0("chr", 1:22), nrow(ods), replace=TRUE),
@@ -1279,15 +1279,17 @@ checkDeprication <- function(names2check, ...){
 plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue", 
                                    featureRanges=rowRanges(object), 
                                    chrColor = c("black", "darkgrey")){
+    require(ggbio)
+    require(GenomeInfoDb)
     
+    # check user input
+    checkOutriderDataSet(object)
     stopifnot("Sample not in ods" = sampleID %in% colnames(object))
     stopifnot("Value should be either pvalue, zscore or l2fc" = 
                   value %in% c('pvalue', 'pValue', 'pv', 'zscore', 'zScore', 
                                'l2fc', 'L2FC', 'log2fc'))
-    require(ggbio)
-    require(GenomeInfoDb)
     
-    # get granges from rowRanges(ods)
+    # get granges from rowRanges(ods) or provided ranges, check dimension
     if(is.null(featureRanges)){
         if(is.null(rowRanges(object))){
             stop("No rowRanges(ods) found. Assign them first to use ", 
@@ -1299,8 +1301,13 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
     } else if(is(featureRanges, "GRanges")){
         gr <- featureRanges
     } else if(is(featureRanges, "GRangesList")){
-        gr <- unlist(endoapply(featureRanges, 
-                                function(rr) rr[1,])) # faster than range
+        gr <- unlist(endoapply(featureRanges, range)) 
+        # faster than range but gives error for empty GRangesList:
+        # gr <- unlist(endoapply(featureRanges, function(rr) rr[1,]))
+        if(length(gr) != nrow(object)){
+            stop("The provided gene ranges do not contain ranges for all rows ",
+                 "of the ods object")
+        }
     } else{
         stop("The provided feature_ranges must a a GRanges or GRangesList ",
                 "object.")
@@ -1310,14 +1317,21 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
 
     # Add values to granges
     if(value %in% c('pvalue', 'pValue', 'pv')){
-        gr$value <- -log10(assays(object)$pValue[, sampleID])
+        gr$value <- -log10(pValue(ods)[, sampleID])
         # value <- '-log10(pvalue)'
         value <- expression(paste(-log[10], "(P-value)"))
     }
-    if(value %in% c('zscore', 'zScore'))
+    if(value %in% c('zscore', 'zScore')){
         gr$value <- zScore(object)[, sampleID]
-    if(value %in% c('l2fc', 'L2FC', 'log2fc'))
+    }
+    if(value %in% c('l2fc', 'L2FC', 'log2fc')){
+        if(!"l2fc" %in% assayNames(object)){
+            stop("Please compute the log2 fold changes first before ",
+                 "retrieving them.")
+        }
         gr$value <- assay(object, "l2fc")[, sampleID]
+        value <- expression(paste(log[2], "(fold-change)"))
+    }
     gr$aberrant <- aberrant(object)[,sampleID]
     
     # Sort granges for plot
@@ -1328,7 +1342,7 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                          color = chrColor, 
                          highlight.gr = gr[gr$aberrant == T], 
                          highlight.col = 'firebrick') +
-        labs(y = value)
+        labs(x="Chromosome", y = value)
     return(p)
 }
 

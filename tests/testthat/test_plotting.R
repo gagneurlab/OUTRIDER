@@ -62,6 +62,12 @@ test_that("plotting", {
     
     plotPowerAnalysis(ods)
     
+    expect_error(plotManhattan(ods, "sample_1"))
+    gr <- GRanges(
+            seqnames=sample(paste0("chr", 1:22), nrow(ods), replace=TRUE),
+            ranges=IRanges(start=runif(nrow(ods), min=0, max=1e5), width=100))
+    expect_is(plotManhattan(ods, "sample_1", featureRanges=gr), "GGbio")
+    
 })
 
 

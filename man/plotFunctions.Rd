@@ -425,7 +425,7 @@ plotEncDimSearch(ods)
 # be provided 
 \dontrun{
 # in case rowRanges(ods) is a GRangesList, run this first once to speed up:
-rowRanges(ods) <- unlist(endoapply(rowRanges(ods), function(rr) rr[1,]))
+rowRanges(ods) <- unlist(endoapply(rowRanges(ods), range))
 }
 gr <- GRanges(
          seqnames=sample(paste0("chr", 1:22), nrow(ods), replace=TRUE),
