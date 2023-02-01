@@ -16,17 +16,23 @@ test_that("plotting", {
     
     expect_equal(class(plotVolcano(ods, 30)), c("plotly", "htmlwidget"))
     expect_is(plotVolcano(ods, "sample_10", basePlot=TRUE), "ggplot")
+    expect_is(plotVolcano(ods, "sample_10", label="feature_3", basePlot=TRUE), "ggplot")
     
     
     expect_equal(class(plotExpressionRank(ods, 23)), c("plotly", "htmlwidget"))
     expect_is(plotExpressionRank(ods, "feature_13", normalized=FALSE,
             log=FALSE, basePlot=TRUE), 'ggplot')
+    expect_is(plotExpressionRank(ods, "feature_13", normalized=FALSE,
+                                 label=c("sample_1", "sample_5"),
+                                 log=FALSE, basePlot=TRUE), 'ggplot')
     
     
     expect_equal(class(plotExpectedVsObservedCounts(ods, 39)), 
             c("plotly", "htmlwidget"))
     expect_is(plotExpectedVsObservedCounts(ods, "feature_32", basePlot=TRUE),
             "ggplot")
+    expect_is(plotExpectedVsObservedCounts(ods, "feature_32", label="aberrant",
+                                           basePlot=TRUE), "ggplot")
     
     
     expect_is(plotExpressedGenes(ods), "ggplot")
