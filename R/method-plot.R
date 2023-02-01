@@ -1317,7 +1317,7 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
 
     # Add values to granges
     if(value %in% c('pvalue', 'pValue', 'pv')){
-        gr$value <- -log10(pValue(ods)[, sampleID])
+        gr$value <- -log10(pValue(object)[, sampleID])
         # value <- '-log10(pvalue)'
         value <- expression(paste(-log[10], "(P-value)"))
     }
