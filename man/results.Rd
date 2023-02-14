@@ -32,9 +32,7 @@ more user friendly}
 
 \item{all}{By default FALSE, only significant read counts are listed in the 
 results. If TRUE all results are assembled resulting in a 
-data.table of length samples x genes. If FDR corrected pvalues 
-for subsets of genes of interest have been calculated, this 
-indicates whether the whole subset will be listed in the results.}
+data.table of length samples x genes.}
 
 \item{returnTranscriptomewideResults}{If FDR corrected pvalues for subsets 
 of genes of interest have been calculated, this parameter 
@@ -51,8 +49,7 @@ A data.table where each row is an outlier event and the columns
            user, e.g. \code{rowData(ods)} and \code{colData(ods)},
            respectively.}
      \item{pValue / padjust: }{The nominal P-value and the FDR corrected
-           P-value indicating the outlier status. Find more details at 
-           \code{\link[OUTRIDER]{computePvalues}}.}
+           P-value (transcriptome-wide) indicating the outlier status.}
      \item{zScore / l2fc: }{The z score and log\eqn{_2}{[2]} fold change 
          as computed by \code{\link[OUTRIDER]{computeZscores}}.}
      \item{rawcounts: }{The observed read counts.}
@@ -63,12 +60,15 @@ A data.table where each row is an outlier event and the columns
           autoencoder model.}
      \item{theta: }{The dispersion parameter of the NB distribution 
            for the given gene.}
-     \item{aberrant: }{The outlier status of this event: 
+     \item{aberrant: }{The transcriptome-wide outlier status of this event: 
            \code{TRUE} or \code{FALSE}.}
      \item{AberrantBySample / AberrantByGene: }{Number of outliers for the 
-           given sample or gene, respectively.}
+           given sample or gene (transcriptome-wide), respectively.}
      \item{padj_rank: }{Rank of this outlier event within the given sample.}
-     \item{FDR_set: }{The subset-name used for the P-value computation.}
+     \item{padjust_FDRset: }{The FDR corrected P-value with respect to the 
+           gene subset called 'FDRset', if gene subsets were specified 
+           during the P-value computation. Find more details at 
+           \code{\link[OUTRIDER]{computePvalues}}.}
    }
 }
 \description{
