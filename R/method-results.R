@@ -187,6 +187,8 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
             setnames(res, gsub("padjust_", "", subsetAssayName), 
                         subsetAssayName, skip_absent=TRUE)
         }
+    } else{
+        res <- res[, !"FDR_set", with=FALSE]
     }
     
     return(res)
