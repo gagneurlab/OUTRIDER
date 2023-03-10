@@ -73,6 +73,7 @@ test_that("plotting", {
             seqnames=sample(paste0("chr", 1:22), nrow(ods), replace=TRUE),
             ranges=IRanges(start=runif(nrow(ods), min=0, max=1e5), width=100))
     expect_is(plotManhattan(ods, "sample_1", featureRanges=gr), "GGbio")
+    expect_is(plotManhattan(ods, "sample_1", featureRanges=gr, chr=10), "GGbio")
     
 })
 
