@@ -18,7 +18,7 @@
 #'          estimateSizeFactorsForMatrix replaceOutliers dispersions
 #' 
 #' @importFrom SummarizedExperiment colData colData<- rowData rowData<-
-#'          assays assays<- assayNames mcols mcols<- assay assay<-
+#'          assays assays<- assayNames mcols mcols<- assay assay<- rowRanges
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
 #'          isScalarValue isScalarNA chunk seq_col seq_row
@@ -36,6 +36,8 @@
 #'          scale_fill_brewer scale_color_brewer theme ylim 
 #'          ggtitle geom_vline geom_text scale_linetype_manual geom_line 
 #'          geom_abline theme_bw element_blank xlab ylab scale_color_identity
+#' 
+#' @importFrom ggrepel geom_text_repel
 #' 
 #' @importFrom grDevices colorRampPalette
 #' 
@@ -60,7 +62,7 @@
 #' 
 #' @importFrom reshape2 melt
 #' 
-#' @importFrom S4Vectors DataFrame metadata metadata<-
+#' @importFrom S4Vectors DataFrame metadata metadata<- endoapply
 #' 
 #' @importFrom scales math_format trans_format
 #' 

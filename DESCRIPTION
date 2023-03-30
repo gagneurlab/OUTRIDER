@@ -42,6 +42,7 @@ Imports:
     generics,
     GenomicRanges,
     ggplot2,
+    ggrepel,
     grDevices,
     heatmaply,
     pheatmap,
@@ -69,7 +70,9 @@ Suggests:
     RMariaDB,
     AnnotationDbi,
     beeswarm,
-    covr
+    covr,
+    GenomeInfoDb,
+    ggbio
 LinkingTo:
     Rcpp,
     RcppArmadillo
