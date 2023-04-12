@@ -28,7 +28,7 @@ aberrant.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #' @param by if the results should be summarized by 'sample', 
 #'             'gene' or not at all (default).
 #' @param subsetName The name of a subset of genes of interest for which FDR 
-#'             corected pvalues have been previously computed. Those FDR values 
+#'             corected pvalues were previously computed. Those FDR values 
 #'             on the subset will then be used to determine aberrant status. 
 #'             Default is NULL (using transcriptome-wide FDR corrected pvalues).
 #' @param ... Currently not in use.

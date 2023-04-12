@@ -52,7 +52,7 @@
 #'             OutriderDataSet object that contains the genomic positions of 
 #'             features that are shown in the manhattan plot.
 #' @param subsetName The name of a subset of genes of interest for which FDR 
-#'             corrected pvalues have been previously computed. Those FDR values 
+#'             corrected pvalues were previously computed. Those FDR values 
 #'             on the subset will then be used to determine aberrant status. 
 #'             Default is NULL (using transcriptome-wide FDR corrected pvalues).
 #### Graphical parameters
@@ -67,10 +67,8 @@
 #'             from groups.
 #' @param pch Integer or character to be used for plotting the points
 #' @param col Set color for the points. If set, it must be a character vector
-#'             of length 3. (1. normal point; 2. outlier point; 3. point is not 
-#'             in the set of genes tested for FDR, applies only if subsetName 
-#'             is given) or a single character referring to a color palette 
-#'             from \code{RColorBrewer}.
+#'             of length 2. (1. normal point; 2. outlier point) or a single 
+#'             character referring to a color palette from \code{RColorBrewer}.
 #' @param basePlot if \code{TRUE}, use the R base plot version, else use the
 #'             plotly framework, which is the default
 #' @param legendPos Set legendpos, by default topleft.
@@ -269,7 +267,7 @@ plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
                     zScoreCutoff=0, label="aberrant",
                     xaxis=c("zscore", "log2fc", "fc"),
                     pch=16, basePlot=FALSE, 
-                    col=c("gray", "firebrick", "gray90"), subsetName=NULL){
+                    col=c("gray", "firebrick"), subsetName=NULL){
     if(missing(sampleID)){
         stop("specify which sample should be plotted, sampleID = 'sample5'")
     }
@@ -351,7 +349,7 @@ plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
     dt[is.na(padjust), color:=col[3]]
     dt[aberrant == TRUE, aberrantLabel:="aberrant"]
     dt[aberrant == FALSE, aberrantLabel:="not aberrant"]
-    dt[is.na(aberrant), aberrantLabel:="not tested for FDR"]
+    dt[is.na(aberrant), aberrantLabel:="not in tested group"]
 
     # remove the NAs from the zScores for plotting
     dt[is.na(xaxis),xaxis:=0]
@@ -372,13 +370,13 @@ plotVolcano.OUTRIDER <- function(object, sampleID, main, padjCutoff=0.05,
         ylab(expression(paste(-log[10], "(", italic(P), "-value)"))) + 
         ggtitle(main) + 
         scale_color_manual(values=c("not aberrant"=col[1], "aberrant"=col[2], 
-                                    "not tested for FDR"=col[3])) + 
+                                    "not in tested group"="gray90")) + 
         theme(legend.position = 'bottom',
               legend.title=element_blank())
     
     if(!is.null(subsetName)){
-        p <- p + labs(subtitle=paste0(subsetName, 
-                                    " (N=", dt[!is.na(padjust), .N], ")"))
+        p <- p + labs(subtitle=paste0("FDR across genes in the ", subsetName, 
+                                " group (N=", dt[!is.na(padjust), .N], ")"))
     }
     
     # Log scale if fold change is plotted
@@ -449,7 +447,8 @@ plotQQ.OUTRIDER <- function(object, geneID, main, global=FALSE, padjCutoff=0.05,
             main <- paste0('Q-Q plot for gene: ', geneID)
         }
         if(!is.null(subsetName)){
-            main <- paste0(main, "\nFDR across genes in ", subsetName)
+            main <- paste0(main, "\nFDR across genes in the ", subsetName, 
+                            " group")
         } 
         if(is.null(col)){
             col <- c('black', 'firebrick')
@@ -600,7 +599,7 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
     if(is.null(subsetName)){
         subtitle <- NULL
     } else{
-        subtitle <- paste0("FDR across genes in ", subsetName)
+        subtitle <- paste0("FDR across genes in the ", subsetName, " group")
     }
 
     ods <- ods[geneID]
@@ -610,9 +609,7 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
             observed   = as.vector(counts(ods)) + isTRUE(log),
             expected   = as.vector(normalizationFactors(ods)) + isTRUE(log),
             aberrant   = as.vector(aberrant(ods, subsetName=subsetName)))
-    cnts[aberrant == TRUE, aberrantLabel:="aberrant"]
-    cnts[aberrant == FALSE, aberrantLabel:="not aberrant"]
-    cnts[is.na(aberrant), aberrantLabel:="not tested for FDR"]
+    cnts[is.na(aberrant), aberrant:=FALSE]
 
     # group assignment
     if(length(groups) != ncol(ods)) {
@@ -653,13 +650,11 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
         point_mapping$colour <- substitute(group)
         g <- g + geom_point(point_mapping)
     } else { # no grouping given
-        point_mapping$colour <- substitute(aberrantLabel)
+        point_mapping$colour <- substitute(aberrant)
         g <- g + geom_point(point_mapping) +
-            scale_color_manual(values = c("not aberrant"="gray", 
-                                          "aberrant"="firebrick",
-                                          "not tested for FDR"="gray90")) +
-            theme(legend.position = 'bottom',
-                legend.title=element_blank())
+            scale_color_manual(values = c("FALSE"="gray", 
+                                          "TRUE"="firebrick")) +
+            theme(legend.position = 'none')
     }
 
     if (isTRUE(basePlot)) {
@@ -668,7 +663,7 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
                 if(nrow(cnts[aberrant == TRUE,]) > 0){
                     g <- g + 
                         geom_text_repel(data=cnts[aberrant == TRUE,], 
-                                        aes(col=aberrantLabel), fontface='bold', 
+                                        aes(col=aberrant), fontface='bold', 
                                         hjust=-.2, vjust=.5)
                 }
             }
@@ -676,7 +671,7 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
                 if(nrow(cnts[sampleID %in% label]) > 0){
                     g <- g + 
                         geom_text_repel(data=subset(cnts, sampleID %in% label), 
-                                        aes(col=aberrantLabel), fontface='bold', 
+                                        aes(col=aberrant), fontface='bold', 
                                         hjust=-.2, vjust=.5)
                 }
                 if(any(!(label %in% cnts[,sampleID]))){
@@ -696,7 +691,7 @@ plotExpectedVsObservedCounts <- function(ods, geneID, main, basePlot=FALSE,
 #' @export
 plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
                     zScoreCutoff=0, normalized=TRUE, basePlot=FALSE, log=TRUE,
-                    col=c("gray", "firebrick", "gray90"), groups=c(),
+                    col=c("gray", "firebrick"), groups=c(),
                     groupColSet='Accent', label="aberrant", 
                     subsetName=NULL){
     # check user input
@@ -710,8 +705,8 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     }
     geneID <- getGeneIndex(geneID, ods)
 
-    if(length(col) != 3){
-        stop("Please provide three colors as a vector.")
+    if(length(col) != 2){
+        stop("Please provide two colors as a vector.")
     }
     if(length(groups) == 0){
         groups <- logical(ncol(ods))
@@ -749,12 +744,10 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
         dt[, zScore   := assay(ods, 'zScore')[1,]]
         dt[, aberrant := aberrant(ods, padjCutoff=padjCutoff,
                 zScoreCutoff=zScoreCutoff, subsetName=subsetName)[1,]]
+        dt[is.na(aberrant), aberrant:=FALSE]
     } else {
         dt[,aberrant:=FALSE]
     }
-    dt[aberrant == TRUE, aberrantLabel:="aberrant"]
-    dt[aberrant == FALSE, aberrantLabel:="not aberrant"]
-    dt[is.na(aberrant), aberrantLabel:="not tested for FDR"]
     ylab <- paste0(ifelse(isTRUE(normalized), "Normalized", "Raw"),
             " counts", ifelse(isTRUE(log), " + 1", ""))
     if(missing(main)){
@@ -763,7 +756,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     if(is.null(subsetName)){
         subtitle <- NULL
     } else{
-        subtitle <- paste0("FDR across genes in ", subsetName)
+        subtitle <- paste0("FDR across genes in the ", subsetName, " group")
     }
 
     # create ggplot object
@@ -787,7 +780,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
         g <- g + scale_y_log10()
     }
     
-    point_mapping <- aes(col = aberrantLabel)
+    point_mapping <- aes(col = aberrant)
 
     # switch color mode
     if(uniqueN(groups) > 1){
@@ -801,11 +794,8 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
     } else {
         ignoreAesTextWarning({
             g <- g + geom_point(size = 2, point_mapping) +
-                scale_color_manual(values = c("not aberrant"=col[1], 
-                                                "aberrant"=col[2], 
-                                                "not tested for FDR"=col[3])) +
-                theme(legend.position = 'bottom',
-                      legend.title=element_blank())
+                scale_color_manual(values = col) +
+                theme(legend.position = 'none')
         })
     }
 
@@ -815,7 +805,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
                 if(nrow(dt[aberrant == TRUE,]) > 0){
                     g <- g + 
                         geom_text_repel(data=dt[aberrant == TRUE,], 
-                                        aes(col=aberrantLabel), fontface='bold', 
+                                        aes(col=aberrant), fontface='bold', 
                                         hjust=-.2, vjust=.5)
                 }
             }
@@ -823,7 +813,7 @@ plotExpressionRank <- function(ods, geneID, main, padjCutoff=0.05,
                 if(nrow(dt[sampleID %in% label]) > 0){
                     g <- g + 
                         geom_text_repel(data=subset(dt, sampleID %in% label), 
-                                        aes(col=aberrantLabel), fontface='bold', 
+                                        aes(col=aberrant), fontface='bold', 
                                         hjust=-.2, vjust=.5)
                 }
                 if(any(!(label %in% dt[,sampleID]))){
@@ -1090,7 +1080,7 @@ plotAberrantPerSample.OUTRIDER <- function(object,
     if(is.null(subsetName)){
         subtitle <- NULL
     } else{
-        subtitle <- paste0("FDR across genes in ", subsetName)
+        subtitle <- paste0("FDR across genes in the ", subsetName, " group")
     }
     
     g <- ggplot(dt2p, aes(x=x, y=y, fill=fill)) + 
@@ -1433,7 +1423,7 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
     if(is.null(subsetName)){
         subtitle <- NULL
     } else{
-        subtitle <- paste0("FDR across genes in ", subsetName)
+        subtitle <- paste0("FDR across genes in the ", subsetName, " group")
     }
     
     p <- plotGrandLinear.adapted(gr, aes(y = value), 

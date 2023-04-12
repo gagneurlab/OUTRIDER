@@ -48,7 +48,7 @@ plotVolcano(object, ...)
   xaxis = c("zscore", "log2fc", "fc"),
   pch = 16,
   basePlot = FALSE,
-  col = c("gray", "firebrick", "gray90"),
+  col = c("gray", "firebrick"),
   subsetName = NULL
 )
 
@@ -92,7 +92,7 @@ plotExpressionRank(
   normalized = TRUE,
   basePlot = FALSE,
   log = TRUE,
-  col = c("gray", "firebrick", "gray90"),
+  col = c("gray", "firebrick"),
   groups = c(),
   groupColSet = "Accent",
   label = "aberrant",
@@ -202,13 +202,11 @@ volcano plot. Defaults to 'zscore'. Other options are 'fc' and
 plotly framework, which is the default}
 
 \item{col}{Set color for the points. If set, it must be a character vector
-of length 3. (1. normal point; 2. outlier point; 3. point is not 
-in the set of genes tested for FDR, applies only if subsetName 
-is given) or a single character referring to a color palette 
-from \code{RColorBrewer}.}
+of length 2. (1. normal point; 2. outlier point) or a single 
+character referring to a color palette from \code{RColorBrewer}.}
 
 \item{subsetName}{The name of a subset of genes of interest for which FDR 
-corrected pvalues have been previously computed. Those FDR values 
+corrected pvalues were previously computed. Those FDR values 
 on the subset will then be used to determine aberrant status. 
 Default is NULL (using transcriptome-wide FDR corrected pvalues).}
 
