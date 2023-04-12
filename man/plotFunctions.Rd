@@ -48,7 +48,8 @@ plotVolcano(object, ...)
   xaxis = c("zscore", "log2fc", "fc"),
   pch = 16,
   basePlot = FALSE,
-  col = c("gray", "firebrick")
+  col = c("gray", "firebrick", "gray90"),
+  subsetName = NULL
 )
 
 \S4method{plotQQ}{OutriderDataSet}(
@@ -62,6 +63,7 @@ plotVolcano(object, ...)
   legendPos = "topleft",
   outlierRatio = 0.001,
   conf.alpha = 0.05,
+  subsetName = NULL,
   pch = 16,
   xlim = NULL,
   ylim = NULL,
@@ -77,6 +79,7 @@ plotExpectedVsObservedCounts(
   groups = c(),
   groupColSet = "Set1",
   label = "aberrant",
+  subsetName = NULL,
   ...
 )
 
@@ -89,10 +92,11 @@ plotExpressionRank(
   normalized = TRUE,
   basePlot = FALSE,
   log = TRUE,
-  col = c("gray", "firebrick"),
+  col = c("gray", "firebrick", "gray90"),
   groups = c(),
   groupColSet = "Accent",
-  label = "aberrant"
+  label = "aberrant",
+  subsetName = NULL
 )
 
 \S4method{plotCountCorHeatmap}{OutriderDataSet}(
@@ -136,7 +140,8 @@ plotCountGeneSampleHeatmap(
   outlierRatio = 0.001,
   col = "Dark2",
   yadjust = 1.2,
-  ylab = "#Aberrantly expressed genes",
+  ylab = "Aberrantly expressed genes",
+  subsetName = NULL,
   ...
 )
 
@@ -163,7 +168,10 @@ plotSizeFactors(ods, basePlot = TRUE)
   object,
   sampleID,
   value = "pvalue",
+  chr = NULL,
+  main = paste0("Sample: ", sampleID),
   featureRanges = rowRanges(object),
+  subsetName = NULL,
   chrColor = c("black", "darkgrey")
 )
 }
@@ -194,8 +202,15 @@ volcano plot. Defaults to 'zscore'. Other options are 'fc' and
 plotly framework, which is the default}
 
 \item{col}{Set color for the points. If set, it must be a character vector
-of length 2. (1. normal point; 2. outlier point) or a single 
-character referring to a color palette from \code{RColorBrewer}.}
+of length 3. (1. normal point; 2. outlier point; 3. point is not 
+in the set of genes tested for FDR, applies only if subsetName 
+is given) or a single character referring to a color palette 
+from \code{RColorBrewer}.}
+
+\item{subsetName}{The name of a subset of genes of interest for which FDR 
+corrected pvalues have been previously computed. Those FDR values 
+on the subset will then be used to determine aberrant status. 
+Default is NULL (using transcriptome-wide FDR corrected pvalues).}
 
 \item{global}{Flag to plot a global Q-Q plot, default FALSE}
 
@@ -373,23 +388,35 @@ implementation <- 'autoencoder'
 
 mcols(ods)$basepairs <- 300 # assign pseudo gene length for filtering
 ods <- filterExpression(ods)
-ods <- OUTRIDER(ods, implementation=implementation)
+# restrict FDR correction to set of genes of interest per sample
+genesOfInterest <- list(MUC1372 = c("ATPIF1", "UROD", "YBX1", 
+                                     sample(rownames(ods), 25)),
+                        MUC1360 = sample(rownames(ods), 50),
+                        MUC1350 = sample(rownames(ods), 75),
+                        X76619 = sample(rownames(ods), 20),
+                        X74172 = sample(rownames(ods), 150))
+ods <- OUTRIDER(ods, implementation=implementation, subsets=list("exampleGenes"=genesOfInterest))
 
 plotAberrantPerSample(ods)
+plotAberrantPerSample(ods, subsetName="exampleGenes")
 
 plotVolcano(ods, 49)
 plotVolcano(ods, 'MUC1365', basePlot=TRUE)
 plotVolcano(ods, 'MUC1351', basePlot=TRUE, xaxis="log2fc", label=c("NBPF16"))
+plotVolcano(ods, 'MUC1372', basePlot=TRUE, subsetName="exampleGenes")
 
 plotExpressionRank(ods, 35)
+plotExpressionRank(ods, 35, subsetName="exampleGenes")
 plotExpressionRank(ods, "NDUFS5", normalized=FALSE, label="MUC1372",
     log=FALSE, main="Over expression outlier", basePlot=TRUE)
 
 plotQQ(ods, 149)
+plotQQ(ods, 149, subsetName="exampleGenes")
 plotQQ(ods, global=TRUE, outlierRatio=0.001)
 
 plotExpectedVsObservedCounts(ods, 149)
 plotExpectedVsObservedCounts(ods, "ATAD3C", basePlot=TRUE)
+plotExpectedVsObservedCounts(ods, "UROD", subsetName="exampleGenes")
 
 plotExpressedGenes(ods)
 
@@ -432,5 +459,6 @@ gr <- GRanges(
          ranges=IRanges(start=runif(nrow(ods), min=0, max=1e5), width=100))
 plotManhattan(ods, "MUC1350", value="pvalue", featureRanges=gr)
 plotManhattan(ods, "MUC1350", value="l2fc", featureRanges=gr)
+plotManhattan(ods, "MUC1372", featureRanges=gr, subsetName="exampleGenes")
 
 }
