@@ -30,7 +30,7 @@ if NA or NULL no Z-score cutoff is used}
 'gene' or not at all (default).}
 
 \item{subsetName}{The name of a subset of genes of interest for which FDR 
-corected pvalues have been previously computed. Those FDR values 
+corected pvalues were previously computed. Those FDR values 
 on the subset will then be used to determine aberrant status. 
 Default is NULL (using transcriptome-wide FDR corrected pvalues).}
 }
