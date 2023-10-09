@@ -401,7 +401,11 @@ addPyFitResults <- function(ods, pyRes, extractHyperParOptResults=FALSE){
                                         function(x){ as.data.table(x)}))
         setnames(encDimTable, "encod_dim", "encodingDimension")
         setnames(encDimTable, "prec_rec", "evaluationLoss")
-        setnames(encDimTable, "loss", "fitLoss")
+        if("loss" %in% colnames(encDimTable)){
+            setnames(encDimTable, "loss", "fitLoss")
+        } else{
+            encDimTable[, fitLoss:=NA]
+        }
         encDimTable[,evalMethod:='aucPR']
         metadata(ods)[["encDimTable"]] <- encDimTable
         metadata(ods)[['optimalEncDim']] <- NULL

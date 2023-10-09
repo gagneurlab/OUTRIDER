@@ -1184,7 +1184,7 @@ plotFeatureSampleHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
     if(is(ods, "OutriderDataSet")){
         transform_fun <- function(x){log2(x+1)}
     } else{
-        transform_fun <- metadata(object)$prepro_options$data_trans
+        transform_fun <- metadata(ods)$prepro_options$data_trans
     }
     
     if(!is.null(rowLabelCol)){
@@ -1241,7 +1241,7 @@ plotFeatureSampleHeatmap <- function(ods, normalized=TRUE, rowCentered=TRUE,
         }
     } else {
         # normalize using sizeFactors
-        if(!"preprocessed" %in% assayNames(object)){
+        if(!"preprocessed" %in% assayNames(ods_sub)){
             fcMat <- as.matrix(observed(ods_sub))
         } else{
             fcMat <- as.matrix(preprocessed(ods_sub, normalized=FALSE))
