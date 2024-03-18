@@ -19,7 +19,7 @@ object.}
 
 \S4method{normalizationFactors}{OutriderDataSet,data.frame}(object, minE = 0.5, ...) <- value
 
-\S4method{normalizationFactors}{OutriderDataSet,`NULL`}(object) <- value
+\S4method{normalizationFactors}{OutriderDataSet,NULL}(object) <- value
 }
 \arguments{
 \item{object}{An \code{\link{OutriderDataSet}} object}

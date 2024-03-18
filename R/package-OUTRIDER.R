@@ -25,7 +25,9 @@
 #' 
 #' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
 #' 
-#' @importFrom GenomicFeatures makeTxDbFromGFF exonsBy
+#' @importFrom GenomicFeatures exonsBy
+#' 
+#' @importFrom txdbmaker makeTxDbFromGFF
 #' 
 #' @importFrom GenomicRanges GRanges reduce width 
 #' 
