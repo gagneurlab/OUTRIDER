@@ -276,6 +276,9 @@ plots it for comparison.}
 \item{value}{Indicates which assay is shown in the manhattan plot. Defaults 
 to 'pvalue'. Other options are 'zScore' and 'log2fc'.}
 
+\item{chr}{The chromosomes to be displayed in the \code{plotManhattan} 
+function. Default is \code{NULL}, i.e. all chromosomes are shown.}
+
 \item{featureRanges}{A GRanges object of the same length as the 
 OutriderDataSet object that contains the genomic positions of 
 features that are shown in the manhattan plot.}

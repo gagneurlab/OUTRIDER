@@ -55,6 +55,8 @@
 #'             corrected pvalues were previously computed. Those FDR values 
 #'             on the subset will then be used to determine aberrant status. 
 #'             Default is NULL (using transcriptome-wide FDR corrected pvalues).
+#' @param chr The chromosomes to be displayed in the \code{plotManhattan} 
+#'             function. Default is \code{NULL}, i.e. all chromosomes are shown. 
 #### Graphical parameters
 #' @param main Title for the plot, if missing a default title will be used.
 #' @param groups A character vector containing either group assignments of
@@ -1341,8 +1343,8 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                                    featureRanges=rowRanges(object), 
                                    subsetName=NULL,
                                    chrColor = c("black", "darkgrey")){
-    require(ggbio)
-    require(GenomeInfoDb)
+    requireNamespace("ggbio")
+    requireNamespace("GenomeInfoDb")
     
     # check user input
     checkOutriderDataSet(object)
@@ -1406,13 +1408,13 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
         if(any(grepl("chr", chr))){
             chr <- gsub("chr", "", chr)
         }
-        if(!all(chr %in% unique(seqnames(gr)))){
+        if(!all(chr %in% unique(GenomeInfoDb::seqnames(gr)))){
             stop("Not all chromosomes selected for subsetting are present ",
                  "in the GRanges object.")
         }
         
         # subset
-        gr <- gr[as.character(seqnames(gr)) %in% chr]
+        gr <- gr[as.character(GenomeInfoDb::seqnames(gr)) %in% chr]
         
         # add chr to plot title if only one chr given
         if(length(chr) == 1){
@@ -1458,6 +1460,7 @@ plotGrandLinear.adapted <- function (obj, ..., facets, space.skip = 0.01,
         highlight.overlap = c("any", "start", "end", "within", "equal"),
         spaceline = FALSE,
         use.genome.coords=TRUE){
+    requireNamespace("biovizBase")
     if (is.null(geom)) 
         geom <- "point"
     args <- list(...)
@@ -1502,7 +1505,7 @@ plotGrandLinear.adapted <- function (obj, ..., facets, space.skip = 0.01,
     if (!is.null(cutoff)) 
         p <- p + geom_hline(yintercept = cutoff, color = cutoff.color, 
                             size = cutoff.size)
-    chrs <- names(seqlengths(obj))
+    chrs <- names(GenomeInfoDb::seqlengths(obj))
     if (.is.seq) {
         N <- length(chrs)
         cols <- rep(.color, round(N/length(.color)) + 1)[1:N]
@@ -1521,7 +1524,7 @@ plotGrandLinear.adapted <- function (obj, ..., facets, space.skip = 0.01,
         highlight.overlap <- match.arg(highlight.overlap)
         idx <- findOverlaps(obj, highlight.gr, type=highlight.overlap)
         .h.pos <- lapply(split(queryHits(idx), subjectHits(idx)), function(id) {
-            gr <- GRanges(as.character(seqnames(p@data))[id][1], 
+            gr <- GRanges(as.character(GenomeInfoDb::seqnames(p@data))[id][1], 
                 IRanges(start = min(start(p@data[id])), 
                         end = max(end(p@data[id]))))
                 val <- max(as.numeric(values(p@data[id])[, quo_name(args.aes$y)]))
@@ -1541,8 +1544,10 @@ plotGrandLinear.adapted <- function (obj, ..., facets, space.skip = 0.01,
                     do.call(aes, list(x = substitute(midpoint), y = args.aes$y)), 
                     color = highlight.col)
             if (!is.null(highlight.name)) {
-                seqlevels(.h.pos, pruning.mode = "coarse") <- seqlevels(obj)
-                suppressWarnings(seqinfo(.h.pos) <- seqinfo(obj))
+                GenomeInfoDb::seqlevels(.h.pos, pruning.mode = "coarse") <- 
+                    GenomeInfoDb::seqlevels(obj)
+                suppressWarnings(GenomeInfoDb::seqinfo(.h.pos) <- 
+                                    GenomeInfoDb::seqinfo(obj))
                 .trans <- biovizBase::transformToGenome(.h.pos, space.skip = space.skip)
                 values(.trans)$mean <- (start(.trans) + end(.trans))/2
                 values(.trans)$names <- highlight.name

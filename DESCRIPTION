@@ -72,7 +72,8 @@ Suggests:
     beeswarm,
     covr,
     GenomeInfoDb,
-    ggbio
+    ggbio,
+    biovizBase
 LinkingTo:
     Rcpp,
     RcppArmadillo
