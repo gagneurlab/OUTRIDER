@@ -107,16 +107,16 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-RELEASE_3_16-r-4.2-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-RELEASE_3_16-r-4.2-
+          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-
 
       - name: Cache R packages on Linux
         if: "!contains(github.event.head_commit.message, '/nocache') && runner.os == 'Linux' "
         uses: actions/cache@v3
         with:
           path: /home/runner/work/_temp/Library
-          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-RELEASE_3_16-r-4.2-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-RELEASE_3_16-r-4.2-
+          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
@@ -250,7 +250,7 @@ jobs:
           rcmdcheck::rcmdcheck(
               args = c("--no-manual", "--no-vignettes", "--timings"),
               build_args = c("--no-manual", "--keep-empty-dirs", "--no-resave-data"),
-              error_on = "error",
+              error_on = "warning",
               check_dir = "check"
           )
         shell: Rscript {0}
@@ -314,7 +314,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@master
         with:
-          name: ${{ runner.os }}-biocversion-RELEASE_3_18-r-4.3-results
+          name: ${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-results
           path: check
 
         ## Note that DOCKER_PASSWORD is really a token for your dockerhub
