@@ -513,6 +513,31 @@ head(res)
 dim(res)
 @
 
+In details the table contains: 
+\itemize{
+    \item{sampleID / geneID: }{The gene or sample ID as provided by the 
+          user, e.g. rowData(ods) and colData(ods) respectively.}
+    \item{pValue / padjust: }{The nominal P-value and the FDR corrected
+          P-value indicating the outlier status. Find more details at 
+          computePvalues.}
+    \item{zScore / l2fc: }{The z score and $\log_{2}$ fold change 
+        as computed by computeZscores.}
+    \item{rawcounts: }{The observed read counts.}
+    \item{normcounts: }{The expected count given the fitted 
+          autoencoder model for the given gene-sample combination.}
+    \item{meanRawcounts / meanCorrected: }{For this gene, the mean of the 
+         observed or expected counts, respectively, given the fitted 
+         autoencoder model.}
+    \item{theta: }{The dispersion parameter of the NB distribution 
+          for the given gene.}
+    \item{aberrant: }{The outlier status of this event: TRUE or FALSE.}
+    \item{AberrantBySample / AberrantByGene: }{Number of outliers for the 
+          given sample or gene, respectively.}
+    \item{padj rank: }{Rank of this outlier event within the given sample.}
+    \item{FDR set: }{The subset-name used for the P-value computation.}
+}
+
+
 
 \subsection{Number of aberrant genes per sample}
 

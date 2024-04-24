@@ -42,9 +42,10 @@ An OutriderDataSet object with computed nominal and adjusted P-values
 }
 \description{
 This function computes the P-values based on the fitted negative binomial
-model. It computes two matrices with the same dimension as the count matrix
-(samples x genes), which contain the corresponding P-values and 
-adjusted P-values of every count.
+model being an outlier for the given sample gene combination. It computes
+two matrices with the same dimension as the count matrix (samples x genes),
+which contain the corresponding P-values and adjusted P-values of every 
+count. The adjusted P-values are computed across all genes per sample.
 }
 \examples{
 ods <- makeExampleOutriderDataSet()

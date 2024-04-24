@@ -15,6 +15,8 @@ checkCountRequirements <- function(ods, test=FALSE){
         stop("There are genes without any read. Please filter first ",
                 "the data with: ods <- filterExpression(ods)")
     }
+    # Filter out genes that have on average less than 1 count per 100 samples.
+    # Ony affects datasets with more than 100 samples.
     filterGenes <- filterGenes | rowSums(counts(ods)) < ncol(ods)/100
     if(any(filterGenes) & isFALSE(test)){
         stop("The model requires for each gene at least 1 read ", 

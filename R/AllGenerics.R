@@ -27,6 +27,11 @@ setGeneric("plotAberrantPerSample", function(object, ...)
 setGeneric("plotCountCorHeatmap", function(object, ...) 
         standardGeneric("plotCountCorHeatmap"))
 
+#' @rdname plotFunctions
+#' @export
+setGeneric("plotManhattan", function(object, ...) 
+    standardGeneric("plotManhattan"))
+
 #' @importFrom DESeq2 plotDispEsts
 #' @noRd
 #' @export
