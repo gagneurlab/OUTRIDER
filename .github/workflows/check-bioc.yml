@@ -107,16 +107,16 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-
+          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-
 
       - name: Cache R packages on Linux
         if: "!contains(github.event.head_commit.message, '/nocache') && runner.os == 'Linux' "
         uses: actions/cache@v3
         with:
           path: /home/runner/work/_temp/Library
-          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-
+          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
@@ -314,7 +314,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@master
         with:
-          name: ${{ runner.os }}-biocversion-${{ runner.bioc }}-r-${{ runner.r }}-results
+          name: ${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-results
           path: check
 
         ## Note that DOCKER_PASSWORD is really a token for your dockerhub
