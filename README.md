@@ -47,7 +47,7 @@ install.packages('devtools')
 devtools::install_github('gagneurlab/OUTRIDER', dependencies=TRUE)
 
 # installing a specific version/tag of OUTRIDER
-devtools::install_github('gagneurlab/OUTRIDER@1.16.1', dependencies=TRUE)
+devtools::install_github('gagneurlab/OUTRIDER@1.20.1', dependencies=TRUE)
 ```
 
 To check which versions/tags are available you can check the GitHub repo

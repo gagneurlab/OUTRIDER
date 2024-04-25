@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.20.1
+-----------------------------
+    o Add Manhattenplot functionallity
+    o Bugfix in restricting for FDR correction and others (#54 and aa6e56a)
+    o Ensure correct injections of outliers (#37)
+
 CHANGES IN VERSION 1.16.1
 -----------------------------
     o Add option to restrict FDR correction to sets of genes of interest
