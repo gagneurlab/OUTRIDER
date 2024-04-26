@@ -18,25 +18,29 @@
 #'          estimateSizeFactorsForMatrix replaceOutliers dispersions
 #' 
 #' @importFrom SummarizedExperiment colData colData<- rowData rowData<-
-#'          assays assays<- assayNames mcols mcols<- assay assay<-
+#'          assays assays<- assayNames mcols mcols<- assay assay<- rowRanges
 #' 
 #' @importFrom BBmisc isScalarLogical isScalarNumeric isScalarCharacter isFALSE
 #'          isScalarValue isScalarNA chunk seq_col seq_row
 #' 
 #' @importFrom BiocParallel bplapply bpparam SerialParam bpisup bpstart bpstop
+#'          bpmapply
 #' 
 #' @importFrom GenomicFeatures exonsBy
 #' 
 #' @importFrom txdbmaker makeTxDbFromGFF
 #' 
-#' @importFrom GenomicRanges GRanges reduce width 
+#' @importFrom GenomicRanges GRanges reduce width start end findOverlaps 
 #' 
 #' @importFrom ggplot2 ggplot aes annotate geom_bar geom_histogram 
 #'          geom_hline geom_smooth geom_point labs scale_x_log10 
 #'          scale_y_log10 scale_fill_manual scale_color_manual 
 #'          scale_fill_brewer scale_color_brewer theme ylim 
 #'          ggtitle geom_vline geom_text scale_linetype_manual geom_line 
-#'          geom_abline theme_bw element_blank xlab ylab scale_color_identity
+#'          geom_abline theme_bw element_blank xlab ylab scale_color_identity 
+#'          facet_grid facet_wrap quo_name
+#' 
+#' @importFrom ggrepel geom_text_repel
 #' 
 #' @importFrom grDevices colorRampPalette
 #' 
@@ -61,7 +65,8 @@
 #' 
 #' @importFrom reshape2 melt
 #' 
-#' @importFrom S4Vectors DataFrame metadata metadata<-
+#' @importFrom S4Vectors DataFrame metadata metadata<- endoapply queryHits
+#'          subjectHits values values<-
 #' 
 #' @importFrom scales math_format trans_format
 #' 
@@ -127,5 +132,10 @@ globalVariables(package="OUTRIDER", c(
         "Var2",
         ".x",
         "y",
-        "z"))
+        "z",
+        "AberrantByGene",
+        "AberrantBySample",
+        "FDR_set",
+        "aberrantLabel",
+        "geneID"))
 

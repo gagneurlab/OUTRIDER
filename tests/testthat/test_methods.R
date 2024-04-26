@@ -26,7 +26,7 @@ test_that("result method", {
     set.seed(42)
     ods <- makeExampleOutriderDataSet(100, 50)
     expect_error(results(ods), "Please calculate..*")
-    ods <- OUTRIDER(ods, iteration=2)
+    ods <- OUTRIDER(ods, q=2, iteration=2)
     
     expect_warning(res <- results(ods, padj=1e-10), "No significant events:")
     expect_equal(colnames(res), colnames(results(ods)))

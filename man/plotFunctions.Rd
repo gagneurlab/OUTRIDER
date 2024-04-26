@@ -3,6 +3,7 @@
 \name{plotAberrantPerSample}
 \alias{plotAberrantPerSample}
 \alias{plotCountCorHeatmap}
+\alias{plotManhattan}
 \alias{plotEncDimSearch}
 \alias{plotQQ}
 \alias{plotVolcano}
@@ -22,11 +23,14 @@
 \alias{plotAberrantPerSample,OutriderDataSet-method}
 \alias{plotDispEsts,OutriderDataSet-method}
 \alias{plotEncDimSearch,OutriderDataSet-method}
+\alias{plotManhattan,OutriderDataSet-method}
 \title{Visualization functions for OUTRIDER}
 \usage{
 plotAberrantPerSample(object, ...)
 
 plotCountCorHeatmap(object, ...)
+
+plotManhattan(object, ...)
 
 plotEncDimSearch(object, ...)
 
@@ -40,9 +44,12 @@ plotVolcano(object, ...)
   main,
   padjCutoff = 0.05,
   zScoreCutoff = 0,
+  label = "aberrant",
+  xaxis = c("zscore", "log2fc", "fc"),
   pch = 16,
   basePlot = FALSE,
-  col = c("gray", "firebrick")
+  col = c("gray", "firebrick"),
+  subsetName = NULL
 )
 
 \S4method{plotQQ}{OutriderDataSet}(
@@ -56,6 +63,7 @@ plotVolcano(object, ...)
   legendPos = "topleft",
   outlierRatio = 0.001,
   conf.alpha = 0.05,
+  subsetName = NULL,
   pch = 16,
   xlim = NULL,
   ylim = NULL,
@@ -70,6 +78,8 @@ plotExpectedVsObservedCounts(
   log = TRUE,
   groups = c(),
   groupColSet = "Set1",
+  label = "aberrant",
+  subsetName = NULL,
   ...
 )
 
@@ -84,7 +94,9 @@ plotExpressionRank(
   log = TRUE,
   col = c("gray", "firebrick"),
   groups = c(),
-  groupColSet = "Accent"
+  groupColSet = "Accent",
+  label = "aberrant",
+  subsetName = NULL
 )
 
 \S4method{plotCountCorHeatmap}{OutriderDataSet}(
@@ -128,7 +140,8 @@ plotCountGeneSampleHeatmap(
   outlierRatio = 0.001,
   col = "Dark2",
   yadjust = 1.2,
-  ylab = "#Aberrantly expressed genes",
+  ylab = "Aberrantly expressed genes",
+  subsetName = NULL,
   ...
 )
 
@@ -150,6 +163,17 @@ plotPowerAnalysis(ods)
 plotExpressedGenes(ods, main = "Statistics of expressed genes")
 
 plotSizeFactors(ods, basePlot = TRUE)
+
+\S4method{plotManhattan}{OutriderDataSet}(
+  object,
+  sampleID,
+  value = "pvalue",
+  chr = NULL,
+  main = paste0("Sample: ", sampleID),
+  featureRanges = rowRanges(object),
+  subsetName = NULL,
+  chrColor = c("black", "darkgrey")
+)
 }
 \arguments{
 \item{...}{Additional parameters passed to plot() or plot_ly() if not stated
@@ -163,6 +187,15 @@ Can also be a vector. Integers are treated as indices.}
 \item{padjCutoff, zScoreCutoff}{Significance or Z-score cutoff
 to mark outliers}
 
+\item{label}{Indicates which genes or samples should be labeled. By default 
+all aberrant genes/samples are labelled. Can be set to NULL for 
+no labels. Provide a vector of geneIDs/sampleIDs to label 
+specific genes/samples.}
+
+\item{xaxis}{Indicates which assay should be shown on the x-axis of the 
+volcano plot. Defaults to 'zscore'. Other options are 'fc' and 
+'log2fc' for the fold-change or log2 fold-change.}
+
 \item{pch}{Integer or character to be used for plotting the points}
 
 \item{basePlot}{if \code{TRUE}, use the R base plot version, else use the
@@ -171,6 +204,11 @@ plotly framework, which is the default}
 \item{col}{Set color for the points. If set, it must be a character vector
 of length 2. (1. normal point; 2. outlier point) or a single 
 character referring to a color palette from \code{RColorBrewer}.}
+
+\item{subsetName}{The name of a subset of genes of interest for which FDR 
+corrected pvalues were previously computed. Those FDR values 
+on the subset will then be used to determine aberrant status. 
+Default is NULL (using transcriptome-wide FDR corrected pvalues).}
 
 \item{global}{Flag to plot a global Q-Q plot, default FALSE}
 
@@ -234,6 +272,20 @@ top n genes based on the BCV.}
 \item{compareDisp}{If TRUE, the default, and if the autoCorrect normalization
 was used it computes the dispersion without autoCorrect and
 plots it for comparison.}
+
+\item{value}{Indicates which assay is shown in the manhattan plot. Defaults 
+to 'pvalue'. Other options are 'zScore' and 'log2fc'.}
+
+\item{chr}{The chromosomes to be displayed in the \code{plotManhattan} 
+function. Default is \code{NULL}, i.e. all chromosomes are shown.}
+
+\item{featureRanges}{A GRanges object of the same length as the 
+OutriderDataSet object that contains the genomic positions of 
+features that are shown in the manhattan plot.}
+
+\item{chrColor}{A vector of length 2 giving the two colors used for 
+coloring alternating chromosomes in the manhattan plot. Default 
+colors are 'black' and 'darkgrey'.}
 }
 \value{
 If base R graphics are used nothing is returned else the plotly or
@@ -319,7 +371,12 @@ levels. The curves are smooths to make the reading of the plot easier.
 \code{plotEncDimSearch}: Visualization of the hyperparameter optimization. 
 It plots the encoding dimension against the achieved loss (area under the 
 precision-recall curve). From this plot the optimum should be choosen for
-the \code{q} in fitting process.
+the \code{q} in fitting process. 
+
+\code{plotManhattan}: Visualizes different metrics for each gene (pvalue, 
+log2 fold-change, z-score) along with the genomic coordinates of the 
+respective gene as a manhattan plot. Detected outlier genes are highlighted 
+in red.
 }
 \examples{
 ods <- makeExampleOutriderDataSet(dataset="Kremer")
@@ -332,22 +389,35 @@ implementation <- 'autoencoder'
 
 mcols(ods)$basepairs <- 300 # assign pseudo gene length for filtering
 ods <- filterExpression(ods)
-ods <- OUTRIDER(ods, implementation=implementation)
+# restrict FDR correction to set of genes of interest per sample
+genesOfInterest <- list(MUC1372 = c("ATPIF1", "UROD", "YBX1", 
+                                     sample(rownames(ods), 25)),
+                        MUC1360 = sample(rownames(ods), 50),
+                        MUC1350 = sample(rownames(ods), 75),
+                        X76619 = sample(rownames(ods), 20),
+                        X74172 = sample(rownames(ods), 150))
+ods <- OUTRIDER(ods, implementation=implementation, subsets=list("exampleGenes"=genesOfInterest))
 
 plotAberrantPerSample(ods)
+plotAberrantPerSample(ods, subsetName="exampleGenes")
 
 plotVolcano(ods, 49)
 plotVolcano(ods, 'MUC1365', basePlot=TRUE)
+plotVolcano(ods, 'MUC1351', basePlot=TRUE, xaxis="log2fc", label=c("NBPF16"))
+plotVolcano(ods, 'MUC1372', basePlot=TRUE, subsetName="exampleGenes")
 
 plotExpressionRank(ods, 35)
-plotExpressionRank(ods, "NDUFS5", normalized=FALSE,
+plotExpressionRank(ods, 35, subsetName="exampleGenes")
+plotExpressionRank(ods, "NDUFS5", normalized=FALSE, label="MUC1372",
     log=FALSE, main="Over expression outlier", basePlot=TRUE)
 
 plotQQ(ods, 149)
+plotQQ(ods, 149, subsetName="exampleGenes")
 plotQQ(ods, global=TRUE, outlierRatio=0.001)
 
 plotExpectedVsObservedCounts(ods, 149)
 plotExpectedVsObservedCounts(ods, "ATAD3C", basePlot=TRUE)
+plotExpectedVsObservedCounts(ods, "UROD", subsetName="exampleGenes")
 
 plotExpressedGenes(ods)
 
@@ -377,5 +447,19 @@ ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50),
         implementation=implementation)
 plotEncDimSearch(ods)
 }
+
+# To show the pvalues of a sample in a manhattan plot, rowRanges(ods) must 
+# contain the genomic position of each feature or a GRanges object must 
+# be provided 
+\dontrun{
+# in case rowRanges(ods) is a GRangesList, run this first once to speed up:
+rowRanges(ods) <- unlist(endoapply(rowRanges(ods), range))
+}
+gr <- GRanges(
+         seqnames=sample(paste0("chr", 1:22), nrow(ods), replace=TRUE),
+         ranges=IRanges(start=runif(nrow(ods), min=0, max=1e5), width=100))
+plotManhattan(ods, "MUC1350", value="pvalue", featureRanges=gr)
+plotManhattan(ods, "MUC1350", value="l2fc", featureRanges=gr)
+plotManhattan(ods, "MUC1372", featureRanges=gr, subsetName="exampleGenes")
 
 }

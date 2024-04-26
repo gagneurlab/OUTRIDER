@@ -20,13 +20,17 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
     }
     
     meanCorrectedCounts <- rowMeans(counts(object, normalized=TRUE))
+    meanRawCounts       <- rowMeans(counts(object, normalized=FALSE))
     if(isFALSE(all)){
         abByGene <- aberrant(object, 
-                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene")
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene",
+                subsetName=subsetName)
         abBySample <- aberrant(object, 
-                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample")
+                padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="sample",
+                subsetName=subsetName)
         object <- object[abByGene > 0, abBySample > 0]
         meanCorrectedCounts <- meanCorrectedCounts[abByGene > 0]
+        meanRawCounts <- meanRawCounts[abByGene > 0]
     }
     
     # warning if no rows to return 
@@ -44,6 +48,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
             zScore=NA_real_,
             l2fc=NA_real_,
             rawcounts=NA_integer_,
+            meanRawcounts=NA_real_,
             normcounts=NA_real_,
             meanCorrected=NA_real_,
             theta=NA_real_,
@@ -65,6 +70,7 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         zScore           = c(zScore(object)),
         l2fc             = c(assay(object, "l2fc")),
         rawcounts        = c(counts(object)),
+        meanRawcounts    = meanRawCounts,
         normcounts       = c(counts(object, normalized=TRUE)),
         meanCorrected    = meanCorrectedCounts,
         theta            = theta(object),
@@ -77,15 +83,15 @@ compileResults.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         AberrantByGene   = aberrant(object, 
                 padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff, by="gene",
                 subsetName=subsetName),
-        padj_rank        = c(apply(padj(object), 2, rank)),
+        padj_rank        = c(apply(padj(object, subsetName=subsetName), 2, rank)),
         FDR_set          = ifelse(is.null(subsetName), "transcriptome-wide", 
                                     subsetName)
     )
     
     # round columns if requested
     if(is.numeric(round)){
-        devNull <- lapply(
-                c("normcounts", "zScore", "l2fc", "theta", "meanCorrected"),
+        devNull <- lapply(c("normcounts", "zScore", "l2fc", "theta", 
+                "meanRawcounts", "meanCorrected"),
                 function(x) ans[,c(x):=round(get(x), as.integer(round))] )
     }
     
@@ -140,10 +146,49 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
         return(resSub)
     })
     res <- rbindlist(resSubsets)
-        
+    
     # sort it if existing
-    if(length(res) > 0){
-        res <- res[order(padjust)]
+    if(nrow(res) > 0){
+        # get aberrant columns from transcriptome-wide results
+        res_tw <- res[FDR_set == "transcriptome-wide", 
+                        .(geneID, sampleID, padj_rank, aberrant, 
+                            AberrantBySample, AberrantByGene)] 
+        
+        # dcast to have only one row per gene-sample combination
+        res <- dcast(res[, !c("padj_rank", "aberrant", "AberrantBySample", 
+                            "AberrantByGene"), with=FALSE], 
+                    ... ~ FDR_set, value.var="padjust")
+        
+        # merge again with aberrant columns for transcriptome-wide results
+        if(isTRUE(returnTranscriptomewideResults)){
+            # rename column back to padjust for tw results after dcast
+            if("transcriptome-wide" %in% colnames(res)){
+                setnames(res, "transcriptome-wide", "padjust")
+            } else{
+                res[, padjust := NA]
+            }
+            
+            # merge with aberrant columns
+            res <- merge(res, res_tw, by=c("geneID", "sampleID"), all.x=TRUE)
+            
+            # set aberrant to FALSE if only significant in subset results
+            res[is.na(aberrant), aberrant := FALSE]
+            res[is.na(padjust), padjust := padj(object)[cbind(geneID,sampleID)]]
+            
+            # restore previous column order
+            setcolorder(res, colnames(resSubsets[[1]][,!"FDR_set", with=FALSE]))
+            
+            # order rows based on transcriptome-wide FDR
+            res <- res[order(padjust)]
+        }
+        
+        # rename padjust columns for other gene sets to padjust_setname
+        for(subsetAssayName in padjAssays[padjAssays != "padjust"]){
+            setnames(res, gsub("padjust_", "", subsetAssayName), 
+                        subsetAssayName, skip_absent=TRUE)
+        }
+    } else{
+        res <- res[, !"FDR_set", with=FALSE]
     }
     
     return(res)
@@ -164,9 +209,7 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #'             more user friendly
 #' @param all By default FALSE, only significant read counts are listed in the 
 #'             results. If TRUE all results are assembled resulting in a 
-#'             data.table of length samples x genes. If FDR corrected pvalues 
-#'             for subsets of genes of interest have been calculated, this 
-#'             indicates whether the whole subset will be listed in the results.
+#'             data.table of length samples x genes. 
 #' @param returnTranscriptomewideResults If FDR corrected pvalues for subsets 
 #'              of genes of interest have been calculated, this parameter 
 #'              indicates whether additionally the transcriptome-wide results 
@@ -174,7 +217,34 @@ compileResultsAll.OUTRIDER <- function(object, padjCutoff=0.05, zScoreCutoff=0,
 #'              for those subsets should be retrieved.
 #' @param ... Additional arguments, currently not used
 #' @return A data.table where each row is an outlier event and the columns
-#'             contain additional information about this event. Eg padj, l2fc
+#'    contain additional information about this event. In details the 
+#'    table contains: 
+#'    \itemize{
+#'      \item{sampleID / geneID: }{The gene or sample ID as provided by the 
+#'            user, e.g. \code{rowData(ods)} and \code{colData(ods)},
+#'            respectively.}
+#'      \item{pValue / padjust: }{The nominal P-value and the FDR corrected
+#'            P-value (transcriptome-wide) indicating the outlier status.}
+#'      \item{zScore / l2fc: }{The z score and log\eqn{_2}{[2]} fold change 
+#'          as computed by \code{\link[OUTRIDER]{computeZscores}}.}
+#'      \item{rawcounts: }{The observed read counts.}
+#'      \item{normcounts: }{The expected count given the fitted 
+#'            autoencoder model for the given gene-sample combination.}
+#'      \item{meanRawcounts / meanCorrected: }{For this gene, the mean of the 
+#'           observed or expected counts, respectively, given the fitted 
+#'           autoencoder model.}
+#'      \item{theta: }{The dispersion parameter of the NB distribution 
+#'            for the given gene.}
+#'      \item{aberrant: }{The transcriptome-wide outlier status of this event: 
+#'            \code{TRUE} or \code{FALSE}.}
+#'      \item{AberrantBySample / AberrantByGene: }{Number of outliers for the 
+#'            given sample or gene (transcriptome-wide), respectively.}
+#'      \item{padj_rank: }{Rank of this outlier event within the given sample.}
+#'      \item{padjust_FDRset: }{The FDR corrected P-value with respect to the 
+#'            gene subset called 'FDRset', if gene subsets were specified 
+#'            during the P-value computation. Find more details at 
+#'            \code{\link[OUTRIDER]{computePvalues}}.}
+#'    }
 #' 
 #' @examples
 #' 
