@@ -15,7 +15,7 @@
 
 \S4method{sizeFactors}{OutriderDataSet,numeric}(object) <- value
 
-\S4method{sizeFactors}{OutriderDataSet,`NULL`}(object) <- value
+\S4method{sizeFactors}{OutriderDataSet,NULL}(object) <- value
 
 \S4method{estimateSizeFactors}{OutriderDataSet}(object)
 }
