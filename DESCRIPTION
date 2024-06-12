@@ -27,7 +27,7 @@ biocViews: ImmunoOncology, RNASeq, Transcriptomics, Alignment, Sequencing,
 License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Depends:
     R (>= 3.6), 
     BiocParallel,
@@ -59,7 +59,9 @@ Imports:
     scales,
     splines,
     stats,
-    utils
+    utils,
+    RMTstat,
+    pracma
 Suggests: 
     testthat,
     knitr,
