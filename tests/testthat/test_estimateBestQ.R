@@ -1,13 +1,13 @@
 context("Testing the estimateBestQ function (Optimal Hard Thresholding)")
 
 test_that("Input validation handles NULL and non-matrix inputs", {
-  expect_error(findEncodingDimOptimalHardThreshold(), 
+  expect_error(estimateBestQ(), 
                "Please provide an OutriderDataSet or a z-score matrix.")
-  expect_error(findEncodingDimOptimalHardThreshold(NULL, NULL), 
+  expect_error(estimateBestQ(NULL, NULL), 
                "Please provide an OutriderDataSet or a z-score matrix.")
-  expect_error(findEncodingDimOptimalHardThreshold(zScores = "not a matrix"), 
+  expect_error(estimateBestQ(zScores = "not a matrix"), 
                "Provided zScores are not a matrix.")
-  expect_error(findEncodingDimOptimalHardThreshold(ods = "not an ods"), 
+  expect_error(estimateBestQ(ods = "not an ods"), 
                "Please provide an OutriderDataSet.")
   
   ctsFile <- system.file('extdata', 'GTExSkinSmall.tsv',
@@ -16,17 +16,17 @@ test_that("Input validation handles NULL and non-matrix inputs", {
   ods <- OutriderDataSet(countData=ctsTable)
   # filter out non expressed genes
   ods <- filterExpression(ods, minCounts=TRUE, filterGenes=TRUE)
+  ods <- estimateSizeFactors(ods)
   
-  expect_warning(findEncodingDimOptimalHardThreshold(ods = ods, zScores = matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2)),
+  expect_warning(estimateBestQ(ods = ods, zScores = matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2)),
                  "Provided z-scores are ignored and recalculated from ods.")
 })
 
 test_that("User is notified about invalid matrix dimensions or values", {
-  expect_error(findEncodingDimOptimalHardThreshold(zScores = matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 
+  expect_error(estimateBestQ(zScores = matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 
                                                                     nrow = 2, ncol = 4)),
-               c("Number of columns (samples) is larger than number of rows (genes).",
-                 "OHT does not work for such cases."))
-  expect_error(findEncodingDimOptimalHardThreshold(zScores = matrix(c(1, 2, 3, 4, 5, Inf), nrow = 3, ncol = 2)), 
+               "Number of columns \\(samples\\) is larger than number of rows \\(genes\\)\\. OHT does not work for such cases\\.")
+  expect_error(estimateBestQ(zScores = matrix(c(1, 2, 3, 4, 5, Inf), nrow = 3, ncol = 2)), 
                "Z-score matrix contains infinite values.")
 })
 
@@ -54,14 +54,14 @@ test_that("Encoding dimensions are properly calculated for simulated z-scores", 
   signalNoiseRatio <- 5
   zTilde <- LRsim(numGenes, numSamples, latentDim, signalNoiseRatio)$X * 1000
   
-  expect_equal(findEncodingDimOptimalHardThreshold(zScores = zTilde),
+  expect_equal(estimateBestQ(zScores = zTilde),
                latentDim)
   
   # Simulate zScore matrix consisting of noise only
   set.seed(42)
   latentDim <- 0
   zTilde <- matrix(rnorm(numGenes * numSamples), nrow = numGenes, ncol = numSamples)
-  expect_error(expect_equal(findEncodingDimOptimalHardThreshold(zScores = zTilde), 
+  expect_error(expect_equal(estimateBestQ(zScores = zTilde), 
                             latentDim),
                c("Latent space dimension is smaller than 2. Check your count matrix and",
                  "verify that all samples have the expected number of counts.",
@@ -74,7 +74,9 @@ test_that("Encoding dimensions are properly calculated for real ODS", {
   ctsTable <- read.table(ctsFile, check.names=FALSE)
   ods <- OutriderDataSet(countData=ctsTable)
   ods <- filterExpression(ods, minCounts=TRUE, filterGenes=TRUE)
+  ods <- estimateSizeFactors(ods)
+  
   outsingleResult <- 5 # Expected value was calculated with OutSingle
-  expect_equal(findEncodingDimOptimalHardThreshold(ods = ods), outsingleResult, 
+  expect_equal(estimateBestQ(ods = ods), outsingleResult, 
                tolerance = 1)
 })

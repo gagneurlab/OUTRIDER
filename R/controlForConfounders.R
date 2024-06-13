@@ -162,8 +162,8 @@ estimateBestQ <- function(ods=NULL, zScores=NULL){
   numSamples <- ncol(zScores)
   beta <- numSamples / numGenes
   if (beta > 1){
-    stop("Number of columns (samples) is larger than number of rows (genes).",
-         "OHT does not work for such cases.")
+    stop(paste("Number of columns (samples) is larger than number of rows (genes).",
+               "OHT does not work for such cases.", collapse = "\n"))
   }
   
   # Compute the optimal w(beta)
