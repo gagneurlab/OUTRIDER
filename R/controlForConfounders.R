@@ -137,7 +137,6 @@ estimateBestQ <- function(ods=NULL, zScores=NULL){
     }
     
     # Control for sequencing depth
-    ods <- estimateSizeFactors(ods) 
     controlledCounts <- t(t(counts(ods, normalized=FALSE)) / sizeFactors(ods)) 
     
     # Log-transform controlled counts
@@ -163,23 +162,23 @@ estimateBestQ <- function(ods=NULL, zScores=NULL){
   numSamples <- ncol(zScores)
   beta <- numSamples / numGenes
   if (beta > 1){
-    stop("Number of columns is larger than number of rows. Genes and samples", 
-         "might have been exchanged. Aspect ratio needs to be smaller or equal to 1.")
+    stop("Number of columns (samples) is larger than number of rows (genes).",
+         "OHT does not work for such cases.")
   }
   
   # Compute the optimal w(beta)
   coef <- (optimalSVHTCoef(beta) / sqrt(medianMarchenkoPastur(numSamples, numGenes)))
-  #cat("optimal coefficient:", coef, "\n")
   
   # compute cutoff
   cutoff <- coef * median(sv)
-  #cat("cutoff:", cutoff, "\n")  
   
   # compute and return rank
   if (any(sv > cutoff)){
     latentDim <- max(which(sv > cutoff))
   } else {
-    warning("Calculated latent space dimension is zero.")
+    stop("Latent space dimension is smaller than 2. Check your count matrix and",
+         "verify that all samples have the expected number of counts.",
+         "hist(colSums(counts(ods)))")
     latentDim <- 0} 
   cat("Target rank:", latentDim, "\n")
   return(latentDim)
@@ -204,19 +203,22 @@ optimalSVHTCoef <- function(beta){
 #' 
 #' @noRd
 medianMarchenkoPastur <- function(ncol, nrow){ 
-  # Compute mu: median of Marchenko-Pastur distribution
+  # Compute median of Marchenko-Pastur distribution
   beta <- ncol / nrow
-  botSpec <- (1 - sqrt(beta))^2
-  topSpec <- (1 + sqrt(beta))^2
-  lobnd <- copy(botSpec) # Initialize range for possible mu values
-  hibnd <- copy(topSpec)
+  betaMinus <- (1 - sqrt(beta))^2
+  betaPlus <- (1 + sqrt(beta))^2
+  
+  # Initialize range for upper integral boundary
+  lobnd <- copy(betaMinus) 
+  hibnd <- copy(betaPlus)
   
   
   while ((hibnd - lobnd) > 0.001){ # Iterate until convergence
-    x <- seq(lobnd, hibnd, length.out = 10) # Range of values for mu
+    x <- seq(lobnd, hibnd, length.out = 10) # Set range of values for upper integral boundary
     y <- rep(0, length(x))
     for (numSamples in 1:length(x)){
-      y[numSamples] <- quadgk(dmp, a=botSpec, b=x[numSamples], ndf=nrow, pdim=ncol)
+      # Approximate integral using Gauss-Kronrod Quadrature
+      y[numSamples] <- quadgk(dmp, a=betaMinus, b=x[numSamples], ndf=nrow, pdim=ncol)
     }  
     
     # Set new boundaries for x that yield the closest results to 0.5
@@ -228,6 +230,6 @@ medianMarchenkoPastur <- function(ncol, nrow){
       hibnd = min(x[y > 0.5])
     }
   }
-  # If hibnd and lobnd are similar enough, return their mean as value for mu
+  # If hibnd and lobnd are similar enough, return their mean
   return((hibnd + lobnd) / 2.0)
 }
