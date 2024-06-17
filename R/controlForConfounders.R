@@ -137,6 +137,9 @@ estimateBestQ <- function(ods=NULL, zScores=NULL){
     }
     
     # Control for sequencing depth
+    if (is.null(sizeFactors(ods))){
+      ods <- estimateSizeFactors(ods)
+    }
     controlledCounts <- t(t(counts(ods, normalized=FALSE)) / sizeFactors(ods)) 
     
     # Log-transform controlled counts
