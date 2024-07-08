@@ -24,10 +24,7 @@ test_that("Input validation handles NULL and non-matrix inputs", {
                  "Provided z-scores are ignored and recalculated from ods.")
 })
 
-test_that("User is notified about invalid matrix dimensions or values", {
-  expect_error(estimateBestQ(zScores = matrix(c(1, 2, 3, 4, 5, 6, 7, 8), 
-                                                                    nrow = 2, ncol = 4)),
-               "Number of columns \\(samples\\) is larger than number of rows \\(genes\\)\\. OHT does not work for such cases\\.")
+test_that("User is notified about invalid matrix values", {
   expect_error(estimateBestQ(zScores = matrix(c(1, 2, 3, 4, 5, Inf), nrow = 3, ncol = 2)), 
                "Z-score matrix contains infinite values.")
 })
@@ -53,6 +50,17 @@ test_that("Encoding dimensions are properly calculated for simulated z-scores", 
   numGenes <- 10000
   numSamples <- 200
   latentDim <- 50
+  signalNoiseRatio <- 5
+  zTilde <- LRsim(numGenes, numSamples, latentDim, signalNoiseRatio)$X * 1000
+  
+  expect_equal(estimateBestQ(zScores = zTilde),
+               latentDim)
+  
+  # Simulate zScore matrix with beta > 1
+  set.seed(42)
+  numGenes <- 50
+  numSamples <- 200
+  latentDim <- 20
   signalNoiseRatio <- 5
   zTilde <- LRsim(numGenes, numSamples, latentDim, signalNoiseRatio)$X * 1000
   

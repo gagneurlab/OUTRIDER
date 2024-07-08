@@ -156,21 +156,22 @@ estimateBestQ <- function(ods=NULL, zScores=NULL){
     stop("Z-score matrix contains infinite values.")
   }
   
+  # Transpose zScores if aspect ratio larger than 1
+  if (ncol(zScores)/nrow(zScores) > 1){
+    zScores <- t(zScores)
+  } 
+  
   # Perform Singular Value Decomposition (SVD) on the matrix of Z-scores 
   # and extract singular values
   sv <- svd(zScores)$d
   
-  # Aspect ratio of the count matrix, 0<beta<=1
-  numGenes <- nrow(zScores)
-  numSamples <- ncol(zScores)
-  beta <- numSamples / numGenes
-  if (beta > 1){
-    stop(paste("Number of columns (samples) is larger than number of rows (genes).",
-               "OHT does not work for such cases.", collapse = "\n"))
-  }
+  # Aspect ratio of the (transposed) count matrix
+  numRows <- nrow(zScores)
+  numCols <- ncol(zScores)
+  beta <- numCols / numRows
   
   # Compute the optimal w(beta)
-  coef <- (optimalSVHTCoef(beta) / sqrt(medianMarchenkoPastur(numSamples, numGenes)))
+  coef <- (optimalSVHTCoef(beta) / sqrt(medianMarchenkoPastur(numCols, numRows)))
   
   # compute cutoff
   cutoff <- coef * median(sv)
@@ -219,9 +220,9 @@ medianMarchenkoPastur <- function(ncol, nrow){
   while ((hibnd - lobnd) > 0.001){ # Iterate until convergence
     x <- seq(lobnd, hibnd, length.out = 10) # Set range of values for upper integral boundary
     y <- rep(0, length(x))
-    for (numSamples in 1:length(x)){
+    for (numCols in 1:length(x)){
       # Approximate integral using Gauss-Kronrod Quadrature
-      y[numSamples] <- quadgk(dmp, a=betaMinus, b=x[numSamples], ndf=nrow, pdim=ncol)
+      y[numCols] <- quadgk(dmp, a=betaMinus, b=x[numCols], ndf=nrow, pdim=ncol)
     }  
     
     # Set new boundaries for x that yield the closest results to 0.5
