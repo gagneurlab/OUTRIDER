@@ -71,11 +71,11 @@ test_that("Encoding dimensions are properly calculated for simulated z-scores", 
   set.seed(42)
   latentDim <- 0
   zTilde <- matrix(rnorm(numGenes * numSamples), nrow = numGenes, ncol = numSamples)
-  expect_error(expect_equal(estimateBestQ(zScores = zTilde), 
-                            latentDim),
+  expect_warning(expect_equal(estimateBestQ(zScores = zTilde), 2),
                paste("Latent space dimension is smaller than 2\\. Check your count matrix and",
                  "verify that all samples have the expected number of counts\\.",
-                 "hist\\(colSums\\(counts\\(ods\\)\\)\\)", collapse = "\n"))
+                 "\\(hist\\(colSums\\(counts\\(ods\\)\\)\\)\\)\\.",
+                 "For now\\, the latent space dimension is set to 2\\.", collapse = "\n"))
 })
 
 test_that("Encoding dimensions are properly calculated for real ODS", {
