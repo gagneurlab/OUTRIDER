@@ -181,7 +181,7 @@ estimateBestQ <- function(ods=NULL, zScores=NULL){
     latentDim <- max(which(sv > cutoff))
   } else {
     warning(paste("Optimal latent space dimension is smaller than 2. Check your count matrix and",
-         "verify that all samples have the expected number of counts.",
+         "verify that all samples have the expected number of counts",
          "(hist(colSums(counts(ods)))).",
          "For now, the latent space dimension is set to 2.", collapse = "\n"))
     latentDim <- 2} 
