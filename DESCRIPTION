@@ -65,7 +65,7 @@ Imports:
     pracma
 Suggests: 
     testthat,
-    knitr,
+    knitr (==1.46),
     rmarkdown,
     BiocStyle,
     TxDb.Hsapiens.UCSC.hg19.knownGene,
