@@ -157,7 +157,9 @@ jobs:
       - name: Install tinytex packages
         run: |
           system("tlmgr --version")
-          install.packages("tinytex")
+          # install.packages("tinytex")
+          # install specific version of tinytex to avoid breaking changes from newest version
+          remotes::install_version("tinytex", version = "0.51")
           tinytex::tlmgr_install(pkgs = c("bera", "caption", "changepage", "enumitem", "everysel", "fancyhdr", "footmisc", "grfext", "index", "marginfix", "mathtools", 
                                  "ms", "nowidow", "parnotes", "parskip", "placeins", "preprint", "ragged2e", "side", "soul", "titlesec", "tocbibind", "xstring"))
         shell: Rscript {0}
