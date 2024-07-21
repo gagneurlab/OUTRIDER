@@ -148,6 +148,7 @@ jobs:
       - name: Install Windows system dependencies
         if: runner.os == 'Windows'
         run: |
+          install.packages("highr")
           ## Edit below if you have any Windows system dependencies
         shell: Rscript {0}
         
