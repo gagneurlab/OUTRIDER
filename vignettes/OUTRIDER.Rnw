@@ -4,8 +4,8 @@
 %\VignetteEncoding{UTF-8}
 
 \documentclass[11pt]{article}
-\usepackage{xcolor}
-\definecolor{fgcolor}{rgb}{0,0,0}
+%\usepackage{xcolor}
+%\definecolor{fgcolor}{rgb}{0,0,0}
 
 <<style-knitr, eval=TRUE, echo=FALSE, cache=FALSE, results="asis">>=
 BiocStyle::latex()
