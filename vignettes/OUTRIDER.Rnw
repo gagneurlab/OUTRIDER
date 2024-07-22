@@ -6,7 +6,6 @@
 \documentclass[11pt]{article}
 \usepackage{xcolor}
 \definecolor{fgcolor}{rgb}{0,0,0}
-\usepackage{highlight}
 
 <<style-knitr, eval=TRUE, echo=FALSE, cache=FALSE, results="asis">>=
 BiocStyle::latex()
@@ -14,6 +13,7 @@ BiocStyle::latex()
 
 <<knitr, echo=FALSE, cache=FALSE, results="hide">>=
 library(knitr)
+library(highr)
 opts_chunk$set(
     tidy=FALSE,
     dev="png",
