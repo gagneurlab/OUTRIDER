@@ -148,6 +148,7 @@ jobs:
       - name: Install Windows system dependencies
         if: runner.os == 'Windows'
         run: |
+          install.packages("knitr")
           install.packages("highr")
           ## Edit below if you have any Windows system dependencies
         shell: Rscript {0}
@@ -159,6 +160,7 @@ jobs:
         run: |
           system("tlmgr --version")
           install.packages("tinytex")
+          tinytex::tlmgr_update()
           tinytex::tlmgr_install(pkgs = c("bera", "caption", "changepage", "enumitem", "everysel", "fancyhdr", "footmisc", "grfext", "index", "marginfix", "mathtools", 
                                  "ms", "nowidow", "parnotes", "parskip", "placeins", "preprint", "ragged2e", "side", "soul", "titlesec", "tocbibind", "xstring"))
         shell: Rscript {0}
