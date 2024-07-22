@@ -148,7 +148,6 @@ jobs:
       - name: Install Windows system dependencies
         if: runner.os == 'Windows'
         run: |
-          remotes::install_version("knitr", version = "1.46")
           ## Edit below if you have any Windows system dependencies
         shell: Rscript {0}
         
@@ -160,7 +159,7 @@ jobs:
           system("tlmgr --version")
           install.packages("tinytex")
           tinytex::tlmgr_install(pkgs = c("bera", "caption", "changepage", "enumitem", "everysel", "fancyhdr", "footmisc", "grfext", "index", "marginfix", "mathtools", 
-                                 "ms", "nowidow", "parnotes", "parskip", "placeins", "preprint", "ragged2e", "side", "soul", "titlesec", "tocbibind", "xstring"))
+                                 "ms", "nowidow", "parnotes", "parskip", "placeins", "preprint", "ragged2e", "side", "soul", "titlesec", "tocbibind", "xstring", "highlight"))
         shell: Rscript {0}
 
       - name: Install BiocManager
