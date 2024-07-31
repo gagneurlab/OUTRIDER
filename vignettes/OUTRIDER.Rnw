@@ -4,6 +4,8 @@
 %\VignetteEncoding{UTF-8}
 
 \documentclass[11pt]{article}
+\usepackage{xcolor}
+\definecolor{fgcolor}{rgb}{0,0,0}
 
 <<style-knitr, eval=TRUE, echo=FALSE, cache=FALSE, results="asis">>=
 BiocStyle::latex()
@@ -337,11 +339,7 @@ We have different ways to control for confounders present in the data.
 The first and standard way is to calculate the \Rfunction{sizeFactors} 
 as done in \deseq{}\cite{Love2014}.
 
-Additionally, the \Rfunction{controlForConfounders} function calls an 
-autoencoder that automatically controls for confounders present in the data.
-Therefore an encoding dimension $q$ needs to be set or the default value 20 is 
-used. The optimal value of $q$ can be determined using the
-\Rfunction{findEncodingDim} function. 
+Additionally, the \Rfunction{controlForConfounders} function calls a denoising autoencoder that controls for confounders by exploiting correlations in the data to reconstruct corrupted read-counts. The encoding dimension \textit{q} can be set manually or can be calculated using the Optimal Hard Thresholding (OHT) procedure established by Gavish and Donoho\cite{Gavish2013}. Alternatively, the optimal value of \textit{q} can be determined using the \Rfunction{findEncodingDim} function by testing different values for \textit{q} and calculating the one that recalls the highest number of injected outliers. The deterministic approach using OHT is much faster than the iterative procedure in \Rfunction{findEncodingDim}.
 After controlling for confounders, the heatmap should be plotted again.
 If it worked, no batches should be present and the correlations between 
 samples should be reduced and close to zero.
@@ -373,7 +371,7 @@ expression patterns.
 
 \subsection{Finding the right encoding dimension \textit{q}}
 
-In the previous section, we fixed the encoding dimension $q=21$. But having 
+In the previous section, we fixed the encoding dimension $q=21$. However, having 
 the right encoding dimension is crucial in finding outliers in the data. 
 On the one hand, if \textit{q} is too big the autoencoder will learn the 
 identity matrix and will overfit the data. On the other hand, if \textit{q}
@@ -395,10 +393,10 @@ plotEncDimSearch(ods)
 
 @
 
-Since this function runs a full OUTRIDER fit for a range of encoding dimensions,
-it is quite CPU intensive, but can increase the overall performance of the
-autoencoder and is recommended for any data set. If \textit{q} is not provided
-by the user, it will be estimated based on the number of samples.
+Since this function runs a full OUTRIDER fit for a variety of encoding dimensions, 
+it is quite CPU-intensive. Thus, it is recommended to use the faster function \Rfunction{estimateBestQ} which relies on Optimal Hard Thresholding\cite{Gavish2013}.
+It is the default method to find the optimal encoding dimension if \textit{q} is 
+not provided by the user.
 
 
 \subsubsection{Excluding samples from the autoencoder fit}

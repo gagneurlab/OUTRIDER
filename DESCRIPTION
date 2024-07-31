@@ -12,6 +12,7 @@ Authors@R: c(
             email="mertes@in.tum.de", comment=c(ORCID="0000-0002-1091-205X")),
     person("Agne", "Matuseviciute", role=c("aut")),
     person(c("Michaela", "Fee"), "Müller", role=c("ctb")),
+    person("Andrea", "Raithel", role=c("ctb")),
     person("Vicente", "Yepez", role=c("aut"), email="yepez@in.tum.de"),
     person("Julien", "Gagneur", role=c("aut"), email="gagneur@in.tum.de"))
 Description: Identification of aberrant gene expression in RNA-seq data.
@@ -27,7 +28,7 @@ biocViews: ImmunoOncology, RNASeq, Transcriptomics, Alignment, Sequencing,
 License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Depends:
     R (>= 3.6), 
     BiocParallel,
@@ -59,7 +60,9 @@ Imports:
     scales,
     splines,
     stats,
-    utils
+    utils,
+    RMTstat,
+    pracma
 Suggests: 
     testthat,
     knitr,
@@ -73,7 +76,8 @@ Suggests:
     covr,
     GenomeInfoDb,
     ggbio,
-    biovizBase
+    biovizBase,
+    denoiseR
 LinkingTo:
     Rcpp,
     RcppArmadillo
