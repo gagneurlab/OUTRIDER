@@ -172,7 +172,9 @@ plotSizeFactors(ods, basePlot = TRUE)
   main = paste0("Sample: ", sampleID),
   featureRanges = rowRanges(object),
   subsetName = NULL,
-  chrColor = c("black", "darkgrey")
+  chrColor = c("black", "darkgrey"),
+  padjCutoff = 0.05,
+  zScoreCutoff = 0
 )
 }
 \arguments{
