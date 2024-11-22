@@ -1342,7 +1342,10 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                                    chr=NULL, main=paste0("Sample: ", sampleID),
                                    featureRanges=rowRanges(object), 
                                    subsetName=NULL,
-                                   chrColor = c("black", "darkgrey")){
+                                   chrColor = c("black", "darkgrey"),
+                                   padjCutoff = 0.05,
+                                   zScoreCutoff=0
+                                  ){
     requireNamespace("ggbio")
     requireNamespace("GenomeInfoDb")
     
@@ -1396,7 +1399,8 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
         gr$value <- assay(object, "l2fc")[, sampleID]
         value <- expression(paste(log[2], "(fold-change)"))
     }
-    gr$aberrant <- aberrant(object, subsetName=subsetName)[,sampleID]
+    gr$aberrant <- aberrant(object, subsetName=subsetName,
+                            padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff)[,sampleID]
     
     # Sort granges for plot
     gr <- GenomeInfoDb::sortSeqlevels(gr)
