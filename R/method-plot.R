@@ -1438,7 +1438,7 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                          highlight.gr = gr[which(gr$aberrant == TRUE)], 
                          highlight.col = 'firebrick',
                          highlight.overlap = 'equal',
-                         highlight.label.size = 5,
+                         highlight.label.size = highlight.label.size,
                          use.genome.coords=is.null(chr)) +
         labs(x="Chromosome", y = value, title=main, subtitle=subtitle)
     
