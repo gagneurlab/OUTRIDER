@@ -1344,7 +1344,8 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                                    subsetName=NULL,
                                    chrColor = c("black", "darkgrey"),
                                    padjCutoff = 0.05,
-                                   zScoreCutoff=0
+                                   zScoreCutoff=0,
+                                   highlight.label.size = 5
                                   ){
     requireNamespace("ggbio")
     requireNamespace("GenomeInfoDb")
@@ -1437,6 +1438,7 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                          highlight.gr = gr[which(gr$aberrant == TRUE)], 
                          highlight.col = 'firebrick',
                          highlight.overlap = 'equal',
+                         highlight.label.size = 5,
                          use.genome.coords=is.null(chr)) +
         labs(x="Chromosome", y = value, title=main, subtitle=subtitle)
     
