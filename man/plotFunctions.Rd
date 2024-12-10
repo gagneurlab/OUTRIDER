@@ -174,7 +174,8 @@ plotSizeFactors(ods, basePlot = TRUE)
   subsetName = NULL,
   chrColor = c("black", "darkgrey"),
   padjCutoff = 0.05,
-  zScoreCutoff = 0
+  zScoreCutoff = 0, 
+  highlight.label.size = 5
 )
 }
 \arguments{
@@ -289,6 +290,8 @@ features that are shown in the manhattan plot.}
 coloring alternating chromosomes in the manhattan plot. Default 
 colors are 'black' and 'darkgrey'.}
 }
+\item{highlight.label.size}{Size of the label of the highlighted genes. 
+Default value is 5.}
 \value{
 If base R graphics are used nothing is returned else the plotly or
             the gplot object is returned.
