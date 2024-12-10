@@ -289,9 +289,11 @@ features that are shown in the manhattan plot.}
 \item{chrColor}{A vector of length 2 giving the two colors used for 
 coloring alternating chromosomes in the manhattan plot. Default 
 colors are 'black' and 'darkgrey'.}
-}
-\item{highlight.label.size}{Size of the label of the highlighted genes. 
+
+\item{highlight.label.size}{Size of the label of the highlighted genes.
 Default value is 5.}
+}
+
 \value{
 If base R graphics are used nothing is returned else the plotly or
             the gplot object is returned.

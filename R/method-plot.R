@@ -57,6 +57,8 @@
 #'             Default is NULL (using transcriptome-wide FDR corrected pvalues).
 #' @param chr The chromosomes to be displayed in the \code{plotManhattan} 
 #'             function. Default is \code{NULL}, i.e. all chromosomes are shown. 
+#' @param highlight.label.size Size of the label of the highlighted genes to be 
+#'             displayed in the \code{plotManhattan}. Default value is 5.
 #### Graphical parameters
 #' @param main Title for the plot, if missing a default title will be used.
 #' @param groups A character vector containing either group assignments of
