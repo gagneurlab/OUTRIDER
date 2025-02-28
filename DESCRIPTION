@@ -1,7 +1,7 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.20.1
+Version: 1.21.0
 Date: 2024-04-24
 URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
