@@ -12,6 +12,8 @@
 
 #' @param ods An OutriderDataSet object
 #' @param zScoresOHT A z-score matrix
+#' @param useOHT If \code{TRUE} (default), Optimal Hard Thresholding is 
+#'              used to estimate the optimal encoding dimension.
 #' @param params,encDimParams Set of possible q values.
 #' @param freq Frequency of outlier, defaults to 1E-2
 #' @param zScore,zScoreParams Set of possible injection Z-score, defaults to 3.

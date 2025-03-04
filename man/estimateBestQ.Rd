@@ -35,6 +35,9 @@ findInjectZscore(
 
 \item{zScoresOHT}{A z-score matrix}
 
+\item{useOHT}{If \code{TRUE} (default), Optimal Hard Thresholding is 
+used to estimate the optimal encoding dimension.}
+
 \item{params, encDimParams}{Set of possible q values.}
 
 \item{freq}{Frequency of outlier, defaults to 1E-2}
