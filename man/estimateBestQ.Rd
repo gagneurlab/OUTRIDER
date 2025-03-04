@@ -57,9 +57,8 @@ function.}
 \item{BPPARAM}{BPPARAM object by default bpparam().}
 }
 \value{
-The optimal encoding dimension
-
-The OutriderDataSet object with the optimal encoding dimension saved in the metadata
+The OutriderDataSet object with the optimal encoding dimension saved 
+       in the metadata
 }
 \description{
 Finds the optimal encoding dimension by either Optimal Hard Thresholding 

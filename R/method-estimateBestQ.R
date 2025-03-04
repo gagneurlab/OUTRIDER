@@ -5,11 +5,6 @@
 #' or injecting artificial splicing outlier ratios while maximizing the 
 #' precision-recall curve.
 #'
-
-#'
-#' @return The optimal encoding dimension
-#'
-
 #' @param ods An OutriderDataSet object
 #' @param zScoresOHT A z-score matrix
 #' @param useOHT If \code{TRUE} (default), Optimal Hard Thresholding is 
@@ -24,9 +19,11 @@
 #' @param ... Further arguments passed on to the \code{controlForConfounders}
 #'             function.
 #' @param BPPARAM BPPARAM object by default bpparam().
+#' 
 #' @import RMTstat
 #' @import pracma
-#' @return The OutriderDataSet object with the optimal encoding dimension saved in the metadata
+#' @return The OutriderDataSet object with the optimal encoding dimension saved 
+#'        in the metadata
 #' 
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
