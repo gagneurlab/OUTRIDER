@@ -239,7 +239,7 @@
 #'
 #' \dontrun{
 #' # for speed reasons we only search for 5 different dimensions
-#' ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50), 
+#' ods <- estimateBestQ(ods, useOHT=FALSE, params=c(3, 10, 20, 35, 50), 
 #'         implementation=implementation)
 #' plotEncDimSearch(ods)
 #' }
@@ -1234,7 +1234,7 @@ plotEncDimSearch.OUTRIDER <- function(object){
     if(is(object, 'OutriderDataSet')){
         if(!'encDimTable' %in% colnames(metadata(object)) &
                 !is(metadata(object)$encDimTable, 'data.table')){
-            stop('Please run first the findEncodingDim before ',
+            stop('Please run first the estimateBestQ before ',
                     'plotting the results of it.')
         }
         dt <- metadata(object)$encDimTable

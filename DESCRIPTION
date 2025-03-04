@@ -94,7 +94,7 @@ Collate:
     ZscoreMatrix.R
     method-evaluation.R
     method-counts.R
-    method-gridSearch.R
+    method-estimateBestQ.R
     method-plot.R
     method-results.R
     pValMatrix.R

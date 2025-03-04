@@ -174,7 +174,7 @@ plotSizeFactors(ods, basePlot = TRUE)
   subsetName = NULL,
   chrColor = c("black", "darkgrey"),
   padjCutoff = 0.05,
-  zScoreCutoff = 0, 
+  zScoreCutoff = 0,
   highlight.label.size = 5
 )
 }
@@ -290,10 +290,9 @@ features that are shown in the manhattan plot.}
 coloring alternating chromosomes in the manhattan plot. Default 
 colors are 'black' and 'darkgrey'.}
 
-\item{highlight.label.size}{Size of the label of the highlighted genes.
-Default value is 5.}
+\item{highlight.label.size}{Size of the label of the highlighted genes to be 
+displayed in the \code{plotManhattan}. Default value is 5.}
 }
-
 \value{
 If base R graphics are used nothing is returned else the plotly or
             the gplot object is returned.
@@ -450,7 +449,7 @@ plotPowerAnalysis(ods)
 
 \dontrun{
 # for speed reasons we only search for 5 different dimensions
-ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50), 
+ods <- estimateBestQ(ods, useOHT=FALSE, params=c(3, 10, 20, 35, 50), 
         implementation=implementation)
 plotEncDimSearch(ods)
 }
