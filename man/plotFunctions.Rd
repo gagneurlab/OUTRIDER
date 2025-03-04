@@ -374,10 +374,12 @@ the dispersion of the provided OUTRIDER data set the theoretical P-value
 over the mean expression is plotted. This is done for different expression
 levels. The curves are smooths to make the reading of the plot easier.
 
-\code{plotEncDimSearch}: Visualization of the hyperparameter optimization. 
-It plots the encoding dimension against the achieved loss (area under the 
-precision-recall curve). From this plot the optimum should be choosen for
-the \code{q} in fitting process. 
+\code{plotEncDimSearch}: Visualization of the estimation of the optimal
+encoding dimension. If Optimal Hard Thresholding was used, the singular values
+are plotted against their rank. If a hyperparameter optimization was performed, 
+the encoding dimension against the achieved loss (area under the 
+precision-recall curve) is plotted. From these plots the optimum should be 
+choosen for the \code{q} in fitting process. 
 
 \code{plotManhattan}: Visualizes different metrics for each gene (pvalue, 
 log2 fold-change, z-score) along with the genomic coordinates of the 

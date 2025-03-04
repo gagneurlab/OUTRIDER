@@ -396,7 +396,7 @@ ods <- estimateBestQ(ods)
 # Hyperparameter Optimization
 ods <- estimateBestQ(ods, useOHT=FALSE)
 
-# visualize the hyper parameter optimization
+# visualize the estimation of the optimal encoding dimension
 plotEncDimSearch(ods)
 
 @
