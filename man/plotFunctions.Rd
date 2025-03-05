@@ -378,8 +378,7 @@ levels. The curves are smooths to make the reading of the plot easier.
 encoding dimension. If Optimal Hard Thresholding was used, the singular values
 are plotted against their rank. If a hyperparameter optimization was performed, 
 the encoding dimension against the achieved loss (area under the 
-precision-recall curve) is plotted. From these plots the optimum should be 
-choosen for the \code{q} in fitting process. 
+precision-recall curve) is plotted. 
 
 \code{plotManhattan}: Visualizes different metrics for each gene (pvalue, 
 log2 fold-change, z-score) along with the genomic coordinates of the 
