@@ -1256,8 +1256,8 @@ plotEncDimSearch.OUTRIDER <- function(object){
         geom_vline(xintercept = opt_data$q, linetype = "dashed", color = "darkgray") +
         geom_text(data=opt_data, aes(x = q+3, y = singular_values, 
                                      label = q), color = "darkgray", size=4.5) +
-        xlab("Singular value rank (Estimated q)") +
-        ylab("Log(singular value)") + 
+        xlab('Singular value rank (Estimated q)') +
+        ylab('Singular value') + 
         theme_bw(base_size=16) +
         scale_y_log10() +
         ggtitle('Search for best encoding dimension by OHT')
@@ -1281,7 +1281,7 @@ plotEncDimSearch.OUTRIDER <- function(object){
           geom_vline(data=dtPlot[opt == enc], show.legend=TRUE,
                   aes(xintercept=enc, col=z, linetype='Optimum')) +
           geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) +
-          labs(x='Encoding dimensions',
+          labs(x='Encoding dimension',
                   y='Evaluation loss', col='Z score', linetype='Best Q') +
           scale_linetype_manual(values="dotted")
     }
