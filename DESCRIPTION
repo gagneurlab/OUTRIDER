@@ -62,7 +62,8 @@ Imports:
     stats,
     utils,
     RMTstat,
-    pracma
+    pracma,
+    txdbmaker
 Suggests: 
     testthat,
     knitr,
