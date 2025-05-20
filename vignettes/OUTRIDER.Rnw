@@ -4,6 +4,8 @@
 %\VignetteEncoding{UTF-8}
 
 \documentclass[11pt]{article}
+\usepackage{xcolor}
+\definecolor{fgcolor}{rgb}{0,0,0}
 
 <<style-knitr, eval=TRUE, echo=FALSE, cache=FALSE, results="asis">>=
 BiocStyle::latex()
@@ -337,11 +339,7 @@ We have different ways to control for confounders present in the data.
 The first and standard way is to calculate the \Rfunction{sizeFactors} 
 as done in \deseq{}\cite{Love2014}.
 
-Additionally, the \Rfunction{controlForConfounders} function calls an 
-autoencoder that automatically controls for confounders present in the data.
-Therefore an encoding dimension $q$ needs to be set or the default value 20 is 
-used. The optimal value of $q$ can be determined using the
-\Rfunction{findEncodingDim} function. 
+Additionally, the \Rfunction{controlForConfounders} function calls a denoising autoencoder that controls for confounders by exploiting correlations in the data to reconstruct corrupted read-counts. The encoding dimension \textit{q} can be set manually or can be calculated with the \Rfunction{estimateBestQ} function using the Optimal Hard Thresholding (OHT) procedure established by Gavish and Donoho\cite{Gavish2013}. Alternatively, the optimal value of \textit{q} can be determined by testing different values for \textit{q} and calculating the one that recalls the highest number of injected outliers. The deterministic approach using OHT is much faster than the iterative procedure.
 After controlling for confounders, the heatmap should be plotted again.
 If it worked, no batches should be present and the correlations between 
 samples should be reduced and close to zero.
@@ -373,32 +371,35 @@ expression patterns.
 
 \subsection{Finding the right encoding dimension \textit{q}}
 
-In the previous section, we fixed the encoding dimension $q=21$. But having 
+In the previous section, we fixed the encoding dimension $q=21$. However, having 
 the right encoding dimension is crucial in finding outliers in the data. 
 On the one hand, if \textit{q} is too big the autoencoder will learn the 
 identity matrix and will overfit the data. On the other hand, if \textit{q}
 is too small the autoencoder cannot learn the necessary covariates existing
 in the data. Therefore, it is recommended for any new dataset to estimate the
-optimal encoding dimension to gain the best performance. With the function 
-\Rfunction{findEncodingDim} one can find the optimal encoding dimension. 
-To this end, we artificially introduce corrupted counts randomly into the 
-dataset and monitor the performance calling those corrupted counts. The optimal
-dimension \textit{q} is then selected as the dimension maximizing the area under
-the precision-recall curve for identifying corrupted counts.
+optimal encoding dimension to gain the best performance. 
+With the function \Rfunction{estimateBestQ} one can find the optimal encoding 
+dimension using Optimal Hard Thresholding\cite{Gavish2013}. Alternatively, the 
+function can perform a hyperparameter optimization based on a grid-search. To 
+this end, we artificially introduce corrupted counts randomly into the dataset 
+and monitor the performance calling those corrupted counts. The optimal dimension 
+\textit{q} is then selected as the dimension maximizing the area under the 
+precision-recall curve for identifying corrupted counts. Since this method runs a 
+full OUTRIDER fit for a variety of encoding dimensions, it is quite CPU-intensive. 
+Thus, it is recommended to use the faster default method relying on OHT.
 
-<<findEncodingDim, eval=FALSE>>=
-# find the optimal encoding dimension q
-ods <- findEncodingDim(ods)
 
-# visualize the hyper parameter optimization
+<<estimateBestQ, eval=FALSE>>=
+# Optimal Hard Thresholding (default)
+ods <- estimateBestQ(ods)
+
+# Hyperparameter Optimization
+ods <- estimateBestQ(ods, useOHT=FALSE)
+
+# visualize the estimation of the optimal encoding dimension
 plotEncDimSearch(ods)
 
 @
-
-Since this function runs a full OUTRIDER fit for a range of encoding dimensions,
-it is quite CPU intensive, but can increase the overall performance of the
-autoencoder and is recommended for any data set. If \textit{q} is not provided
-by the user, it will be estimated based on the number of samples.
 
 
 \subsubsection{Excluding samples from the autoencoder fit}

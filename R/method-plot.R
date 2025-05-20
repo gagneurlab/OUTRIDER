@@ -57,6 +57,8 @@
 #'             Default is NULL (using transcriptome-wide FDR corrected pvalues).
 #' @param chr The chromosomes to be displayed in the \code{plotManhattan} 
 #'             function. Default is \code{NULL}, i.e. all chromosomes are shown. 
+#' @param highlight.label.size Size of the label of the highlighted genes to be 
+#'             displayed in the \code{plotManhattan}. Default value is 5.
 #### Graphical parameters
 #' @param main Title for the plot, if missing a default title will be used.
 #' @param groups A character vector containing either group assignments of
@@ -159,10 +161,11 @@
 #' over the mean expression is plotted. This is done for different expression
 #' levels. The curves are smooths to make the reading of the plot easier.
 #' 
-#' \code{plotEncDimSearch}: Visualization of the hyperparameter optimization. 
-#' It plots the encoding dimension against the achieved loss (area under the 
-#' precision-recall curve). From this plot the optimum should be choosen for
-#' the \code{q} in fitting process. 
+#' \code{plotEncDimSearch}: Visualization of the estimation of the optimal
+#' encoding dimension. If Optimal Hard Thresholding was used, the singular values
+#' are plotted against their rank. If a hyperparameter optimization was performed, 
+#' the encoding dimension against the achieved loss (area under the 
+#' precision-recall curve) is plotted. 
 #' 
 #' \code{plotManhattan}: Visualizes different metrics for each gene (pvalue, 
 #' log2 fold-change, z-score) along with the genomic coordinates of the 
@@ -237,7 +240,7 @@
 #'
 #' \dontrun{
 #' # for speed reasons we only search for 5 different dimensions
-#' ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50), 
+#' ods <- estimateBestQ(ods, useOHT=FALSE, params=c(3, 10, 20, 35, 50), 
 #'         implementation=implementation)
 #' plotEncDimSearch(ods)
 #' }
@@ -1232,38 +1235,56 @@ plotEncDimSearch.OUTRIDER <- function(object){
     if(is(object, 'OutriderDataSet')){
         if(!'encDimTable' %in% colnames(metadata(object)) &
                 !is(metadata(object)$encDimTable, 'data.table')){
-            stop('Please run first the findEncodingDim before ',
+            stop('Please run the estimateBestQ function before ',
                     'plotting the results of it.')
         }
         dt <- metadata(object)$encDimTable
-        q <- getBestQ(object)
+        opt_q <- getBestQ(object)
     } else {
         dt <- object
         dt <- dt[, opt:=
                 encodingDimension[which.max(evaluationLoss)[1]], by=zScore]
-        q <- dt[opt == encodingDimension, opt]
+        opt_q <- dt[opt == encodingDimension, opt]
     }
+    
+    if ('oht' %in% colnames(dt)){
+      # Singular value plot
+      opt_data <- dt[oht==TRUE,]
+      
+      ggplot(dt, aes(q, singular_values)) + 
+        geom_line(color="blue") +
+        geom_vline(xintercept = opt_data$q, linetype = "dashed", color = "darkgray") +
+        geom_text(data=opt_data, aes(x = q+3, y = singular_values, 
+                                     label = q), color = "darkgray", size=4.5) +
+        xlab('Singular value rank (Estimated q)') +
+        ylab('Singular value') + 
+        theme_bw(base_size=16) +
+        scale_y_log10() +
+        ggtitle('Search for best encoding dimension by OHT')
 
-    if(!is.data.table(dt)){
-        stop('Please provide the encDimTable from the OutriderDataSet object.')
+    } else{
+      # AUC plot
+      if(!is.data.table(dt)){
+          stop('Please provide the encDimTable from the OutriderDataSet object.')
+      }
+      if(!'zScore' %in% colnames(dt)){
+          dt[,zScore:='Optimum']
+          dt[,opt:=opt_q]
+      }
+      dtPlot <- dt[,.(enc=encodingDimension, z=as.character(zScore),
+              eva=evaluationLoss, opt)]
+      ggplot(dtPlot, aes(enc, eva, col=z)) +
+          geom_point() +
+          scale_x_log10() +
+          geom_smooth(method='loess') +
+          ggtitle('Search for best encoding dimension') +
+          geom_vline(data=dtPlot[opt == enc], show.legend=TRUE,
+                  aes(xintercept=enc, col=z, linetype='Optimum')) +
+          geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) +
+          labs(x='Encoding dimension',
+                  y='Evaluation loss', col='Z score', linetype='Best Q') +
+          scale_linetype_manual(values="dotted")
     }
-    if(!'zScore' %in% colnames(dt)){
-        dt[,zScore:='Optimum']
-        dt[,opt:=q]
-    }
-    dtPlot <- dt[,.(enc=encodingDimension, z=as.character(zScore),
-            eva=evaluationLoss, opt)]
-    ggplot(dtPlot, aes(enc, eva, col=z)) +
-        geom_point() +
-        scale_x_log10() +
-        geom_smooth(method='loess') +
-        ggtitle('Search for best encoding dimension') +
-        geom_vline(data=dtPlot[opt == enc], show.legend=TRUE,
-                aes(xintercept=enc, col=z, linetype='Optimum')) +
-        geom_text(data=dtPlot[opt == enc], aes(y=0.0, enc-0.5, label=enc)) +
-        labs(x='Encoding dimensions',
-                y='Evaluation loss', col='Z score', linetype='Best Q') +
-        scale_linetype_manual(values="dotted")
 }
 
 #' @rdname plotFunctions
@@ -1342,7 +1363,11 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                                    chr=NULL, main=paste0("Sample: ", sampleID),
                                    featureRanges=rowRanges(object), 
                                    subsetName=NULL,
-                                   chrColor = c("black", "darkgrey")){
+                                   chrColor = c("black", "darkgrey"),
+                                   padjCutoff = 0.05,
+                                   zScoreCutoff=0,
+                                   highlight.label.size = 5
+                                  ){
     requireNamespace("ggbio")
     requireNamespace("GenomeInfoDb")
     
@@ -1396,7 +1421,8 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
         gr$value <- assay(object, "l2fc")[, sampleID]
         value <- expression(paste(log[2], "(fold-change)"))
     }
-    gr$aberrant <- aberrant(object, subsetName=subsetName)[,sampleID]
+    gr$aberrant <- aberrant(object, subsetName=subsetName,
+                            padjCutoff=padjCutoff, zScoreCutoff=zScoreCutoff)[,sampleID]
     
     # Sort granges for plot
     gr <- GenomeInfoDb::sortSeqlevels(gr)
@@ -1433,6 +1459,7 @@ plotManhattan.OUTRIDER <- function(object, sampleID, value="pvalue",
                          highlight.gr = gr[which(gr$aberrant == TRUE)], 
                          highlight.col = 'firebrick',
                          highlight.overlap = 'equal',
+                         highlight.label.size = highlight.label.size,
                          use.genome.coords=is.null(chr)) +
         labs(x="Chromosome", y = value, title=main, subtitle=subtitle)
     

@@ -242,21 +242,3 @@ getBestQDT <- function(dt, usedEvalMethod='aucPR', digits=10){
     dt[,encodingDimension[
             seq_len(.N) == testFun(round(evaluationLoss, digits))]]
 }
-
-#'
-#' Estimation of Q
-#' 
-#' Estimating the best q for the given data set
-#' 
-#' @param ods An OutriderDataSet object
-#' @return The estimated dimension of hidden confounders
-#' 
-#' @examples
-#' ods <- makeExampleOutriderDataSet()
-#' 
-#' estimateBestQ(ods)
-#' 
-#' @export
-estimateBestQ <- function(ods){
-    round(max(2, min(500, 3.7 + 0.16*ncol(ods))))
-}

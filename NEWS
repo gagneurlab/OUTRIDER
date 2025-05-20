@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.30.0
+-----------------------------
+    o Add Optimal Hard Thresholding to determine optimal encoding dimension #69
+    o Add singular value plot for optimal encoding dimension
+    o Add highlight.label.size to method-plot.R
+
 CHANGES IN VERSION 1.20.1
 -----------------------------
     o Add Manhattenplot functionallity

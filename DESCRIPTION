@@ -1,8 +1,8 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.20.1
-Date: 2024-04-24
+Version: 1.30.0
+Date: 2025-05-19
 URL: https://github.com/gagneurlab/OUTRIDER
 BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
 Authors@R: c(
@@ -12,6 +12,7 @@ Authors@R: c(
             email="mertes@in.tum.de", comment=c(ORCID="0000-0002-1091-205X")),
     person("Agne", "Matuseviciute", role=c("aut")),
     person(c("Michaela", "Fee"), "Müller", role=c("ctb")),
+    person("Andrea", "Raithel", role=c("ctb")),
     person("Vicente", "Yepez", role=c("aut"), email="yepez@in.tum.de"),
     person("Julien", "Gagneur", role=c("aut"), email="gagneur@in.tum.de"))
 Description: Identification of aberrant gene expression in RNA-seq data.
@@ -27,7 +28,7 @@ biocViews: ImmunoOncology, RNASeq, Transcriptomics, Alignment, Sequencing,
 License: MIT + file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Depends:
     R (>= 3.6), 
     BiocParallel,
@@ -59,7 +60,10 @@ Imports:
     scales,
     splines,
     stats,
-    utils
+    utils,
+    RMTstat,
+    pracma,
+    txdbmaker
 Suggests: 
     testthat,
     knitr,
@@ -73,7 +77,8 @@ Suggests:
     covr,
     GenomeInfoDb,
     ggbio,
-    biovizBase
+    biovizBase,
+    denoiseR
 LinkingTo:
     Rcpp,
     RcppArmadillo
@@ -90,7 +95,7 @@ Collate:
     ZscoreMatrix.R
     method-evaluation.R
     method-counts.R
-    method-gridSearch.R
+    method-estimateBestQ.R
     method-plot.R
     method-results.R
     pValMatrix.R

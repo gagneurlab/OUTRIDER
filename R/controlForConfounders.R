@@ -48,7 +48,8 @@ controlForConfounders <- function(ods, q,
     } else {
         q <- getBestQ(ods)
         if(is.na(q)){
-            q <- estimateBestQ(ods)
+            ods <- estimateBestQ(ods)
+            q <- getBestQ(ods)
             message('Using estimated q with: ', q)
         } else {
             message('Using provided q with: ', q)

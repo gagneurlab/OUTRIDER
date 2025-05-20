@@ -13,6 +13,7 @@ Please cite our method paper if you use it in a publication:
 
 > Brechtmann F, Mertes C, Matusevičiūtė A, *et al.* OUTRIDER: A Statistical Method for Detecting Aberrantly Expressed Genes in RNA Sequencing Data. *Am J Hum Genet. 2018;103(6):907-917*. https://doi.org/10.1016/j.ajhg.2018.10.025
 
+Since v. 1.20.2, OUTRIDER uses the Optimal Hard Threshold algorithm to determine the optimal encoding dimension `q`.
 
 ## Installation
 

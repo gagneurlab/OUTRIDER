@@ -1,10 +1,14 @@
 #' 
 #' Find the optimal encoding dimension
 #' 
-#' Finds the optimal encoding dimension for a given data set by running a 
-#' grid search based on the provided parameter set.
+#' Finds the optimal encoding dimension by either Optimal Hard Thresholding 
+#' or injecting artificial splicing outlier ratios while maximizing the 
+#' precision-recall curve.
 #'
-#' @param ods An OutriderDataSet
+#' @param ods An OutriderDataSet object
+#' @param zScoresOHT A z-score matrix
+#' @param useOHT If \code{TRUE} (default), Optimal Hard Thresholding is 
+#'              used to estimate the optimal encoding dimension.
 #' @param params,encDimParams Set of possible q values.
 #' @param freq Frequency of outlier, defaults to 1E-2
 #' @param zScore,zScoreParams Set of possible injection Z-score, defaults to 3.
@@ -15,11 +19,19 @@
 #' @param ... Further arguments passed on to the \code{controlForConfounders}
 #'             function.
 #' @param BPPARAM BPPARAM object by default bpparam().
-#'
-#' @return The optimal encoding dimension
-#'
+#' 
+#' @import RMTstat
+#' @import pracma
+#' @return The OutriderDataSet object with the optimal encoding dimension saved 
+#'        in the metadata
+#' 
 #' @examples
 #' ods <- makeExampleOutriderDataSet()
+#' 
+#' # run OHT (default)
+#' estimateBestQ(ods)
+#' 
+#' # run hyperparameter optimization (grid-search)
 #' encDimSearchParams <- c(5, 8, 10, 12, 15)
 #' zScoreParams <- c(2, 3, 5, 'lnorm')
 #' implementation <- 'autoencoder'
@@ -31,45 +43,127 @@
 #'     register(SerialParam())
 #'     implementation <- 'pca'
 #' }
-#' ods1 <- findEncodingDim(ods, params=encDimSearchParams, 
+#' ods1 <- estimateBestQ(ods, useOHT=FALSE, params=encDimSearchParams, 
 #'         implementation=implementation)
 #' plotEncDimSearch(ods1)
 #' 
 #' ods2 <- findInjectZscore(ods, zScoreParams=zScoreParams,
 #'         encDimParams=encDimSearchParams, implementation=implementation)
-#' plotEncDimSearch(ods2)
+#' plotEncDimSearch(ods2) 
 #' 
-#' @rdname findEncodingDim
-#' @aliases findEncodingDim, findInjectZscore
+#' @rdname estimateBestQ
+#' @aliases estimateBestQ, findInjectZscore
 #' @export
-findEncodingDim <- function(ods, 
-                    params=seq(2, min(100, ncol(ods) - 1, nrow(ods) - 1), 2),
-                    freq=1E-2, zScore=3, sdlog=log(1.6), lnorm=TRUE,
-                    inj='both', ..., BPPARAM=bpparam()){
+estimateBestQ <- function(ods=NULL, zScoresOHT=NULL, useOHT=TRUE, 
+                          params=seq(2, min(100, ncol(ods) - 1, nrow(ods) - 1), 2),
+                          freq=1E-2, zScore=3, sdlog=log(1.6), lnorm=TRUE,
+                          inj='both', ..., BPPARAM=bpparam()){
+  # Optimal Hard Thresholding (default)
+  if (isTRUE(useOHT)){
+    if (is.null(ods) & is.null(zScoresOHT)){
+      stop("Please provide an OutriderDataSet or a z-score matrix.")
+    }
+    else if (!is.null(ods)){
+      OUTRIDER:::checkOutriderDataSet(ods)
+      if (!is.null(zScoresOHT)){
+        warning("Provided z-scores are ignored and recalculated from ods.")
+      }
+      
+      # Control for sequencing depth
+      if (is.null(sizeFactors(ods))){
+        ods <- estimateSizeFactors(ods)
+      }
+      controlledCounts <- t(t(counts(ods, normalized=FALSE)) / sizeFactors(ods)) 
+      
+      # Log-transform controlled counts
+      logControlCounts <- log2((controlledCounts +1) / (rowMeans2(controlledCounts) +1))
+      
+      # Compute Z-scores and control for large values
+      zScoresOHT <- (logControlCounts - rowMeans2(logControlCounts)) / rowSds(logControlCounts)
+    }
+    else if (!is.matrix(zScoresOHT)){
+      stop("Provided zScoresOHT are not a matrix.")
+    }
+    if (any(is.infinite(zScoresOHT))) {
+      # Check for infinite values (should be impossible!)
+      stop("Z-score matrix contains infinite values.")
+    }
+    
+    # Transpose zScoresOHT if aspect ratio larger than 1
+    if (ncol(zScoresOHT)/nrow(zScoresOHT) > 1){
+      zScoresOHT <- t(zScoresOHT)
+    } 
+    
+    # Perform Singular Value Decomposition (SVD) on the matrix of Z-scores 
+    # and extract singular values
+    sv <- svd(zScoresOHT)$d
+    
+    # Aspect ratio of the (transposed) count matrix
+    numRows <- nrow(zScoresOHT)
+    numCols <- ncol(zScoresOHT)
+    beta <- numCols / numRows
+    
+    # Compute the optimal w(beta)
+    coef <- (optimalSVHTCoef(beta) / sqrt(medianMarchenkoPastur(numCols, numRows)))
+    
+    # compute cutoff
+    cutoff <- coef * median(sv)
+    
+    # compute and return rank
+    if (any(sv > cutoff)){
+      latentDim <- max(which(sv > cutoff))
+    } else {
+      warning(paste("Optimal latent space dimension is smaller than 2. Check your count matrix and",
+                    "verify that all samples have the expected number of counts",
+                    "(hist(colSums(counts(ods)))).",
+                    "For now, the latent space dimension is set to 2.", collapse = "\n"))
+      latentDim <- 2} 
+    cat("Optimal encoding dimension:", latentDim, "\n")
+    
+    if (!is.null(ods)){
+      data <- data.table(singular_values=sv)
+      data <- data[, q:=.I]
+      data <- data[-.N] # remove last entry (close to zero, impedes visualization)
+      data <- data[, oht:=FALSE]
+      data <- data[q==latentDim, oht:=TRUE] # set optimal latent dimension
+      data <- data[order(-oht)]
+      
+      metadata(ods)[['encDimTable']] <- NULL
+      metadata(ods)[['encDimTable']] <- data
+      metadata(ods)[['optimalEncDim']] <- latentDim
+      
+      validateOutriderDataSet(ods)
+      return(ods)
+    } else{
+      return(latentDim)
+    }
+    
+  } else{ 
+    # Hyperparamter optimization (grid-search)
     
     # compute auto Correction
     ods <- estimateSizeFactors(ods)
     ods <- injectOutliers(ods, freq=freq, zScore=zScore, inj=inj, lnorm=lnorm,
-            sdlog=sdlog)
+                          sdlog=sdlog)
     
     # TODO Please check if this is still correct
     # ods <- getLossBounderyCases(ods)
     
     eval <- bplapply(X=params, ..., BPPARAM=BPPARAM, 
-        FUN=function(i, ..., evalAucPRLoss=NA){
-            evalAutoCorrection(ods, encoding_dim=i, BPPARAM=SerialParam(), ...)}
+                     FUN=function(i, ..., evalAucPRLoss=NA){
+                       evalAutoCorrection(ods, encoding_dim=i, BPPARAM=SerialParam(), ...)}
     )
     
     metadata(ods)[['encDimTable']] <- data.table(
-            encodingDimension= params,
-            evaluationLoss= unlist(eval), 
-            evalMethod='aucPR')
-    metadata(ods)[['optimalEncDim']] <- NULL
+      encodingDimension= params,
+      evaluationLoss= unlist(eval), 
+      evalMethod='aucPR')
     metadata(ods)[['optimalEncDim']] <- getBestQ(ods)
     
     counts(ods) <- assay(ods, 'trueCounts')
     validateOutriderDataSet(ods)
     return(ods)
+  }
 }
 
 getLossBounderyCases <- function(ods){
@@ -100,7 +194,7 @@ getLossBounderyCases <- function(ods){
     return(ods)
 }
 
-#' @rdname findEncodingDim 
+#' @rdname estimateBestQ
 #' @export
 findInjectZscore <- function(ods, freq=1E-2,
                     zScoreParams=c(seq(1.5, 4, 0.5), 'lnorm'),
@@ -120,7 +214,7 @@ findInjectZscore <- function(ods, freq=1E-2,
         }
         message(date(), ": run Z-score: ", z, " and enc: ", enc)
         set.seed(RNGseed)
-        findEncodingDim(ods, lnorm=lnorm, zScore=z, params=enc, 
+        estimateBestQ(ods, useOHT=FALSE, lnorm=lnorm, zScore=z, params=enc, 
                 BPPARAM=SerialParam(), ...)
     }
     
@@ -142,7 +236,7 @@ findInjectZscore <- function(ods, freq=1E-2,
     return(ods)
 }
 
-## Helper functions called within SearchEncDim ##
+## Helper functions called within estimateBestQ ##
 
 
 #' injectOutliers
@@ -253,5 +347,55 @@ evalAutoCorrection <- function(ods, encoding_dim, BPPARAM=bpparam(), ...){
     
     print(paste0('Evaluation loss: ', eloss,' for q=',encoding_dim))
     return(eloss)
+}
+
+#'
+#' Calculate the OHT coefficient 
+#' 
+#' @noRd
+optimalSVHTCoef <- function(beta){ 
+  # Calculate lambda(beta)
+  sqrt(2 * (beta + 1) + (8 * beta) / (beta + 1 + sqrt(beta^2 + 14 * beta + 1)))
+}
+
+#'
+#' Calculate the median of the Marchenko-Pastur distribution
+#' 
+#' Formulas are derived from a robust estimator for the noise 
+#' parameter gamma in the model Z~ = Z + gamma * E.
+#' Gamma(Z~) = sigma / sqrt(n * mu)) with mu: median of the Marcenko-Pastur distribution.
+#' More detailed explanations can be found in Gavish and Donoho 2014.
+#' 
+#' @noRd
+medianMarchenkoPastur <- function(ncol, nrow){ 
+  # Compute median of Marchenko-Pastur distribution
+  beta <- ncol / nrow
+  betaMinus <- (1 - sqrt(beta))^2
+  betaPlus <- (1 + sqrt(beta))^2
+  
+  # Initialize range for upper integral boundary
+  lobnd <- copy(betaMinus) 
+  hibnd <- copy(betaPlus)
+  
+  
+  while ((hibnd - lobnd) > 0.001){ # Iterate until convergence
+    x <- seq(lobnd, hibnd, length.out = 10) # Set range of values for upper integral boundary
+    y <- rep(0, length(x))
+    for (numCols in 1:length(x)){
+      # Approximate integral using Gauss-Kronrod Quadrature
+      y[numCols] <- quadgk(dmp, a=betaMinus, b=x[numCols], ndf=nrow, pdim=ncol)
+    }  
+    
+    # Set new boundaries for x that yield the closest results to 0.5
+    if (any(y < 0.5)){
+      lobnd = max(x[y < 0.5])
+    }
+    
+    if (any(y > 0.5)){
+      hibnd = min(x[y > 0.5])
+    }
+  }
+  # If hibnd and lobnd are similar enough, return their mean
+  return((hibnd + lobnd) / 2.0)
 }
 

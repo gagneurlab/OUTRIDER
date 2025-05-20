@@ -172,7 +172,10 @@ plotSizeFactors(ods, basePlot = TRUE)
   main = paste0("Sample: ", sampleID),
   featureRanges = rowRanges(object),
   subsetName = NULL,
-  chrColor = c("black", "darkgrey")
+  chrColor = c("black", "darkgrey"),
+  padjCutoff = 0.05,
+  zScoreCutoff = 0,
+  highlight.label.size = 5
 )
 }
 \arguments{
@@ -286,6 +289,9 @@ features that are shown in the manhattan plot.}
 \item{chrColor}{A vector of length 2 giving the two colors used for 
 coloring alternating chromosomes in the manhattan plot. Default 
 colors are 'black' and 'darkgrey'.}
+
+\item{highlight.label.size}{Size of the label of the highlighted genes to be 
+displayed in the \code{plotManhattan}. Default value is 5.}
 }
 \value{
 If base R graphics are used nothing is returned else the plotly or
@@ -368,10 +374,11 @@ the dispersion of the provided OUTRIDER data set the theoretical P-value
 over the mean expression is plotted. This is done for different expression
 levels. The curves are smooths to make the reading of the plot easier.
 
-\code{plotEncDimSearch}: Visualization of the hyperparameter optimization. 
-It plots the encoding dimension against the achieved loss (area under the 
-precision-recall curve). From this plot the optimum should be choosen for
-the \code{q} in fitting process. 
+\code{plotEncDimSearch}: Visualization of the estimation of the optimal
+encoding dimension. If Optimal Hard Thresholding was used, the singular values
+are plotted against their rank. If a hyperparameter optimization was performed, 
+the encoding dimension against the achieved loss (area under the 
+precision-recall curve) is plotted. 
 
 \code{plotManhattan}: Visualizes different metrics for each gene (pvalue, 
 log2 fold-change, z-score) along with the genomic coordinates of the 
@@ -443,7 +450,7 @@ plotPowerAnalysis(ods)
 
 \dontrun{
 # for speed reasons we only search for 5 different dimensions
-ods <- findEncodingDim(ods, params=c(3, 10, 20, 35, 50), 
+ods <- estimateBestQ(ods, useOHT=FALSE, params=c(3, 10, 20, 35, 50), 
         implementation=implementation)
 plotEncDimSearch(ods)
 }
