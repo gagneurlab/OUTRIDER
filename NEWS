@@ -4,7 +4,7 @@ CHANGES IN VERSION 1.26.2
     o Add singular value plot for optimal encoding dimension
     o Add highlight.label.size to method-plot.R
 
-CHANGES IN VERSION 1.20.1
+CHANGES IN VERSION 1.22.0
 -----------------------------
     o Add Manhattenplot functionallity
     o Bugfix in restricting for FDR correction and others (#54 and aa6e56a)
