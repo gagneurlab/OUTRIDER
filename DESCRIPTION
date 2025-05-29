@@ -1,20 +1,22 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.30.0
+Version: 1.26.2
 Date: 2025-05-19
 URL: https://github.com/gagneurlab/OUTRIDER
-BugRepots: https://github.com/gagneurlab/OUTRIDER/issues
+BugReports: https://github.com/gagneurlab/OUTRIDER/issues
 Authors@R: c(
     person("Felix", "Brechtmann", role=c("aut"), 
-            email="brechtma@in.tum.de"),
+            email="brechtma@in.tum.de", comment=c(ORCID="0000-0002-0110-152X")),
     person("Christian", "Mertes", role=c("aut", "cre"), 
             email="mertes@in.tum.de", comment=c(ORCID="0000-0002-1091-205X")),
     person("Agne", "Matuseviciute", role=c("aut")),
     person(c("Michaela", "Fee"), "Müller", role=c("ctb")),
     person("Andrea", "Raithel", role=c("ctb")),
-    person("Vicente", "Yepez", role=c("aut"), email="yepez@in.tum.de"),
-    person("Julien", "Gagneur", role=c("aut"), email="gagneur@in.tum.de"))
+    person("Vicente", "Yepez", role=c("aut"), email="yepez@in.tum.de",
+            comment=c(ORCID="0000-0001-7916-3643")),
+    person("Julien", "Gagneur", role=c("aut"), email="gagneur@in.tum.de",
+            comment=c(ORCID="0000-0002-8924-8365")))
 Description: Identification of aberrant gene expression in RNA-seq data.
     Read count expectations are modeled by an autoencoder to control for
     confounders in the data. Given these expectations, the RNA-seq read counts
@@ -25,12 +27,12 @@ Description: Identification of aberrant gene expression in RNA-seq data.
 VignetteBuilder: knitr
 biocViews: ImmunoOncology, RNASeq, Transcriptomics, Alignment, Sequencing, 
     GeneExpression, Genetics
-License: MIT + file LICENSE
+License: file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Depends:
-    R (>= 3.6), 
+    R (>= 3.6),
     BiocParallel,
     GenomicFeatures,
     SummarizedExperiment,
@@ -44,26 +46,26 @@ Imports:
     GenomicRanges,
     ggplot2,
     ggrepel,
+    graphics,
     grDevices,
     heatmaply,
-    pheatmap,
-    graphics,
     IRanges,
     matrixStats,
+    pcaMethods,
+    pheatmap,
     plotly,
     plyr,
-    pcaMethods,
+    pracma,
     PRROC,
     RColorBrewer,
     reshape2,
+    RMTstat,
     S4Vectors,
     scales,
     splines,
     stats,
-    utils,
-    RMTstat,
-    pracma,
-    txdbmaker
+    txdbmaker,
+    utils
 Suggests: 
     testthat,
     knitr,

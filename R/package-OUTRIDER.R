@@ -27,7 +27,7 @@
 #'          bpmapply
 #' 
 #' @importFrom GenomicFeatures exonsBy
-#'
+#' 
 #' @importFrom txdbmaker makeTxDbFromGFF
 #' 
 #' @importFrom GenomicRanges GRanges reduce width start end findOverlaps 

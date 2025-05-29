@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.30.0
+CHANGES IN VERSION 1.26.2
 -----------------------------
     o Add Optimal Hard Thresholding to determine optimal encoding dimension #69
     o Add singular value plot for optimal encoding dimension

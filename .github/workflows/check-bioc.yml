@@ -24,7 +24,7 @@ on:
   push:
   pull_request:
 
-name: R-CMD-check-bioc
+name: build
 
 ## These environment variables control whether to run GHA code later on that is
 ## specific to testthat, covr, and pkgdown.
@@ -53,10 +53,10 @@ jobs:
       matrix:
         config:
           # This needs to be updated after each Bioconductor release. Please make sure we have the matching R and Bioc versions in it. 
-          - { os: ubuntu-latest, r: '4.5', bioc: '3.21', cont: "bioconductor/bioconductor_docker:RELEASE_3_21", rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
-          - { os: ubuntu-latest, r: 'next', bioc: '3.22', cont: "bioconductor/bioconductor_docker:devel", rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
-          - { os: macOS-latest, r: '4.5', bioc: '3.21'}
-          - { os: windows-latest, r: '4.5', bioc: '3.21'}
+          - { os: ubuntu-latest,  r: '4.5',  bioc: '3.21', cont: "bioconductor/bioconductor_docker:RELEASE_3_21", rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
+          - { os: ubuntu-latest,  r: 'next', bioc: '3.22', cont: "bioconductor/bioconductor_docker:devel",        rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
+          - { os: macOS-latest,   r: '4.5',  bioc: '3.21'}
+          - { os: windows-latest, r: '4.5',  bioc: '3.21'}
           ## Check https://github.com/r-lib/actions/tree/master/examples
           ## for examples using the http-user-agent
     env:
@@ -107,16 +107,16 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-
+          key: ${{ env.cache-version }}-${{ matrix.config.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ env.cache-version }}-${{ matrix.config.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-
 
       - name: Cache R packages on Linux
         if: "!contains(github.event.head_commit.message, '/nocache') && runner.os == 'Linux' "
         uses: actions/cache@v3
         with:
           path: /home/runner/work/_temp/Library
-          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-
+          key: ${{ env.cache-version }}-${{ matrix.config.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ env.cache-version }}-${{ matrix.config.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
@@ -314,7 +314,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@master
         with:
-          name: ${{ runner.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-results
+          name: ${{ matrix.config.os }}-biocversion-${{ matrix.config.bioc }}-r-${{ matrix.config.r }}-results
           path: check
 
         ## Note that DOCKER_PASSWORD is really a token for your dockerhub
