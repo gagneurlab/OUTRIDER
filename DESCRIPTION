@@ -27,10 +27,10 @@ Description: Identification of aberrant gene expression in RNA-seq data.
 VignetteBuilder: knitr
 biocViews: ImmunoOncology, RNASeq, Transcriptomics, Alignment, Sequencing, 
     GeneExpression, Genetics
-License: CC BY-NC 4.0 + file LICENSE
+License: file LICENSE
 NeedsCompilation: yes
 Encoding: UTF-8
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Depends:
     R (>= 3.6),
     BiocParallel,

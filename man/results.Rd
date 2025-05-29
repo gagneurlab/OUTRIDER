@@ -44,32 +44,30 @@ for those subsets should be retrieved.}
 A data.table where each row is an outlier event and the columns
    contain additional information about this event. In details the 
    table contains: 
-   \itemize{
-     \item{sampleID / geneID: }{The gene or sample ID as provided by the 
-           user, e.g. \code{rowData(ods)} and \code{colData(ods)},
-           respectively.}
-     \item{pValue / padjust: }{The nominal P-value and the FDR corrected
-           P-value (transcriptome-wide) indicating the outlier status.}
-     \item{zScore / l2fc: }{The z score and log\eqn{_2}{[2]} fold change 
-         as computed by \code{\link[OUTRIDER]{computeZscores}}.}
-     \item{rawcounts: }{The observed read counts.}
-     \item{normcounts: }{The expected count given the fitted 
-           autoencoder model for the given gene-sample combination.}
-     \item{meanRawcounts / meanCorrected: }{For this gene, the mean of the 
-          observed or expected counts, respectively, given the fitted 
-          autoencoder model.}
-     \item{theta: }{The dispersion parameter of the NB distribution 
-           for the given gene.}
-     \item{aberrant: }{The transcriptome-wide outlier status of this event: 
-           \code{TRUE} or \code{FALSE}.}
-     \item{AberrantBySample / AberrantByGene: }{Number of outliers for the 
-           given sample or gene (transcriptome-wide), respectively.}
-     \item{padj_rank: }{Rank of this outlier event within the given sample.}
-     \item{padjust_FDRset: }{The FDR corrected P-value with respect to the 
-           gene subset called 'FDRset', if gene subsets were specified 
-           during the P-value computation. Find more details at 
-           \code{\link[OUTRIDER]{computePvalues}}.}
-   }
+   \item{sampleID/geneID}{The gene or sample ID as provided by the 
+         user, e.g. \code{rowData(ods)} and \code{colData(ods)},
+         respectively.}
+   \item{pValue/padjust}{The nominal P-value and the FDR corrected
+         P-value (transcriptome-wide) indicating the outlier status.}
+   \item{zScore/l2fc}{The z score and log\eqn{_2}{[2]} fold change 
+       as computed by \code{\link[OUTRIDER]{computeZscores}}.}
+   \item{rawcounts}{The observed read counts.}
+   \item{normcounts}{The expected count given the fitted 
+         autoencoder model for the given gene-sample combination.}
+   \item{meanRawcounts/meanCorrected}{For this gene, the mean of the 
+        observed or expected counts, respectively, given the fitted 
+        autoencoder model.}
+   \item{theta}{The dispersion parameter of the NB distribution 
+         for the given gene.}
+   \item{aberrant}{The transcriptome-wide outlier status of this event: 
+         \code{TRUE} or \code{FALSE}.}
+   \item{AberrantBySample/AberrantByGene}{Number of outliers for the 
+         given sample or gene (transcriptome-wide), respectively.}
+   \item{padj_rank}{Rank of this outlier event within the given sample.}
+   \item{padjust_FDRset}{The FDR corrected P-value with respect to the 
+         gene subset called 'FDRset', if gene subsets were specified 
+         during the P-value computation. Find more details at 
+         \code{\link[OUTRIDER]{computePvalues}}.}
 }
 \description{
 This function assembles a results table of significant outlier events based
