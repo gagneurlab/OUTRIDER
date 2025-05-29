@@ -2,7 +2,7 @@
 [![Build](https://github.com/gagneurlab/OUTRIDER/actions/workflows/check-bioc.yml/badge.svg)](https://github.com/gagneurlab/OUTRIDER/actions/workflows/check-bioc.yml)
 [![Version](https://img.shields.io/github/v/release/gagneurlab/OUTRIDER)](https://github.com/gagneurlab/OUTRIDER/releases)
 [![Coverage status](https://codecov.io/gh/gagneurlab/OUTRIDER/branch/master/graph/badge.svg)](https://codecov.io/github/gagneurlab/OUTRIDER?branch=master)
-[![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/gagneurlab/OUTRIDER/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/license-CC--BY--NC%204.0-green)](https://github.com/gagneurlab/OUTRIDER/blob/master/LICENSE)
 
 OUTRIDER is a tool to find aberrantly expressed genes in RNA-seq samples.
 The method is published in the [AJHG](https://doi.org/10.1016/j.ajhg.2018.10.025)
