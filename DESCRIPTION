@@ -79,8 +79,7 @@ Suggests:
     covr,
     GenomeInfoDb,
     ggbio,
-    biovizBase,
-    denoiseR
+    biovizBase
 LinkingTo:
     Rcpp,
     RcppArmadillo
