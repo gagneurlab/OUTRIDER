@@ -1,9 +1,6 @@
 context("Testing the estimateBestQ function")
 
-library(denoiseR)
-
 # Hyperparameter optimization (grid-search)
-
 test_that("Test hyperparameter optimization", {
   
   ods <- makeExampleOutriderDataSet(dataset = 'Kremer')
@@ -86,7 +83,7 @@ test_that("Encoding dimensions are properly calculated for simulated z-scores", 
   numSamples <- 200
   latentDim <- 50
   signalNoiseRatio <- 5
-  zTilde <- LRsim(numGenes, numSamples, latentDim, signalNoiseRatio)$X * 1000
+  zTilde <- .LRsim(numGenes, numSamples, latentDim, signalNoiseRatio)$X * 1000
   
   expect_equal(estimateBestQ(zScoresOHT = zTilde),
                latentDim)
@@ -97,7 +94,7 @@ test_that("Encoding dimensions are properly calculated for simulated z-scores", 
   numSamples <- 200
   latentDim <- 20
   signalNoiseRatio <- 5
-  zTilde <- LRsim(numGenes, numSamples, latentDim, signalNoiseRatio)$X * 1000
+  zTilde <- .LRsim(numGenes, numSamples, latentDim, signalNoiseRatio)$X * 1000
   
   expect_equal(estimateBestQ(zScoresOHT = zTilde),
                latentDim)
