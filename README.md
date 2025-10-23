@@ -22,7 +22,7 @@ Since v. 1.26.2, OUTRIDER uses the Optimal Hard Threshold algorithm to determine
 `OUTRIDER` is an R software package requiring a running [R 3.6 version or higher](https://cran.r-project.org/).
 
 We will use `BiocManager` to install the package and its dependencies. For the devel version
-of `OUTRIDER`, [(see below)](#OUTRIDER-development-installation).
+of `OUTRIDER`, [see below](#OUTRIDER-development-installation).
 
 
 ```
