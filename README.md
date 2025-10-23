@@ -13,15 +13,16 @@ Please cite our method paper if you use it in a publication:
 
 > Brechtmann F, Mertes C, Matusevičiūtė A, *et al.* OUTRIDER: A Statistical Method for Detecting Aberrantly Expressed Genes in RNA Sequencing Data. *Am J Hum Genet. 2018;103(6):907-917*. https://doi.org/10.1016/j.ajhg.2018.10.025
 
-Since v. 1.26.2, OUTRIDER uses the Optimal Hard Threshold algorithm to determine the optimal encoding dimension `q`.
+Since v. 1.26.2, OUTRIDER uses the Optimal Hard Threshold algorithm to determine the optimal encoding dimension `q`. This makes the algorithm 6-10 times faster!
+
+⚠️ Also, since this version, OUTRIDER is released under `CC-BY-NC 4.0`,  meaning it requires a license for any commercial use. The commercial license is distributed by [OmicsDiscoveries](https://www.omicsdiscoveries.com). If you want to use it for commercial purposes, please write to license@omicsdiscoveries.com.
 
 ## Installation
 
 `OUTRIDER` is an R software package requiring a running [R 3.6 version or higher](https://cran.r-project.org/).
 
-We will use `BiocManager` to install the package and its dependencies. If you
-want to install the devel version of `OUTRIDER`, please install it 
-with devtools from GitHub directly [(see below)](#OUTRIDER-development-installation).
+We will use `BiocManager` to install the package and its dependencies. For the devel version
+of `OUTRIDER`, [(see below)](#OUTRIDER-development-installation).
 
 
 ```
