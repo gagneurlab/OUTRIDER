@@ -15,7 +15,7 @@ Please cite our method paper if you use it in a publication:
 
 Since v. 1.26.2, OUTRIDER uses the Optimal Hard Threshold algorithm to determine the optimal encoding dimension `q`. This makes the algorithm 6-10 times faster!
 
-⚠️ Also, since this version, OUTRIDER is released under `CC-BY-NC 4.0`,  meaning it requires a license for any commercial use. The commercial license is distributed by [OmicsDiscoveries](https://www.omicsdiscoveries.com). If you intend to use it for commercial purposes, please write to license@omicsdiscoveries.com.
+⚠️ Also, since this version, OUTRIDER is released under `CC-BY-NC 4.0`, meaning it requires a license for any commercial use. The commercial license is distributed by [OmicsDiscoveries](https://www.omicsdiscoveries.com). If you intend to use it for commercial purposes, please write to license@omicsdiscoveries.com.
 
 ## Installation
 
