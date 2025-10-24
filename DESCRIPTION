@@ -1,7 +1,7 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.27.3
+Version: 1.27.4
 Date: 2025-10-24
 URL: https://github.com/gagneurlab/OUTRIDER
 BugReports: https://github.com/gagneurlab/OUTRIDER/issues
@@ -36,11 +36,11 @@ Depends:
     BiocParallel,
     GenomicFeatures,
     SummarizedExperiment,
-    data.table,
     methods
 Imports:
     BBmisc,
     BiocGenerics,
+    data.table,
     DESeq2 (>= 1.16.1),
     generics,
     GenomicRanges,
