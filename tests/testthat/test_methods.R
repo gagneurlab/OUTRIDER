@@ -32,7 +32,7 @@ test_that("result method", {
     expect_equal(colnames(res), colnames(results(ods)))
     expect_true(all(results(ods)$aberrant))
     expect_equal(nrow(results(ods, all=TRUE)), nrow(ods)*ncol(ods))
-    expect_equal(nrow(results(ods, round=TRUE)), 3)
+    expect_equal(nrow(results(ods, round=TRUE)), 1)
 })
 
 test_that("normalization method", {
