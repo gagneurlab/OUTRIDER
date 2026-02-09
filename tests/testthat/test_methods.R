@@ -27,7 +27,7 @@ test_that("result method", {
     expect_error(results(ods), "Please calculate..*")
     ods <- OUTRIDER(ods, q=2, iteration=2)
     
-    expect_warning(results(ods, padj=1e-15), "No significant events:")
+    expect_warning(res <- results(ods, padj=1e-15), "No significant events:")
     expect_equal(colnames(res), colnames(results(ods)))
     res_all <- results(ods, all=TRUE)
     expect_equal(nrow(res_all), nrow(ods)*ncol(ods))
