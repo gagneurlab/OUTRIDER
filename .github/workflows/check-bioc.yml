@@ -53,10 +53,10 @@ jobs:
       matrix:
         config:
           # This needs to be updated after each Bioconductor release. Please make sure we have the matching R and Bioc versions in it. 
-          - { os: ubuntu-latest,  r: '4.5',  bioc: '3.21', cont: "bioconductor/bioconductor_docker:RELEASE_3_21", rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
-          - { os: ubuntu-latest,  r: 'next', bioc: '3.22', cont: "bioconductor/bioconductor_docker:devel",        rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
-          - { os: macOS-latest,   r: '4.5',  bioc: '3.21'}
-          - { os: windows-latest, r: '4.5',  bioc: '3.21'}
+          - { os: ubuntu-latest,  r: '4.5',  bioc: '3.22', cont: "bioconductor/bioconductor_docker:RELEASE_3_22", rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
+          - { os: ubuntu-latest,  r: 'next', bioc: '3.23', cont: "bioconductor/bioconductor_docker:devel",        rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
+          - { os: macOS-latest,   r: '4.5',  bioc: '3.22'}
+          - { os: windows-latest, r: '4.5',  bioc: '3.22'}
           ## Check https://github.com/r-lib/actions/tree/master/examples
           ## for examples using the http-user-agent
     env:

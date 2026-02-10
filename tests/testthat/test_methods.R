@@ -2,9 +2,9 @@ context("Testing computational functions")
 
 test_that("filter expression", {
     ods <- makeExampleOutriderDataSet(dataset="GTExSkinSmall")
-    annotationFile <- system.file("extdata", "gencode.v19.genes.small.gtf.gz", 
+    annotationFile <- system.file("extdata", "gencode.v19.genes.small.gtf.gz",
                                   package="OUTRIDER")
-    ods <- filterExpression(ods, annotationFile, filterGenes=TRUE, 
+    ods <- filterExpression(ods, annotationFile, filterGenes=TRUE,
                                fpkmCutoff=0)
     
     expect_true(all(mcols(ods)[,"passedFilter"]))
@@ -23,16 +23,18 @@ test_that("pvalue calculation", {
 })
 
 test_that("result method", {
-    set.seed(42)
-    ods <- makeExampleOutriderDataSet(100, 50)
+    ods <- makeExampleOutriderDataSet(150, 50)
     expect_error(results(ods), "Please calculate..*")
     ods <- OUTRIDER(ods, q=2, iteration=2)
     
-    expect_warning(res <- results(ods, padj=1e-10), "No significant events:")
+    expect_warning(res <- results(ods, padj=1e-15), "No significant events:")
     expect_equal(colnames(res), colnames(results(ods)))
+    res_all <- results(ods, all=TRUE)
+    expect_equal(nrow(res_all), nrow(ods)*ncol(ods))
     expect_true(all(results(ods)$aberrant))
-    expect_equal(nrow(results(ods, all=TRUE)), nrow(ods)*ncol(ods))
-    expect(nrow(results(ods, round=TRUE)), 3)
+    expect_equal(nrow(results(ods, padjCutoff=0.05, zScoreCutoff=0, round=TRUE)), 
+        nrow(res_all[padjust <= 0.05 & abs(zScore) >= 0])
+    )
 })
 
 test_that("normalization method", {
@@ -54,4 +56,3 @@ test_that("fit method", {
     expect_is(theta(ods), "numeric")
     expect_equal(length(theta(ods)), nrow(ods))
 })
-
