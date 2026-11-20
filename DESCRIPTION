@@ -1,8 +1,8 @@
 Package: OUTRIDER
 Title: OUTRIDER - OUTlier in RNA-Seq fInDER
 Type: Package
-Version: 1.31.0
-Date: 2026-02-10
+Version: 1.31.1
+Date: 2026-11-20
 URL: https://github.com/gagneurlab/OUTRIDER
 BugReports: https://github.com/gagneurlab/OUTRIDER/issues
 Authors@R: c(
@@ -27,7 +27,7 @@ Description: Identification of aberrant gene expression in RNA-seq data.
 VignetteBuilder: knitr
 biocViews: ImmunoOncology, RNASeq, Transcriptomics, Alignment, Sequencing, 
     GeneExpression, Genetics
-License: file LICENSE
+License: MIT
 NeedsCompilation: yes
 Encoding: UTF-8
 RoxygenNote: 7.3.2
